@@ -88,7 +88,7 @@ Cada cambio sigue `explore` (opcional) → `propose` → `apply` → `verify` �
 
 ## Idioma
 
-Documentación y comunicación en español. Código e identificadores en inglés.
+Documentación y comunicación en español. Artefactos en inglés: los de OpenSpec (proposal, specs, design, tasks), código, identificadores, skills y configuración de agentes.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
