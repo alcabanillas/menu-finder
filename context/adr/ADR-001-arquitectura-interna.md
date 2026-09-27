@@ -1,6 +1,6 @@
 # ADR-001 — Arquitectura interna: hexagonal sobre Next.js
 
-- **Estado:** aceptada (2026-09-19); **enmendada 2026-09-27**: la CLI pasa a ser un segundo adaptador primario, con su propio composition root (§2, §3, §5); la §2 solo fija lo decidido y la §4 incluye `RateLimiter`. **Segunda enmienda 2026-09-27**: la UI se organiza con la Scope Rule (`features/` y `shared/ui/`) y `app/` queda como capa de entrada (§2, §3, §5). **Tercera enmienda 2026-09-27**: el parseo que depende de la maquetación del documento de origen va en su adaptador, no en el dominio; el ejemplo de la §4 pasa a ser el parser del menú (MF-11)
+- **Estado:** aceptada (2026-09-19); **enmendada 2026-09-27**: la CLI pasa a ser un segundo adaptador primario, con su propio composition root (§2, §3, §5); la §2 solo fija lo decidido y la §4 incluye `RateLimiter`. **Segunda enmienda 2026-09-27**: la UI se organiza con la Scope Rule (`features/` y `shared/ui/`) y `app/` queda como capa de entrada (§2, §3, §5). **Tercera enmienda 2026-09-27**: el parseo que depende de la maquetación del documento de origen va en su adaptador, no en el dominio; el ejemplo de la §4 pasa a ser el parser del menú (MF-11). **Cuarta enmienda 2026-09-27**: la §4 añade `RecipeRepository`, que faltaba: `MenuDish` apunta a `recipeId`, así que las recetas se persisten igual que el menú y la lista
 - **Decisión en [decisiones.md](../decisiones.md):** ARQ-hexagonal
 - **Audiencia:** este documento es **entrada directa de los agentes** que generen código (SDD). Las reglas de la §3 son normativas y verificables en CI.
 - **Punto único:** la estructura de `src/` y sus reglas solo se describen aquí. `AGENTS.md` remite a este documento; no las copia.
@@ -77,13 +77,13 @@ El mayor riesgo de plazo de esta decisión es el boilerplate: entidad + port + c
 
 **Hay puerto solo donde hay una frontera externa real:**
 
-`MenuRepository`, `ShoppingListRepository`, `DocumentSource` (sistema de ficheros local, ING-cli-local), un puerto para los flujos LLM (descomponedor y explicador; Genkit queda detrás, ING-trazabilidad), `EmbeddingsPort`, `VectorSearchPort`, `ClockPort`, `RateLimiter` (SEG-rate-limit).
+`MenuRepository`, `RecipeRepository`, `ShoppingListRepository`, `DocumentSource` (sistema de ficheros local, ING-cli-local), un puerto para los flujos LLM (descomponedor y explicador; Genkit queda detrás, ING-trazabilidad), `EmbeddingsPort`, `VectorSearchPort`, `ClockPort`, `RateLimiter` (SEG-rate-limit).
 
 **No hay puerto para lógica interna.** Un servicio de dominio es una función, no una interfaz con una única implementación.
 
 **El parseo de documentos se divide por lo que cambia con el origen.** Lo que cambiaría si el mismo contenido llegara con otra maquetación (otra forma de tabla, una hoja de cálculo con un plato por fila) es del **adaptador de ese origen**. Lo que vale para cualquier origen es del **dominio**. El puerto devuelve estructuras independientes del origen, no tablas ni texto crudo.
 
-Ejemplo que fija el criterio — **el parser del menú (MF-11)**: leer el PDF (`pdf-parse`), localizar las filas Comida/Cena y separar los platos apilados en una celda es maquetación del PDF y vive en su adaptador (`infrastructure/menu-ingestion/pdf/`); `DocumentSource` devuelve el menú como comidas con platos y su marca de receta. El relleno que no es plato, la resolución de recetas y la construcción del `WeeklyMenu` son **funciones puras de dominio, sin puerto**. Las dos mitades se testean con strings, sin PDFs ni BD, que es lo que pide el plan de testing. La pureza de las funciones de maquetación es convención (en `infrastructure` ESLint permite librerías): se mantienen sin E/S, separadas del código que lee ficheros.
+Ejemplo que fija el criterio — **el parser del menú (MF-11)**: leer el PDF (`pdf-parse`), localizar las filas Comida/Cena y separar los platos apilados en una celda es maquetación del PDF y vive en su adaptador (`infrastructure/local-documents/pdf/`); `DocumentSource` devuelve el menú como comidas con platos y su marca de receta. El relleno que no es plato, la resolución de recetas y la construcción del `WeeklyMenu` son **funciones puras de dominio, sin puerto**. Las dos mitades se testean con strings, sin PDFs ni BD, que es lo que pide el plan de testing. La pureza de las funciones de maquetación es convención (en `infrastructure` ESLint permite librerías): se mantienen sin E/S, separadas del código que lee ficheros.
 
 ## 5. Decisiones específicas de Next.js
 
