@@ -1,4 +1,17 @@
-# TFM — Menús semanales con búsqueda en lenguaje natural
+# menu-finder LLM Instructions
+
+## Stack
+
+NextJS: React + TypeScript + Tailwind CSS v4 
+Testing: Vitest + Playwright
+
+## TDD - MANDATORY
+
+Red-Green-Refactor cycle, applied to ALL functions and components from here on:
+
+1. RED: Write test FIRST → run → MUST FAIL
+2. GREEN: Implement MINIMUM code to pass the test
+3. REFACTOR: Improve the code while keeping tests green
 
 Trabajo Fin de Máster en Desarrollo con IA. App web para elegir el menú semanal a partir de 36 menús en PDF de un nutricionista, con la lista de la compra como checklist. Es un **buscador en lenguaje natural sobre un catálogo estructurado** (hybrid retrieval + grounded generation), no un RAG documental.
 
