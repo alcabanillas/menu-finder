@@ -26,30 +26,7 @@ Para saber qué toca: `context/roadmap.md` (orden de trabajo, no normativo).
 
 ## Estructura del código
 
-Arquitectura hexagonal (ARQ-hexagonal, [ADR-001](context/adr/ADR-001-arquitectura-interna.md)). Un solo paquete y un solo hexágono con dos adaptadores primarios: la web y la CLI.
-
-```
-src/
-├── domain/           # entidades y reglas puras; sin dependencias externas
-├── application/      # casos de uso, ports y DTO
-├── infrastructure/   # implementaciones de los ports (BD, ficheros, LLM, embeddings)
-├── composition/      # únicas piezas que conocen implementaciones concretas
-│   ├── cli-container.ts
-│   └── web-container.ts
-├── cli/              # adaptador primario: ingesta, alta de cuentas, evaluación
-│   ├── commands/
-│   └── index.ts
-├── app/              # adaptador primario: Next.js App Router
-│   ├── api/
-│   └── (rutas UI)
-└── shared/
-    └── result.ts     # Result<T, E>
-scripts/datos/        # generación local de datos (T0); se sustituye por la CLI de ingesta
-```
-
-- Las reglas de dependencia entre capas están en ADR-001 §3 y **las verifica ESLint** en pre-commit y CI. Si una importación rompe la regla, el fallo está en el diseño, no en la regla.
-- `cli/` y `app/` son adaptadores finos: parsean la entrada, llaman a un caso de uso a través de su container y traducen el `Result`. Cero lógica de negocio.
-- Hay puerto solo donde hay una frontera externa real (ADR-001 §4). Parsear el texto de un PDF es una función pura de `domain`; leer el PDF es `infrastructure`.
+Arquitectura hexagonal con un solo hexágono y dos adaptadores primarios, la web (`app/`) y la CLI (`cli/`) (ARQ-hexagonal). **La estructura de `src/`, las reglas de dependencia y qué merece un puerto están solo en [ADR-001](context/adr/ADR-001-arquitectura-interna.md).** Léelo antes de crear o mover ficheros en `src/`. Las reglas las verifica ESLint en pre-commit y CI: si una importación rompe una regla, el fallo está en el diseño, no en la regla.
 
 ## Datos
 

@@ -1,9 +1,9 @@
 # ADR-001 — Arquitectura interna: hexagonal sobre Next.js
 
-- **Estado:** aceptada (2026-09-19); **enmendada 2026-09-27**: la CLI pasa a ser un segundo adaptador primario, con su propio composition root (§2, §3, §5)
-- **Cierra:** C6 de [Fuente-de-Verdad.md](../Fuente-de-Verdad.md)
-- **Sustituye a:** la mención a "vertical slices" del README, que queda anulada
+- **Estado:** aceptada (2026-09-19); **enmendada 2026-09-27**: la CLI pasa a ser un segundo adaptador primario, con su propio composition root (§2, §3, §5); la §2 solo fija lo decidido y la §4 incluye `RateLimiter`
+- **Decisión en la fuente de verdad:** ARQ-hexagonal
 - **Audiencia:** este documento es **entrada directa de los agentes** que generen código (SDD). Las reglas de la §3 son normativas y verificables en CI.
+- **Punto único:** la estructura de `src/` y sus reglas solo se describen aquí. `AGENTS.md` remite a este documento; no las copia.
 
 ## 1. Contexto
 
@@ -18,18 +18,11 @@ Se descartan los vertical slices. Razones: alineación con el marco teórico del
 ```
 src/
   domain/            # entidades, value objects, reglas puras. CERO dependencias externas
-    menu/  
-    shopping/  
-    search/
   application/
     use-cases/       # un caso de uso = una operación del sistema
     ports/           # interfaces de lo que el dominio necesita del exterior
     dto/             # formas de entrada/salida de los casos de uso
-  infrastructure/    # implementaciones de los ports
-    persistence/  
-    filesystem/  
-    llm/  
-    embeddings/
+  infrastructure/    # implementaciones de los ports (BD, ficheros, LLM, embeddings)
   composition/       # composition roots: única capa que conoce implementaciones concretas
     web-container.ts # para app/
     cli-container.ts # para cli/
@@ -42,6 +35,10 @@ src/
   shared/
     result.ts        # Result<T, E> compartido
 ```
+
+Las subcarpetas de `domain/` e `infrastructure/` no se fijan de antemano: las crea la spec que las necesite, agrupando por capacidad (`domain/search/`, `infrastructure/llm/`).
+
+Fuera de `src/` está `scripts/datos/`: los scripts de generación local de datos (runbook T0). No forman parte del hexágono y se sustituyen por la CLI de ingesta (ING-cli-local).
 
 Hay **dos adaptadores primarios sobre el mismo hexágono**: la web (`app/`) y la CLI (`cli/`). La CLI hace lo que la app no debe hacer (ING-cli-local, SEG-sistema-cerrado): ingesta desde `data/`, alta de cuentas y evaluación. Cada uno tiene su composition root porque necesitan dependencias distintas; por ejemplo, solo la CLI conoce `DocumentSource` y el rol de administración de la BD (safety-first §2.4).
 
@@ -70,7 +67,7 @@ El mayor riesgo de plazo de esta decisión es el boilerplate: entidad + port + c
 
 **Hay puerto solo donde hay una frontera externa real:**
 
-`MenuRepository`, `ShoppingListRepository`, `DocumentSource` (sistema de ficheros local, ING-cli-local), un puerto para los flujos LLM (descomponedor y explicador; Genkit queda detrás, ING-trazabilidad), `EmbeddingsPort`, `VectorSearchPort`, `ClockPort`.
+`MenuRepository`, `ShoppingListRepository`, `DocumentSource` (sistema de ficheros local, ING-cli-local), un puerto para los flujos LLM (descomponedor y explicador; Genkit queda detrás, ING-trazabilidad), `EmbeddingsPort`, `VectorSearchPort`, `ClockPort`, `RateLimiter` (SEG-rate-limit).
 
 **No hay puerto para lógica interna.** Un servicio de dominio es una función, no una interfaz con una única implementación.
 
@@ -79,7 +76,7 @@ Ejemplo que fija el criterio — **el parser de la lista de la compra (ING-lista
 ## 5. Decisiones específicas de Next.js
 
 - **El composition root de la web (`web-container.ts`) es un módulo con caché perezosa**, no un objeto creado al arrancar. En desarrollo, el hot-reload reinstancia módulos: las conexiones y clientes se cachean en `globalThis` para no multiplicarlos. El de la CLI (`cli-container.ts`) se construye al arrancar el comando y se cierra al terminar.
-- **En Vercel (OPS-vercel) no hay proceso de larga vida**: el contenedor puede recrearse en cada invocación. El acceso a BD usa **pooler** (Supabase/Neon lo ofrecen); prohibido asumir un pool de conexiones persistente.
+- **En Vercel (OPS-vercel) no hay proceso de larga vida**: el contenedor puede recrearse en cada invocación. El acceso a BD usa el **pooler** de Neon; prohibido asumir un pool de conexiones persistente.
 - **Los route handlers y los comandos de la CLI son adaptadores finos**: parsear, autenticar y autorizar (la web), llamar a un caso de uso, mapear `Result` a HTTP o a código de salida. Cero lógica de negocio. Si un handler o un comando pasa de ~30 líneas, la lógica está en el sitio equivocado.
 - **Server Components y Server Actions son la trampa del patrón**: pueden importar cualquier cosa y hacerlo parecerá natural. Norma: **un Server Component solo puede invocar casos de uso a través del composition root**, nunca repositorios, clientes de BD o SDK del LLM. Toda escritura pasa por un caso de uso. Esto además es lo que exige `safety-first.md` P5 (las decisiones viven en el backend).
 - **Errores:** `domain` y `application` devuelven `Result<T, E>`; los adaptadores de infraestructura pueden lanzar, y su propio adaptador captura y convierte a `Result` en la frontera. No se propagan excepciones de librerías hacia dentro.
