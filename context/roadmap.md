@@ -29,6 +29,13 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 
 **Sale de la fase:** el dataset está en la BD de producción y hay una tabla léxica vs. semántica vs. híbrida, **por tipo de consulta**, medida contra el golden set.
 
+**Setup del repo (antes de la primera línea de `src/`)**
+- ✅ Repo del producto creado: Next.js 16 + TypeScript + Tailwind v4 con pnpm (ARQ-nextjs, OPS-paquetes, UI-estilos), estructura de `src/` de [ADR-001](adr/ADR-001-arquitectura-interna.md) y OpenSpec con `openspec/config.yaml` (PROC-sdd)
+- ⬜ Terminar la revisión de [OWASP-Top10.md](OWASP-Top10.md): l.96 (MFA para administradores) y l.110 (cambios de privilegios) ya no aplican con un solo rol (SEG-roles)
+- ⬜ Activar el workflow `verify` de OpenSpec (`openspec config profile`): el perfil por defecto no lo instala y PROC-sdd lo incluye
+- ⬜ Reglas de arquitectura en ESLint (ARQ-hexagonal, ADR-001 §3) y hook de pre-commit con Husky que las ejecute (OPS-calidad)
+- ⬜ CI base con `pnpm install --frozen-lockfile`, lint, typecheck, tests y build; escaneo de secretos y de paquetes maliciosos; Dependabot con periodo de espera. Los tests negativos de autorización entran en CI en cuanto exista la autenticación (OPS-ci-cd, [safety-first §2.4, §2.5 y §3](safety-first.md))
+
 **Datos**
 - ✅ Parser del menú → `data/menu-platos.json` (ING-menu-json, ING-parser-menu, [T2 §2](tareas/T2-esquema-json-ingesta.md))
 - ✅ Parser de recetas → `data/recetas.json` (ING-determinista, [T2 §4](tareas/T2-esquema-json-ingesta.md))
@@ -49,11 +56,7 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 **Evaluación de la extracción (después de T3)**
 - ⬜ 📝 T4: ground truth de extracción por adjudicación ciega de discrepancias parser ↔ LLM, 30 recetas + 5 menús ampliable a 10 (EVAL-ground-truth, semilla en [T4](tareas/T4-evaluacion-extraccion.md)). No bloquea nada del producto: alimenta el pilar 1 de la memoria y el experimento de ING-determinista
 
-**Repo del producto y carga**
-- ✅ Repo del producto creado: Next.js 16 + TypeScript + Tailwind v4 con pnpm (ARQ-nextjs, OPS-paquetes, UI-estilos), estructura de `src/` de [ADR-001](adr/ADR-001-arquitectura-interna.md) y OpenSpec con `openspec/config.yaml` (PROC-sdd)
-- ⬜ Terminar la revisión de [OWASP-Top10.md](OWASP-Top10.md): l.96 (MFA para administradores) y l.110 (cambios de privilegios) ya no aplican con un solo rol (SEG-roles)
-- ⬜ Activar el workflow `verify` de OpenSpec (`openspec config profile`): el perfil por defecto no lo instala y PROC-sdd lo incluye
-- ⬜ Reglas de arquitectura en ESLint (ARQ-hexagonal, ADR-001 §3), CI base con `pnpm install --frozen-lockfile`, tests negativos de autorización, escaneo de secretos y de paquetes maliciosos, y Dependabot con periodo de espera (OPS-ci-cd, [safety-first §2.4, §2.5 y §3](safety-first.md))
+**Carga**
 - ⬜ 📝 CLI de ingesta idempotente, con limpieza de marca y enriquecimiento (ING-cli-local, SEG-datos-nutricionista, BUS-superficie-consulta (c))
 - ⬜ BD de producción con el modelo de ARQ-modelo-datos y el dataset cargado; en Neon, sin Data API y con RLS en todas las tablas ([safety-first §2.4](safety-first.md))
 
