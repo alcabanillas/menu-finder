@@ -90,7 +90,7 @@ Constants (threshold, filler patterns, connector words, breakfast prefixes) are 
 `src/application/ports/document-source.ts`:
 - `listMenuFolders(): Promise<Result<MenuFolder[], SourceError>>`: folders named `Menu <n>`, with `n`. It fails when the raw directory is missing.
 - `readMenu(folder): Promise<Result<SourceMenu, SourceError>>`: the menu as the source reads it. Errors: missing file, unreadable document, no table, missing header, missing meal row.
-- `listRecipeFiles(folder): Promise<string[]>`: base names of the folder's recipe documents, extension removed and deduplicated. Which files are not recipes (`menu`, `Lista_de_la_compra`, `valoracion*`) is a fact about the source folder, so the adapter excludes them.
+- `listRecipeFiles(folder): Promise<string[]>`: base names of the folder's recipe documents, extension removed. Candidates are `.pdf` only, so a folder cannot hold two with the same base name and there is nothing to deduplicate. Which files are not recipes (`menu`, `Lista_de_la_compra`, `valoracion*`) is a fact about the source folder, so the adapter excludes them.
 
 `src/application/ports/menu-repository.ts`:
 - `saveAll(menus: WeeklyMenu[]): Promise<Result<void, RepositoryError>>`. That is the only method for now.
@@ -119,7 +119,9 @@ The QA report has **no port**: it is a presentation of the use case's summary, w
 - `pnpm ingest menu` runs `tsx src/cli/index.ts menu`. `index.ts` dispatches on the first argument; any other argument, or any extra one, prints the usage and exits with code `2` before the container is built, so nothing is read or written.
 - The command calls the use case through `composition/cli-container.ts` and presents the summary:
   - **Console:** the counters, plus one line per menu error and per unresolved marked dish, or "no unresolved marked dishes".
-  - **QA files** under `<dataDir>/qa/`: `menu-platos-pdftable.csv`, with the current columns plus `discarded_candidate` and `discarded_score` (`match_receta`/`score_match` filled only for resolved dishes), and `qa-menu-platos-pdftable.md`. The file names are kept so local habits and doc links still work.
+  - **QA files** under `<dataDir>/qa/`: `menu-platos-pdftable.csv`, with the current columns plus `discarded_candidate` and `discarded_score` (`match_receta`/`score_match` filled only for resolved dishes), and `qa-menu-platos-pdftable.md`. The file names are kept so local habits and doc links still work; their content changes on purpose:
+    - the CSV has one row per dish, with no rows for empty meals, and its `bloque`/`dia` columns hold the domain values (`lunch`/`dinner`, `monday`..`sunday`) instead of `comida`/`Lunes`;
+    - the Markdown file holds the console summary (counters, menu errors, unresolved dishes) instead of the per-menu table; the per-dish detail is in the CSV.
 - Exit codes: `0` on full success, including when there are unresolved dishes; `1` on any menu error or on a use-case `Err`.
 - The command receives its dependencies (use case, output writers, QA directory) as parameters, so its exit codes, console lines and CSV content are unit-tested with fakes. Before writing, the QA writer checks that every resolved path stays inside the data directory. `index.ts` is the only file that touches `process`.
 - `cli-container.ts` resolves `data/raw/Dieta` and `data/` from the repository root, based on the entry file location rather than `process.cwd()`.
@@ -139,7 +141,7 @@ Create `src/shared/result.ts` (`ok`/`err` constructors, `Result<T, E>` discrimin
 
 ### D9 — Test strategy (PROC-tdd)
 
-- **Domain:** table-driven Vitest tests with fictitious dish names, one per spec scenario of filler, recipe resolution and `WeeklyMenu` building (14 meals, positions, empty Sunday). The first red test is the MF-11 bug: a marked dish whose best candidate scores below 0.6 must yield `unresolved` carrying the discarded candidate.
+- **Domain:** table-driven Vitest tests with fictitious dish names, one per spec scenario of filler, recipe resolution and `WeeklyMenu` building (14 meals, positions, empty Sunday). The first red test is the MF-11 bug: a marked dish whose best candidate scores below the threshold must yield `unresolved` carrying the discarded candidate.
 - **PDF layout functions:** the same style over strings and `string[][]`, one test per spec scenario of cell splitting and table location.
 - **Use case:** in-memory `DocumentSource` and `MenuRepository` fakes for ordering, per-menu errors, "no save when nothing parsed", the QA rows and the unresolved list.
 - **Infrastructure:** `JsonFileMenuRepository` against a temp directory (exact JSON shape, no scores). The `local-document-source` listing, `.pdf`-only filter, non-recipe exclusions and missing-file cases run against a temp directory with empty placeholder files. The `pdf-parse` table extraction is covered only by the parity run on real data, because a synthetic PDF with a real table is costly to generate and would test the library, not our code.
@@ -150,7 +152,7 @@ Create `src/shared/result.ts` (`ok`/`err` constructors, `Result<T, E>` discrimin
 - [The `pdf-parse` call has no automated test] → The parity run (Migration Plan step 2) exercises it on all 36 menus. The I/O part stays thin ("first table of the first page" and error mapping); the layout logic is in the tested `pdf/` functions.
 - [Layout functions in `infrastructure` are pure only by convention] → Kept in `pdf/` with string-only tests; any I/O stays in `local-document-source.ts`.
 - [The dataset format changes, so parity is no longer a file diff] → A one-off local comparison script maps the old `MenuJson[]` to `WeeklyMenu` and compares them menu by menu and dish by dish. It is not committed as a test, because the data is gitignored.
-- [`.pdf`-only candidates and the new unresolved report change the counts against T2 §2.5 (591 matched, 0 unresolved)] → Intended (roadmap MF-11). The current JSON already shows unresolved dishes with a score (e.g. `scoreMatch: 0.4` with `recetaFichero: null` in menu 1), so there may be more than the two cases in menu 10 the roadmap describes. Every difference must be explained as a `.txt` without a `.pdf`, a genuinely missing recipe, or a filter error. T2 §2.5 and `context/datos.md` get the new numbers.
+- [`.pdf`-only candidates and the new unresolved report could change the counts against T2 §2.5 (591 matched, 0 unresolved)] → Checked in the parity run (tasks 9.2–9.4): no count changes. Every resolved dish scores `1`, no `.pdf.txt` lacks its `.pdf`, and the two unresolved dishes of menu 10 the roadmap describes came from a `data/raw` copy that lacked their PDFs. The `scoreMatch: 0.4` seen in menu 1 came from a recipe file renamed by hand, not from the data.
 - [The breakfast-prefix filter may be hiding a non-breakfast recipe (roadmap MF-11, menu 10 case)] → Investigated during apply. If it does, the fix is to tighten the prefixes in the domain, with a regression test using a fictitious name.
 - [The JSON file is the entity serialized as it is] → Accepted because the file is temporary (D4); an adapter test fixes its shape.
 - [The first backend slice sets conventions (Result shape, port naming, test layout) that later slices will copy] → D8 keeps `Result` minimal, and the ports use the names ADR-001 §4 already gives.

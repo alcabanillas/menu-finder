@@ -141,6 +141,16 @@ describe("runIngestMenu", () => {
     expect(files.size).toBe(0);
   });
 
+  it("exits with 1, reports the missing raw directory and writes nothing", async () => {
+    const { exitCode, output, files } = await run(
+      err({ kind: "source-unavailable", error: { kind: "missing-raw-directory", path: "raw/Dieta" } }),
+    );
+
+    expect(exitCode).toBe(1);
+    expect(output).toContain("raw directory not found: raw/Dieta");
+    expect(files.size).toBe(0);
+  });
+
   it("writes the matched recipe only for resolved dishes and the discarded candidate apart", async () => {
     const { csv } = await run(ok(summary({ qaRows: [row({}), UNRESOLVED], unresolved: [UNRESOLVED] })));
 
