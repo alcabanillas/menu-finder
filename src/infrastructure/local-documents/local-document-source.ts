@@ -1,10 +1,11 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { PDFParse } from "pdf-parse";
-import type { DocumentSource, MenuFolder, SourceError } from "@/application/ports/document-source";
+import type { DocumentSource, MenuFolder, SourceError, SourceRecipe } from "@/application/ports/document-source";
 import type { SourceMenu } from "@/domain/menu-ingestion/source-menu";
 import { err, ok, type Result } from "@/shared/result";
 import { toSourceMenu } from "./pdf/menu-table";
+import { parseRecipePage, type PositionedText } from "./pdf/recipe-page";
 
 const MENU_FOLDER = /^Menu (\d+)$/;
 const MENU_FILE = "menu.pdf";
@@ -64,5 +65,45 @@ export class LocalDocumentSource implements DocumentSource {
     }
 
     return table ? toSourceMenu(table) : err({ kind: "no-table" });
+  }
+
+  async readRecipe(folder: MenuFolder, file: string): Promise<Result<SourceRecipe, SourceError>> {
+    const fileName = `${file}${RECIPE_EXTENSION}`;
+    let data: Buffer;
+    try {
+      data = await readFile(join(this.rawDir, folder.name, fileName));
+    } catch (error) {
+      if (isNotFound(error)) return err({ kind: "missing-file", file: fileName });
+      return err({ kind: "unreadable-document", reason: errorMessage(error) });
+    }
+
+    let pages: PositionedText[][];
+    try {
+      pages = await readPositionedText(data, 2);
+    } catch (error) {
+      return err({ kind: "unreadable-document", reason: errorMessage(error) });
+    }
+    return parseRecipePage(pages[0] ?? [], pages[1] ?? null);
+  }
+}
+
+/** The text items of the first `maxPages` pages, with their position. */
+async function readPositionedText(data: Buffer, maxPages: number): Promise<PositionedText[][]> {
+  // pdfjs-dist is ESM-only and heavy: loaded only when a recipe is read.
+  const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  const document = await getDocument({ data: new Uint8Array(data), verbosity: 0 }).promise;
+  try {
+    const pages: PositionedText[][] = [];
+    for (let number = 1; number <= Math.min(document.numPages, maxPages); number++) {
+      const { items } = await (await document.getPage(number)).getTextContent();
+      pages.push(
+        items.flatMap((item) =>
+          "str" in item ? [{ x: item.transform[4] as number, y: item.transform[5] as number, text: item.str }] : [],
+        ),
+      );
+    }
+    return pages;
+  } finally {
+    await document.destroy();
   }
 }

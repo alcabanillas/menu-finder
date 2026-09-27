@@ -20,6 +20,9 @@ const fakeSource = (menus: Record<number, FakeMenu>): DocumentSource => ({
     const entry = menus[number];
     return "error" in entry ? [] : (entry.recipeFiles ?? []);
   },
+  readRecipe: async () => {
+    throw new Error("not expected");
+  },
 });
 
 const missingRawDirectory: DocumentSource = {
@@ -28,6 +31,9 @@ const missingRawDirectory: DocumentSource = {
     throw new Error("not expected");
   },
   listRecipeFiles: async () => [],
+  readRecipe: async () => {
+    throw new Error("not expected");
+  },
 };
 
 const fakeRepository = (result: Result<void, RepositoryError> = ok(undefined)) => {

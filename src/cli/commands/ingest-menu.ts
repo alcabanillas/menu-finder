@@ -1,4 +1,4 @@
-import { isAbsolute, join, relative, resolve } from "node:path";
+import { join } from "node:path";
 import type {
   DishQaRow,
   IngestMenusError,
@@ -6,6 +6,8 @@ import type {
   MenuFailure,
 } from "@/application/dto/ingest-menus";
 import type { Result } from "@/shared/result";
+import { describeSourceError } from "../describe-source-error";
+import { isInside } from "../qa-path";
 
 export type IngestMenuDeps = {
   ingestMenus: () => Promise<Result<IngestMenusSummary, IngestMenusError>>;
@@ -29,25 +31,6 @@ const CSV_HEADER = [
   "discarded_candidate",
   "discarded_score",
 ];
-
-type SourceError = MenuFailure["error"];
-
-const describeSourceError = (error: SourceError): string => {
-  switch (error.kind) {
-    case "missing-raw-directory":
-      return `raw directory not found: ${error.path}`;
-    case "missing-file":
-      return `${error.file} not found`;
-    case "unreadable-document":
-      return `unreadable document: ${error.reason}`;
-    case "no-table":
-      return "no table found";
-    case "missing-header":
-      return "no Lunes..Domingo header row";
-    case "missing-meal-row":
-      return `missing meal row (${error.meal})`;
-  }
-};
 
 const formatScore = (score: number | null): string => (score === null ? "" : score.toFixed(2));
 
@@ -111,11 +94,6 @@ const errorLines = (error: IngestMenusError): string[] => {
     case "save-failed":
       return [`Cannot save the menus: ${error.error.reason}`];
   }
-};
-
-const isInside = (dir: string, path: string): boolean => {
-  const fromDir = relative(resolve(dir), resolve(path));
-  return !fromDir.startsWith("..") && !isAbsolute(fromDir);
 };
 
 /** `ingest menu`: runs the ingestion, prints its summary and writes the QA report. Returns the exit code. */

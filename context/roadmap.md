@@ -48,19 +48,20 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 - ✅ **MF-09** Parser de recetas → `data/recetas.json` (ING-determinista, [T2 §4](tareas/T2-esquema-json-ingesta.md))
 - ⬜ **MF-10** Parser de la lista de la compra: revisar y documentar (ING-lista-compra, ING-lista-dato-primario, [T2 §3](tareas/T2-esquema-json-ingesta.md))
 - ✅ **MF-11** Parser del menú migrado a la CLI de `src/`: `pnpm ingest menu` (adelanto parcial de MF-16, ING-cli-local; [T2 §2](tareas/T2-esquema-json-ingesta.md)). `data/menu-platos.json` pasa a `WeeklyMenu[]`, y la QA ya no presenta como match un candidato descartado. Paridad plato a plato con el script anterior; los 2 platos del menú 10 sin receta eran PDF que faltaban en esa copia de `data/raw`
+- ✅ **MF-38** Parser de recetas migrado a la CLI de `src/`: `pnpm ingest recipes` (adelanto parcial de MF-16, ING-cli-local; [T2 §4](tareas/T2-esquema-json-ingesta.md)). `data/recetas.json` pasa a `Recipe[]`, una por fichero con la versión del menú de número más alto (cierra T2 §4.5); las versiones descartadas salen en la QA. Paridad receta a receta con el script anterior (0 diferencias en 434). [Cambio archivado](../openspec/changes/archive/2026-09-27-mf-38-migrar-parser-recetas-cli/)
 
 **Golden sets (antes de tocar el buscador)**
 - ⬜ **MF-12** 📝 Etiquetar 40 consultas de recuperación, ~8 por tipo de BUS-superficie-consulta, con los menús relevantes esperados (EVAL-golden-sets)
 - ⬜ **MF-13** Etiquetar 50 peticiones → estructura tipada esperada, para el descomponedor (EVAL-golden-sets)
 
 **Buscador**
-- ⬜ **MF-14** 📝 Spike T3: descomponer + ranquear los 36 en consola. Código tirable, fuera de la app: un script local lee `data/menu-platos.json` (formato `WeeklyMenu[]`, T2 §2) y `data/recetas.json`, descompone con el LLM contra el schema Zod y ranquea en consola; sin BD, sin Next, sin Genkit. Su spec, breve, en `context/tareas/T3-spike-buscador.md` antes de escribirlo. Fija el schema del descomponedor ([decisiones.md §2](decisiones.md), punto 1)
+- ⬜ **MF-14** 📝 Spike T3: descomponer + ranquear los 36 en consola. Código tirable, fuera de la app: un script local lee `data/menu-platos.json` (formato `WeeklyMenu[]`, T2 §2) y `data/recetas.json` (formato `Recipe[]`, T2 §4), descompone con el LLM contra el schema Zod y ranquea en consola; sin BD, sin Next, sin Genkit. Su spec, breve, en `context/tareas/T3-spike-buscador.md` antes de escribirlo. Fija el schema del descomponedor ([decisiones.md §2](decisiones.md), punto 1)
 
 **Evaluación de la extracción (después de T3)**
 - ⬜ **MF-15** 📝 T4: ground truth de extracción por adjudicación ciega de discrepancias parser ↔ LLM, 30 recetas + 5 menús ampliable a 10 (EVAL-ground-truth, semilla en [T4](tareas/T4-evaluacion-extraccion.md)). No bloquea nada del producto: alimenta el pilar 1 de la memoria y el experimento de ING-determinista
 
 **Carga**
-- ⬜ **MF-16** 📝 CLI de ingesta idempotente, con limpieza de marca y enriquecimiento (ING-cli-local, ING-parser-menu, ING-trazabilidad, SEG-datos-nutricionista, BUS-superficie-consulta (c)). Parsers del menú y de recetas terminados ([T2](tareas/T2-esquema-json-ingesta.md) patas 1 y 3); pendientes el parser de la lista (pata 2), la política de versiones de receta (T2 §4.5) y la trazabilidad, solo de lista y recetas. Enriquecimiento: `totalTimeMin`, tabla ingrediente → grupo, temporada. Se escribe después del spike T3, con lo que este mida
+- ⬜ **MF-16** 📝 CLI de ingesta idempotente, con limpieza de marca y enriquecimiento (ING-cli-local, ING-parser-menu, ING-trazabilidad, SEG-datos-nutricionista, BUS-superficie-consulta (c)). Parsers del menú y de recetas terminados ([T2](tareas/T2-esquema-json-ingesta.md) patas 1 y 3); pendientes el parser de la lista (pata 2) y la trazabilidad, solo de lista y recetas. Enriquecimiento: `totalTimeMin`, tabla ingrediente → grupo, temporada. Se escribe después del spike T3, con lo que este mida
 - ⬜ **MF-17** BD de producción con el modelo de ARQ-modelo-datos y el dataset cargado; en Neon, sin Data API y con RLS en todas las tablas ([safety-first §2.4](safety-first.md))
 
 **Evaluación de recuperación**

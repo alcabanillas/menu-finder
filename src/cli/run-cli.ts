@@ -1,5 +1,5 @@
 /** Each command returns its exit code. */
-export type CliCommands = { menu: () => Promise<number> };
+export type CliCommands = { menu: () => Promise<number>; recipes: () => Promise<number> };
 
 export type RunCliDeps = {
   /** Builds the commands, and with them the container: only called for a valid command. */
@@ -7,14 +7,20 @@ export type RunCliDeps = {
   print: (line: string) => void;
 };
 
-const USAGE = ["Usage: pnpm ingest menu", "  menu  Ingest the weekly menus from data/raw/Dieta into data/menu-platos.json"];
+const USAGE = [
+  "Usage: pnpm ingest <menu|recipes>",
+  "  menu     Ingest the weekly menus from data/raw/Dieta into data/menu-platos.json",
+  "  recipes  Ingest the recipes from data/raw/Dieta into data/recetas.json",
+];
+
+const isCommand = (name: string | undefined): name is keyof CliCommands => name === "menu" || name === "recipes";
 
 /** Dispatches the CLI arguments to a command. Returns the exit code: 2 on a usage error. */
 export async function runCli(args: string[], { createCommands, print }: RunCliDeps): Promise<number> {
   const [command, ...rest] = args;
-  if (command !== "menu" || rest.length > 0) {
+  if (!isCommand(command) || rest.length > 0) {
     USAGE.forEach(print);
     return 2;
   }
-  return createCommands().menu();
+  return createCommands()[command]();
 }

@@ -83,4 +83,23 @@ describe("LocalDocumentSource", () => {
       expect(!result.ok && result.error.kind).toBe("unreadable-document");
     });
   });
+
+  describe("readRecipe", () => {
+    it("fails with missing-file when the recipe file does not exist", async () => {
+      await addFolder("Menu 1");
+
+      expect(await new LocalDocumentSource(rawDir).readRecipe({ number: 1, name: "Menu 1" }, "Guiso")).toEqual(
+        err({ kind: "missing-file", file: "Guiso.pdf" }),
+      );
+    });
+
+    it("fails with unreadable-document, without throwing, when the recipe is not a PDF", async () => {
+      await addFolder("Menu 1");
+      await writeFile(join(rawDir, "Menu 1", "Guiso.pdf"), "not a pdf");
+
+      const result = await new LocalDocumentSource(rawDir).readRecipe({ number: 1, name: "Menu 1" }, "Guiso");
+
+      expect(!result.ok && result.error.kind).toBe("unreadable-document");
+    });
+  });
 });
