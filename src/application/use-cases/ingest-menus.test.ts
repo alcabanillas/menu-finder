@@ -110,6 +110,18 @@ describe("ingestMenus", () => {
     expect(result).toEqual(err({ kind: "save-failed", error: { kind: "write-failed", reason: "disk full" } }));
   });
 
+  it("leaves the discarded fields empty for an unresolved dish with no candidate", async () => {
+    const { repository } = fakeRepository();
+    const source = fakeSource({ 1: { menu: lunch({ name: "Merluza al horno", hasRecipeMark: true }) } });
+
+    const result = await ingestMenus({ source, menus: repository });
+    if (!result.ok) throw new Error("expected ok");
+
+    expect(result.value.unresolved).toEqual([
+      expect.objectContaining({ dish: "Merluza al horno", discardedCandidate: null, discardedScore: null }),
+    ]);
+  });
+
   it("returns one QA row per dish, the unresolved dishes and the totals across menus", async () => {
     const { repository } = fakeRepository();
     const source = fakeSource({

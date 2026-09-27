@@ -7,8 +7,17 @@ export default defineConfig({
   plugins: [react()],
   resolve: { tsconfigPaths: true },
   test: {
-    // Sin umbral todavía: se fija con la primera medición real (OPS-calidad).
+    // Umbrales por tipo de código (OPS-calidad). La infraestructura no tiene umbral.
     coverage: {
+      thresholds: {
+        // Lógica de negocio.
+        "src/domain/**": { statements: 100, branches: 100, functions: 100, lines: 100 },
+        "src/application/**": { statements: 100, branches: 100, functions: 100, lines: 100 },
+        // Lo que ve el usuario: la UI y la salida de la CLI.
+        "src/features/**": { statements: 80, branches: 80, functions: 80, lines: 80 },
+        "src/shared/ui/**": { statements: 80, branches: 80, functions: 80, lines: 80 },
+        "src/cli/**": { statements: 80, branches: 80, functions: 80, lines: 80 },
+      },
       provider: "v8",
       include: ["src/**/*.{ts,tsx}"],
       exclude: [
