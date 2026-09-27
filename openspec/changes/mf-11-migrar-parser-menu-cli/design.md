@@ -81,6 +81,8 @@ The aggregate stays in one file while it is only types (~15 lines). An entity mo
 
 **Trade-off:** in `infrastructure` ESLint allows any library import, so the purity of `split-cell.ts` and `menu-table.ts` is a convention. They are still tested with plain strings and arrays, and they sit in `pdf/`, apart from the I/O adapter.
 
+**Threshold `1` (task 9.3):** the legacy script accepts a best score of `0.6`. With the current `data/raw`, every resolved dish scores `1` and none is unresolved (parity check 9.2), so raising it changes no result. It is raised anyway for strictness: a partial match (a truncated or reworded file name) is reported as unresolved, with its candidate, for manual review instead of being accepted silently. No new menus are expected, so the cost of a stricter rule is nil.
+
 Constants (threshold, filler patterns, connector words, breakfast prefixes) are generic food words and grammar, not nutritionist branding (SEG-datos-nutricionista).
 
 ### D3 — Ports

@@ -73,15 +73,15 @@ The system SHALL split each `Comida`/`Cena` cell into an ordered list of dishes 
 - **THEN** no dish is produced for that day and meal
 
 ### Requirement: Recipe resolution for marked dishes
-For each marked dish, the system SHALL compute a containment score against every candidate recipe file of the same menu folder and SHALL select the candidate with the highest score (the first one wins on ties). The score SHALL be the fraction of the dish's distinct words longer than two letters (lowercased, accent-free, non-alphanumerics as spaces) that also appear in the candidate's normalized file name (hyphens as spaces). Candidates SHALL be the menu folder's recipe PDFs, excluding `menu`, `Lista_de_la_compra`, `valoracion*` and the known breakfast recipes (matched by name prefix). A dish SHALL be resolved only when the best score is at least `0.6`; unmarked dishes SHALL NOT be matched.
+For each marked dish, the system SHALL compute a containment score against every candidate recipe file of the same menu folder and SHALL select the candidate with the highest score (the first one wins on ties). The score SHALL be the fraction of the dish's distinct words longer than two letters (lowercased, accent-free, non-alphanumerics as spaces) that also appear in the candidate's normalized file name (hyphens as spaces). Candidates SHALL be the menu folder's recipe PDFs, excluding `menu`, `Lista_de_la_compra`, `valoracion*` and the known breakfast recipes (matched by name prefix). A dish SHALL be resolved only when the best score is `1` (every such word of the dish appears in the file name); unmarked dishes SHALL NOT be matched.
 
 #### Scenario: Marked dish resolved
 - **WHEN** a marked dish `Merluza al horno` is compared against a folder with `Merluza-al-horno-con-verduras.pdf`
 - **THEN** the dish gets `recipeFile: "Merluza-al-horno-con-verduras"` and the QA report shows score `1.00` for it
 
-#### Scenario: Score exactly at threshold
-- **WHEN** the best candidate scores exactly `0.6`
-- **THEN** the dish is resolved to that candidate
+#### Scenario: Partial match left unresolved
+- **WHEN** a marked dish's best candidate scores `0.6`
+- **THEN** the dish gets `recipeFile: null`, and it is reported as unresolved with the discarded candidate and score `0.60`
 
 #### Scenario: Best candidate below threshold
 - **WHEN** a marked dish's best candidate scores `0.5`
@@ -134,8 +134,8 @@ Every marked dish left unresolved SHALL be reported individually, both in the co
 - **THEN** the QA report row for that dish shows `Merluza-al-horno` in the matched-recipe field
 
 #### Scenario: Score rounding
-- **WHEN** a resolved dish scores `2/3`
-- **THEN** the QA report shows its score as `0.67`
+- **WHEN** an unresolved dish's discarded candidate scores `2/3`
+- **THEN** the QA report shows the discarded score as `0.67`
 
 #### Scenario: No unresolved dishes
 - **WHEN** every marked dish is resolved

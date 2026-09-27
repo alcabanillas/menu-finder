@@ -1,6 +1,9 @@
 import { toComparableName } from "./comparable-name";
 
-export const MATCH_THRESHOLD = 0.6;
+// Only a full match resolves: every significant word of the dish must be in the
+// file name. A partial match is reported as unresolved for manual review
+// instead of being accepted silently (MF-11, task 9.3).
+export const MATCH_THRESHOLD = 1;
 
 // Breakfast recipes share their folder with the menu's dishes but are out of
 // scope (only lunch and dinner are parsed); matching them only adds noise.

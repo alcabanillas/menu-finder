@@ -20,11 +20,14 @@ describe("resolveDish", () => {
     expect(resolution).toEqual({ status: "resolved", recipe: "Merluza-al-horno-con-verduras", score: 1 });
   });
 
-  it("resolves when the best score is exactly the threshold", () => {
+  it("leaves a partial match unresolved, however close to a full match", () => {
     // 3 of the 5 dish words (longer than two letters) appear in the file name.
     const resolution = resolveDish(marked("Crema de calabaza con jengibre y naranja"), ["Crema-de-calabaza-con-puerro"]);
 
-    expect(resolution).toEqual({ status: "resolved", recipe: "Crema-de-calabaza-con-puerro", score: 0.6 });
+    expect(resolution).toEqual({
+      status: "unresolved",
+      discarded: { recipe: "Crema-de-calabaza-con-puerro", score: 0.6 },
+    });
   });
 
   it("compares names without accents, case or punctuation", () => {

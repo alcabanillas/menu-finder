@@ -152,9 +152,11 @@ describe("runIngestMenu", () => {
   });
 
   it("rounds scores to two decimals and escapes quotes", async () => {
-    const { csv } = await run(ok(summary({ qaRows: [row({ dish: 'Tortilla "francesa"', score: 2 / 3 })] })));
+    const dish = { ...UNRESOLVED, dish: 'Tortilla "francesa"', discardedScore: 2 / 3 };
 
-    expect(csv?.split("\n")[1]).toBe('"1","lunch","monday","Tortilla ""francesa""","1","Merluza-al-horno","0.67","",""');
+    const { csv } = await run(ok(summary({ qaRows: [dish], unresolved: [dish] })));
+
+    expect(csv?.split("\n")[1]).toBe('"7","dinner","tuesday","Tortilla ""francesa""","1","","","Pollo-al-curry","0.67"');
   });
 
   it("rejects a QA directory outside the data directory before ingesting or writing", async () => {
