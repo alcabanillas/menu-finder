@@ -1,8 +1,8 @@
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { ingestMenus } from "@/application/use-cases/ingest-menus";
-import { JsonFileMenuRepository } from "@/infrastructure/menu-ingestion/json-file-menu-repository";
-import { LocalDocumentSource } from "@/infrastructure/menu-ingestion/local-document-source";
+import { JsonFileMenuRepository } from "@/infrastructure/json-file/json-file-menu-repository";
+import { LocalDocumentSource } from "@/infrastructure/local-documents/local-document-source";
 
 /** Resolved from this file, not from `process.cwd()`, so the CLI reads and writes the same folders wherever it runs. */
 const REPO_ROOT = fileURLToPath(new URL("../..", import.meta.url));

@@ -84,7 +84,7 @@ de los 36 PDFs (verificado, es esperado, no un fallo de extracción).
 
 - **`name`** — texto tal cual sale de la celda de la tabla. Una celda puede traer 2+ platos
   apilados en líneas distintas sin separador explícito; el separador de celdas
-  (`src/infrastructure/menu-ingestion/pdf/split-cell.ts`) los separa por dos señales: una
+  (`src/infrastructure/local-documents/pdf/split-cell.ts`) los separa por dos señales: una
   línea que termina en `*` cierra un plato, y una línea que empieza por mayúscula (mientras
   la anterior no termina en preposición o artículo — de/con/al/en/y/la/el/...) señala el
   inicio de un plato nuevo. El relleno genérico sin `*` (una pieza de fruta, un yogur o
