@@ -28,69 +28,84 @@ const architecture = {
       { type: "shared", pattern: "src/shared", partialMatch: false },
     ],
   },
+  rules: { "boundaries/dependencies": dependencyRule() },
+};
+
+// Tests: same layer rules, plus the test runner. Scoped to test files so that
+// production code in domain still cannot import any library.
+const architectureTests = {
+  files: ["src/**/*.test.{ts,tsx}"],
   rules: {
-    "boundaries/dependencies": [
-      "error",
-      {
-        default: "disallow",
-        // Sin esto solo se revisan las importaciones locales y domain podría importar librerías.
-        checkAllOrigins: true,
-        policies: [
-          // Librerías de terceros y módulos de Node: todas las capas salvo domain.
-          {
-            from: { element: { type: "!domain" } },
-            allow: { to: { module: { origin: "{external,core}" } } },
-          },
-          { from: { element: { type: "domain" } }, allow: [layer("domain"), layer("shared")] },
-          {
-            from: { element: { type: "application" } },
-            allow: [layer("application"), layer("domain"), layer("shared")],
-          },
-          {
-            from: { element: { type: "infrastructure" } },
-            allow: [layer("infrastructure"), applicationPart("ports", "dto"), layer("domain"), layer("shared")],
-          },
-          { from: { element: { type: "composition" } }, allow: { to: { element: { type: "*" } } } },
-          {
-            from: { element: { type: "app" } },
-            allow: [
-              layer("app"),
-              container("web-container"),
-              applicationPart("dto", "use-cases"),
-              layer("feature"),
-              layer("shared-ui"),
-              layer("shared"),
-            ],
-          },
-          {
-            from: { element: { type: "cli" } },
-            allow: [layer("cli"), container("cli-container"), applicationPart("dto", "use-cases"), layer("shared")],
-          },
-          {
-            // Scope Rule: una feature solo se importa a sí misma; lo compartido va a shared/ui.
-            from: { element: { type: "feature" } },
-            allow: [
-              { to: { element: { type: "feature", captured: { feature: "{{from.element.captured.feature}}" } } } },
-              applicationPart("dto"),
-              layer("shared-ui"),
-              layer("shared"),
-            ],
-          },
-          {
-            from: { element: { type: "shared-ui" } },
-            allow: [layer("shared-ui"), applicationPart("dto"), layer("shared")],
-          },
-          { from: { element: { type: "shared" } }, allow: layer("shared") },
-        ],
-      },
-    ],
+    "boundaries/dependencies": dependencyRule([
+      { from: { element: { type: "domain" } }, allow: { to: { module: { source: "vitest" } } } },
+    ]),
   },
 };
+
+function dependencyRule(extraPolicies = []) {
+  return [
+    "error",
+    {
+      default: "disallow",
+      // Sin esto solo se revisan las importaciones locales y domain podría importar librerías.
+      checkAllOrigins: true,
+      policies: [
+        ...extraPolicies,
+        // Librerías de terceros y módulos de Node: todas las capas salvo domain.
+        {
+          from: { element: { type: "!domain" } },
+          allow: { to: { module: { origin: "{external,core}" } } },
+        },
+        { from: { element: { type: "domain" } }, allow: [layer("domain"), layer("shared")] },
+        {
+          from: { element: { type: "application" } },
+          allow: [layer("application"), layer("domain"), layer("shared")],
+        },
+        {
+          from: { element: { type: "infrastructure" } },
+          allow: [layer("infrastructure"), applicationPart("ports", "dto"), layer("domain"), layer("shared")],
+        },
+        { from: { element: { type: "composition" } }, allow: { to: { element: { type: "*" } } } },
+        {
+          from: { element: { type: "app" } },
+          allow: [
+            layer("app"),
+            container("web-container"),
+            applicationPart("dto", "use-cases"),
+            layer("feature"),
+            layer("shared-ui"),
+            layer("shared"),
+          ],
+        },
+        {
+          from: { element: { type: "cli" } },
+          allow: [layer("cli"), container("cli-container"), applicationPart("dto", "use-cases"), layer("shared")],
+        },
+        {
+          // Scope Rule: una feature solo se importa a sí misma; lo compartido va a shared/ui.
+          from: { element: { type: "feature" } },
+          allow: [
+            { to: { element: { type: "feature", captured: { feature: "{{from.element.captured.feature}}" } } } },
+            applicationPart("dto"),
+            layer("shared-ui"),
+            layer("shared"),
+          ],
+        },
+        {
+          from: { element: { type: "shared-ui" } },
+          allow: [layer("shared-ui"), applicationPart("dto"), layer("shared")],
+        },
+        { from: { element: { type: "shared" } }, allow: layer("shared") },
+      ],
+    },
+  ];
+}
 
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   architecture,
+  architectureTests,
   // scripts/datos/ son los scripts CommonJS de generación local de datos (T0).
   // Se sustituyen por la CLI de ingesta (src/cli/); hasta entonces se permite require().
   {
