@@ -1,8 +1,10 @@
 # Roadmap
 
-> **Qué es este documento:** el **orden de trabajo** del autor: fases, qué entra en cada una y cuándo se da por cerrada. **No es normativo.** Las decisiones viven en [Fuente-de-Verdad.md](Fuente-de-Verdad.md) y las specs de cada tarea en [`tareas/`](tareas/). Aquí solo se **ordenan** y se enlazan.
+> **Qué es este documento:** el **orden de trabajo** del autor: fases, qué entra en cada una y cuándo se da por cerrada. **No es normativo.** Es el **backlog** del proyecto: solo contiene lo **decidido**. Lo que falta por decidir está en [decisiones.md §2](decisiones.md); al decidirse, genera aquí su ítem. Las decisiones viven en [decisiones.md](decisiones.md), el alcance en [producto.md](producto.md) y los contratos previos a OpenSpec en [`tareas/`](tareas/). Aquí solo se **ordenan** y se enlazan.
 >
-> Si algo de aquí contradice a la fuente de verdad, manda la fuente de verdad y este fichero se corrige.
+> Si algo de aquí contradice a [decisiones.md](decisiones.md), manda decisiones.md y este fichero se corrige.
+>
+> **Enlace con OpenSpec:** un ítem 📝 se empieza con `/opsx:propose`. Al archivarse el cambio, el ítem pasa a ✅ con el enlace a su carpeta en `openspec/changes/archive/`. Así queda la cadena backlog → proposal → spec → código → tests.
 >
 > **Leyenda:** ✅ hecho · ⬜ pendiente · 📝 necesita spec en `tareas/` antes de escribir código (SDD).
 
@@ -32,9 +34,11 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 **Setup del repo (antes de la primera línea de `src/`)**
 - ✅ Repo del producto creado: Next.js 16 + TypeScript + Tailwind v4 con pnpm (ARQ-nextjs, OPS-paquetes, UI-estilos), estructura de `src/` de [ADR-001](adr/ADR-001-arquitectura-interna.md) y OpenSpec con `openspec/config.yaml` (PROC-sdd)
 - ⬜ Terminar la revisión de [OWASP-Top10.md](OWASP-Top10.md): l.96 (MFA para administradores) y l.110 (cambios de privilegios) ya no aplican con un solo rol (SEG-roles)
-- ⬜ Activar el workflow `verify` de OpenSpec (`openspec config profile`): el perfil por defecto no lo instala y PROC-sdd lo incluye
-- ⬜ Reglas de arquitectura en ESLint (ARQ-hexagonal, ADR-001 §3) y hook de pre-commit con Husky que las ejecute (OPS-calidad)
-- ⬜ CI base con `pnpm install --frozen-lockfile`, lint, typecheck, tests y build; escaneo de secretos y de paquetes maliciosos; Dependabot con periodo de espera. Los tests negativos de autorización entran en CI en cuanto exista la autenticación (OPS-ci-cd, [safety-first §2.4, §2.5 y §3](safety-first.md))
+- ✅ Activar el workflow `verify` de OpenSpec (`openspec config profile`), con soporte para Claude Code y Antigravity
+- ✅ Reglas de arquitectura en ESLint con `eslint-plugin-boundaries` (ARQ-hexagonal, ADR-001 §3, incluida la Scope Rule de la UI) y pre-commit con Husky + lint-staged que ejecuta lint y tests (OPS-calidad)
+- ✅ Testing: Vitest (unit en Node, UI en jsdom con Testing Library) y Playwright para E2E, con un test de humo por nivel (OPS-calidad, PROC-tdd)
+- ✅ CI base: `pnpm install --frozen-lockfile`, lint, tests, build y E2E, con `permissions` mínimos (OPS-ci-cd, [safety-first §2.4](safety-first.md))
+- ⬜ Completar la CI: typecheck explícito; escaneo de secretos y de paquetes maliciosos; Dependabot con periodo de espera. Los tests negativos de autorización entran en CI en cuanto exista la autenticación (OPS-ci-cd, [safety-first §2.4, §2.5 y §3](safety-first.md))
 
 **Datos**
 - ✅ Parser del menú → `data/menu-platos.json` (ING-menu-json, ING-parser-menu, [T2 §2](tareas/T2-esquema-json-ingesta.md))
@@ -51,13 +55,13 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 - ⬜ Etiquetar 50 peticiones → estructura tipada esperada, para el descomponedor (EVAL-golden-sets)
 
 **Buscador**
-- ⬜ 📝 Spike T3: descomponer + ranquear los 36 en consola, sin BD ni app (Fuente-de-Verdad §7). Fija el schema del descomponedor (§6.1)
+- ⬜ 📝 Spike T3: descomponer + ranquear los 36 en consola. Código tirable, fuera de la app: un script local lee `data/menu-platos.json` y `data/recetas.json`, descompone con el LLM contra el schema Zod y ranquea en consola; sin BD, sin Next, sin Genkit. Su spec, breve, en `context/tareas/T3-spike-buscador.md` antes de escribirlo. Fija el schema del descomponedor ([decisiones.md §2](decisiones.md), punto 1)
 
 **Evaluación de la extracción (después de T3)**
 - ⬜ 📝 T4: ground truth de extracción por adjudicación ciega de discrepancias parser ↔ LLM, 30 recetas + 5 menús ampliable a 10 (EVAL-ground-truth, semilla en [T4](tareas/T4-evaluacion-extraccion.md)). No bloquea nada del producto: alimenta el pilar 1 de la memoria y el experimento de ING-determinista
 
 **Carga**
-- ⬜ 📝 CLI de ingesta idempotente, con limpieza de marca y enriquecimiento (ING-cli-local, SEG-datos-nutricionista, BUS-superficie-consulta (c))
+- ⬜ 📝 CLI de ingesta idempotente, con limpieza de marca y enriquecimiento (ING-cli-local, ING-parser-menu, ING-trazabilidad, SEG-datos-nutricionista, BUS-superficie-consulta (c)). Parsers del menú y de recetas terminados ([T2](tareas/T2-esquema-json-ingesta.md) patas 1 y 3); pendientes el parser de la lista (pata 2), la política de versiones de receta (T2 §4.5) y la trazabilidad, solo de lista y recetas. Enriquecimiento: `totalTimeMin`, tabla ingrediente → grupo, temporada. Se escribe después del spike T3, con lo que este mida
 - ⬜ BD de producción con el modelo de ARQ-modelo-datos y el dataset cargado; en Neon, sin Data API y con RLS en todas las tablas ([safety-first §2.4](safety-first.md))
 
 **Evaluación de recuperación**
@@ -68,14 +72,14 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 
 **Sale de la fase:** la app está desplegada en Vercel, con login, y el flujo semanal funciona de principio a fin.
 
-- ⬜ 📝 Autenticación con email y contraseña, cuentas creadas por el CLI y sin registro, un solo rol, cuenta de demo para el tutor entregada en el formulario del máster (SEG-roles, SEG-sistema-cerrado; librería pendiente, §6.2)
+- ⬜ 📝 Autenticación con email y contraseña, cuentas creadas por el CLI y sin registro, un solo rol, cuenta de demo para el tutor entregada en el formulario del máster (SEG-roles, SEG-sistema-cerrado; librería pendiente, [decisiones.md §2](decisiones.md), punto 2)
 - ⬜ 📝 Límites de uso: login, buscador y tope global diario del LLM, con tests de abuso (SEG-rate-limit)
-- ⬜ `/planner` como buscador con chips y explicación (UI-planner-buscador, BUS-superficie-consulta (e))
+- ⬜ `/planner` como buscador con chips y explicación, sobre el modelo de ARQ-modelo-datos (UI-planner-buscador, BUS-superficie-consulta (e))
 - ⬜ `/menu` con la card de receta (UI-card-receta)
 - ⬜ `/shopping-list` como checklist contra la BD (ING-lista-compra, UI-flujo-semanal)
 - ⬜ `/` dashboard (UI-home-sin-login)
 - ⬜ Despliegue en Vercel con CI test → build → deploy (OPS-vercel, OPS-ci-cd), revisando [safety-first §2.4](safety-first.md)
-- ⬜ Tests: unit de parsers, integración, E2E del flujo semanal (OPS-calidad, §6.3)
+- ⬜ Tests: unit de parsers, integración, E2E del flujo semanal (OPS-calidad; qué se prueba en cada nivel, [decisiones.md §2](decisiones.md), punto 3)
 
 ## Fase 3 — Evaluación del flujo LLM
 
@@ -85,11 +89,11 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 - ⬜ Faithfulness de la explicación con juez de otra familia (EVAL-estrategia, IA-proveedor)
 - ⬜ Ablaciones: frase entera vs. descomponer y agregar; tres variantes del texto vectorizado (EVAL-golden-sets)
 - ⬜ Experimento de comparación: parser vs. LLM en extracción de recetas (ING-determinista)
-- ⬜ Observabilidad: latencia y coste por llamada, trazas Genkit exportadas a Sentry (OPS-observabilidad, §6.4). La exportación se verifica antes, en el spike T3
+- ⬜ Observabilidad: latencia y coste por llamada, trazas Genkit exportadas a Sentry (OPS-observabilidad; qué se mide, [decisiones.md §2](decisiones.md), punto 4). La exportación se verifica antes, en el spike T3
 
 ## Semana 4 — Memoria
 
-- ⬜ Estructura de la memoria y criterios de éxito (§6.5). Semilla: [enfoque-academico.md](enfoque-academico.md)
+- ⬜ Estructura de la memoria y criterios de éxito ([decisiones.md §2](decisiones.md), punto 5). Semilla: [enfoque-academico.md](enfoque-academico.md)
 - ⬜ Capítulo del proceso SDD con agentes (PROC-sdd-memoria)
 - ⬜ Presentación y vídeo de defensa
 
