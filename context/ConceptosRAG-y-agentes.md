@@ -1,6 +1,6 @@
 # Conceptos: RAG vs. buscador de menús, y qué es (y qué no es) un agente
 
-> Documento explicativo, no normativo. Aclara dos ideas de [Fuente-de-Verdad.md](Fuente-de-Verdad.md) (PROC-enfoque, IA-criterio-agente y BUS-descomponedor) con ejemplos de los datos reales del proyecto. Sirve también como borrador para el capítulo conceptual de la memoria.
+> Documento explicativo, no normativo. Aclara dos ideas de [decisiones.md](decisiones.md) (PROC-enfoque, IA-criterio-agente y BUS-descomponedor) con ejemplos de los datos reales del proyecto. Sirve también como borrador para el capítulo conceptual de la memoria.
 
 ---
 

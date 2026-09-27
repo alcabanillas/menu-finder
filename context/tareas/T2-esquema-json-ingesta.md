@@ -5,9 +5,9 @@
 > (menú, lista de la compra, listado de recetas) entrega a la app, tal y como sale del
 > parser correspondiente. Es la spec de la que habla PROC-sdd-memoria (SDD): existe antes de tocar el
 > modelo de datos de BD, y BD se construye leyendo esto, no al revés.
-> **Relación con Fuente-de-Verdad.md:** documenta ING-menu-json ("El menú se extrae a JSON
+> **Relación con [decisiones.md](../decisiones.md):** documenta ING-menu-json ("El menú se extrae a JSON
 > estructurado (día → comida/cena → platos). Ese JSON es la fuente de verdad de la app")
-> y es la primera pieza de la **spec de ingesta** que §7 da como pendiente (ING-cli-local+ING-parser-menu+ING-trazabilidad).
+> y es la primera pieza de la **spec de ingesta** que el [roadmap](../roadmap.md) da como pendiente (ING-cli-local+ING-parser-menu+ING-trazabilidad).
 > **Estado:** 2/3 patas cerradas (menú, recetas). Lista de la compra: pendiente.
 
 ---
@@ -67,7 +67,7 @@ type Plato = {
 ```
 
 Solo se procesan las filas **Comida** y **Cena** de la tabla del PDF (Desayuno, Almuerzo
-y Merienda quedan fuera de alcance: no son platos, FdV §4.1 — la app no muestra esas filas). Domingo llega
+y Merienda quedan fuera de alcance: no son platos, [datos.md §1](../datos.md) — la app no muestra esas filas). Domingo llega
 siempre con `comida: []` y `cena: []`: el nutricionista no rellena esa columna en ninguno
 de los 36 PDFs (verificado, es esperado, no un fallo de extracción).
 
@@ -129,7 +129,7 @@ plato contra un ground truth etiquetado a mano — eso sigue pendiente (EVAL-gro
 
 - No incluye el **texto ni los ingredientes** de la receta — solo el nombre de fichero
   que la identifica. Eso es la pata 3 (§4).
-- No incluye Desayuno, Almuerzo ni Merienda (no son platos, FdV §4.1).
+- No incluye Desayuno, Almuerzo ni Merienda (no son platos, [datos.md §1](../datos.md)).
 - El campo `recetaFichero` es un nombre de fichero, no un id estable de BD — el mapeo
   fichero → id de receta se resolverá al cargar la pata 3.
 

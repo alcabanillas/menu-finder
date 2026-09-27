@@ -1,7 +1,7 @@
 # ADR-001 — Arquitectura interna: hexagonal sobre Next.js
 
 - **Estado:** aceptada (2026-09-19); **enmendada 2026-09-27**: la CLI pasa a ser un segundo adaptador primario, con su propio composition root (§2, §3, §5); la §2 solo fija lo decidido y la §4 incluye `RateLimiter`. **Segunda enmienda 2026-09-27**: la UI se organiza con la Scope Rule (`features/` y `shared/ui/`) y `app/` queda como capa de entrada (§2, §3, §5)
-- **Decisión en la fuente de verdad:** ARQ-hexagonal
+- **Decisión en [decisiones.md](../decisiones.md):** ARQ-hexagonal
 - **Audiencia:** este documento es **entrada directa de los agentes** que generen código (SDD). Las reglas de la §3 son normativas y verificables en CI.
 - **Punto único:** la estructura de `src/` y sus reglas solo se describen aquí. `AGENTS.md` remite a este documento; no las copia.
 
@@ -40,7 +40,7 @@ src/
     ui/              # componentes y hooks usados por 2+ features
 ```
 
-**La UI sigue la Scope Rule.** Un componente o hook vive en la feature que lo usa (`features/<feature>/`) hasta que lo necesita una segunda; entonces, y no antes, sube a `shared/ui/`. Las features se nombran por lo que pintan, no por la ruta: una página compone varias features (el dashboard de `/` pinta piezas de `weekly-menu` y `shopping-list`). Features iniciales, de las pantallas de la fuente de verdad (§8): `auth`, `dashboard`, `menu-search`, `weekly-menu`, `shopping-list`.
+**La UI sigue la Scope Rule.** Un componente o hook vive en la feature que lo usa (`features/<feature>/`) hasta que lo necesita una segunda; entonces, y no antes, sube a `shared/ui/`. Las features se nombran por lo que pintan, no por la ruta: una página compone varias features (el dashboard de `/` pinta piezas de `weekly-menu` y `shopping-list`). Features iniciales, de las pantallas previstas ([producto.md §4](../producto.md)): `auth`, `dashboard`, `menu-search`, `weekly-menu`, `shopping-list`.
 
 **Por qué features en la UI y capas en el resto.** Se divide por feature donde las piezas son independientes y por capa donde comparten el modelo. Cada pantalla pinta cosas distintas; el backend, en cambio, es un único modelo (`Menu`, `Recipe`, `ShoppingList`) que usan casi todas las pantallas. Aplicarle la Scope Rule subiría casi todo el dominio y los puertos a `shared/`, dejando las features con un caso de uso cada una.
 
