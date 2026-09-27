@@ -7,6 +7,25 @@ export default defineConfig({
   plugins: [react()],
   resolve: { tsconfigPaths: true },
   test: {
+    // Sin umbral todavía: se fija con la primera medición real (OPS-calidad).
+    coverage: {
+      provider: "v8",
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: [
+        "src/**/*.test.{ts,tsx}",
+        // Páginas y rutas de Next.js: las cubre Playwright (E2E).
+        "src/app/**",
+        // Solo conectan piezas y tocan `process`: los cubre la ejecución real de la CLI.
+        "src/cli/index.ts",
+        "src/composition/**",
+        // Solo tipos: no hay código que ejecutar.
+        "src/application/ports/**",
+        "src/application/dto/**",
+        "src/domain/menu/weekly-menu.ts",
+        "src/domain/menu-ingestion/source-menu.ts",
+      ],
+      reporter: ["text", "html", "lcov"],
+    },
     projects: [
       {
         extends: true,
