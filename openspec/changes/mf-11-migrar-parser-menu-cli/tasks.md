@@ -31,9 +31,9 @@ Every test task writes the test first and runs it (`pnpm test`) to see it fail f
 
 ## 5. Weekly menu building (domain)
 
-- [ ] 5.1 Define `SourceMenu` in `src/domain/menu-ingestion/source-menu.ts` (meals by `Day` and `MealType`, ordered dishes with name and mark; design D1); verify `pnpm typecheck` passes
-- [ ] 5.2 Write `src/domain/menu-ingestion/build-weekly-menu.test.ts` over a fictitious `SourceMenu`: 14 meals ordered by day and then lunch before dinner (a meal the source omits is added with `dishes: []`), `number` numeric, 1-based `position` following source order after dropping unmarked filler (a marked filler-looking dish is kept), empty Sunday meals, `recipeFile` set only for resolved dishes, no score in the `WeeklyMenu`, and per-dish resolutions and counters (empty slots, multi-dish slots, resolved/unmarked/unresolved, unclaimed recipe files) returned alongside, all counted after dropping filler (a cell with only filler counts as an empty slot; a dish plus filler is not a multi-dish slot); verify it fails
-- [ ] 5.3 Implement `src/domain/menu-ingestion/build-weekly-menu.ts`; verify 5.2 passes
+- [x] 5.1 Define `SourceMenu` in `src/domain/menu-ingestion/source-menu.ts` (meals by `Day` and `MealType`, ordered dishes with name and mark; design D1); verify `pnpm typecheck` passes
+- [x] 5.2 Write `src/domain/menu-ingestion/build-weekly-menu.test.ts` over a fictitious `SourceMenu`: 14 meals ordered by day and then lunch before dinner (a meal the source omits is added with `dishes: []`), `number` numeric, 1-based `position` following source order after dropping unmarked filler (a marked filler-looking dish is kept), empty Sunday meals, `recipeFile` set only for resolved dishes, no score in the `WeeklyMenu`, and per-dish resolutions and counters (empty slots, multi-dish slots, resolved/unmarked/unresolved, unclaimed recipe files) returned alongside, all counted after dropping filler (a cell with only filler counts as an empty slot; a dish plus filler is not a multi-dish slot); verify it fails
+- [x] 5.3 Implement `src/domain/menu-ingestion/build-weekly-menu.ts`; verify 5.2 passes
 
 ## 6. Ports and use case
 
