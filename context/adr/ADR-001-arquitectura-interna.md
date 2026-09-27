@@ -7,7 +7,6 @@
 
 ## 1. Contexto
 
-
 Arquitectura **hexagonal** (puertos y adaptadores), siguiendo la estructura mínima enseñada en el máster, con Next.js App Router como capa de adaptadores primarios.
 
 Se descartan los vertical slices. Razones: alineación con el marco teórico del máster (el tribunal reconoce el patrón), reglas de dependencia **verificables automáticamente** —algo que importa más de lo habitual porque el código lo generan agentes—, y aislamiento natural del dominio respecto de Next.js, que es la dependencia más volátil del proyecto.
