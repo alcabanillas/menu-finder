@@ -36,7 +36,8 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 - ⬜ Revisar el emparejamiento plato → fichero de receta de `parse-menu-pdftable.js`. En una copia de `data/raw` a la que le faltan 2 PDF de receta, `pnpm datos:menu` da 589 emparejados y 2 platos con `*` sin fichero (T2 espera 591 y 0). Uno de los dos es del menú 10 y es una tostada. Hay que comprobar:
   - si faltan de verdad los PDF o si el filtro `BREAKFAST_RECIPE_PREFIXES` (recetas de tostada del desayuno) se come una receta que no es de desayuno;
   - que el script avise con claridad de qué ficheros faltan;
-  - que `datos:recetas` saque las mismas recetas que `datos:menu` da por emparejadas.
+  - que `datos:recetas` saque las mismas recetas que `datos:menu` da por emparejadas;
+  - que `datos:menu` busque solo `.pdf`. Hoy da por existente una receta aunque solo haya su `.pdf.txt` (`loadRecipeFilenames`), y los TXT antiguos de otras copias se arrastran. `datos:recetas` sí lee solo `.pdf`. Por eso el 591 de T2 puede estar inflado por TXT sin PDF.
 
 **Golden sets (antes de tocar el buscador)**
 - ⬜ 📝 T4: ground truth de extracción por adjudicación ciega de discrepancias parser ↔ LLM, 30 recetas + 5 menús (EVAL-ground-truth). Primera tarea tras el setup del repo
