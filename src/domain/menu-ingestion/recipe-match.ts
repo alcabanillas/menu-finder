@@ -32,6 +32,9 @@ const containmentScore = (dishWords: Set<string>, candidateName: string): number
 const isBreakfastRecipe = (comparableName: string): boolean =>
   BREAKFAST_RECIPE_PREFIXES.some((prefix) => comparableName.startsWith(prefix));
 
+/** Whether a recipe file can be matched to a dish: excluded breakfast recipes cannot. */
+export const isRecipeCandidate = (recipeFile: string): boolean => !isBreakfastRecipe(toComparableName(recipeFile));
+
 /**
  * Resolves a dish to one of its menu folder's recipe files. Only dishes the
  * PDF marks with `*` are matched; the best candidate (first one on ties) is

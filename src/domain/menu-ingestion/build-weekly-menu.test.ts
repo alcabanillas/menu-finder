@@ -132,4 +132,13 @@ describe("buildWeeklyMenu", () => {
       unclaimedRecipeFiles: 2,
     });
   });
+
+  it("does not count excluded breakfast recipe files as unclaimed", () => {
+    const { counts } = buildWeeklyMenu(1, EMPTY_SOURCE, [
+      "Tostada-integral-con-un-poco-de-aceite-de-oliva-virgen",
+      "Tarta-de-queso",
+    ]);
+
+    expect(counts.unclaimedRecipeFiles).toBe(1);
+  });
 });

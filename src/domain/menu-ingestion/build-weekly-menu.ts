@@ -1,6 +1,6 @@
 import type { Day, Meal, MealType, WeeklyMenu } from "../menu/weekly-menu";
 import { isFiller } from "./filler";
-import { resolveDish, type DishResolution } from "./recipe-match";
+import { isRecipeCandidate, resolveDish, type DishResolution } from "./recipe-match";
 import type { SourceDish, SourceMenu } from "./source-menu";
 
 const DAYS: readonly Day[] = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
@@ -69,6 +69,8 @@ export function buildWeeklyMenu(number: number, source: SourceMenu, recipeFiles:
     }),
   );
 
-  counts.unclaimedRecipeFiles = [...new Set(recipeFiles)].filter((file) => !claimed.has(file)).length;
+  counts.unclaimedRecipeFiles = [...new Set(recipeFiles)].filter(
+    (file) => isRecipeCandidate(file) && !claimed.has(file),
+  ).length;
   return { menu: { number, meals }, dishes, counts };
 }
