@@ -37,9 +37,9 @@ Every test task writes the test first and runs it (`pnpm test`) to see it fail f
 
 ## 6. Ports and use case
 
-- [ ] 6.1 Define `src/application/ports/document-source.ts` (`listMenuFolders`, `readMenu` returning `SourceMenu`, `listRecipeFiles`, `MenuFolder`, `SourceError` with missing file / unreadable document / no table / missing header / missing meal row) and `src/application/ports/menu-repository.ts` (`saveAll`, `RepositoryError`), plus the `IngestMenusSummary` DTO in `src/application/dto/ingest-menus.ts` (design D3/D5); verify `pnpm typecheck` and `pnpm lint` pass
-- [ ] 6.2 Write `src/application/use-cases/ingest-menus.test.ts` with in-memory fakes: menus saved in numeric order (`10`, `2`, `1` → `1`, `2`, `10`); non-menu folders ignored; each per-menu `SourceError` recorded with its cause while the other menus are still saved; a missing raw directory → `Err` and `saveAll` never called; no menu parsed → `Err` and `saveAll` never called; the summary's QA rows, unresolved list, totals and `1/2`-style processed count; verify it fails
-- [ ] 6.3 Implement `src/application/use-cases/ingest-menus.ts`; verify 6.2 passes
+- [x] 6.1 Define `src/application/ports/document-source.ts` (`listMenuFolders`, `readMenu` returning `SourceMenu`, `listRecipeFiles`, `MenuFolder`, `SourceError` with missing file / unreadable document / no table / missing header / missing meal row) and `src/application/ports/menu-repository.ts` (`saveAll`, `RepositoryError`), plus the `IngestMenusSummary` DTO in `src/application/dto/ingest-menus.ts` (design D3/D5); verify `pnpm typecheck` and `pnpm lint` pass
+- [x] 6.2 Write `src/application/use-cases/ingest-menus.test.ts` with in-memory fakes: menus saved in numeric order (`10`, `2`, `1` → `1`, `2`, `10`); each per-menu `SourceError` recorded with its cause while the other menus are still saved; a missing raw directory → `Err` and `saveAll` never called; no menu parsed (or no menu folders) → `Err` and `saveAll` never called; a `saveAll` failure → `Err`; non-menu folders are the adapter's job (7.5); the summary's QA rows, unresolved list, totals and `1/2`-style processed count; verify it fails
+- [x] 6.3 Implement `src/application/use-cases/ingest-menus.ts`; verify 6.2 passes
 
 ## 7. Infrastructure adapters
 
