@@ -44,6 +44,7 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 
 **Repo del producto y carga**
 - ✅ Repo del producto creado: Next.js 16 + TypeScript + Tailwind v4 con pnpm (ARQ-nextjs, OPS-paquetes, UI-estilos), estructura de `src/` de [ADR-001](adr/ADR-001-arquitectura-interna.md) y OpenSpec con `openspec/config.yaml` (PROC-sdd)
+- ⬜ Terminar la revisión de [OWASP-Top10.md](OWASP-Top10.md): l.96 (MFA para administradores) y l.110 (cambios de privilegios) ya no aplican con un solo rol (SEG-roles)
 - ⬜ Activar el workflow `verify` de OpenSpec (`openspec config profile`): el perfil por defecto no lo instala y PROC-sdd lo incluye
 - ⬜ Reglas de arquitectura en ESLint (ARQ-hexagonal, ADR-001 §3), CI base con `pnpm install --frozen-lockfile`, tests negativos de autorización, escaneo de secretos y de paquetes maliciosos, y Dependabot con periodo de espera (OPS-ci-cd, [safety-first §2.4, §2.5 y §3](safety-first.md))
 - ⬜ 📝 CLI de ingesta idempotente, con limpieza de marca y enriquecimiento (ING-cli-local, SEG-datos-nutricionista, BUS-superficie-consulta (c))
