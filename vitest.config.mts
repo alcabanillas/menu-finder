@@ -7,6 +7,34 @@ export default defineConfig({
   plugins: [react()],
   resolve: { tsconfigPaths: true },
   test: {
+    // Umbrales por tipo de código (OPS-calidad). La infraestructura no tiene umbral.
+    coverage: {
+      thresholds: {
+        // Lógica de negocio.
+        "src/domain/**": { statements: 100, branches: 100, functions: 100, lines: 100 },
+        "src/application/**": { statements: 100, branches: 100, functions: 100, lines: 100 },
+        // Lo que ve el usuario: la UI y la salida de la CLI.
+        "src/features/**": { statements: 80, branches: 80, functions: 80, lines: 80 },
+        "src/shared/ui/**": { statements: 80, branches: 80, functions: 80, lines: 80 },
+        "src/cli/**": { statements: 80, branches: 80, functions: 80, lines: 80 },
+      },
+      provider: "v8",
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: [
+        "src/**/*.test.{ts,tsx}",
+        // Páginas y rutas de Next.js: las cubre Playwright (E2E).
+        "src/app/**",
+        // Solo conectan piezas y tocan `process`: los cubre la ejecución real de la CLI.
+        "src/cli/index.ts",
+        "src/composition/**",
+        // Solo tipos: no hay código que ejecutar.
+        "src/application/ports/**",
+        "src/application/dto/**",
+        "src/domain/menu/weekly-menu.ts",
+        "src/domain/menu-ingestion/source-menu.ts",
+      ],
+      reporter: ["text", "html", "lcov"],
+    },
     projects: [
       {
         extends: true,

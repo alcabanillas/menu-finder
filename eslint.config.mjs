@@ -2,6 +2,7 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 import boundaries from "eslint-plugin-boundaries";
+import sonarjs from "eslint-plugin-sonarjs";
 
 // Reglas de dependencia de ADR-001 §3. Si una importación las rompe, el fallo está en el diseño.
 const layer = (type) => ({ to: { element: { type } } });
@@ -104,6 +105,9 @@ function dependencyRule(extraPolicies = []) {
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  // Reglas de calidad de Sonar (bugs, code smells, complejidad) en el mismo lint (OPS-calidad).
+  // Solo en src/: scripts/datos/ se sustituye por la CLI de ingesta y no se refactoriza.
+  { ...sonarjs.configs.recommended, files: ["src/**/*.{ts,tsx}"] },
   architecture,
   architectureTests,
   // scripts/datos/ son los scripts CommonJS de generación local de datos (T0).
@@ -119,6 +123,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Informe de cobertura generado (pnpm test:coverage).
+    "coverage/**",
   ]),
 ]);
 

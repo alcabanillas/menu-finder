@@ -47,6 +47,14 @@ describe("resolveDish", () => {
     });
   });
 
+  it("reports no discarded candidate when the dish has no word longer than two letters", () => {
+    expect(resolveDish(marked("Té"), ["Te"])).toEqual({ status: "unresolved", discarded: null });
+  });
+
+  it("scores zero against a file name with no word longer than two letters", () => {
+    expect(resolveDish(marked("Merluza al horno"), ["Al-de"])).toEqual({ status: "unresolved", discarded: null });
+  });
+
   it("never matches an unmarked dish, even against an identical file name", () => {
     const resolution = resolveDish({ name: "Pimientos asados", hasRecipeMark: false }, ["Pimientos-asados"]);
 

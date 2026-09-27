@@ -41,6 +41,7 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 - ✅ **MF-05** Testing: Vitest (unit en Node, UI en jsdom con Testing Library) y Playwright para E2E, con un test de humo por nivel (OPS-calidad, PROC-tdd)
 - ✅ **MF-06** CI base: `pnpm install --frozen-lockfile`, lint, tests, build y E2E, con `permissions` mínimos (OPS-ci-cd, [safety-first §2.4](safety-first.md))
 - ✅ **MF-07** Completar la CI: typecheck explícito; OSV-Scanner para CVE y paquetes maliciosos; secret scanning con push protection; Dependabot con 7 días de espera (OPS-ci-cd, [safety-first §2.4 y §2.5](safety-first.md))
+- ✅ **MF-37** Calidad: `eslint-plugin-sonarjs` en `src/` y cobertura con `@vitest/coverage-v8` en CI: 100 % en lógica de negocio, 80 % en lo que ve el usuario, sin umbral en infraestructura (OPS-calidad). Scripts: `test` (watch), `test:run`, `test:coverage`
 
 **Datos**
 - ✅ **MF-08** Parser del menú → `data/menu-platos.json` (ING-menu-json, ING-parser-menu, [T2 §2](tareas/T2-esquema-json-ingesta.md))
