@@ -7,9 +7,8 @@
 
 ## 1. Contexto
 
-El proyecto necesitaba una sola regla de organización de código antes de generar la primera línea: con SDD y varios agentes, cada uno elegiría una estructura distinta. Las fuentes se contradecían (README: vertical slices; Estado del arte: monolito modular + Clean Architecture).
 
-**Decisión del autor (2026-09-19):** arquitectura **hexagonal** (puertos y adaptadores), siguiendo la estructura mínima enseñada en el máster, con Next.js App Router como capa de adaptadores primarios.
+Arquitectura **hexagonal** (puertos y adaptadores), siguiendo la estructura mínima enseñada en el máster, con Next.js App Router como capa de adaptadores primarios.
 
 Se descartan los vertical slices. Razones: alineación con el marco teórico del máster (el tribunal reconoce el patrón), reglas de dependencia **verificables automáticamente** —algo que importa más de lo habitual porque el código lo generan agentes—, y aislamiento natural del dominio respecto de Next.js, que es la dependencia más volátil del proyecto.
 
