@@ -25,9 +25,9 @@ Every test task writes the test first and runs it (`pnpm test`) to see it fail f
 
 ## 4. Recipe resolution
 
-- [ ] 4.1 Write the MF-11 regression test first in `src/domain/menu-ingestion/recipe-match.test.ts`: a marked dish whose best candidate scores `0.5` resolves to `unresolved` carrying that discarded candidate and score; verify it fails
-- [ ] 4.2 Add to the same test file the remaining *Recipe resolution for marked dishes* scenarios: resolved at score `1`, exactly `0.6` resolves, no candidate files → `unresolved` with no discarded candidate, unmarked dish → `unmarked` even with an exact file-name match, ties keep the first candidate, and a recipe matching each breakfast prefix never selected; verify they fail
-- [ ] 4.3 Implement `src/domain/menu-ingestion/recipe-match.ts` (containment score, breakfast exclusion, `resolveDish` with the discriminated result of design D2); verify 4.1 and 4.2 pass
+- [x] 4.1 Write the MF-11 regression test first in `src/domain/menu-ingestion/recipe-match.test.ts`: a marked dish whose best candidate scores `0.5` resolves to `unresolved` carrying that discarded candidate and score; verify it fails
+- [x] 4.2 Add to the same test file the remaining *Recipe resolution for marked dishes* scenarios: resolved at score `1`, exactly `0.6` resolves, no candidate files → `unresolved` with no discarded candidate, unmarked dish → `unmarked` even with an exact file-name match, ties keep the first candidate, and a recipe matching each breakfast prefix never selected; verify they fail
+- [x] 4.3 Implement `src/domain/menu-ingestion/recipe-match.ts` (containment score, breakfast exclusion, `resolveDish` with the discriminated result of design D2); verify 4.1 and 4.2 pass
 
 ## 5. Weekly menu building (domain)
 
@@ -62,8 +62,9 @@ Every test task writes the test first and runs it (`pnpm test`) to see it fail f
 
 - [ ] 9.1 Save the old output (`pnpm datos:menu`, then copy `data/menu-platos.json` to `data/qa/menu-platos.legacy.json`), run `pnpm ingest menu`, and verify the command exits with `0` and writes `data/menu-platos.json` and both QA files, and nothing outside `data/` (`git status` clean)
 - [ ] 9.2 Write a one-off comparison script in the scratchpad (not committed) that maps the legacy `MenuJson[]` to `WeeklyMenu` and diffs it against the new file dish by dish; verify every difference is explained (a `.pdf.txt` without a `.pdf`, a genuinely missing recipe, or a filter error) and record the counts and explanations in this task's notes
-- [ ] 9.3 Investigate the roadmap's menu 10 case and every other unresolved dish (e.g. the menu 1 dish with `scoreMatch: 0.4`): check whether the recipe PDF is really missing or `BREAKFAST_RECIPE_PREFIXES` removes a non-breakfast recipe; if the filter is wrong, add a failing test in `recipe-match.test.ts` with a fictitious name, fix the prefixes, and verify the test passes and the dish resolves on a rerun
-- [ ] 9.4 Cross-check the recipes `pnpm datos:recetas` extracts against the `recipeFile` values `ingest menu` resolves; verify that every resolved recipe exists in the recipes output, or record each exception with its cause
+- [ ] 9.3 Decide `MATCH_THRESHOLD` with the parity data: keep `0.6` or raise it to `1` (with the current `data/raw` every resolved dish scores `1`; the menu 1 `scoreMatch: 0.4` came from a manually renamed recipe file, not from the data); record the decision and its reason in `design.md` and the spec
+- [ ] 9.4 Investigate the roadmap's menu 10 case and every other unresolved dish: check whether the recipe PDF is really missing or `BREAKFAST_RECIPE_PREFIXES` removes a non-breakfast recipe; if the filter is wrong, add a failing test in `recipe-match.test.ts` with a fictitious name, fix the prefixes, and verify the test passes and the dish resolves on a rerun
+- [ ] 9.5 Cross-check the recipes `pnpm datos:recetas` extracts against the `recipeFile` values `ingest menu` resolves; verify that every resolved recipe exists in the recipes output, or record each exception with its cause
 
 ## 10. Cleanup and documentation
 
