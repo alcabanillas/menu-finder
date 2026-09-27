@@ -1,6 +1,6 @@
 # ADR-001 — Arquitectura interna: hexagonal sobre Next.js
 
-- **Estado:** aceptada (2026-09-19); **enmendada 2026-09-27**: la CLI pasa a ser un segundo adaptador primario, con su propio composition root (§2, §3, §5); la §2 solo fija lo decidido y la §4 incluye `RateLimiter`
+- **Estado:** aceptada (2026-09-19); **enmendada 2026-09-27**: la CLI pasa a ser un segundo adaptador primario, con su propio composition root (§2, §3, §5); la §2 solo fija lo decidido y la §4 incluye `RateLimiter`. **Segunda enmienda 2026-09-27**: la UI se organiza con la Scope Rule (`features/` y `shared/ui/`) y `app/` queda como capa de entrada (§2, §3, §5)
 - **Decisión en la fuente de verdad:** ARQ-hexagonal
 - **Audiencia:** este documento es **entrada directa de los agentes** que generen código (SDD). Las reglas de la §3 son normativas y verificables en CI.
 - **Punto único:** la estructura de `src/` y sus reglas solo se describen aquí. `AGENTS.md` remite a este documento; no las copia.
@@ -27,12 +27,22 @@ src/
   cli/               # CLI = ADAPTADOR PRIMARIO: ingesta, alta de cuentas, evaluación
     commands/
     index.ts
-  app/               # Next.js App Router = ADAPTADOR PRIMARIO, no una capa más
+  app/               # Next.js App Router = ADAPTADOR PRIMARIO, no una capa más. SOLO entrada
+    <ruta>/page.tsx  # pide datos al caso de uso y los pasa por props
+    <ruta>/actions.ts  # server actions de esa ruta
     api/**/route.ts
-    (rutas de UI)
+  features/          # UI organizada con la Scope Rule: UI pura, sin backend
+    <feature>/
+      components/
+      hooks/
   shared/
-    result.ts        # Result<T, E> compartido
+    result.ts        # Result<T, E> compartido, sin dependencias
+    ui/              # componentes y hooks usados por 2+ features
 ```
+
+**La UI sigue la Scope Rule.** Un componente o hook vive en la feature que lo usa (`features/<feature>/`) hasta que lo necesita una segunda; entonces, y no antes, sube a `shared/ui/`. Las features se nombran por lo que pintan, no por la ruta: una página compone varias features (el dashboard de `/` pinta piezas de `weekly-menu` y `shopping-list`). Features iniciales, de las pantallas de la fuente de verdad (§8): `auth`, `dashboard`, `menu-search`, `weekly-menu`, `shopping-list`.
+
+**Por qué features en la UI y capas en el resto.** Se divide por feature donde las piezas son independientes y por capa donde comparten el modelo. Cada pantalla pinta cosas distintas; el backend, en cambio, es un único modelo (`Menu`, `Recipe`, `ShoppingList`) que usan casi todas las pantallas. Aplicarle la Scope Rule subiría casi todo el dominio y los puertos a `shared/`, dejando las features con un caso de uso cada una.
 
 Las subcarpetas de `domain/` e `infrastructure/` no se fijan de antemano: las crea la spec que las necesite, agrupando por capacidad (`domain/search/`, `infrastructure/llm/`).
 
@@ -50,11 +60,13 @@ Hay **dos adaptadores primarios sobre el mismo hexágono**: la web (`app/`) y la
 
 | Capa | Puede importar | No puede importar |
 |---|---|---|
-| `domain` | `domain`, `shared` | todo lo demás, **incluidas librerías de terceros** |
+| `domain` | `domain`, `shared` (salvo `shared/ui`) | todo lo demás, **incluidas librerías de terceros** |
 | `application` | `domain`, `shared` | `infrastructure`, `composition`, `app`, `cli`, Next.js |
 | `infrastructure` | `application` (ports, dto), `domain`, `shared`, librerías externas | `composition`, `app`, `cli` |
 | `composition` | todas | — |
-| `app` (Next.js) | `composition/web-container`, `application` (dto y tipos de caso de uso), `shared` | **`domain` e `infrastructure` directamente**; `composition/cli-container`; `cli` |
+| `app` (Next.js) | `composition/web-container`, `application` (dto y tipos de caso de uso), `features`, `shared` | **`domain` e `infrastructure` directamente**; `composition/cli-container`; `cli` |
+| `features` | `application` (dto), `shared` (incluido `shared/ui`), la propia feature | **otras features**; `domain`, `infrastructure`, `composition`, `app`, `cli` |
+| `shared/ui` | `shared`, `application` (dto) | `features`, `domain`, `infrastructure`, `composition`, `app`, `cli` |
 | `cli` | `composition/cli-container`, `application` (dto y tipos de caso de uso), `shared` | **`domain` e `infrastructure` directamente**; `composition/web-container`; `app` |
 
 **Estas reglas se validan con ESLint (`import/no-restricted-paths` o `eslint-plugin-boundaries`) y se ejecutan en el hook de pre-commit (OPS-calidad) y en CI (OPS-ci-cd).** Una regla de arquitectura que no comprueba una herramienta acaba incumpliéndose sin que nadie lo note, sobre todo si el código lo generan agentes. Regla derivada: **no se adopta ninguna norma de arquitectura que no se pueda verificar automáticamente** — se queda en recomendación, no en norma.
@@ -77,6 +89,7 @@ Ejemplo que fija el criterio — **el parser de la lista de la compra (ING-lista
 - **En Vercel (OPS-vercel) no hay proceso de larga vida**: el contenedor puede recrearse en cada invocación. El acceso a BD usa el **pooler** de Neon; prohibido asumir un pool de conexiones persistente.
 - **Los route handlers y los comandos de la CLI son adaptadores finos**: parsear, autenticar y autorizar (la web), llamar a un caso de uso, mapear `Result` a HTTP o a código de salida. Cero lógica de negocio. Si un handler o un comando pasa de ~30 líneas, la lógica está en el sitio equivocado.
 - **Server Components y Server Actions son la trampa del patrón**: pueden importar cualquier cosa y hacerlo parecerá natural. Norma: **un Server Component solo puede invocar casos de uso a través del composition root**, nunca repositorios, clientes de BD o SDK del LLM. Toda escritura pasa por un caso de uso. Esto además es lo que exige `safety-first.md` P5 (las decisiones viven en el backend).
+- **Solo `app/` toca el `web-container`.** Las features reciben los datos (DTO) y las server actions por props, y se limitan a pintar. Así se testean con Testing Library sin servidor ni BD, y la sesión y la autorización no se pueden saltar desde la UI.
 - **Errores:** `domain` y `application` devuelven `Result<T, E>`; los adaptadores de infraestructura pueden lanzar, y su propio adaptador captura y convierte a `Result` en la frontera. No se propagan excepciones de librerías hacia dentro.
 
 ## 6. Consecuencias
