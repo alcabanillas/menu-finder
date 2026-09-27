@@ -278,7 +278,7 @@ async function main() {
           } else {
             // Plato marcado con "*" (debería tener receta) pero sin fichero
             // que lo respalde con score suficiente: o falta subir la receta
-            // al Drive, o el nombre de fichero no coincide con el del PDF.
+            // a data/raw/, o el nombre de fichero no coincide con el del PDF.
             recetaEsperadaNoEncontrada++;
           }
           rowsForMenu.push([menuId, bloque, DAYS[d], plato, '1', match || '', score.toFixed(2)]);
@@ -326,7 +326,7 @@ async function main() {
   lines.push('fichero de receta: sin asterisco no se fuerza ningún match (evita falsos positivos por');
   lines.push('coincidencia parcial con la receta de OTRO plato de la carpeta). "receta esperada no');
   lines.push('encontrada" = plato con "*" pero sin fichero que lo respalde (score < 0.6): revisar si falta');
-  lines.push('subir la receta al Drive o si el nombre de fichero no coincide. Domingo vacío es esperado.\n');
+  lines.push('el PDF de la receta en data/raw/ o si el nombre de fichero no coincide. Domingo vacío es esperado.\n');
   lines.push('| Menu | slots (día×bloque) | vacíos | celdas con 2+ platos | match ok (con receta) | sin receta (esperado) | receta esperada no encontrada | ficheros receta | recetas no reclamadas |');
   lines.push('|---|---|---|---|---|---|---|---|---|');
   for (const r of report) {
@@ -359,7 +359,7 @@ async function main() {
   console.log(`Slots con 2+ platos detectados: ${totalMultiDish}`);
   console.log(`Platos con "*" y match >= ${MATCH_THRESHOLD} contra fichero de receta: ${totalMatched}`);
   console.log(`Platos sin "*" (sin receta esperada, no se intenta match): ${totalSinReceta}`);
-  console.log(`Platos con "*" SIN fichero de receta encontrado (revisar Drive): ${totalRecetaEsperadaNoEncontrada}`);
+  console.log(`Platos con "*" SIN fichero de receta encontrado (revisar data/raw): ${totalRecetaEsperadaNoEncontrada}`);
   console.log(`Ficheros de receta no reclamados por ningún slot: ${totalUnused}`);
   console.log(`Salida: ${path.join(DATA_DIR, 'menu-platos.json')} (dataset, gitignoreado)`);
   console.log(`Salida: ${OUT_DIR} (menu-platos-pdftable.csv, qa-menu-platos-pdftable.md — QA, local)`);

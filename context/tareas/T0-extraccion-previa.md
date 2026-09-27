@@ -22,7 +22,7 @@ Cada script escribe además una QA agregada (recuentos, sin el dataset) en `data
 ## 2. Requisitos
 
 - Los PDF en `data/raw/Dieta/Menu 1` … `Menu 36`, cada carpeta con `menu.pdf`, `Lista_de_la_compra.pdf` y un PDF por receta. Los `valoracion-*.pdf` se ignoran.
-- Node y `pnpm install` (dependencia: `pdf-parse`, que trae `pdfjs-dist`).
+- Node y `pnpm install` (dependencias: `pdf-parse` para el menú y `pdfjs-dist` para las recetas; pnpm no deja usar una dependencia que no esté declarada en `package.json`).
 - Poppler (`pdftotext`), solo para el paso 1.
 - `data/marca.json`, creado a mano y nunca versionado, con los patrones del pie de la lista de la compra (eslogan y marca). Así el parser los descarta sin que el texto del nutricionista aparezca en el código (SEG-datos-nutricionista):
 
