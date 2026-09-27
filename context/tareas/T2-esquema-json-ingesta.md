@@ -21,7 +21,7 @@ por parte del nutricionista, que hoy se ingestan con tres parsers distintos:
 |---|---|---|---|
 | 1. Menú | `menu.pdf` | `pnpm ingest menu` (`src/`, MF-11) | ✅ Cerrado (este documento) |
 | 2. Lista de la compra | `Lista_de_la_compra.pdf` | `scripts/datos/parse-lista-compra.js` | ⏳ Pendiente de revisión/documentar |
-| 3. Listado de recetas | un PDF por receta (639) | `scripts/datos/parse-recetas-pdfjs.js` | ✅ Cerrado (§4) |
+| 3. Listado de recetas | un PDF por receta (639) | `pnpm ingest recipes` (`src/`, MF-38) | ✅ Cerrado (§4) |
 
 Las tres alimentan el mismo modelo de datos de BD (ARQ-modelo-datos), pero **cada JSON es independiente y se
 valida por separado** antes de cruzarlos — el cruce (p. ej. "los ingredientes de una
@@ -161,7 +161,7 @@ documentar aquí todavía ni revisado contra el mismo criterio de calidad que la
 
 ### 4.1 Origen
 
-`scripts/datos/parse-recetas-pdfjs.js` lee cada `data/raw/Dieta/Menu N/<plato>.pdf`
+`pnpm ingest recipes` (CLI de `src/`, MF-38) lee cada `data/raw/Dieta/Menu N/<plato>.pdf`
 (todo PDF de la carpeta salvo `menu`, `Lista_de_la_compra` y `valoracion-*`) con
 `pdfjs-dist` — la librería que `pdf-parse` lleva debajo — y trabaja sobre el **texto con
 coordenadas**, no sobre el TXT de `pdftotext -layout`. Ya no hace falta el TXT: dos recetas
@@ -187,62 +187,72 @@ ingrediente anterior. Ocurre en 570 de los 4.929 ingredientes.
 ### 4.2 Forma
 
 ```
-RecetaJson[]        // una entrada por fichero PDF, 639 en total
+Recipe[]            // una entrada por fichero de receta, 434, ordenadas por `file`
 ```
+
+Es la entidad de dominio `Recipe` (`src/domain/recipe/recipe.ts`) serializada tal cual,
+como `WeeklyMenu` en la pata 1. El fichero es temporal: MF-16 lo sustituye por la BD.
 
 ```ts
-type RecetaJson = {
-  menu: string;                 // "1".."36": carpeta de la que sale este PDF
-  fichero: string;              // nombre de fichero sin extensión; casa con `recipeFile` de la pata 1
-  titulo: string;               // título + subtítulo del PDF, en una línea ("Alcachofas rellenas de huevo y gambas")
-  tiempos: {                    // minutos enteros; null si la casilla está vacía
+type Recipe = {
+  file: string;                 // nombre de fichero sin extensión; casa con `recipeFile` de la pata 1
+  sourceMenu: number;           // menú del que sale la versión guardada (el de número más alto, §4.5)
+  title: string;                // título + subtítulo del PDF, en una línea ("Alcachofas rellenas de huevo y gambas")
+  times: {                      // minutos enteros; null si la casilla está vacía
     total: number | null;
-    elaboracion: number | null;
-    coccion: number | null;
-    espera: number | null;      // "Espera/reposo"
+    preparation: number | null; // "Elaboración"
+    cooking: number | null;     // "Cocción"
+    resting: number | null;     // "Espera/reposo"
   };
-  ingredientes: Ingrediente[];  // en el orden del PDF
-  preparacion: string[];        // un párrafo por elemento, en el orden del PDF; [] si no hay
-  anomalias: number;            // cuántas anomalías registró el parser en este fichero (0 = limpio)
+  ingredients: RecipeIngredient[]; // en el orden del PDF
+  preparation: string[];        // un párrafo por elemento, en el orden del PDF; [] si no hay
 };
 
-type Ingrediente = {
-  nombre: string;               // sin el guion ni los dos puntos ("Aceite de oliva virgen extra")
-  cantidadTexto: string | null; // la medida casera, tal cual ("1 cucharada", "al gusto", "2-3 unidades"); null si solo hay gramos
-  cantidad: number;             // el número entre paréntesis
-  unidad: 'g' | 'ml' | 'kg' | 'l';
-  opcional: boolean;            // el PDF lo marca con "*"
+type RecipeIngredient = {
+  name: string;                    // sin el guion ni los dos puntos ("Aceite de oliva virgen extra")
+  householdMeasure: string | null; // la medida casera, tal cual ("1 cucharada", "al gusto", "2-3 unidades"); null si solo hay gramos
+  quantity: number | null;         // el número entre paréntesis; null solo si la cantidad no se pudo leer (anomalía)
+  unit: 'g' | 'ml' | 'kg' | 'l' | null;
+  optional: boolean;               // el PDF lo marca con "*"
 };
 ```
+
+Las anomalías del parser ya no van en el dataset: salen en la QA, por menú y fichero.
 
 ### 4.3 Semántica y decisiones de forma
 
-- **`tiempos` en minutos**, no en `hh:mm:ss`: es lo que consume `totalTimeMin` (BUS-superficie-consulta) y lo
+- **`times` en minutos**, no en `hh:mm:ss`: es lo que consume `totalTimeMin` (BUS-superficie-consulta) y lo
   único que se hace con un tiempo es comparar o mostrar. Se redondea al minuto.
-- **`cantidadTexto` y `cantidad` separados.** El PDF da siempre las dos cosas: la medida
+- **`householdMeasure` y `quantity` separados.** El PDF da siempre las dos cosas: la medida
   casera ("1/2 diente") y el peso entre paréntesis ("(2 g)"). El peso es el dato
   comparable; la medida casera es lo que se muestra en la card (UI-card-receta). Nunca se intenta
   convertir uno en otro.
-- **`preparacion` como párrafos**, no como texto plano: el corte de párrafo lo da el hueco
+- **`preparation` como párrafos**, no como texto plano: el corte de párrafo lo da el hueco
   vertical del PDF (interlineado 12,5 pt; salto de párrafo 25 pt). La "VERSIÓN RÁPIDA" que
   traen muchas recetas es un párrafo más; separarla es cosa de la app, si alguna vez hace
   falta.
 - **Nada del nutricionista** (SEG-datos-nutricionista): el bloque desde "Los ingredientes con un asterisco…"
-  hacia abajo (incluye el email de contacto) y el pie de página no se copian. Verificado
-  con `grep` sobre el JSON y la QA: 0 apariciones de marca, email o eslogan.
-- **Sin deduplicar.** Cada PDF es una entrada, aunque el mismo `fichero` aparezca en varios
-  menús. La deduplicación es decisión de la ingesta, no del parser, porque hay versiones
-  (§4.5).
+  hacia abajo (incluye el email de contacto) y el pie de página (`y < 40`) no se copian. Lo
+  fija un test con una marca ficticia, y en MF-38 se verificó sobre los 639 PDF: ninguna
+  cadena del pie ni del bloque de cierre llega al JSON ni a la QA (la única coincidencia es
+  el fragmento genérico "son opcionales" dentro de una preparación).
+- **Una receta por fichero** (§4.5). El PDF que falla (sin cabecera `INGREDIENTES` o
+  ilegible) es un error de ese fichero: no entra, se informa y el comando sale con 1.
 
 ### 4.4 Validación / garantías actuales
 
-Sobre los 639 PDF de los 36 menús (QA agregada que escribe el propio script):
+Sobre los 639 PDF de los 36 menús (QA que escribe `pnpm ingest recipes` en
+`data/qa/qa-recetas-pdfjs.md`):
 
-- 639 recetas extraídas, 639 con `Total` legible, 637 con preparación (las 2 sin ella son
-  la misma tostada en los menús 15 y 16, y el PDF no trae texto: no es fallo del parser).
-- **4.929 ingredientes, 4.929 con nombre terminado en dos puntos, cantidad numérica y unidad.**
-  1.055 opcionales. 267 nombres distintos sin normalizar. Unidades: solo `g` y `ml`.
+- 639 PDF leídos sin error. En los 639, **4.929 ingredientes con nombre terminado en dos
+  puntos, cantidad numérica y unidad**, y 2 sin preparación (la misma tostada en los menús
+  15 y 16: el PDF no trae texto, no es fallo del parser).
+- En el dataset, una por fichero: **434 recetas**, 434 con `total`, 433 con preparación
+  (1.852 párrafos), **3.451 ingredientes**, todos con cantidad y unidad, 743 opcionales,
+  267 nombres distintos sin normalizar. Unidades: `g` 2.888, `ml` 563.
 - **2 anomalías**, las dos preparaciones vacías de arriba. Ninguna estructural.
+- **Paridad (MF-38):** cada una de las 434 recetas es idéntica, campo a campo, a la entrada
+  del script anterior (`parse-recetas-pdfjs.js`, ya retirado) para el mismo fichero y menú.
 
 Como en la pata 1, esto es validación **estructural** del parser (¿encuentra cada bloque?,
 ¿casa cada línea?), no del contenido. La precisión real contra ground truth etiquetado a
@@ -258,11 +268,11 @@ comparación** contra este parser; no es sistema.
   menús** (92 con dos versiones, 13 con tres): ingredientes en 90, preparación en 63,
   título y tiempos en 2 cada uno. Son ediciones del nutricionista (sal 5 g → 2 g,
   "180º" → "180ºC"), no ruido del parser.
-- **Contrato.** El parser no deduplica: una entrada por PDF (§4.3).
-- **Pendiente de la spec de ingesta** (ARQ-modelo-datos): qué versión carga `Recipe`.
-  Recomendación: una fila por `fichero` con el contenido del menú de número más alto, y el
-  informe de ING-trazabilidad cuenta las versiones descartadas. Una `Recipe` por versión
-  llenaría el ranking de filas casi iguales sin aportar nada al usuario.
+- **Decisión (MF-38, spec `recipe-ingestion`).** Una `Recipe` por fichero, con el contenido
+  del menú de número más alto cuyo PDF se pudo leer (`sourceMenu`). Las otras versiones no
+  se guardan: la QA lista cada fichero con versiones distintas, el menú conservado, los
+  menús que difieren y los campos. Una `Recipe` por versión llenaría el ranking de filas
+  casi iguales sin aportar nada al usuario.
 
 ### 4.6 Limitaciones conocidas / fuera de alcance de esta pata
 

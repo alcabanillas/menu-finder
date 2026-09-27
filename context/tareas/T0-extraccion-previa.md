@@ -12,7 +12,7 @@
 |---|---|---|---|
 | 1 | `Lista_de_la_compra.pdf` | `pdftotext -layout` (Poppler) | `Lista_de_la_compra.pdf.txt`, junto al PDF |
 | 2 | `menu.pdf` | `pnpm ingest menu` (CLI de `src/`) | `data/menu-platos.json` (T2 §2) |
-| 3 | un PDF por receta | `parse-recetas-pdfjs.js` | `data/recetas.json` (T2 §4) |
+| 3 | un PDF por receta | `pnpm ingest recipes` (CLI de `src/`) | `data/recetas.json` (T2 §4) |
 | 4 | `Lista_de_la_compra.pdf.txt` | `parse-lista-compra.js` | CSV de ítems (T2 §3, pendiente de documentar) |
 
 Menú y recetas se leen **directamente del PDF**. Solo la lista de la compra pasa por TXT, y por eso es la única que necesita Poppler.
@@ -72,7 +72,7 @@ head -n 25 "data/raw/Dieta/Menu 1/Lista_de_la_compra.pdf.txt"
 
 ```bash
 pnpm ingest menu    # → data/menu-platos.json (sale con 1 si algún menú falla)
-pnpm datos:recetas   # → data/recetas.json
+pnpm ingest recipes # → data/recetas.json (sale con 1 si alguna receta falla)
 pnpm datos:lista     # → data/qa/lista-compra-items.csv
 ```
 
