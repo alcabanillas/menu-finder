@@ -40,7 +40,7 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 - ✅ **MF-04** Reglas de arquitectura en ESLint con `eslint-plugin-boundaries` (ARQ-hexagonal, ADR-001 §3, incluida la Scope Rule de la UI) y pre-commit con Husky + lint-staged que ejecuta lint y tests (OPS-calidad)
 - ✅ **MF-05** Testing: Vitest (unit en Node, UI en jsdom con Testing Library) y Playwright para E2E, con un test de humo por nivel (OPS-calidad, PROC-tdd)
 - ✅ **MF-06** CI base: `pnpm install --frozen-lockfile`, lint, tests, build y E2E, con `permissions` mínimos (OPS-ci-cd, [safety-first §2.4](safety-first.md))
-- ⬜ **MF-07** Completar la CI: typecheck explícito; escaneo de secretos y de paquetes maliciosos; Dependabot con periodo de espera. Los tests negativos de autorización entran en CI en cuanto exista la autenticación (OPS-ci-cd, [safety-first §2.4, §2.5 y §3](safety-first.md))
+- ✅ **MF-07** Completar la CI: typecheck explícito; OSV-Scanner para CVE y paquetes maliciosos; secret scanning con push protection; Dependabot con 7 días de espera (OPS-ci-cd, [safety-first §2.4 y §2.5](safety-first.md))
 
 **Datos**
 - ✅ **MF-08** Parser del menú → `data/menu-platos.json` (ING-menu-json, ING-parser-menu, [T2 §2](tareas/T2-esquema-json-ingesta.md))
@@ -74,7 +74,7 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 
 **Sale del sprint:** la app está desplegada en Vercel, con login, y el flujo semanal funciona de principio a fin.
 
-- ⬜ **MF-20** 📝 Autenticación con email y contraseña, cuentas creadas por el CLI y sin registro, un solo rol, cuenta de demo para el tutor entregada en el formulario del máster (SEG-roles, SEG-sistema-cerrado; librería pendiente, [decisiones.md §2](decisiones.md), punto 2)
+- ⬜ **MF-20** 📝 Autenticación con email y contraseña, cuentas creadas por el CLI y sin registro, un solo rol, cuenta de demo para el tutor entregada en el formulario del máster. Sus tests negativos de autorización (sin sesión y contra datos de otro usuario) corren en CI y bloquean el merge ([safety-first §3](safety-first.md)) (SEG-roles, SEG-sistema-cerrado; librería pendiente, [decisiones.md §2](decisiones.md), punto 2)
 - ⬜ **MF-21** 📝 Límites de uso: login, buscador y tope global diario del LLM, con tests de abuso (SEG-rate-limit)
 - ⬜ **MF-22** `/planner` como buscador con chips y explicación, sobre el modelo de ARQ-modelo-datos (UI-planner-buscador, BUS-superficie-consulta (e))
 - ⬜ **MF-23** `/menu` con la card de receta (UI-card-receta)
