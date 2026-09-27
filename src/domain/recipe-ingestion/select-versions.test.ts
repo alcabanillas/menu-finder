@@ -62,6 +62,16 @@ describe("selectRecipeVersions", () => {
     ]);
   });
 
+  it("lists the differing menus in ascending order", () => {
+    const selection = selectRecipeVersions([
+      version(7, "Guiso", { title: "Siete" }),
+      version(30, "Guiso"),
+      version(2, "Guiso", { title: "Dos" }),
+    ]);
+
+    expect(selection.divergent[0].differingMenus).toEqual([2, 7]);
+  });
+
   it("treats a single version as neither repeated nor divergent", () => {
     const selection = selectRecipeVersions([version(1, "Guiso")]);
 

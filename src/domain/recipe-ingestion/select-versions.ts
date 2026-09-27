@@ -21,10 +21,8 @@ export type VersionSelection = {
 // The contents are plain data built in the same key order, so their JSON is a structural comparison.
 const sameValue = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.stringify(b);
 
-const byCodeUnit = (a: string, b: string): number => {
-  if (a === b) return 0;
-  return a < b ? -1 : 1;
-};
+// File names are unique map keys, so two of them are never equal.
+const byFileName = ([a]: [string, RecipeVersion[]], [b]: [string, RecipeVersion[]]): number => (a < b ? -1 : 1);
 
 /**
  * Keeps one recipe per file: the version from the highest-numbered menu. The
@@ -39,8 +37,8 @@ export function selectRecipeVersions(versions: RecipeVersion[]): VersionSelectio
   const divergent: DivergentRecipe[] = [];
   let repeatedFiles = 0;
 
-  for (const file of [...byFile.keys()].sort(byCodeUnit)) {
-    const [kept, ...others] = [...(byFile.get(file) ?? [])].sort((a, b) => b.menu - a.menu);
+  for (const [file, fileVersions] of [...byFile.entries()].sort(byFileName)) {
+    const [kept, ...others] = [...fileVersions].sort((a, b) => b.menu - a.menu);
     recipes.push({ file, sourceMenu: kept.menu, ...kept.content });
     if (others.length === 0) continue;
     repeatedFiles++;
