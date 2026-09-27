@@ -33,6 +33,10 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 - ✅ Parser del menú → `data/menu-platos.json` (ING-menu-json, ING-parser-menu, [T2 §2](tareas/T2-esquema-json-ingesta.md))
 - ✅ Parser de recetas → `data/recetas.json` (ING-determinista, [T2 §4](tareas/T2-esquema-json-ingesta.md))
 - ⬜ Parser de la lista de la compra: revisar y documentar (ING-lista-compra, ING-lista-dato-primario, [T2 §3](tareas/T2-esquema-json-ingesta.md))
+- ⬜ Revisar el emparejamiento plato → fichero de receta de `parse-menu-pdftable.js`. En una copia de `data/raw` a la que le faltan 2 PDF de receta, `pnpm datos:menu` da 589 emparejados y 2 platos con `*` sin fichero (T2 espera 591 y 0). Uno de los dos es del menú 10 y es una tostada. Hay que comprobar:
+  - si faltan de verdad los PDF o si el filtro `BREAKFAST_RECIPE_PREFIXES` (recetas de tostada del desayuno) se come una receta que no es de desayuno;
+  - que el script avise con claridad de qué ficheros faltan;
+  - que `datos:recetas` saque las mismas recetas que `datos:menu` da por emparejadas.
 
 **Golden sets (antes de tocar el buscador)**
 - ⬜ 📝 T4: ground truth de extracción por adjudicación ciega de discrepancias parser ↔ LLM, 30 recetas + 5 menús (EVAL-ground-truth). Primera tarea tras el setup del repo
