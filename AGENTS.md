@@ -2,7 +2,7 @@
 
 Trabajo Fin de Máster en Desarrollo con IA. App web para elegir el menú semanal a partir de 36 menús en PDF de un nutricionista, con la lista de la compra como checklist. Es un **buscador en lenguaje natural sobre un catálogo estructurado** (hybrid retrieval + grounded generation), no un RAG documental.
 
-Fase actual: **setup del repositorio**. La primera tarea después del setup es T4, la evaluación de la extracción (`context/roadmap.md`).
+Fase actual: **setup del repositorio**. Después del setup van, por este orden: los golden sets de búsqueda, el spike T3 y T4, la evaluación de la extracción (`context/roadmap.md`).
 
 ## Lee esto antes de cualquier tarea
 

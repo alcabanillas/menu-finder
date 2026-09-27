@@ -40,12 +40,14 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
   - que `datos:menu` busque solo `.pdf`. Hoy da por existente una receta aunque solo haya su `.pdf.txt` (`loadRecipeFilenames`), y los TXT antiguos de otras copias se arrastran. `datos:recetas` sí lee solo `.pdf`. Por eso el 591 de T2 puede estar inflado por TXT sin PDF.
 
 **Golden sets (antes de tocar el buscador)**
-- ⬜ 📝 T4: ground truth de extracción por adjudicación ciega de discrepancias parser ↔ LLM, 30 recetas + 5 menús (EVAL-ground-truth, semilla en [T4](tareas/T4-evaluacion-extraccion.md)). Primera tarea tras el setup del repo
 - ⬜ 📝 Etiquetar 40 consultas de recuperación, ~8 por tipo de BUS-superficie-consulta, con los menús relevantes esperados (EVAL-golden-sets)
 - ⬜ Etiquetar 50 peticiones → estructura tipada esperada, para el descomponedor (EVAL-golden-sets)
 
 **Buscador**
 - ⬜ 📝 Spike T3: descomponer + ranquear los 36 en consola, sin BD ni app (Fuente-de-Verdad §7). Fija el schema del descomponedor (§6.1)
+
+**Evaluación de la extracción (después de T3)**
+- ⬜ 📝 T4: ground truth de extracción por adjudicación ciega de discrepancias parser ↔ LLM, 30 recetas + 5 menús ampliable a 10 (EVAL-ground-truth, semilla en [T4](tareas/T4-evaluacion-extraccion.md)). No bloquea nada del producto: alimenta el pilar 1 de la memoria y el experimento de ING-determinista
 
 **Repo del producto y carga**
 - ✅ Repo del producto creado: Next.js 16 + TypeScript + Tailwind v4 con pnpm (ARQ-nextjs, OPS-paquetes, UI-estilos), estructura de `src/` de [ADR-001](adr/ADR-001-arquitectura-interna.md) y OpenSpec con `openspec/config.yaml` (PROC-sdd)

@@ -31,9 +31,5 @@ Los PDF solo están en local. Claude escribe y prueba con PDF sintéticos; el au
 
 ## 4. Decidido por el autor (2026-09-27)
 
-- **T4 va antes que el spike T3.** T4 monta Genkit, Zod y la clave de Gemini, y T3 los reutiliza.
+- **T4 va después de los golden sets de búsqueda y del spike T3.** T3 es el riesgo del producto y T4 no bloquea nada; T4 reutiliza la base de Genkit, Zod y la clave de Gemini que monta T3.
 - **El ground truth se guarda como `evals.json`.** La forma exacta se define en la spec.
-
-## 5. Contradicciones con otros documentos (sin resolver)
-
-- **Menús de la muestra.** El roadmap habla de "30 recetas + 5 menús"; el sorteo saca 10 menús, de los que 5 son obligatorios.
