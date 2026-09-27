@@ -25,8 +25,10 @@ rules:
     - Todo escenario debe poder verificarse con un test automatizado.
   design:
     - Respetar ADR-001 - puerto solo donde hay una frontera externa real; lógica pura en domain; adaptadores finos.
+    - La UI va en features/ según la Scope Rule (ADR-001 §2) - local a su feature hasta que la use una segunda; entonces sube a shared/ui/. Las features reciben datos y acciones por props; solo app/ toca el web-container.
   tasks:
     - Incluir las tareas de test de cada escenario de la spec, negativos incluidos.
+    - TDD (PROC-tdd) - la tarea de test de cada escenario va antes que la de su implementación, y el test se ve fallar antes de escribir el código.
 
 operations:
   archive:
