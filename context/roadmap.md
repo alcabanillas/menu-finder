@@ -48,7 +48,7 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 - ✅ **MF-09** Parser de recetas → `data/recetas.json` (ING-determinista, [T2 §4](tareas/T2-esquema-json-ingesta.md))
 - ⬜ **MF-10** Parser de la lista de la compra: revisar y documentar (ING-lista-compra, ING-lista-dato-primario, [T2 §3](tareas/T2-esquema-json-ingesta.md))
 - ✅ **MF-11** Parser del menú migrado a la CLI de `src/`: `pnpm ingest menu` (adelanto parcial de MF-16, ING-cli-local; [T2 §2](tareas/T2-esquema-json-ingesta.md)). `data/menu-platos.json` pasa a `WeeklyMenu[]`, y la QA ya no presenta como match un candidato descartado. Paridad plato a plato con el script anterior; los 2 platos del menú 10 sin receta eran PDF que faltaban en esa copia de `data/raw`
-- ⬜ **MF-38** Parser de recetas migrado a la CLI de `src/`: `pnpm ingest recipes` (adelanto parcial de MF-16, ING-cli-local; [T2 §4](tareas/T2-esquema-json-ingesta.md)). `data/recetas.json` pasa a `Recipe[]`, una por fichero con la versión del menú de número más alto (cierra T2 §4.5); las versiones descartadas salen en la QA
+- ✅ **MF-38** Parser de recetas migrado a la CLI de `src/`: `pnpm ingest recipes` (adelanto parcial de MF-16, ING-cli-local; [T2 §4](tareas/T2-esquema-json-ingesta.md)). `data/recetas.json` pasa a `Recipe[]`, una por fichero con la versión del menú de número más alto (cierra T2 §4.5); las versiones descartadas salen en la QA. Paridad receta a receta con el script anterior (0 diferencias en 434). [Cambio archivado](../openspec/changes/archive/2026-09-27-mf-38-migrar-parser-recetas-cli/)
 
 **Golden sets (antes de tocar el buscador)**
 - ⬜ **MF-12** 📝 Etiquetar 40 consultas de recuperación, ~8 por tipo de BUS-superficie-consulta, con los menús relevantes esperados (EVAL-golden-sets)
