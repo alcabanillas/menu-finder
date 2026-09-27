@@ -18,6 +18,7 @@ context: |
 
 rules:
   proposal:
+    - Indicar el ID del ítem de context/roadmap.md que implementa el cambio (p. ej. F1-14). El nombre del cambio empieza por ese ID en minúsculas (f1-14-spike-buscador).
     - Identificar los datos que toca el cambio, los posibles abusos y las categorías OWASP que aplican (safety-first P1, SEG-owasp).
     - Citar por código las decisiones de context/decisiones.md en las que se apoya (p. ej. BUS-descomponedor). Si el cambio contradice una, decirlo en el proposal; no resolverlo en silencio.
   specs:

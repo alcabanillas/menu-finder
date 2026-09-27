@@ -1,5 +1,16 @@
 # menu-finder LLM Instructions
 
+## Principios no negociables
+
+| Principio | Regla |
+|---|---|
+| Sin spec, no hay código | Todo cambio pasa por OpenSpec: `propose` → `apply` → `verify` → `archive` (PROC-sdd) |
+| TDD first | Red → Green → Refactor: el test de cada escenario se escribe primero y se ve fallar (PROC-tdd) |
+| Arquitectura verificable | Hexagonal en el backend y Scope Rule en la UI; las reglas de dependencia las comprueba ESLint (ARQ-hexagonal, ADR-001) |
+| Security by Design | Least privilege, validación en servidor y escenarios negativos en cada spec (SEG-owasp, `context/safety-first.md`) |
+| Datos del nutricionista fuera | Los PDF solo viven en `data/`, que nunca se sube. Su marca, email y eslogan no llegan al repo, a la BD ni a Sentry (SEG-datos-nutricionista) |
+| La IA no inventa | Extrae, estructura y recupera; no genera menús ni recetas (`context/producto.md` §1) |
+
 ## Stack
 
 NextJS: React + TypeScript + Tailwind CSS v4 
