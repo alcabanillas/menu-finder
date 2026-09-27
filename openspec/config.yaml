@@ -1,0 +1,34 @@
+schema: spec-driven
+
+# Configuración derivada de PROC-sdd (context/Fuente-de-Verdad.md §5.9).
+# Si cambia PROC-sdd, se cambia aquí; no al revés.
+
+context: |
+  TFM de Máster en Desarrollo con IA: buscador en lenguaje natural sobre 36 menús
+  semanales de un nutricionista, con la lista de la compra como checklist.
+  Mapa de lectura: AGENTS.md. Referencia normativa: context/Fuente-de-Verdad.md.
+  Stack: Next.js 16 (App Router) + TypeScript, Tailwind CSS v4, pnpm, Neon
+  (PostgreSQL + pgvector), Gemini vía Genkit, Vercel, Sentry.
+  Arquitectura hexagonal con dos adaptadores primarios (app/ y cli/); reglas de
+  dependencia en context/adr/ADR-001-arquitectura-interna.md, verificadas por ESLint.
+  Seguridad obligatoria: context/safety-first.md.
+  Datos del nutricionista solo en data/ (gitignoreado): nunca en el repo, en
+  fixtures reales, en logs ni en Sentry (SEG-datos-nutricionista).
+  Artefactos en español; código e identificadores en inglés.
+
+rules:
+  proposal:
+    - Identificar los datos que toca el cambio, los posibles abusos y las categorías OWASP que aplican (safety-first P1, SEG-owasp).
+    - Citar por código las decisiones de la fuente de verdad en las que se apoya (p. ej. BUS-descomponedor). Si el cambio contradice una, decirlo en el proposal; no resolverlo en silencio.
+  specs:
+    - Cada endpoint o comando de la CLI trae sus escenarios negativos de autorización y de validación de entrada, además de los positivos.
+    - Todo escenario debe poder verificarse con un test automatizado.
+  design:
+    - Respetar ADR-001 - puerto solo donde hay una frontera externa real; lógica pura en domain; adaptadores finos.
+  tasks:
+    - Incluir las tareas de test de cada escenario de la spec, negativos incluidos.
+
+operations:
+  archive:
+    guidance:
+      - Antes de archivar, repasar la checklist de context/safety-first.md §4 y dejar constancia del resultado.
