@@ -13,7 +13,6 @@
     "test:e2e": "playwright test",
     "prepare": "husky",
     "ingest": "tsx src/cli/index.ts",
-    "datos:menu": "node scripts/datos/parse-menu-pdftable.js",
     "datos:recetas": "node scripts/datos/parse-recetas-pdfjs.js",
     "datos:lista": "node scripts/datos/parse-lista-compra.js",
     "datos:sorteo": "node scripts/datos/sorteo-ground-truth.js"
