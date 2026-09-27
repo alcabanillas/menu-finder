@@ -46,9 +46,9 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 - ✅ **MF-08** Parser del menú → `data/menu-platos.json` (ING-menu-json, ING-parser-menu, [T2 §2](tareas/T2-esquema-json-ingesta.md))
 - ✅ **MF-09** Parser de recetas → `data/recetas.json` (ING-determinista, [T2 §4](tareas/T2-esquema-json-ingesta.md))
 - ⬜ **MF-10** Parser de la lista de la compra: revisar y documentar (ING-lista-compra, ING-lista-dato-primario, [T2 §3](tareas/T2-esquema-json-ingesta.md))
-- ⬜ **MF-11** Revisar el emparejamiento plato → fichero de receta de `parse-menu-pdftable.js`. En una copia de `data/raw` a la que le faltan 2 PDF de receta, `pnpm datos:menu` da 589 emparejados y 2 platos con `*` sin fichero (T2 espera 591 y 0). Uno de los dos es del menú 10 y es una tostada. Hay que comprobar:
+- ⬜ **MF-11** 📝 Migrar `scripts/datos/parse-menu-pdftable.js` a `src/cli/commands` (adelanto parcial de MF-16, ING-cli-local: solo la pata de menú, sin lista de la compra ni enriquecimiento), con TDD (PROC-tdd). De paso resuelve el bug detectado: en una copia de `data/raw` a la que le faltan 2 PDF de receta, `pnpm datos:menu` da 589 emparejados y 2 platos con `*` sin fichero (T2 espera 591 y 0); el CSV de QA además escribe el candidato de `bestMatch` en la columna `match_receta` aunque esté por debajo de `MATCH_THRESHOLD`, mostrando un match falso. Uno de los dos slots afectados es del menú 10 y es una tostada. Hay que comprobar:
   - si faltan de verdad los PDF o si el filtro `BREAKFAST_RECIPE_PREFIXES` (recetas de tostada del desayuno) se come una receta que no es de desayuno;
-  - que el script avise con claridad de qué ficheros faltan;
+  - que el comando avise con claridad (consola y reporte) de qué platos con `*` no encontraron fichero, sin mezclarlos con los platos sin `*` (esperados);
   - que `datos:recetas` saque las mismas recetas que `datos:menu` da por emparejadas;
   - que `datos:menu` busque solo `.pdf`. Hoy da por existente una receta aunque solo haya su `.pdf.txt` (`loadRecipeFilenames`), y los TXT antiguos de otras copias se arrastran. `datos:recetas` sí lee solo `.pdf`. Por eso el 591 de T2 puede estar inflado por TXT sin PDF.
 

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Turns each weekly menu PDF from the nutritionist into the structured `MenuJson[]` dataset (T2 §2.2), resolving every `*`-marked dish to its recipe file and reporting, dish by dish, every marked dish that could not be resolved.
+Turns each weekly menu PDF from the nutritionist into structured weekly menus (menu → meals by day and type → ordered dishes), resolving every `*`-marked dish to its recipe file, saving the menus, and reporting, dish by dish, every marked dish that could not be resolved.
 
 ## ADDED Requirements
 
@@ -11,11 +11,11 @@ The command SHALL process every folder named `Menu <n>` (where `<n>` is a positi
 
 #### Scenario: Menus processed in numeric order
 - **WHEN** the raw directory contains `Menu 10`, `Menu 2` and `Menu 1`
-- **THEN** the output lists menus `"1"`, `"2"`, `"10"` in that order
+- **THEN** the saved menus are numbers `1`, `2`, `10` in that order
 
 #### Scenario: Non-menu entries ignored
 - **WHEN** the raw directory contains `Menu 1`, `Notes` and `Menu x`
-- **THEN** only menu `"1"` is processed and no error is reported for `Notes` or `Menu x`
+- **THEN** only menu `1` is processed and no error is reported for `Notes` or `Menu x`
 
 ### Requirement: Menu table location
 For each menu, the system SHALL locate in `menu.pdf` the header row whose cells 2 to 8 are the days `Lunes` to `Domingo` (case- and accent-insensitive) and the rows labelled `Comida` and `Cena`. When `menu.pdf` is missing, cannot be read, contains no table, or lacks the header row or either labelled row, the system SHALL record an error for that menu naming the cause and SHALL continue with the remaining menus.
@@ -38,11 +38,11 @@ For each menu, the system SHALL locate in `menu.pdf` the header row whose cells 
 
 #### Scenario: Missing meal row
 - **WHEN** the table has a header row but no row labelled `Cena`
-- **THEN** an error is recorded for that menu naming the missing row, and the menu is absent from the JSON output
+- **THEN** an error is recorded for that menu naming the missing row, and the menu is absent from the saved menus
 
 ### Requirement: Cell splitting into dishes
 The system SHALL split each `Comida`/`Cena` cell into an ordered list of dishes from its non-empty trimmed lines, where:
-- a line ending in `*` closes the accumulated dish as marked (`tieneRecetaMarcada: true`), with the `*` removed from its name;
+- a line ending in `*` closes the accumulated dish as marked (it carries the PDF's recipe mark), with the `*` removed from its name;
 - a line starting with an uppercase letter, while unmarked text is accumulated and the previous line does not end in a connector word (`de`, `del`, `con`, `al`, `a`, `en`, `y`, `la`, `el`, `las`, `los`, `sin`), closes the accumulated text as an unmarked dish and starts a new one;
 - otherwise the line continues the accumulated dish, joined with a single space;
 - unmarked text left at the end of the cell becomes an unmarked dish;
@@ -77,7 +77,7 @@ For each marked dish, the system SHALL compute a containment score against every
 
 #### Scenario: Marked dish resolved
 - **WHEN** a marked dish `Merluza al horno` is compared against a folder with `Merluza-al-horno-con-verduras.pdf`
-- **THEN** the dish gets `recetaFichero: "Merluza-al-horno-con-verduras"` and `scoreMatch: 1`
+- **THEN** the dish gets `recipeFile: "Merluza-al-horno-con-verduras"` and the QA report shows score `1.00` for it
 
 #### Scenario: Score exactly at threshold
 - **WHEN** the best candidate scores exactly `0.6`
@@ -85,49 +85,57 @@ For each marked dish, the system SHALL compute a containment score against every
 
 #### Scenario: Best candidate below threshold
 - **WHEN** a marked dish's best candidate scores `0.5`
-- **THEN** the dish gets `recetaFichero: null` and `scoreMatch: null`, and it is reported as unresolved
+- **THEN** the dish gets `recipeFile: null`, and it is reported as unresolved with the discarded candidate and score `0.50`
 
 #### Scenario: No recipe files in the folder
 - **WHEN** a marked dish belongs to a menu folder with no candidate recipe files
-- **THEN** the dish gets `recetaFichero: null` and `scoreMatch: null`, and it is reported as unresolved with no discarded candidate
+- **THEN** the dish gets `recipeFile: null`, and it is reported as unresolved with no discarded candidate
 
 #### Scenario: Unmarked dish never matched
 - **WHEN** an unmarked dish's name exactly matches a recipe file name
-- **THEN** the dish gets `recetaFichero: null` and `scoreMatch: null`, and it is not reported as unresolved
+- **THEN** the dish gets `recipeFile: null`, has no score in the QA report, and it is not reported as unresolved
 
 #### Scenario: Excluded files are not candidates
 - **WHEN** a folder contains `menu.pdf`, `Lista_de_la_compra.pdf`, `valoracion-inicial.pdf` and a breakfast recipe file
 - **THEN** none of them is ever selected as a dish's recipe
 
-### Requirement: Menu JSON output
-On completion, the system SHALL write `data/menu-platos.json` as a `MenuJson[]` array following T2 §2.2, with one entry per successfully parsed menu, `dias` keyed by the seven days `Lunes`..`Domingo` (unaccented), each with `comida` and `cena` dish lists in cell order. `scoreMatch` SHALL be rounded to two decimals. Menus that failed SHALL be omitted.
+### Requirement: Menu dataset output
+On completion, the system SHALL save the successfully parsed menus, which for now means writing `data/menu-platos.json` as a JSON array of weekly menus, one per parsed menu, in menu-number order. Each weekly menu SHALL have `number` (the folder number, as a number) and `meals`: exactly fourteen meals, one per day (`monday`..`sunday`) and type (`lunch` for the `Comida` row, `dinner` for the `Cena` row), ordered by day and then `lunch` before `dinner`. Each meal SHALL have `day`, `type` and `dishes`; each dish SHALL have `position` (1-based order within the cell), `name`, `hasRecipeMark` and `recipeFile` (the resolved recipe file name without extension, or `null`). The dataset SHALL NOT contain match scores or discarded candidates. Menus that failed SHALL be omitted.
 
 #### Scenario: Output shape
-- **WHEN** a menu is parsed successfully
-- **THEN** its JSON entry has `menu` equal to the folder number as a string and all seven days present, each with `comida` and `cena` arrays of `{ plato, tieneRecetaMarcada, recetaFichero, scoreMatch }`
+- **WHEN** menu folder `Menu 3` is parsed successfully
+- **THEN** the dataset has an entry with `number: 3` and fourteen `meals`, each with `day`, `type` and `dishes` of `{ position, name, hasRecipeMark, recipeFile }`
+
+#### Scenario: Dish positions follow cell order
+- **WHEN** a `Comida` cell yields `Lentejas estofadas` and then `Merluza al horno`
+- **THEN** that lunch meal lists them with `position` `1` and `2` respectively
 
 #### Scenario: Empty Sunday
 - **WHEN** the `Domingo` column is empty in both meal rows
-- **THEN** `Domingo` is present with `comida: []` and `cena: []`
+- **THEN** the `sunday` `lunch` and `sunday` `dinner` meals are present with `dishes: []`
 
-#### Scenario: Score rounding
-- **WHEN** a resolved dish scores `2/3`
-- **THEN** its `scoreMatch` is `0.67`
+#### Scenario: No match evidence in the dataset
+- **WHEN** a marked dish is resolved with score `1`, and another is unresolved with a discarded candidate
+- **THEN** neither dish entry in the dataset contains a score or a candidate; both appear only in the QA report
 
 ### Requirement: Unresolved marked dishes reporting
-Every marked dish left unresolved SHALL be reported individually, both in the console output and in the QA report, with its menu, day, meal, dish name, best discarded candidate (or none) and that candidate's score. The QA report SHALL show a recipe in its matched-recipe field only for resolved dishes; a discarded candidate SHALL appear only in fields that identify it as discarded.
+Every marked dish left unresolved SHALL be reported individually, both in the console output and in the QA report, with its menu, day, meal, dish name, best discarded candidate (or none) and that candidate's score. Scores SHALL be shown rounded to two decimals. The QA report SHALL show a recipe in its matched-recipe field only for resolved dishes; a discarded candidate SHALL appear only in fields that identify it as discarded.
 
 #### Scenario: Below-threshold candidate not shown as a match
 - **WHEN** a marked dish's best candidate `Pollo-al-curry` scores `0.5`
 - **THEN** the QA report row for that dish has an empty matched-recipe field and shows `Pollo-al-curry` and `0.50` as the discarded candidate and its score
 
 #### Scenario: Unresolved dish listed in the console
-- **WHEN** menu `7`, `Martes`, `cena` has an unresolved marked dish `Pollo al curry` whose best candidate scored `0.5`
-- **THEN** the console output contains a line identifying menu `7`, `Martes`, `cena`, `Pollo al curry`, the discarded candidate and `0.50`
+- **WHEN** menu `7`, `tuesday`, `dinner` has an unresolved marked dish `Pollo al curry` whose best candidate scored `0.5`
+- **THEN** the console output contains a line identifying menu `7`, `tuesday`, `dinner`, `Pollo al curry`, the discarded candidate and `0.50`
 
 #### Scenario: Resolved dish shows its match
 - **WHEN** a marked dish is resolved to `Merluza-al-horno`
 - **THEN** the QA report row for that dish shows `Merluza-al-horno` in the matched-recipe field
+
+#### Scenario: Score rounding
+- **WHEN** a resolved dish scores `2/3`
+- **THEN** the QA report shows its score as `0.67`
 
 #### Scenario: No unresolved dishes
 - **WHEN** every marked dish is resolved
@@ -141,11 +149,11 @@ The console output SHALL include, across all menus, the number of menus processe
 - **THEN** the console reports `1/2` menus processed without error and lists the second menu's error with its cause
 
 ### Requirement: Local-only CLI command
-The menu ingestion SHALL be exposed as a CLI command that runs locally, reads only from the raw menus directory, writes only under `data/` (the JSON dataset and the QA report under `data/qa/`), and makes no network requests. The command SHALL reject unknown arguments with a usage message and a non-zero exit code before reading or writing anything. It SHALL exit with a non-zero code when the raw menus directory does not exist or no menu could be processed, and with a non-zero code when at least one menu failed; it SHALL exit with code zero otherwise, including when some marked dishes are unresolved.
+The menu ingestion SHALL be exposed as a CLI command that runs locally, reads only from the raw menus directory, writes only under `data/` (the menu dataset and the QA report under `data/qa/`), and makes no network requests. The command SHALL reject unknown arguments with a usage message and a non-zero exit code before reading or writing anything. It SHALL exit with a non-zero code when the raw menus directory does not exist or no menu could be processed, and with a non-zero code when at least one menu failed; it SHALL exit with code zero otherwise, including when some marked dishes are unresolved.
 
 #### Scenario: Successful run
 - **WHEN** every menu is parsed without error
-- **THEN** the command writes the JSON dataset and the QA report under `data/` and exits with code zero
+- **THEN** the command writes the menu dataset and the QA report under `data/` and exits with code zero
 
 #### Scenario: Unresolved dishes do not fail the run
 - **WHEN** every menu is parsed but some marked dishes are unresolved
@@ -161,7 +169,7 @@ The menu ingestion SHALL be exposed as a CLI command that runs locally, reads on
 
 #### Scenario: Partial failure
 - **WHEN** one menu fails and the others are parsed
-- **THEN** the JSON dataset contains the parsed menus, the error is reported, and the command exits with a non-zero code
+- **THEN** the menu dataset contains the parsed menus, the error is reported, and the command exits with a non-zero code
 
 #### Scenario: Writes confined to data directory
 - **WHEN** the command runs
