@@ -46,18 +46,14 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 - ✅ **MF-08** Parser del menú → `data/menu-platos.json` (ING-menu-json, ING-parser-menu, [T2 §2](tareas/T2-esquema-json-ingesta.md))
 - ✅ **MF-09** Parser de recetas → `data/recetas.json` (ING-determinista, [T2 §4](tareas/T2-esquema-json-ingesta.md))
 - ⬜ **MF-10** Parser de la lista de la compra: revisar y documentar (ING-lista-compra, ING-lista-dato-primario, [T2 §3](tareas/T2-esquema-json-ingesta.md))
-- ⬜ **MF-11** Revisar el emparejamiento plato → fichero de receta de `parse-menu-pdftable.js`. En una copia de `data/raw` a la que le faltan 2 PDF de receta, `pnpm datos:menu` da 589 emparejados y 2 platos con `*` sin fichero (T2 espera 591 y 0). Uno de los dos es del menú 10 y es una tostada. Hay que comprobar:
-  - si faltan de verdad los PDF o si el filtro `BREAKFAST_RECIPE_PREFIXES` (recetas de tostada del desayuno) se come una receta que no es de desayuno;
-  - que el script avise con claridad de qué ficheros faltan;
-  - que `datos:recetas` saque las mismas recetas que `datos:menu` da por emparejadas;
-  - que `datos:menu` busque solo `.pdf`. Hoy da por existente una receta aunque solo haya su `.pdf.txt` (`loadRecipeFilenames`), y los TXT antiguos de otras copias se arrastran. `datos:recetas` sí lee solo `.pdf`. Por eso el 591 de T2 puede estar inflado por TXT sin PDF.
+- ✅ **MF-11** Parser del menú migrado a la CLI de `src/`: `pnpm ingest menu` (adelanto parcial de MF-16, ING-cli-local; [T2 §2](tareas/T2-esquema-json-ingesta.md)). `data/menu-platos.json` pasa a `WeeklyMenu[]`, y la QA ya no presenta como match un candidato descartado. Paridad plato a plato con el script anterior; los 2 platos del menú 10 sin receta eran PDF que faltaban en esa copia de `data/raw`
 
 **Golden sets (antes de tocar el buscador)**
 - ⬜ **MF-12** 📝 Etiquetar 40 consultas de recuperación, ~8 por tipo de BUS-superficie-consulta, con los menús relevantes esperados (EVAL-golden-sets)
 - ⬜ **MF-13** Etiquetar 50 peticiones → estructura tipada esperada, para el descomponedor (EVAL-golden-sets)
 
 **Buscador**
-- ⬜ **MF-14** 📝 Spike T3: descomponer + ranquear los 36 en consola. Código tirable, fuera de la app: un script local lee `data/menu-platos.json` y `data/recetas.json`, descompone con el LLM contra el schema Zod y ranquea en consola; sin BD, sin Next, sin Genkit. Su spec, breve, en `context/tareas/T3-spike-buscador.md` antes de escribirlo. Fija el schema del descomponedor ([decisiones.md §2](decisiones.md), punto 1)
+- ⬜ **MF-14** 📝 Spike T3: descomponer + ranquear los 36 en consola. Código tirable, fuera de la app: un script local lee `data/menu-platos.json` (formato `WeeklyMenu[]`, T2 §2) y `data/recetas.json`, descompone con el LLM contra el schema Zod y ranquea en consola; sin BD, sin Next, sin Genkit. Su spec, breve, en `context/tareas/T3-spike-buscador.md` antes de escribirlo. Fija el schema del descomponedor ([decisiones.md §2](decisiones.md), punto 1)
 
 **Evaluación de la extracción (después de T3)**
 - ⬜ **MF-15** 📝 T4: ground truth de extracción por adjudicación ciega de discrepancias parser ↔ LLM, 30 recetas + 5 menús ampliable a 10 (EVAL-ground-truth, semilla en [T4](tareas/T4-evaluacion-extraccion.md)). No bloquea nada del producto: alimenta el pilar 1 de la memoria y el experimento de ING-determinista

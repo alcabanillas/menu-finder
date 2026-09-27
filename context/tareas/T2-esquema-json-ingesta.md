@@ -19,7 +19,7 @@ por parte del nutricionista, que hoy se ingestan con tres parsers distintos:
 
 | Pata | PDF origen | Parser | Estado |
 |---|---|---|---|
-| 1. Menú | `menu.pdf` | `scripts/datos/parse-menu-pdftable.js` | ✅ Cerrado (este documento) |
+| 1. Menú | `menu.pdf` | `pnpm ingest menu` (`src/`, MF-11) | ✅ Cerrado (este documento) |
 | 2. Lista de la compra | `Lista_de_la_compra.pdf` | `scripts/datos/parse-lista-compra.js` | ⏳ Pendiente de revisión/documentar |
 | 3. Listado de recetas | un PDF por receta (639) | `scripts/datos/parse-recetas-pdfjs.js` | ✅ Cerrado (§4) |
 
@@ -34,71 +34,86 @@ validación cruzada *a posteriori*, no parte del contrato de cada pata.
 
 ### 2.1 Origen
 
-- **Parser:** `scripts/datos/parse-menu-pdftable.js`
+- **Comando:** `pnpm ingest menu`, la CLI del hexágono (`src/cli/`, ADR-001). La spec de la
+  capacidad es `menu-ingestion` (cambio MF-11).
 - **Entrada:** `data/raw/Dieta/Menu <n>/menu.pdf` (directo, sin paso intermedio por TXT —
   usa `pdf-parse`/`getTable()` para reconstruir la tabla real del PDF, no una
   reconstrucción heurística de un dump de texto. Ver §2.4 para por qué se descartó ese
-  camino).
+  camino). Los candidatos a receta son los `.pdf` de la carpeta del menú.
 - **Salida:** `data/menu-platos.json` (un array con los 36 menús). **Gitignoreado** (SEG-datos-nutricionista):
-  contiene nombres de plato reales, así que no se sube al repo público. El mismo script
-  escribe además una QA agregada (CSV y MD con recuentos, no el dataset): **no forma parte
-  del contrato**, es para revisión manual.
+  contiene nombres de plato reales, así que no se sube al repo público. Lo escribe
+  `JsonFileMenuRepository`, un adaptador temporal: en MF-16 se sustituye por la carga en BD.
+  El comando escribe además la QA en `data/qa/` (`menu-platos-pdftable.csv`, un plato por
+  fila con su score, y `qa-menu-platos-pdftable.md`, el resumen): **no forma parte del
+  contrato**, es para revisión manual.
 
 ### 2.2 Forma
 
 ```
-MenuJson[]
+WeeklyMenu[]        // en orden de número de menú
 ```
 
+El fichero es la entidad de dominio serializada tal cual (`src/domain/menu/weekly-menu.ts`):
+
 ```ts
-type MenuJson = {
-  menu: string;              // número de menú, "1".."36", tal cual en el nombre de carpeta
-  dias: Record<Dia, { comida: Plato[]; cena: Plato[] }>;
+type WeeklyMenu = {
+  number: number;            // número de menú, 1..36, el de la carpeta `Menu <n>`
+  meals: Meal[];             // siempre 14: lunes..domingo × comida/cena, por día y comida antes que cena
 };
 
-type Dia = 'Lunes' | 'Martes' | 'Miercoles' | 'Jueves' | 'Viernes' | 'Sabado' | 'Domingo';
+type Meal = {
+  day: "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
+  type: "lunch" | "dinner";  // lunch = fila Comida, dinner = fila Cena
+  dishes: MenuDish[];
+};
 
-type Plato = {
-  plato: string;                    // nombre del plato, texto extraído del PDF
-  tieneRecetaMarcada: boolean;      // el PDF lo marca con "*" (ver §2.3)
-  recetaFichero: string | null;     // nombre de fichero (sin extensión) de la receta resuelta, o null
-  scoreMatch: number | null;        // score de containment [0,1] del match, o null
+type MenuDish = {
+  position: number;          // orden dentro de la celda, desde 1
+  name: string;              // nombre del plato, texto extraído del PDF
+  hasRecipeMark: boolean;    // el PDF lo marca con "*" (ver §2.3)
+  recipeFile: string | null; // nombre de fichero (sin extensión) de la receta resuelta, o null
 };
 ```
 
 Solo se procesan las filas **Comida** y **Cena** de la tabla del PDF (Desayuno, Almuerzo
 y Merienda quedan fuera de alcance: no son platos, [datos.md §1](../datos.md) — la app no muestra esas filas). Domingo llega
-siempre con `comida: []` y `cena: []`: el nutricionista no rellena esa columna en ninguno
+siempre con `dishes: []` en sus dos comidas: el nutricionista no rellena esa columna en ninguno
 de los 36 PDFs (verificado, es esperado, no un fallo de extracción).
 
 ### 2.3 Semántica de cada campo
 
-- **`plato`** — texto tal cual lo extrae `splitCellIntoDishes()` de la celda de la tabla.
-  Una celda puede traer 2+ platos apilados en líneas distintas sin separador explícito;
-  el splitter los separa por dos señales: una línea que termina en `*` cierra un plato, y
-  una línea que empieza por mayúscula (mientras la anterior no termina en preposición o
-  artículo — de/con/al/en/y/la/el/...) señala el inicio de un plato nuevo. Detalle y
-  casos límite documentados como comentario en el propio código
-  (`splitCellIntoDishes` en `parse-menu-pdftable.js`).
-- **`tieneRecetaMarcada`** — dato **literal del PDF**, no inferido: el nutricionista
+- **`name`** — texto tal cual sale de la celda de la tabla. Una celda puede traer 2+ platos
+  apilados en líneas distintas sin separador explícito; el separador de celdas
+  (`src/infrastructure/menu-ingestion/pdf/split-cell.ts`) los separa por dos señales: una
+  línea que termina en `*` cierra un plato, y una línea que empieza por mayúscula (mientras
+  la anterior no termina en preposición o artículo — de/con/al/en/y/la/el/...) señala el
+  inicio de un plato nuevo. El relleno genérico sin `*` (una pieza de fruta, un yogur o
+  kéfir sin azúcar) no es un plato y se descarta (`src/domain/menu-ingestion/filler.ts`).
+- **`position`** — orden del plato en su celda, contado después de descartar el relleno.
+- **`hasRecipeMark`** — dato **literal del PDF**, no inferido: el nutricionista
   marca con un asterisco los platos que llevan receta propia (el propio PDF lo explicita:
   *"(\*) vienen acompañadas de una receta"*). No se fuerza ningún match contra ficheros
   cuando es `false` — hacerlo solo produce ruido (coincidencias parciales accidentales
   contra la receta de *otro* plato de la misma carpeta; confirmado en revisión manual).
-- **`recetaFichero`** / **`scoreMatch`** — **no vienen del PDF**, son el resultado de un
-  fuzzy-match de este script contra los nombres de fichero de receta presentes en la
-  carpeta de ese menú (`data/raw/Dieta/Menu <n>/*.pdf`, excluyendo `menu.pdf` y
-  `Lista_de_la_compra.pdf`). Solo se calculan si `tieneRecetaMarcada` es `true`.
+- **`recipeFile`** — **no viene del PDF**: es el resultado de comparar el nombre del plato
+  con los nombres de fichero de receta de la carpeta de ese menú
+  (`data/raw/Dieta/Menu <n>/*.pdf`, excluyendo `menu`, `Lista_de_la_compra`, `valoracion*`
+  y las dos recetas de desayuno conocidas). Solo se calcula si `hasRecipeMark` es `true`.
   El score es *containment*: fracción de las palabras del plato (normalizadas, sin
   tildes, >2 letras) que también aparecen en el nombre del fichero candidato — no
   Jaccard, porque el nombre extraído suele ser más corto que el título completo de la
-  receta. Se acepta el mejor candidato si `score >= 0.6` (`MATCH_THRESHOLD`); si no,
-  `recetaFichero` y `scoreMatch` quedan en `null` aunque `tieneRecetaMarcada` sea `true`
-  (caso "receta esperada no encontrada": o falta el PDF en `data/raw/`, o el nombre de
-  fichero no coincide con el del PDF — no es una garantía, es una pista para revisar).
+  receta. Se acepta el mejor candidato solo si su score es **1** (`MATCH_THRESHOLD`: todas
+  las palabras del plato están en el nombre del fichero); si no, `recipeFile` queda en
+  `null` aunque `hasRecipeMark` sea `true` (caso "receta esperada no encontrada": o falta
+  el PDF en `data/raw/`, o el nombre de fichero no coincide con el del PDF — no es una
+  garantía, es una pista para revisar).
 
-Cuando `tieneRecetaMarcada` es `false`, `recetaFichero` y `scoreMatch` son siempre `null`
-por construcción (no se intenta el match).
+Cuando `hasRecipeMark` es `false`, `recipeFile` es siempre `null` por construcción (no se
+intenta el match).
+
+**El score no está en el dataset.** Solo aparece en la QA: el CSV da `match_receta` y
+`score_match` para los platos resueltos, y `discarded_candidate` y `discarded_score` para
+los platos con `*` sin resolver. Estos se listan además uno a uno en la consola.
 
 ### 2.4 Por qué `pdf-parse`
 
@@ -109,16 +124,16 @@ exige Poppler/WSL).
 
 ### 2.5 Validación / garantías actuales
 
-Ejecutado sobre los 36 menús (`pnpm datos:menu`):
+Ejecutado sobre los 36 menús (`pnpm ingest menu`, 2026-09-27), con el mismo resultado plato
+a plato que el script anterior (comparación de paridad de MF-11):
 
 - 36/36 menús procesados sin error.
-- 504 slots (día × bloque); 72 vacíos, todos Domingo (esperado, 2 por menú).
-- 176 celdas con 2+ platos, todas separadas correctamente.
-- 591 platos con `tieneRecetaMarcada: true` resueltos con `scoreMatch >= 0.6` (en la
-  práctica, 1.00 en todos los casos observados).
-- 0 platos con `tieneRecetaMarcada: true` sin fichero de receta encontrado (`recetaEsperadaNoEncontrada`).
-- 17 platos con `tieneRecetaMarcada: false` (correctamente no matcheados).
-- 34 ficheros de receta no reclamados por ningún slot — revisados: son recetas de
+- 504 comidas (día × comida/cena); 72 vacías, todas en domingo (esperado, 2 por menú).
+- 176 comidas con 2+ platos, todas separadas correctamente.
+- 608 platos: 591 con `hasRecipeMark: true`, todos resueltos con score 1.
+- 0 platos con `hasRecipeMark: true` sin fichero de receta encontrado.
+- 17 platos con `hasRecipeMark: false` (correctamente no matcheados).
+- 34 ficheros de receta no reclamados por ningún plato — revisados: son recetas de
   Desayuno (fuera de alcance de este parser, que solo procesa Comida/Cena).
 
 Esta validación es sobre la **estructura** (¿se separan bien los platos de cada celda?,
@@ -130,8 +145,10 @@ plato contra un ground truth etiquetado a mano — eso sigue pendiente (EVAL-gro
 - No incluye el **texto ni los ingredientes** de la receta — solo el nombre de fichero
   que la identifica. Eso es la pata 3 (§4).
 - No incluye Desayuno, Almuerzo ni Merienda (no son platos, [datos.md §1](../datos.md)).
-- El campo `recetaFichero` es un nombre de fichero, no un id estable de BD — el mapeo
+- El campo `recipeFile` es un nombre de fichero, no un id estable de BD — el mapeo
   fichero → id de receta se resolverá al cargar la pata 3.
+- `data/menu-platos.json` se reescribe entero en cada ejecución: un menú que falle
+  desaparece del fichero. La carga en BD (MF-16) debe ser un upsert por menú.
 
 ---
 
@@ -176,7 +193,7 @@ RecetaJson[]        // una entrada por fichero PDF, 639 en total
 ```ts
 type RecetaJson = {
   menu: string;                 // "1".."36": carpeta de la que sale este PDF
-  fichero: string;              // nombre de fichero sin extensión; casa con `recetaFichero` de la pata 1
+  fichero: string;              // nombre de fichero sin extensión; casa con `recipeFile` de la pata 1
   titulo: string;               // título + subtítulo del PDF, en una línea ("Alcachofas rellenas de huevo y gambas")
   tiempos: {                    // minutos enteros; null si la casilla está vacía
     total: number | null;

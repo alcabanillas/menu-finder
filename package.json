@@ -12,7 +12,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "prepare": "husky",
-    "datos:menu": "node scripts/datos/parse-menu-pdftable.js",
+    "ingest": "tsx src/cli/index.ts",
     "datos:recetas": "node scripts/datos/parse-recetas-pdfjs.js",
     "datos:lista": "node scripts/datos/parse-lista-compra.js",
     "datos:sorteo": "node scripts/datos/sorteo-ground-truth.js"
@@ -41,6 +41,7 @@
     "pdf-parse": "^2.4.5",
     "pdfjs-dist": "5.4.296",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^5.0.2"
   },

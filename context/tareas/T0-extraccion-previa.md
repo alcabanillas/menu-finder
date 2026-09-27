@@ -11,13 +11,13 @@
 | Paso | Entrada | Herramienta | Salida |
 |---|---|---|---|
 | 1 | `Lista_de_la_compra.pdf` | `pdftotext -layout` (Poppler) | `Lista_de_la_compra.pdf.txt`, junto al PDF |
-| 2 | `menu.pdf` | `parse-menu-pdftable.js` | `data/menu-platos.json` (T2 §2) |
+| 2 | `menu.pdf` | `pnpm ingest menu` (CLI de `src/`) | `data/menu-platos.json` (T2 §2) |
 | 3 | un PDF por receta | `parse-recetas-pdfjs.js` | `data/recetas.json` (T2 §4) |
 | 4 | `Lista_de_la_compra.pdf.txt` | `parse-lista-compra.js` | CSV de ítems (T2 §3, pendiente de documentar) |
 
 Menú y recetas se leen **directamente del PDF**. Solo la lista de la compra pasa por TXT, y por eso es la única que necesita Poppler.
 
-Cada script escribe además una QA agregada (recuentos, sin el dataset) en `data/qa/`, para revisión manual.
+Cada paso escribe además una QA en `data/qa/`, para revisión manual. La del menú lista uno a uno, también en consola, los platos con `*` sin receta resuelta.
 
 ## 2. Requisitos
 
@@ -71,7 +71,7 @@ head -n 25 "data/raw/Dieta/Menu 1/Lista_de_la_compra.pdf.txt"
 ## 4. Pasos 2–4 — Parsers
 
 ```bash
-pnpm datos:menu      # → data/menu-platos.json
+pnpm ingest menu    # → data/menu-platos.json (sale con 1 si algún menú falla)
 pnpm datos:recetas   # → data/recetas.json
 pnpm datos:lista     # → data/qa/lista-compra-items.csv
 ```
