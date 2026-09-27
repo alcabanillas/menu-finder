@@ -1,10 +1,31 @@
 # Historial de decisiones — qué se creyó, qué lo tumbó
 
-> **Para qué sirve:** [Fuente-de-Verdad.md](Fuente-de-Verdad.md) dice lo que es verdad **ahora**. Este fichero dice **por qué cambió**. Es *append-only*: nada se edita ni se borra, solo se añade encima.
+> **Congelado el 2026-09-27.** No se añade nada más. Desde esa fecha, el porqué de cada cambio vive en el proposal de su cambio de OpenSpec (`openspec/changes/archive/`). Las entradas mencionan `Fuente-de-Verdad.md`, el documento que ese día se partió en [producto.md](producto.md), [decisiones.md](decisiones.md) y [datos.md](datos.md); los números de sección que citan son los de entonces.
+>
+> **Para qué sirve:** [decisiones.md](decisiones.md) dice lo que es verdad **ahora**. Este fichero dice **por qué cambió**. Es *append-only*: nada se edita ni se borra, solo se añade encima.
 >
 > **No es un archivo muerto.** Es la materia prima del capítulo "evolución del diseño" de la memoria, que es donde se demuestra lo que el máster evalúa: que las decisiones se tomaron **contra evidencia** y se revocaron cuando la evidencia las contradijo. Tres de estas entradas son el mejor material del TFM — D18, D22 y M5 cayeron por medición, no por opinión.
 >
 > Lo más reciente, arriba. Formato fijo: **qué se creía · qué lo tumbó · qué se decidió · qué arrastró**.
+
+---
+
+## 2026-09-27 — Se parte la fuente de verdad y se congela este historial
+
+**Qué se creía.** `Fuente-de-Verdad.md` concentraba todo: visión y alcance, hechos medidos sobre los PDF, decisiones técnicas, lo abierto, lo pendiente de ejecutar y el estado de cada pantalla. Cada decisión se escribía allí **o** aquí, y este historial recogía el porqué de lo derogado.
+
+**Qué lo tumbó.**
+- El fichero nació como embudo de ideas recogidas de varias fuentes, y se le pedían tres trabajos: alcance, backlog y decisiones. Con 200 líneas, un agente lo cargaba entero para cualquier tarea.
+- La §7 (ejecución pendiente) y el estado de las pantallas duplicaban `roadmap.md`: lo mismo se revisaba en dos sitios.
+- Con OpenSpec, la spec archivada de una capacidad es la verdad de esa capacidad, y el proposal de cada cambio ya guarda su porqué. Mantener también este historial era doble escritura.
+
+**Qué se decidió.**
+- Partir el documento por propósito: `producto.md` (visión, restricciones, fuera de alcance, pantallas), `decisiones.md` (decisiones técnicas vigentes y lo abierto) y `datos.md` (hechos de los PDF).
+- `decisiones.md` adelgaza con el tiempo: cuando una capacidad tiene spec archivada, sus decisiones salen de allí.
+- `roadmap.md` es el backlog y solo contiene lo decidido; sus ítems ✅ enlazan al cambio archivado de OpenSpec.
+- Este historial se congela como material del capítulo de evolución del diseño de la memoria.
+
+**Qué arrastró.** Enlaces actualizados en AGENTS.md, README, ADR-001, `openspec/config.yaml`, T2 y los documentos de `context/`. AGENTS.md pasa a enrutar la lectura por tipo de tarea.
 
 ---
 
