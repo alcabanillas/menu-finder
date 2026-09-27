@@ -1,34 +1,38 @@
 schema: spec-driven
 
-# Configuración derivada de PROC-sdd (context/Fuente-de-Verdad.md §5.9).
-# Si cambia PROC-sdd, se cambia aquí; no al revés.
+# Derived from PROC-sdd (context/decisiones.md §1.9).
+# If PROC-sdd changes, this file changes; not the other way round.
 
 context: |
-  TFM de Máster en Desarrollo con IA: buscador en lenguaje natural sobre 36 menús
-  semanales de un nutricionista, con la lista de la compra como checklist.
-  Mapa de lectura: AGENTS.md. Referencia normativa: context/Fuente-de-Verdad.md.
+  Master's thesis (AI Development): natural-language search over 36 weekly menus
+  from a nutritionist, with the shopping list as a checklist.
+  Reading map: AGENTS.md. Normative reference: context/decisiones.md; scope in context/producto.md.
   Stack: Next.js 16 (App Router) + TypeScript, Tailwind CSS v4, pnpm, Neon
-  (PostgreSQL + pgvector), Gemini vía Genkit, Vercel, Sentry.
-  Arquitectura hexagonal con dos adaptadores primarios (app/ y cli/); reglas de
-  dependencia en context/adr/ADR-001-arquitectura-interna.md, verificadas por ESLint.
-  Seguridad obligatoria: context/safety-first.md.
-  Datos del nutricionista solo en data/ (gitignoreado): nunca en el repo, en
-  fixtures reales, en logs ni en Sentry (SEG-datos-nutricionista).
-  Artefactos en español; código e identificadores en inglés.
+  (PostgreSQL + pgvector), Gemini via Genkit, Vercel, Sentry.
+  Hexagonal architecture with two primary adapters (app/ and cli/); dependency
+  rules in context/adr/ADR-001-arquitectura-interna.md, enforced by ESLint.
+  Mandatory security: context/safety-first.md.
+  Nutritionist data only in data/ (gitignored): never in the repo, in real
+  fixtures, in logs or in Sentry (SEG-datos-nutricionista).
+  Language: English. All artifacts, code and identifiers in English.
+  Project documentation (context/, README) is in Spanish; when citing it, keep decision codes and paths as they are.
 
 rules:
   proposal:
-    - Identificar los datos que toca el cambio, los posibles abusos y las categorías OWASP que aplican (safety-first P1, SEG-owasp).
-    - Citar por código las decisiones de la fuente de verdad en las que se apoya (p. ej. BUS-descomponedor). Si el cambio contradice una, decirlo en el proposal; no resolverlo en silencio.
+    - State the ID of the context/roadmap.md item the change implements (e.g. MF-14). The change name starts with that ID in lowercase (mf-14-spike-buscador).
+    - Identify the data the change touches, the possible abuses and the OWASP categories that apply (safety-first P1, SEG-owasp).
+    - Cite by code the context/decisiones.md decisions it relies on (e.g. BUS-descomponedor). If the change contradicts one, say so in the proposal; don't resolve it silently.
   specs:
-    - Cada endpoint o comando de la CLI trae sus escenarios negativos de autorización y de validación de entrada, además de los positivos.
-    - Todo escenario debe poder verificarse con un test automatizado.
+    - Every endpoint or CLI command comes with its negative authorization and input-validation scenarios, besides the positive ones.
+    - Every scenario must be verifiable with an automated test.
   design:
-    - Respetar ADR-001 - puerto solo donde hay una frontera externa real; lógica pura en domain; adaptadores finos.
+    - Follow ADR-001 - a port only where there is a real external boundary; pure logic in domain; thin adapters.
+    - UI goes in features/ following the Scope Rule (ADR-001 §2) - local to its feature until a second one uses it; then it moves up to shared/ui/. Features receive data and actions through props; only app/ touches the web-container.
   tasks:
-    - Incluir las tareas de test de cada escenario de la spec, negativos incluidos.
+    - Include the test tasks for every spec scenario, negative ones included.
+    - TDD (PROC-tdd) - the test task for each scenario comes before its implementation task, and the test is seen failing before the code is written.
 
 operations:
   archive:
     guidance:
-      - Antes de archivar, repasar la checklist de context/safety-first.md §4 y dejar constancia del resultado.
+      - Before archiving, go through the checklist in context/safety-first.md §4 and record the result.

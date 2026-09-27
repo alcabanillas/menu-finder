@@ -6,7 +6,7 @@ La IA extrae, estructura y recupera información existente: no genera menús ni 
 
 ## Documentación
 
-Empieza por [`AGENTS.md`](AGENTS.md), que es el mapa de lectura. La referencia normativa es [`context/Fuente-de-Verdad.md`](context/Fuente-de-Verdad.md).
+Empieza por [`AGENTS.md`](AGENTS.md), que es el mapa de lectura. La referencia normativa es [`context/decisiones.md`](context/decisiones.md); el alcance, [`context/producto.md`](context/producto.md).
 
 ## Desarrollo
 

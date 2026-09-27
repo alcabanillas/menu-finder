@@ -1,0 +1,23 @@
+version: 2
+
+# safety-first §2.5: version updates wait 7 days, because malicious releases are
+# usually pulled within hours or days. Security updates skip the cooldown.
+
+updates:
+  # pnpm uses the npm ecosystem (reads pnpm-lock.yaml).
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7

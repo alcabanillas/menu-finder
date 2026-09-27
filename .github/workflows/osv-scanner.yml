@@ -1,0 +1,34 @@
+name: OSV-Scanner
+
+# safety-first §2.5: scans dependencies for known vulnerabilities (CVE) and
+# malicious packages (OpenSSF MAL- advisories), which Dependabot does not cover.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  # New MAL- advisories appear after a dependency was merged.
+  schedule:
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  # On PRs, only reports what the PR introduces compared with main.
+  scan-pr:
+    if: github.event_name == 'pull_request'
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@v2.6.0"
+
+  scan:
+    if: github.event_name != 'pull_request'
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.6.0"

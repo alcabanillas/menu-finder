@@ -1,6 +1,6 @@
 # Enfoque y peso académico del TFM
 
-> **Qué es este documento:** la argumentación de **por qué esto es un TFM de IA aplicada y no un CRUD con un embedding**. No contiene decisiones normativas (esas están en [Fuente-de-Verdad.md](Fuente-de-Verdad.md)) ni historia (esa está en [historial-de-decisiones.md](historial-de-decisiones.md)).
+> **Qué es este documento:** la argumentación de **por qué esto es un TFM de IA aplicada y no un CRUD con un embedding**. No contiene decisiones normativas (esas están en [decisiones.md](decisiones.md)) ni historia (esa está en [historial-de-decisiones.md](historial-de-decisiones.md)).
 >
 > Es la **semilla de la memoria**: los apartados de aquí son, casi tal cual, los de introducción y justificación.
 >

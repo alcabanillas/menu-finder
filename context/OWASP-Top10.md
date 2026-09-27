@@ -1,10 +1,10 @@
 # OWASP Top 10:2025 - Guía para agentes de codificación
 
-Este documento contiene instrucciones de seguridad para cualquier agente que diseñe, genere, modifique o revise código en este proyecto. Se basa en [OWASP Top 10:2025](https://owasp.org/Top10/2025/) y complementa los requisitos de *Security by Design* y *Security by Default* de [Fuente-de-Verdad.md](Fuente-de-Verdad.md) (SEG-owasp). [safety-first.md](safety-first.md) fija las reglas del proyecto; esta guía las desarrolla por categoría.
+Este documento contiene instrucciones de seguridad para cualquier agente que diseñe, genere, modifique o revise código en este proyecto. Se basa en [OWASP Top 10:2025](https://owasp.org/Top10/2025/) y complementa los requisitos de *Security by Design* y *Security by Default* de [decisiones.md](decisiones.md) (SEG-owasp). [safety-first.md](safety-first.md) fija las reglas del proyecto; esta guía las desarrolla por categoría.
 
 El Top 10 es un marco de concienciación, no una garantía de seguridad ni una lista exhaustiva. Cuando una decisión afecte a autenticación, autorización, datos personales, secretos, infraestructura o IA generativa, el agente debe señalar el riesgo y pedir revisión humana si no puede verificar el control necesario.
 
-> Última revisión: 2026-09-24, con el stack decidido. Revisar cuando OWASP publique una nueva edición o cuando se elija la librería de autenticación (Fuente de verdad §6).
+> Última revisión: 2026-09-24, con el stack decidido. Revisar cuando OWASP publique una nueva edición o cuando se elija la librería de autenticación ([decisiones.md §2](decisiones.md)).
 
 ## Instrucciones de trabajo
 

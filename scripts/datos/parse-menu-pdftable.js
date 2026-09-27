@@ -24,7 +24,6 @@ const OUT_DIR = path.join(__dirname, '..', '..', 'data', 'qa');
 const DATA_DIR = path.join(__dirname, '..', '..', 'data');
 
 const DAYS = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo'];
-const ROW_LABELS = ['Desayuno', 'Almuerzo', 'Comida', 'Merienda', 'Cena'];
 
 const NON_DISH_FILES = /^(lista_de_la_compra|menu|valoracion.*)$/i;
 // El nombre de fichero de esta receta de desayuno viene truncado en algunas carpetas
@@ -228,7 +227,6 @@ async function main() {
     const usedRecipes = new Set();
     let emptySlots = 0;
     let matched = 0;
-    let lowConfidence = 0;
     let multiDishSlots = 0;
     let sinReceta = 0;
     let recetaEsperadaNoEncontrada = 0;
