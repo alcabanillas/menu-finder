@@ -27,10 +27,13 @@ Los PDF solo están en local. Claude escribe y prueba con PDF sintéticos; el au
 ## 3. Preguntas abiertas para la spec
 
 - ¿Los menús también por adjudicación? Recomendación: sí (de ~50 min a mano a ~10 min).
-- ¿Antes o después del spike T3? Comparten Genkit, Zod y la clave. Recomendación: T3 primero.
 - Preparación de las recetas: ¿se compara el texto o solo el número de párrafos? Recomendación: número de párrafos.
 
-## 4. Contradicciones con otros documentos (sin resolver)
+## 4. Decidido por el autor (2026-09-27)
 
-- **Orden T3 / T4.** El roadmap dice que T4 es "la primera tarea tras el setup del repo"; la recomendación de §3 es hacer T3 primero.
+- **T4 va antes que el spike T3.** T4 monta Genkit, Zod y la clave de Gemini, y T3 los reutiliza.
+- **El ground truth se guarda como `evals.json`.** La forma exacta se define en la spec.
+
+## 5. Contradicciones con otros documentos (sin resolver)
+
 - **Menús de la muestra.** El roadmap habla de "30 recetas + 5 menús"; el sorteo saca 10 menús, de los que 5 son obligatorios.
