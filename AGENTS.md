@@ -18,25 +18,28 @@ Red-Green-Refactor cycle, applied to ALL functions and components from here on:
 
 Fase actual: **setup del repositorio**. Después del setup van, por este orden: los golden sets de búsqueda, el spike T3 y T4, la evaluación de la extracción (`context/roadmap.md`).
 
-## Lee esto antes de cualquier tarea
+## Carga de contexto: solo lo que vas a tocar
 
-1. `context/Fuente-de-Verdad.md`: visión, datos, **decisiones vigentes** y lo que está abierto. **Manda sobre cualquier otro documento.**
-2. `context/safety-first.md`: reglas de seguridad obligatorias para todo el código.
-3. `context/ConceptosRAG-y-agentes.md`: qué entendemos por RAG y por agente en este proyecto.
+**Regla (no negociable):** no leas documentos de `context/` enteros por defecto. Lee `context/producto.md` (alcance, corto) y, después, **solo** lo que indica la tabla para tu tarea. En `context/decisiones.md`, localiza las secciones con `grep -n "^#" context/decisiones.md` y lee únicamente las indicadas. Si la tarea cruza varias filas, suma sus lecturas.
 
-Solo si necesitas saber *por qué* algo es como es:
+**Excepción:** al consolidar o revisar documentos, se leen enteros; sin eso no se detectan contradicciones.
 
-- `context/historial-de-decisiones.md`: qué se creía antes y qué lo tumbó. Append-only. **Nunca es normativo.**
-- `context/enfoque-academico.md`: la argumentación del TFM. Semilla de la memoria.
+**Precedencia:** las specs archivadas en `openspec/specs/` son la verdad de su capacidad. Para lo demás manda `context/decisiones.md`. Los ADR (`context/adr/`) son normativos. El historial nunca lo es. **Sin spec, no hay código.**
 
-Antes de escribir código:
-
-- `context/adr/`: decisiones de arquitectura. **Normativas.**
-- `openspec/`: specs y cambios (PROC-sdd). **Sin spec, no hay código.**
-- `context/tareas/`: contratos y runbooks previos a OpenSpec. T2 es el contrato de los JSON de ingesta; T0, el runbook para generarlos en local.
-- `context/OWASP-Top10.md`: guía de seguridad por categoría, complementa `safety-first.md`.
-
-Para saber qué toca: `context/roadmap.md` (orden de trabajo, no normativo).
+| Tarea | En `decisiones.md` (por título) | Además |
+|---|---|---|
+| Estructura de `src/`, dependencias, refactor | Arquitectura | `context/adr/ADR-001-arquitectura-interna.md` |
+| Frontend: componentes, páginas | Frontend | ADR-001 §2 Estructura, §3 Reglas de dependencia y §5 Decisiones específicas de Next.js; pantallas en `producto.md` |
+| Buscador, retrieval, scoring | Buscador · Arquitectura (modelo de datos) | `context/ConceptosRAG-y-agentes.md`; `context/datos.md` |
+| Ingesta: PDFs, parsers, CLI | Ingesta | `context/datos.md`; `context/tareas/T2-esquema-json-ingesta.md`; runbook local en `context/tareas/T0-extraccion-previa.md` |
+| LLM: prompts, Genkit, agentes | IA transversal | `context/ConceptosRAG-y-agentes.md`; `context/safety-first.md` §2.6 |
+| Evaluación: golden sets, ground truth | Evaluación | `context/tareas/T4-evaluacion-extraccion.md` |
+| Tests, CI, despliegue, observabilidad | Despliegue y calidad | — |
+| Seguridad: auth, roles, validación, límites | Seguridad | `context/safety-first.md`; `context/OWASP-Top10.md` por categoría |
+| Cambios con OpenSpec | Proceso | `openspec/config.yaml`, la spec afectada en `openspec/specs/` y el cambio activo en `openspec/changes/` |
+| Proponer algo nuevo o decidir | Lo abierto | — |
+| Qué toca ahora | — | `context/roadmap.md`: backlog, solo lo decidido |
+| Por qué algo es como es | — | El proposal del cambio archivado; antes del 2026-09-27, `context/historial-de-decisiones.md` (congelado) o `context/enfoque-academico.md` |
 
 ## Estructura del código
 
@@ -63,12 +66,12 @@ Cada cambio sigue `explore` (opcional) → `propose` → `apply` → `verify` �
 - Al consolidar o revisar documentos, **expón las contradicciones entre fuentes**; no las resuelvas por tu cuenta.
 - Lo que se decida en una conversación se escribe en el documento que corresponda. No se queda en el chat.
 
-**Regla al escribir en `context/`:** una decisión se escribe en la fuente de verdad **o** en el historial, nunca en los dos. Lo derogado se borra de la fuente de verdad y se cuenta en el historial. No se tacha texto en la fuente de verdad.
+**Regla al escribir en `context/`:** la decisión vigente va en `decisiones.md`, y su porqué, en el proposal del cambio de OpenSpec. Cuando una capacidad tiene spec archivada, sus decisiones salen de `decisiones.md`. Lo derogado se borra, sin tachar. Lo que falta por hacer va a `roadmap.md`, y solo si está decidido. El historial está congelado: no se escribe en él.
 
 ## Restricciones
 
 - Plazo: 3 semanas de desarrollo + 1 de memoria y vídeo.
-- Stack: Next.js 16 (App Router) + TypeScript, Tailwind CSS v4, pnpm, Neon (PostgreSQL + pgvector), Gemini vía Genkit, Vercel, Sentry. Detalle y lo pendiente, en la fuente de verdad.
+- Stack: Next.js 16 (App Router) + TypeScript, Tailwind CSS v4, pnpm, Neon (PostgreSQL + pgvector), Gemini vía Genkit, Vercel, Sentry. Detalle en `context/decisiones.md`; lo pendiente, en `context/roadmap.md`.
 - Un solo rol: usuario registrado. Sin registro: las cuentas las crea la CLI. Sin usuario anónimo (SEG-roles, SEG-sistema-cerrado).
 - No se generan menús ni recetas. La IA extrae, estructura y recupera.
 
