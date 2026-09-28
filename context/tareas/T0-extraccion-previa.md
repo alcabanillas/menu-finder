@@ -87,3 +87,19 @@ find data/raw -name "*.pdf.txt" -delete
 ```
 
 y se repiten los pasos 1–4.
+
+## 6. Golden set de recuperación (MF-12)
+
+Necesita `data/menu-platos.json` y `data/recetas.json` (pasos 2 y 3).
+
+```bash
+pnpm evals:golden-set            # → evals/retrieval/golden-set.json (se commitea) y data/golden/golden-set-report.md
+```
+
+Lee las entradas versionadas de `evals/retrieval/`: `queries.json`, `dish-labels.json` e `ingredient-groups.json`. También lee la revisión de las literales, `data/golden/literal-candidates.md`, que es local porque dice qué platos tiene cada menú. Si falta algo, lista todos los errores y no escribe nada. Con las mismas entradas, la salida es idéntica byte a byte.
+
+La revisión de las literales solo se vuelve a generar si cambian las consultas literales. El script nunca sobrescribe una revisión existente, así que primero hay que apartar la anterior:
+
+```bash
+pnpm evals:literal-candidates    # → data/golden/literal-candidates.md, para marcar ✅/❌ a mano
+```

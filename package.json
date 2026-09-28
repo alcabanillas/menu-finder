@@ -15,7 +15,9 @@
     "prepare": "husky",
     "ingest": "tsx src/cli/index.ts",
     "datos:lista": "node scripts/datos/parse-lista-compra.js",
-    "datos:sorteo": "node scripts/datos/sorteo-ground-truth.js"
+    "datos:sorteo": "node scripts/datos/sorteo-ground-truth.js",
+    "evals:literal-candidates": "node scripts/evaluacion/literal-candidates.js",
+    "evals:golden-set": "node scripts/evaluacion/build-golden-set.js"
   },
   "dependencies": {
     "next": "16.3.6",

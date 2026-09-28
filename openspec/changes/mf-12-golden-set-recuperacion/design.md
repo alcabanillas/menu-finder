@@ -28,6 +28,7 @@ Current state that shapes the approach:
 
 | File | Where | Content |
 |---|---|---|
+| `scripts/evaluacion/dataset.js` | repo | Loads the 36 menus joined with their recipes; shared by both scripts. |
 | `scripts/evaluacion/build-golden-set.js` | repo | Builds the golden set. |
 | `scripts/evaluacion/literal-candidates.js` | repo | Proposes literal candidates for review. |
 | `evals/retrieval/queries.json` | repo | Queries (`id`, `type`, `text`, `origin`) and their rule. |
@@ -50,10 +51,12 @@ Each query in `queries.json` carries one rule:
 { kind: "share", concept, slot? }                            // concept may be an array: all of them in the same dish
 { kind: "presence", concept }
 { kind: "cover", concepts: [...] }                           // "X y Y"
-{ kind: "sameDish", all: [...], main, without? }             // "X con Y", "X sin Z" bound to the dish
+{ kind: "sameDish", all: [...], main?, without? }            // "X con Y", "X sin Z" bound to the dish; no main = no grade 1
 { kind: "coverExcluding", concepts: [...], excluding }       // "X y Y sin Z" on the week
 { kind: "withdrawn", reason }
 ```
+
+A dish concept in `dish-labels.json` may name an `ingredientGroup`: its dishes are then the labelled ones plus any dish with an ingredient of that group, minus the rejected ones (`pescado_crudo` uses `pescado_curado_ahumado`).
 
 The script interprets the rule; nothing is evaluated from strings. *Alternative:* keep one function per query, as the draft. Rejected: rules hidden in code are not auditable, and they would not survive a migration to the CLI as data.
 
@@ -70,6 +73,8 @@ Before writing, the script checks its own output: every kept query has one grade
 ### D5 — Known defect fixed against the draft
 
 The draft treated a recipe whose total time is `null` as quick (`null <= 20` is true in JavaScript). The spec makes it unknown. Parity with `golden-draft.json` is checked query by query, and every difference must be explained by this fix.
+
+Result of the parity check (2026-09-28): the dataset has no recipe with a `null` total (8 have `0`, already unknown in the draft), so the fix changes no grade. The non-literal queries match the draft grade by grade. The draft also counted `Rollitos de lenguado marinado` as raw fish despite the author's rejection (operator precedence); applying the rejection changes no grade of `E01`.
 
 ## Risks / Trade-offs
 
