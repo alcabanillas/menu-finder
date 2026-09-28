@@ -50,7 +50,7 @@ Fase actual: **setup del repositorio**. Después del setup van, por este orden: 
 | Cambios con OpenSpec | Proceso | `openspec/config.yaml`, la spec afectada en `openspec/specs/` y el cambio activo en `openspec/changes/` |
 | Proponer algo nuevo o decidir | Lo abierto | — |
 | Qué toca ahora | — | `context/roadmap.md`: backlog, solo lo decidido |
-| Por qué algo es como es | — | El proposal del cambio archivado; antes del 2026-09-27, `context/historial-de-decisiones.md` (congelado) o `context/enfoque-academico.md` |
+| Por qué algo es como es | — | El proposal del cambio archivado; antes del 2026-09-27, `context/historial-de-decisiones.md` (congelado) |
 
 ## Estructura del código
 

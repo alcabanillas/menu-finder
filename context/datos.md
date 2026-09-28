@@ -2,7 +2,7 @@
 
 > **Qué es este documento:** hechos medidos sobre los PDF del nutricionista. No contiene decisiones: las que se apoyan en estos datos están en [decisiones.md](decisiones.md).
 >
-> **Última actualización:** 2026-09-27.
+> **Última actualización:** 2026-09-28.
 
 ---
 
@@ -33,3 +33,15 @@ Medidos sobre los 36 menús en el análisis T1 (repo `tfm-brainstorm`, no viaja)
 - El pie (marca, email, eslogan) y el bloque de contacto del nutricionista no llegan al JSON (SEG-datos-nutricionista). Cómo se leen las recetas: [T2 §4.1](tareas/T2-esquema-json-ingesta.md).
 - Cobertura medida sobre `data/menu-platos.json` (T2, ING-parser-menu): **608 platos**, **591 con receta marcada por asterisco y fichero resuelto**, 17 sin receta (relleno tipo "tomate y cebolla asada"). Las 176 celdas con 2+ platos vienen ya separadas; no queda ningún plato concatenado.
 - Consecuencia: la búsqueda opera **a nivel de plato**, no de semana agregada. Es lo que hace viable el buscador (BUS-unidad-plato, BUS-discrimina-plato).
+
+## 4. Vocabulario del dataset frente a las consultas
+
+Comprobado contra `data/menu-platos.json` y los ingredientes de las recetas. Es la entrada de los golden sets (EVAL-golden-sets).
+
+- **Consultas que resuelve la búsqueda léxica.** "Alitas de pollo al curry" está en 3 menús y una búsqueda léxica sobre nombres de plato lo encuentra a la primera. "Salmón", "sepia con guisantes" y "pollo y brócoli" los encuentra la léxica igual de bien o mejor que la semántica. La coincidencia por subcadena da falsos positivos: "salmón" casa con "salmonete".
+- **Variantes de nombre.** El nutricionista escribe el ingrediente con su propia forma: "alitas" ↔ "Pollo (ala)", "pechuga" ↔ "Pollo (pechuga)". Tabla de partida: [`m0-tabla-sinonimos.csv`](datos-de-apoyo/m0-tabla-sinonimos.csv), que salió de T1.
+- **Términos que no existen como token** ni en nombres de plato ni de ingrediente:
+  - Hiperónimos: "marisco" (en el dataset: gambas, langostinos, sepia, calamar, mejillones, almejas), "pescado azul" (salmón, caballa, sardina, boquerón), "carne roja" (ternera, cerdo).
+  - Intención difusa: "algo de cuchara", "ligero", "de verano", "para invitados".
+  - Variantes de escritura: "brocoli", "calabacines", "champis".
+- **Exclusiones por grupo a nivel de semana.** Ningún menú de los 36 está libre de pescado, huevo, legumbre o lácteo (medido el 2026-09-20; BUS-superficie-consulta): toda exclusión de esos grupos a nivel de semana devuelve vacío.

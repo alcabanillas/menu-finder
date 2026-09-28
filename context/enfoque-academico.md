@@ -48,24 +48,26 @@ Sin (1) y (2), el proyecto es un CRUD con un embedding. Con ellos, es IA aplicad
 
 **2026-09-20. El riesgo se ha desplazado, no ha desaparecido.** Hoy está en dos sitios:
 
-- **La superficie de consulta (C9).** T1 midió el poder discriminante sobre **ingredientes literales**, y solo sobre eso. Si el buscador se queda ahí, el núcleo del sistema es un `WHERE ingrediente IN (...)` con envoltorio en lenguaje natural. Lo que lo saca de ahí es aceptar consultas por **atributo derivado** (tiempo total, fuente de proteína, alérgenos, método de cocción) y por **intención difusa**, y eso exige una capa de enriquecimiento en ingesta que está sin decidir.
+- **La superficie de consulta (C9).** T1 midió el poder discriminante sobre **ingredientes literales**, y solo sobre eso. Si el buscador se queda ahí, el núcleo del sistema es un `WHERE ingrediente IN (...)` con envoltorio en lenguaje natural. Lo que lo saca de ahí es aceptar consultas por **atributo derivado** (tiempo total, fuente de proteína, alérgenos, método de cocción) y por **intención difusa**, y eso exige una capa de enriquecimiento en ingesta que está sin decidir. *Se cerró ese mismo día con BUS-superficie-consulta: se enriquecen el tiempo total, el grupo alimentario de cada ingrediente (del que salen la fuente de proteína y los grupos de exclusión) y la temporada; el método de cocción **no** se enriquece, se resuelve por texto sobre el nombre del plato y por similitud.*
 - **El vector store podría ser decorativo.** Si la capa estructurada es buena, las consultas por plato concreto, por ingrediente literal y por atributo derivado se resuelven **sin embeddings**; solo la intención difusa los necesita de verdad. Es un riesgo para la etiqueta "RAG" de todo el TFM, y hay que decidirlo a la vista, no por inercia. Por eso la comparativa léxica vs. semántica vs. híbrida deja de ser un extra y pasa a ser **la justificación arquitectónica** de si el vector store entra o no.
 
 **2026-09-21. La ingesta deja de ser riesgo y pasa a ser resultado.** El parser posicional de recetas ([T2 §4](tareas/T2-esquema-json-ingesta.md)) cierra la extracción con 100 % de líneas y 0 anomalías; el agente extractor queda como experimento. El riesgo de "demasiado simple" ya no está en la ingesta ni en la superficie de consulta (BUS-superficie-consulta la cerró): está **solo** en la comparativa de recuperación y en la evaluación (golden sets EVAL-golden-sets, juez IA-proveedor). Lo que T0, T1 y T2 dejan para la memoria no es infraestructura: es el capítulo de análisis del corpus (T1, con el resultado plato vs. semana) y el de ingesta (T2, con la comparativa de enfoques, la decisión sobre el LLM y el hallazgo de las 105 recetas con versiones).
 
 ## 4. Los casos que justifican los embeddings
 
-Hasta el 2026-09-20 el ejemplo era *"alitas de pollo no aparece en ningún menú"*. **Era falso**: "Alitas de pollo al curry" está en 3 menús y una búsqueda léxica sobre nombres de plato lo encuentra a la primera. Se cambió al comprobarlo contra `data/menu-platos.json`, y queda aquí como aviso: **ningún ejemplo de la memoria se afirma sin haberlo comprobado contra los datos.** El sinónimo por variante de nombre ("alitas" ↔ "Pollo (ala)", "pechuga" ↔ "Pollo (pechuga)") lo resuelve una tabla de normalización, no un embedding.
+Los casos concretos, verificados contra el vocabulario del dataset, están en [datos.md §4](datos.md). Aquí va el argumento.
 
-Los casos que la búsqueda léxica **no** puede resolver y la semántica sí, todos verificados contra el vocabulario del dataset (ninguno existe como token en nombres de plato ni de ingrediente):
+Hasta el 2026-09-20 el ejemplo era *"alitas de pollo no aparece en ningún menú"*. **Era falso**: está en 3 menús y la búsqueda léxica lo encuentra. Se cambió al comprobarlo contra los datos, y queda aquí como aviso: **ningún ejemplo de la memoria se afirma sin haberlo comprobado contra los datos.** El sinónimo por variante de nombre lo resuelve una tabla de normalización, no un embedding.
 
-- **Hiperónimos.** "Marisco" → gambas, langostinos, sepia, calamar, mejillones, almejas. "Pescado azul" → salmón, caballa, sardina, boquerón. "Carne roja" → ternera, cerdo. El usuario pide la categoría; el nutricionista escribe el miembro.
-- **Intención difusa.** "Algo de cuchara", "ligero", "de verano", "para invitados". No hay ningún campo que lo contenga: es similitud entre la petición y la descripción del plato con sus ingredientes.
-- **Errores y variantes de escritura.** "Brocoli", "calabacines", "champis". Parte lo cubre un *stemmer* español; parte no.
+Los casos que la búsqueda léxica **no** puede resolver y la semántica sí son los términos que no existen como token en el dataset:
 
-Y el contraejemplo, que también va al golden dataset: **"salmón", "sepia con guisantes" o "pollo y brócoli" los encuentra la léxica igual de bien o mejor.** La comparativa del pilar (2) se hace por tipo de consulta, no en agregado, y se espera que cada tipo tenga un ganador distinto: ese es el resultado, no que "gane la semántica".
+- **Hiperónimos.** El usuario pide la categoría ("marisco"); el nutricionista escribe el miembro ("sepia").
+- **Intención difusa.** "Algo de cuchara" no está en ningún campo: es similitud entre la petición y la descripción del plato con sus ingredientes.
+- **Errores y variantes de escritura.** Parte lo cubre un *stemmer* español; parte no.
 
-Junto a estos van las consultas multi-restricción y las **consultas sin resultados** (que existen porque el filtro a nivel de plato las genera, BUS-descomponedor; medido el 2026-09-20: ningún menú de los 36 está libre de pescado, huevo, legumbre o lácteo, así que toda exclusión de esos grupos a nivel de semana devuelve vacío). Punto de partida: la tabla de sinónimos [`m0-tabla-sinonimos.csv`](datos-de-apoyo/m0-tabla-sinonimos.csv), que salió de T1.
+Y el contraejemplo, que también va al golden dataset: hay consultas que la léxica encuentra igual de bien o mejor. La comparativa del pilar (2) se hace por tipo de consulta, no en agregado, y se espera que cada tipo tenga un ganador distinto: ese es el resultado, no que "gane la semántica".
+
+Junto a estos van las consultas multi-restricción y las **consultas sin resultados**, que existen porque el filtro a nivel de plato las genera (BUS-descomponedor).
 
 ## 5. Seguridad, como argumento y no como anexo
 

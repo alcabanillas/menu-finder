@@ -74,7 +74,7 @@ Nombre honesto para la memoria: *"búsqueda híbrida multi-restricción sobre re
 
 Lo que da peso académico no es el tamaño del índice sino lo que puedes **medir**:
 
-1. **¿Cuándo aporta la búsqueda semántica frente a la léxica?** "Marisco" no aparece en ningún PDF (hay "gamba", "sepia", "mejillón"); "algo de cuchara" tampoco. Una búsqueda por texto falla; una semántica acierta. Pero "salmón" o "pollo y brócoli" los encuentran las dos, y "alitas" lo encuentra la léxica porque el plato se llama "Alitas de pollo al curry". Con el golden dataset comparas léxica vs semántica vs híbrida **por tipo de consulta** y das cifras. Si la léxica gana en tu dataset, es un resultado válido. Casos verificados en [enfoque-academico.md §4](enfoque-academico.md).
+1. **¿Cuándo aporta la búsqueda semántica frente a la léxica?** "Marisco" no aparece en ningún PDF (hay "gamba", "sepia", "mejillón"); "algo de cuchara" tampoco. Una búsqueda por texto falla; una semántica acierta. Pero "salmón" o "pollo y brócoli" los encuentran las dos, y "alitas" lo encuentra la léxica porque el plato se llama "Alitas de pollo al curry". Con el golden dataset comparas léxica vs semántica vs híbrida **por tipo de consulta** y das cifras. Si la léxica gana en tu dataset, es un resultado válido. Casos verificados en [datos.md §4](datos.md).
 2. **¿La explicación es fiel?** LLM-as-judge sobre las explicaciones: ¿inventa platos que no están? Métrica de faithfulness.
 3. **¿La extracción del PDF es correcta?** Precisión de asignación plato→día contra menús etiquetados a mano.
 
