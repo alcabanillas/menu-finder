@@ -29,8 +29,8 @@ No unit tests in this change (proposal, PROC-tdd deviation; design D4): each tas
 
 ## 5. Documentation
 
-- [ ] 5.1 Update EVAL-golden-sets in `context/decisiones.md` with the four deviations and graded relevance, and record the PROC-tdd deviation for `scripts/evaluacion/` (proposal, Decisions and contradictions); mark MF-12 ✅ in `context/roadmap.md` with the link to the archived change; verify both read coherently with BUS-superficie-consulta
-  - `decisiones.md` done (EVAL-golden-sets, PROC-tdd exception); the roadmap line goes in at archive, when the archived path exists.
+- [x] 5.1 Update EVAL-golden-sets in `context/decisiones.md` with the four deviations and graded relevance, and record the PROC-tdd deviation for `scripts/evaluacion/` (proposal, Decisions and contradictions); mark MF-12 ✅ in `context/roadmap.md` with the link to the archived change; verify both read coherently with BUS-superficie-consulta
+  - `decisiones.md` done (EVAL-golden-sets, PROC-tdd exception); roadmap line added at archive.
 - [x] 5.2 Add to `context/tareas/T0-extraccion-previa.md` how to rebuild the golden set (`pnpm evals:golden-set`, inputs in `evals/retrieval/` and `data/golden/literal-candidates.md`); verify the steps run from a clean checkout with `data/` present
 - [x] 5.3 Go through the checklist in `context/safety-first.md` §4 and record the result before archiving
   - Result: no endpoint, backend decision, DB query, session or LLM input is touched (N/A). No secret in the diff. No new dependency. Unexpected inputs (missing file, invalid JSON, unknown type or concept, duplicate id, missing dish, unexpected argument) checked by hand, fail closed. Deviation from PROC-tdd documented in the proposal and in `decisiones.md`. The committed files carry no menu composition (self-check).
