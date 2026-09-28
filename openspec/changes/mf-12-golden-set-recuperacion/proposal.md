@@ -26,7 +26,7 @@ Out of scope: the search engine and the metrics (MF-18), the decomposer golden s
 This change **deviates from EVAL-golden-sets** on four points, all decided by the author on 2026-09-28; `context/decisiones.md` is updated when the change is archived:
 
 1. **Five query types, not four.** BUS-superficie-consulta (d) defines four (literal, exclusion, attribute, fuzzy/hypernym); `combined` is added so that "y"/"con" aggregation is measured on its own. With "~8 per type", 40 queries did not add up with four types.
-2. **At least 8 queries per type, not 40 in total.** After withdrawals, 44 remain (L10 · E7 · A9 · F8 · C10). E is one short of 8; see the open point below.
+2. **At least 8 queries per type, not 40 in total.** After withdrawals, 44 remain (L10 · E7 · A9 · F8 · C10). E stays at 7, one short of 8: the author decided not to add another, because a query written now, after seeing the data, would not be blind.
 3. **Queries were not written by the author.** They were generated blind by an LLM in a separate conversation with no access to the data, and selected and edited by the author; three literal queries are the author's own.
 4. **Labels were not produced by the author alone.** Literal candidates come from a high-recall matcher (substring, accent- and plural-insensitive, broader than the planned lexical search on purpose) and the author accepted or rejected each one. Fuzzy concepts and raw fish were labelled per dish by an LLM of another family than the engine's (Claude; IA-proveedor) and reviewed in full by the author (9 rejections out of ~460 labels, ~98 % precision). Ingredient groups were labelled by the same LLM and skimmed by the author. **Declared limitation:** the review measures precision, not recall; a dish the labeller missed is not detected.
 
@@ -35,8 +35,6 @@ Graded relevance (`0|1|2`) replaces "menús relevantes esperados" (a set), becau
 It also **deviates from PROC-tdd**: the scripts have no unit tests, like `scripts/datos/` (runbook T0), which the CLI replaced later with TDD (MF-11, MF-38). Compensation: the build validates every input and fails closed, checks its own output (only ids, texts and numbers in the committed file; queries and menus in a fixed order), and parity with the 2026-09-28 draft is checked by hand. If MF-18 needs to rebuild the golden set from its code, the migration to the CLI comes with TDD then.
 
 **SEG-datos-nutricionista, as applied here:** dish and ingredient names are facts and may be committed (the decision keeps them); what may not is the brand, email and slogan (none is involved) nor the menus themselves ("no forman parte del repositorio", in the mandatory citation). So the committed files never say which dishes a menu has: the labels map concepts to dishes, the golden set maps queries to menu numbers, and the per-menu evidence stays in `data/`.
-
-**Open point for the author:** E has 7 queries. Either one exclusion query is added (generated blind) or E stays at 7 and the deviation is recorded.
 
 ## Capabilities
 

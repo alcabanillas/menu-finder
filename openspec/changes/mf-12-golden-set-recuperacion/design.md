@@ -87,4 +87,4 @@ The draft treated a recipe whose total time is `null` as quick (`null <= 20` is 
 
 ## Open Questions
 
-- Whether E gets an eighth query (proposal, open point). It is one more entry in `queries.json` and a rerun.
+_None._ E stays at 7 queries (proposal, deviation 2).

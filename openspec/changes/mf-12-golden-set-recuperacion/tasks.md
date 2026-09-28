@@ -23,7 +23,7 @@ No unit tests in this change (proposal, PROC-tdd deviation; design D4): each tas
 
 - [ ] 4.1 Compare `evals/retrieval/golden-set.json` with `data/golden/golden-draft.json` query by query; verify every difference is explained by design D5 and record the differences in the verify notes
 - [ ] 4.2 Run `pnpm evals:golden-set` twice; verify the golden set files are byte-identical (*Reproducible output*) and that no dish name appears in it (*No menu composition in the committed file*)
-- [ ] 4.3 Verify 44 queries are kept (L10 · E7 · A9 · F8 · C10), or 45 if the author adds an eighth exclusion query
+- [ ] 4.3 Verify 44 queries are kept (L10 · E7 · A9 · F8 · C10)
 - [ ] 4.4 Clean `data/golden/` as in design, Migration Plan step 3; verify a new build from a clean state still gives the same golden set
 
 ## 5. Documentation
