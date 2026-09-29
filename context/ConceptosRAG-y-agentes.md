@@ -1,6 +1,6 @@
 # Conceptos: RAG vs. buscador de menús, y qué es (y qué no es) un agente
 
-> Documento explicativo, no normativo. Aclara dos ideas de [decisiones.md](decisiones.md) (PROC-enfoque, IA-criterio-agente y BUS-descomponedor) con ejemplos de los datos reales del proyecto. Sirve también como borrador para el capítulo conceptual de la memoria.
+> Documento explicativo, no normativo. Aclara dos ideas de [decisiones.md](decisiones.md) (PROC-enfoque, IA-criterio-agente y BUS-descomponedor) con ejemplos de los datos reales del proyecto. Sirve también como borrador para la parte conceptual de las diapositivas y el vídeo.
 
 ---
 
@@ -36,7 +36,7 @@ Las dos palabras clave son **retrieval** (recuperar lo relevante) y **generation
 | El LLM responde una pregunta abierta | El usuario tiene que **elegir uno** de los candidatos |
 | La unidad es el chunk | La unidad es el menú, descrito por sus platos e ingredientes |
 
-Si lo presentas como "RAG documental con chunking", un tribunal preguntará *"¿para qué chunking si cabe todo en el prompt?"* y no tendrás buena respuesta.
+Si lo presentas como "RAG documental con chunking", quien evalúe preguntará *"¿para qué chunking si cabe todo en el prompt?"* y no tendrás buena respuesta.
 
 ### 1.3 Lo que realmente estás construyendo: un buscador semántico de menús con explicación
 
@@ -68,7 +68,7 @@ El flujo con el ejemplo *"quiero comer alitas de pollo y salmón esta semana"*:
 - La generación **no responde**, **explica**: el LLM no decide nada, solo redacta por qué cada candidato encaja, y eso se puede verificar (¿lo que dice está en el menú? = *faithfulness*).
 - El vector store es un índice derivado; la verdad está en el JSON estructurado.
 
-Nombre honesto para la memoria: *"búsqueda híbrida multi-restricción sobre registros estructurados con generación anclada"*, o en corto, **hybrid retrieval + grounded generation**. Puedes decir "una variante de RAG" siempre que expliques en qué se aparta del clásico y por qué.
+Nombre honesto para la presentación: *"búsqueda híbrida multi-restricción sobre registros estructurados con generación anclada"*, o en corto, **hybrid retrieval + grounded generation**. Puedes decir "una variante de RAG" siempre que expliques en qué se aparta del clásico y por qué.
 
 ### 1.4 Por qué esto no es "demasiado simple"
 
@@ -109,7 +109,7 @@ Un **agente** es un componente que **decide qué hacer a continuación** en func
 
 Los tres ingredientes: **bucle**, **decisión** (no un camino fijo) y **condición de parada** (éxito, N intentos, o escalar a un humano). Sin bucle ni decisión, es un paso de pipeline.
 
-Por qué importa para el TFM: si llamas "agente" a cada llamada al LLM, un tribunal de IA te lo discutirá y perderás credibilidad en todo lo demás. Si tienes pocos agentes reales bien definidos y el resto lo llamas pipeline, demuestras que entiendes la diferencia.
+Por qué importa para el TFM: si llamas "agente" a cada llamada al LLM, quien evalúe te lo discutirá y perderás credibilidad en todo lo demás. Si tienes pocos agentes reales bien definidos y el resto lo llamas pipeline, demuestras que entiendes la diferencia.
 
 ### 2.2 Los componentes del sistema, uno a uno
 
@@ -146,7 +146,7 @@ validar: schema, 6 días (L–S), 1–2 platos por celda, platos con * presentes
           no → reintentar pasando los errores concretos; tras 3 fallos → revisión manual
 ```
 
-Cumple la definición, pero **no está en la ingesta**: los parsers deterministas (por posición desde el PDF) extraen menú y recetas con 0 anomalías, así que un LLM no tiene nada que corregir. Se conserva como **experimento comparativo** para la memoria: parser vs. LLM con structured output vs. agente con reintento, sobre el mismo ground truth, en precisión y coste. Que el LLM no hiciera falta es un resultado, no un fracaso.
+Cumple la definición, pero **no está en la ingesta**: los parsers deterministas (por posición desde el PDF) extraen menú y recetas con 0 anomalías, así que un LLM no tiene nada que corregir. Se conserva como **experimento comparativo** para la presentación: parser vs. LLM con structured output vs. agente con reintento, sobre el mismo ground truth, en precisión y coste. Que el LLM no hiciera falta es un resultado, no un fracaso.
 
 #### ❌ Explicador — no es agente (IA-criterio-agente)
 
@@ -166,7 +166,7 @@ Patrón LLM-as-judge: puntúa faithfulness y relevancia de las explicaciones, en
 | Ranking | Agrega, por restricción, el mejor plato de cada menú |
 | CLI de ingesta | Recorre `data/raw/`, extrae a JSON y carga en BD (ING-cli-local) |
 
-### 2.3 Cómo se cuenta esto en la memoria
+### 2.3 Cómo se cuenta esto en la presentación
 
 > *El sistema es un buscador en lenguaje natural sobre un catálogo estructurado: traduce la petición a restricciones, las recupera plato a plato con búsqueda híbrida y explica el ranking con los datos recuperados. Combina componentes deterministas (parsers, ranking, ingesta) con tres usos de LLM —descomponer, explicar y evaluar—, clasificados según cumplan o no la definición de agente adoptada (bucle de observación, decisión y condición de parada). Solo el descomponedor la cumple en producción: ante una consulta sin resultados decide cómo relajarla y reconsulta, con un máximo de dos vueltas. La extracción de los PDF se resolvió de forma determinista; el agente extractor se conserva como experimento comparativo. El explicador y el juez se documentan como llamadas con schema, no como agentes. Se ha evitado deliberadamente usar un LLM donde una solución determinista es suficiente.*
 

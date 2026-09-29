@@ -19,13 +19,13 @@
 | Sprint 1 | semana 1 · 2026-09-24 → 10-01 | Datos, golden sets, buscador y evaluación de recuperación |
 | Sprint 2 | semana 2 · 10-01 → 10-08 | Frontend y app desplegada |
 | Sprint 3 | semana 3 · 10-08 → 10-15 | Evaluación del flujo LLM y observabilidad |
-| Sprint 4 | semana 4 · 10-15 → 10-22 | Memoria, presentación y vídeo de defensa |
+| Sprint 4 | semana 4 · 10-15 → 10-22 | Entregables: diapositivas, vídeo y README |
 
 Las fechas son orientativas. Lo que no se mueve es el **orden** dentro del sprint 1.
 
 ## Regla de orden: etiquetar antes de construir
 
-Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden-sets). Si el buscador existe antes que ellos, el etiquetado deja de ser ciego y la comparativa pierde valor ante el tribunal. Por eso el etiquetado es lo primero del sprint 1, no lo último del proyecto.
+Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden-sets). Si el buscador existe antes que ellos, el etiquetado deja de ser ciego y la comparativa pierde valor. Por eso el etiquetado es lo primero del sprint 1, no lo último del proyecto.
 
 ---
 
@@ -58,7 +58,7 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 - ⬜ **MF-14** 📝 Spike T3: descomponer + ranquear los 36 en consola. Código tirable, fuera de la app: un script local lee `data/menu-platos.json` (formato `WeeklyMenu[]`, T2 §2) y `data/recetas.json` (formato `Recipe[]`, T2 §4), descompone con el LLM contra el schema Zod y ranquea en consola; sin BD, sin Next, sin Genkit. Su spec, breve, en `context/tareas/T3-spike-buscador.md` antes de escribirlo. Fija el schema del descomponedor ([decisiones.md §2](decisiones.md), punto 1)
 
 **Evaluación de la extracción (después de T3)**
-- ⬜ **MF-15** 📝 T4: ground truth de extracción por adjudicación ciega de discrepancias parser ↔ LLM, 30 recetas + 5 menús ampliable a 10 (EVAL-ground-truth, semilla en [T4](tareas/T4-evaluacion-extraccion.md)). No bloquea nada del producto: alimenta el pilar 1 de la memoria y el experimento de ING-determinista
+- ⬜ **MF-15** 📝 T4: ground truth de extracción por adjudicación ciega de discrepancias parser ↔ LLM, 30 recetas + 5 menús ampliable a 10 (EVAL-ground-truth, semilla en [T4](tareas/T4-evaluacion-extraccion.md)). No bloquea nada del producto: alimenta el pilar 1 de la presentación y el experimento de ING-determinista
 
 **Carga**
 - ⬜ **MF-16** 📝 CLI de ingesta idempotente, con limpieza de marca y enriquecimiento (ING-cli-local, ING-parser-menu, ING-trazabilidad, SEG-datos-nutricionista, BUS-superficie-consulta (c)). Parsers del menú y de recetas terminados ([T2](tareas/T2-esquema-json-ingesta.md) patas 1 y 3); pendientes el parser de la lista (pata 2) y la trazabilidad, solo de lista y recetas. Enriquecimiento: `totalTimeMin`, tabla ingrediente → grupo, temporada. Se escribe después del spike T3, con lo que este mida
@@ -83,7 +83,7 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 
 ## Sprint 3 — Evaluación del flujo LLM
 
-**Sale del sprint:** están todas las cifras que necesita la memoria.
+**Sale del sprint:** están todas las cifras que necesitan las diapositivas y el vídeo.
 
 - ⬜ **MF-28** Precisión/recall del descomponedor contra las 50 peticiones (EVAL-golden-sets)
 - ⬜ **MF-29** Faithfulness de la explicación con juez de otra familia (EVAL-estrategia, IA-proveedor)
@@ -91,12 +91,12 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 - ⬜ **MF-31** Experimento de comparación: parser vs. LLM en extracción de recetas (ING-determinista)
 - ⬜ **MF-32** Observabilidad: latencia y coste por llamada, trazas Genkit exportadas a Sentry (OPS-observabilidad; qué se mide, [decisiones.md §2](decisiones.md), punto 4). La exportación se verifica antes, en el spike T3
 
-## Sprint 4 — Memoria
+## Sprint 4 — Entregables
 
-- ⬜ **MF-33** Estructura de la memoria y criterios de éxito ([decisiones.md §2](decisiones.md), punto 5). Semilla: [enfoque-academico.md](enfoque-academico.md)
-- ⬜ **MF-34** Capítulo del proceso SDD con agentes (PROC-sdd-memoria)
-- ⬜ **MF-35** Presentación y vídeo de defensa
-- ⬜ **MF-36** Checklist de evaluación para el tribunal, en el repo y enlazado desde el README: acceso a la app desplegada con la cuenta de demo (sin publicar sus credenciales, SEG-sistema-cerrado), qué revisar en la UI y cómo ejecutar los tests en local
+- ⬜ **MF-33** Guion de la presentación y criterios de éxito ([decisiones.md §2](decisiones.md), punto 5). Semillas: [enfoque-academico.md](enfoque-academico.md) y [presentacion/](presentacion/)
+- ⬜ **MF-34** El proceso SDD con agentes, contado en las diapositivas y el vídeo (PROC-sdd-memoria)
+- ⬜ **MF-35** Diapositivas y vídeo explicativo
+- ⬜ **MF-36** README expresivo: qué hace el producto, cómo instalarlo y ejecutarlo en local (incluidos los tests y la generación de datos), cómo acceder a la app desplegada con la cuenta de demo (sin publicar sus credenciales, SEG-sistema-cerrado) y qué revisar en la UI
 
 ---
 

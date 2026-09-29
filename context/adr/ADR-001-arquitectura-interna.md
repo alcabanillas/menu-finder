@@ -9,7 +9,7 @@
 
 Arquitectura **hexagonal** (puertos y adaptadores), siguiendo la estructura mínima enseñada en el máster, con Next.js App Router como capa de adaptadores primarios.
 
-Se descartan los vertical slices. Razones: alineación con el marco teórico del máster (el tribunal reconoce el patrón), reglas de dependencia **verificables automáticamente** —algo que importa más de lo habitual porque el código lo generan agentes—, y aislamiento natural del dominio respecto de Next.js, que es la dependencia más volátil del proyecto.
+Se descartan los vertical slices. Razones: alineación con el marco teórico del máster (quien evalúa reconoce el patrón), reglas de dependencia **verificables automáticamente** —algo que importa más de lo habitual porque el código lo generan agentes—, y aislamiento natural del dominio respecto de Next.js, que es la dependencia más volátil del proyecto.
 
 ## 2. Estructura
 
@@ -50,7 +50,7 @@ Fuera de `src/` está `scripts/datos/`: los scripts de generación local de dato
 
 Hay **dos adaptadores primarios sobre el mismo hexágono**: la web (`app/`) y la CLI (`cli/`). La CLI hace lo que la app no debe hacer (ING-cli-local, SEG-sistema-cerrado): ingesta desde `data/`, alta de cuentas y evaluación. Cada uno tiene su composition root porque necesitan dependencias distintas; por ejemplo, solo la CLI conoce `DocumentSource` y el rol de administración de la BD (safety-first §2.4).
 
-**Tres desviaciones respecto de la estructura mínima del máster**, todas por Next.js y todas justificables en la memoria:
+**Tres desviaciones respecto de la estructura mínima del máster**, todas por Next.js y todas justificables en la presentación:
 
 1. **La web no tiene `main.ts`.** Next.js no tiene un punto de entrada único: cada route handler es una entrada. Su composition root pasa de "se ejecuta al arrancar" a "módulo que construye y cachea las dependencias la primera vez que se importa" (ver §5). La CLI sí tiene punto de entrada (`cli/index.ts`) y su container se construye al arrancar, como en la estructura del máster.
 2. **`src/app/` y `src/cli/` conviven con las capas.** No son capas: son adaptadores primarios (HTTP y línea de comandos). `app/` se llama así porque Next.js lo exige, no por decisión de diseño.
