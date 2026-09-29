@@ -51,7 +51,7 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 - ✅ **MF-38** Parser de recetas migrado a la CLI de `src/`: `pnpm ingest recipes` (adelanto parcial de MF-16, ING-cli-local; [T2 §4](tareas/T2-esquema-json-ingesta.md)). `data/recetas.json` pasa a `Recipe[]`, una por fichero con la versión del menú de número más alto (cierra T2 §4.5); las versiones descartadas salen en la QA. Paridad receta a receta con el script anterior (0 diferencias en 434). [Cambio archivado](../openspec/changes/archive/2026-09-27-mf-38-migrar-parser-recetas-cli/)
 
 **Golden sets (antes de tocar el buscador)**
-- ⬜ **MF-12** 📝 Etiquetar 40 consultas de recuperación, ~8 por tipo de BUS-superficie-consulta, con los menús relevantes esperados (EVAL-golden-sets)
+- ✅ **MF-12** Golden set de recuperación: 43 consultas en cinco tipos, con nota 0/1/2 por menú calculada a partir de etiquetas por plato revisadas por el autor; se reconstruye con `pnpm evals:golden-set` (EVAL-golden-sets, spec `retrieval-golden-set`). [Cambio archivado](../openspec/changes/archive/2026-09-28-mf-12-golden-set-recuperacion/)
 - ⬜ **MF-13** Etiquetar 50 peticiones → estructura tipada esperada, para el descomponedor (EVAL-golden-sets)
 
 **Buscador**

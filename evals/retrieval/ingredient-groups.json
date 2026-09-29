@@ -1,0 +1,251 @@
+{
+  "labeler": "Claude (Anthropic), not the Gemini family used by the search engine",
+  "notes": [
+    "Broths (Caldo de pollo, Caldo de ave, Caldo de pescado) are not counted in any group: they are a base, not the protein. Decide in 'ambiguous'.",
+    "carne_roja follows the WHO definition: beef, lamb and pork, including cured pork (jamón).",
+    "legumbre = pulses (lentils, chickpeas, beans, dry broad beans, soy). Peas, green beans and tender broad beans count as vegetables.",
+    "pescado_crudo is decided per dish (preparation), not per ingredient; see the dish-level file."
+  ],
+  "groups": {
+    "pollo": [
+      "Pollo",
+      "Pollo (ala)",
+      "Pollo (muslo)",
+      "Pollo (pechuga)",
+      "Hamburguesa Pollo"
+    ],
+    "pavo": [
+      "Pavo",
+      "Pavo, pechuga"
+    ],
+    "cerdo": [
+      "Cerdo, lomo",
+      "Cerdo, solomillo",
+      "Magro de cerdo",
+      "Jamón serrano",
+      "Jamón de york"
+    ],
+    "ternera": [],
+    "conejo": [
+      "Conejo"
+    ],
+    "pescado": [
+      "Anchoas en aceite vegetal",
+      "Atún",
+      "Atún en aceite de oliva",
+      "Atún, al natural",
+      "Bacaladilla",
+      "Bacalao",
+      "Bacalao, ahumado",
+      "Bacalao, salado, remojado",
+      "Boquerón",
+      "Caballa, enlatada en aceite, escurrida",
+      "Corvina",
+      "Dorada",
+      "Emperador",
+      "Lenguado",
+      "Lubina",
+      "Merluza fresca",
+      "Mero",
+      "Rodaballo",
+      "Salmón",
+      "Salmón ahumado",
+      "Salmonete",
+      "Sardina",
+      "Sardina, enlatada, en aceite, escurrida",
+      "Trucha"
+    ],
+    "marisco": [
+      "Almejas",
+      "Berberechos",
+      "Calamar",
+      "Chipiron",
+      "Gamba",
+      "Gamba pelada",
+      "Gamba roja",
+      "Gamba, hervida",
+      "Langostino",
+      "Mejillon",
+      "Mejillón, en conserva, al natural",
+      "Pulpo, hervido",
+      "Sepia"
+    ],
+    "queso": [
+      "Queso azul",
+      "Queso edam",
+      "Queso feta",
+      "Queso fresco de cabra",
+      "Queso mozzarella",
+      "Queso parmesano",
+      "Queso rallado",
+      "Queso ricotta",
+      "Queso tierno",
+      "Requesón"
+    ],
+    "huevo": [
+      "Huevo de gallina fresco"
+    ],
+    "legumbre": [
+      "Alubia blanca cocida",
+      "Alubia blanca, seca, cruda",
+      "Garbanzo cocido",
+      "Garbanzo seco",
+      "Harina de garbanzos",
+      "Lenteja, en conserva",
+      "Lenteja, seca",
+      "Haba, seca, remojada, hervida",
+      "Garrafó",
+      "Edamame",
+      "Soja, fresca"
+    ],
+    "pasta": [
+      "Pasta alimenticia, cruda",
+      "Pasta alimenticia, integral",
+      "Lasaña",
+      "Fideo de arroz (Noodles)"
+    ],
+    "arroz": [
+      "Arroz",
+      "Arroz basmati",
+      "Arroz integral"
+    ],
+    "brocoli": [
+      "Brócoli",
+      "Bimi"
+    ],
+    "salmon": [
+      "Salmón",
+      "Salmón ahumado"
+    ],
+    "verdura": [
+      "Acelga",
+      "Alcachofa",
+      "Apio",
+      "Berenjena",
+      "Berro",
+      "Brócoli",
+      "Bimi",
+      "Calabacín",
+      "Calabaza",
+      "Canonigos",
+      "Col blanca",
+      "Col de bruselas",
+      "Col lombarda",
+      "Col rizada",
+      "Coliflor",
+      "Endivia",
+      "Escarola",
+      "Espárrago, verde",
+      "Esparragos blancos en conserva",
+      "Espinaca fresca",
+      "Guisante congelado",
+      "Guisantes",
+      "Guisantes en conserva",
+      "Haba, fresca",
+      "Habas baby",
+      "Habas Tiernas",
+      "Hinojo",
+      "Judía verde",
+      "Judias Verdes",
+      "Judias verdes en conserva",
+      "Kale",
+      "Lechuga",
+      "Nabo, pelado",
+      "Pepino",
+      "Pimiento amarillo crudo",
+      "Pimiento del piquillo",
+      "Pimiento rojo",
+      "Pimiento rojo crudo",
+      "Pimiento verde",
+      "Pimiento verde crudo",
+      "Pimientos asados de bote",
+      "Puerro",
+      "Rábano",
+      "Remolacha",
+      "Remolacha, en conserva",
+      "Repollo",
+      "Rúcula",
+      "Seta",
+      "Champiñon",
+      "Tomate",
+      "Tomate Cherry",
+      "Tomate Cherry crudo",
+      "Tomate crudo",
+      "Zanahoria",
+      "Germinados",
+      "Boniato",
+      "Maiz en conserva"
+    ],
+    "pescado_curado_ahumado": [
+      "Anchoas en aceite vegetal",
+      "Salmón ahumado",
+      "Bacalao, ahumado"
+    ]
+  },
+  "derived": {
+    "carne": [
+      "pollo",
+      "pavo",
+      "cerdo",
+      "ternera",
+      "conejo"
+    ],
+    "carne_roja": [
+      "cerdo",
+      "ternera"
+    ],
+    "pescado_y_marisco": [
+      "pescado",
+      "marisco"
+    ],
+    "no_vegetariano": [
+      "pollo",
+      "pavo",
+      "cerdo",
+      "ternera",
+      "conejo",
+      "pescado",
+      "marisco"
+    ]
+  },
+  "ambiguous": {
+    "Carne picada (cerdo o pollo)": {
+      "counted_in": [
+        "cerdo",
+        "pollo"
+      ],
+      "why": "the recipe allows either; counted in both so an exclusion never misses it"
+    },
+    "Carne picada(carne o ternera o pollo)": {
+      "counted_in": [
+        "ternera",
+        "pollo"
+      ],
+      "why": "same as above"
+    },
+    "Caldo de pollo": {
+      "counted_in": [],
+      "why": "broth base, not the protein"
+    },
+    "Caldo de ave": {
+      "counted_in": [],
+      "why": "broth base, not the protein"
+    },
+    "Caldo de pescado": {
+      "counted_in": [],
+      "why": "broth base, not the protein"
+    },
+    "Pesto": {
+      "counted_in": [],
+      "why": "usually carries parmesan, but it is a sauce"
+    },
+    "Cuscús": {
+      "counted_in": [],
+      "why": "wheat semolina; not counted as pasta"
+    },
+    "Patata": {
+      "counted_in": [],
+      "why": "tuber; not counted as vegetable"
+    }
+  }
+}

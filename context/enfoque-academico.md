@@ -69,7 +69,30 @@ Y el contraejemplo, que también va al golden dataset: hay consultas que la léx
 
 Junto a estos van las consultas multi-restricción y las **consultas sin resultados**, que existen porque el filtro a nivel de plato las genera (BUS-descomponedor).
 
-## 5. Seguridad, como argumento y no como anexo
+## 5. Cómo se mide la recuperación sin engañarse
+
+*El proceso paso a paso, en palabras sencillas: [memoria/proceso-golden-set-recuperacion.md](memoria/proceso-golden-set-recuperacion.md).*
+
+La comparativa del pilar (2) solo vale lo que valga su **plantilla de respuestas correctas**: el golden set de recuperación (EVAL-golden-sets, MF-12). Para cada consulta de prueba, dice qué nota merece cada uno de los 36 menús: 2 muy relevante, 1 algo, 0 nada. MF-18 hace las mismas consultas a cada buscador y compara su ranking con esa plantilla, por tipo de consulta.
+
+No es una fase del pipeline: el buscador **estima** si un plato cumple una restricción (por palabras o por parecido de embeddings); la plantilla lo **sabe**, porque cada etiqueta la revisó una persona. Lo que la hace creíble:
+
+- **Se etiqueta antes de construir el buscador.** Si se etiqueta después, se acaba etiquetando a favor de lo que funciona.
+- **Se etiquetan platos, no menús.** Juzgar 54 consultas × 36 menús a mano son casi 2.000 juicios. En su lugar se etiqueta cada plato una vez («es de cuchara», «lleva pollo») y reglas fijas calculan la nota del menú. Así el mismo plato cuenta igual en todas las semanas, y la plantilla se reconstruye con un comando (`pnpm evals:golden-set`). Hacerlo al revés también se probó: un LLM juzgando menús enteros falló (se saltó 27 de 39 consultas y dio los 36 menús por relevantes para «marisco»). Por platos, las etiquetas del LLM, revisadas por el autor, tienen ~98 % de precisión.
+- **Se evita la circularidad.** Si la plantilla se construyera con el mismo método que el buscador léxico, el léxico sacaría siempre la nota máxima: sería corregir el examen con las respuestas del alumno. Por eso los candidatos literales salen de un buscador **más amplio** que el que se mide («salmón» encuentra también «salmonete») y es el autor quien descarta. Las etiquetas difusas las pone un LLM de otra familia que el del sistema (IA-proveedor).
+- **Nota graduada y relativa.** «Sin pescado» no tiene un sí absoluto: ningún menú está libre de pescado. El 2 es para el cuarto de menús con menos pescado, no para el que no tiene.
+- **Las consultas no las eligió el autor.** Las generó otro LLM a ciegas, sin ver los datos, y el autor solo las filtró. Así no están sesgadas hacia lo que el autor sabe que hay.
+
+**Es una muestra, no el catálogo de todas las preguntas posibles.** Siempre habrá consultas que no se hicieron. Lo que se generaliza no son las 43 frases, sino el resultado **por tipo**: cinco tipos (literal, exclusión, atributo, difusa y combinada), con paráfrasis de una misma intención («cenas rápidas» / «cenas que no den mucho trabajo»).
+
+**Limitaciones que se declaran:**
+- ~8 consultas por tipo dan tendencias, no certeza estadística.
+- La revisión del autor mide la precisión del etiquetado, no su recall: un plato que el LLM no etiquetó no se detecta.
+- Un tipo de consulta no previsto queda sin medir. Ampliarlo pasaría por registrar las búsquedas reales que fallen, fuera del alcance del TFM.
+
+Y un hallazgo que sale gratis: con «y» entendido como «cualquier plato de la semana», los pares de ingredientes comunes saturan («pollo y arroz»: 31 de 36 menús con la nota máxima). Lo que discrimina es «con» (el mismo plato) y lo poco frecuente, que es lo mismo que midió T1 (§3).
+
+## 6. Seguridad, como argumento y no como anexo
 
 El PDF es **input no confiable que entra en un LLM**. La mitigación es de diseño, no de parcheo: schema estricto (el modelo solo puede emitir campos tipados) y nada de lo que venga del documento se ejecuta. Debe constar en la memoria y en [safety-first.md](safety-first.md).
 

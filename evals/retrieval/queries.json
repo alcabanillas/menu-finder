@@ -1,0 +1,583 @@
+[
+  {
+    "id": "L01",
+    "type": "literal",
+    "text": "garbanzos",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "literal"
+    }
+  },
+  {
+    "id": "L02",
+    "type": "literal",
+    "text": "salmón",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "literal"
+    }
+  },
+  {
+    "id": "L03",
+    "type": "literal",
+    "text": "tortilla de patatas",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "withdrawn",
+      "reason": "no dish has both terms: 23 near misses, no candidate"
+    }
+  },
+  {
+    "id": "L04",
+    "type": "literal",
+    "text": "calabacín",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "withdrawn",
+      "reason": "in 35 of 36 menus: does not discriminate (author)"
+    }
+  },
+  {
+    "id": "L05",
+    "type": "literal",
+    "text": "merluza",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "literal"
+    }
+  },
+  {
+    "id": "L06",
+    "type": "literal",
+    "text": "pollo",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "withdrawn",
+      "reason": "in 34 of 36 menus: does not discriminate (author)"
+    }
+  },
+  {
+    "id": "L07",
+    "type": "literal",
+    "text": "macarrones",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "literal"
+    }
+  },
+  {
+    "id": "L08",
+    "type": "literal",
+    "text": "judías verdes",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "literal"
+    }
+  },
+  {
+    "id": "L09",
+    "type": "literal",
+    "text": "arroz",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "withdrawn",
+      "reason": "in 35 of 36 menus: does not discriminate (author)"
+    }
+  },
+  {
+    "id": "L10",
+    "type": "literal",
+    "text": "ternera",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "literal"
+    }
+  },
+  {
+    "id": "L11",
+    "type": "literal",
+    "text": "espinacas",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "literal"
+    }
+  },
+  {
+    "id": "L12",
+    "type": "literal",
+    "text": "huevos",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "withdrawn",
+      "reason": "in 36 of 36 menus: does not discriminate (author)"
+    }
+  },
+  {
+    "id": "L13",
+    "type": "literal",
+    "text": "alitas de pollo",
+    "origin": "known-case",
+    "rule": {
+      "kind": "literal"
+    },
+    "note": "added by the author"
+  },
+  {
+    "id": "L14",
+    "type": "literal",
+    "text": "sardinas en lata",
+    "origin": "author",
+    "rule": {
+      "kind": "literal"
+    },
+    "note": "added by the author"
+  },
+  {
+    "id": "L15",
+    "type": "literal",
+    "text": "pulpo",
+    "origin": "author",
+    "rule": {
+      "kind": "literal"
+    },
+    "note": "added by the author"
+  },
+  {
+    "id": "E01",
+    "type": "exclusion",
+    "text": "sin pescado crudo",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "exclusion",
+      "concept": "pescado_crudo"
+    }
+  },
+  {
+    "id": "E02",
+    "type": "exclusion",
+    "text": "evitar pollo",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "exclusion",
+      "concept": "pollo"
+    }
+  },
+  {
+    "id": "E03",
+    "type": "exclusion",
+    "text": "sin cerdo",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "exclusion",
+      "concept": "cerdo"
+    }
+  },
+  {
+    "id": "E04",
+    "type": "exclusion",
+    "text": "sin pescado ni marisco",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "exclusion",
+      "concept": "pescado_y_marisco"
+    }
+  },
+  {
+    "id": "E05",
+    "type": "exclusion",
+    "text": "evitar la carne roja",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "exclusion",
+      "concept": "carne_roja"
+    }
+  },
+  {
+    "id": "E06",
+    "type": "exclusion",
+    "text": "nada de queso",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "exclusion",
+      "concept": "queso"
+    }
+  },
+  {
+    "id": "E07",
+    "type": "exclusion",
+    "text": "vegetariano",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "exclusion",
+      "concept": "no_vegetariano"
+    }
+  },
+  {
+    "id": "A01",
+    "type": "attribute",
+    "text": "cenas rápidas",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "share",
+      "concept": "quick",
+      "slot": "dinner"
+    }
+  },
+  {
+    "id": "A02",
+    "type": "attribute",
+    "text": "comidas rápidas",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "share",
+      "concept": "quick",
+      "slot": "lunch"
+    }
+  },
+  {
+    "id": "A03",
+    "type": "attribute",
+    "text": "para el invierno",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "share",
+      "concept": "invierno"
+    }
+  },
+  {
+    "id": "A04",
+    "type": "attribute",
+    "text": "menú de verano",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "share",
+      "concept": "verano"
+    }
+  },
+  {
+    "id": "A05",
+    "type": "attribute",
+    "text": "cenas de menos de 20 minutos",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "share",
+      "concept": "quick-under-20",
+      "slot": "dinner"
+    }
+  },
+  {
+    "id": "A06",
+    "type": "attribute",
+    "text": "comidas fáciles",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "share",
+      "concept": "quick",
+      "slot": "lunch"
+    },
+    "note": "paraphrase of A02"
+  },
+  {
+    "id": "A07",
+    "type": "attribute",
+    "text": "para cenar",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "withdrawn",
+      "reason": "every menu has dinners"
+    }
+  },
+  {
+    "id": "A08",
+    "type": "attribute",
+    "text": "para comer",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "withdrawn",
+      "reason": "every menu has lunches"
+    }
+  },
+  {
+    "id": "A09",
+    "type": "attribute",
+    "text": "recetas rápidas",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "share",
+      "concept": "quick"
+    }
+  },
+  {
+    "id": "A10",
+    "type": "attribute",
+    "text": "algo para días de calor",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "share",
+      "concept": "fresquito"
+    }
+  },
+  {
+    "id": "A11",
+    "type": "attribute",
+    "text": "cenas que no den mucho trabajo",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "share",
+      "concept": "quick",
+      "slot": "dinner"
+    },
+    "note": "paraphrase of A01"
+  },
+  {
+    "id": "A12",
+    "type": "attribute",
+    "text": "platos para el finde",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "withdrawn",
+      "reason": "ambiguous: no data says what a weekend dish is"
+    }
+  },
+  {
+    "id": "F01",
+    "type": "fuzzy",
+    "text": "de cuchara",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "presence",
+      "concept": "cuchara"
+    }
+  },
+  {
+    "id": "F02",
+    "type": "fuzzy",
+    "text": "marisco",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "presence",
+      "concept": "marisco"
+    }
+  },
+  {
+    "id": "F03",
+    "type": "fuzzy",
+    "text": "ligero",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "share",
+      "concept": "ligero"
+    }
+  },
+  {
+    "id": "F04",
+    "type": "fuzzy",
+    "text": "comida reconfortante",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "presence",
+      "concept": "reconfortante"
+    }
+  },
+  {
+    "id": "F05",
+    "type": "fuzzy",
+    "text": "para invitados",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "presence",
+      "concept": "invitados"
+    }
+  },
+  {
+    "id": "F06",
+    "type": "fuzzy",
+    "text": "algo fresquito",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "share",
+      "concept": "fresquito"
+    }
+  },
+  {
+    "id": "F07",
+    "type": "fuzzy",
+    "text": "de picoteo",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "presence",
+      "concept": "picoteo"
+    }
+  },
+  {
+    "id": "F08",
+    "type": "fuzzy",
+    "text": "que guste a los niños",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "presence",
+      "concept": "ninos"
+    }
+  },
+  {
+    "id": "C01",
+    "type": "combined",
+    "text": "pollo y arroz",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "cover",
+      "concepts": [
+        "pollo",
+        "arroz"
+      ]
+    }
+  },
+  {
+    "id": "C02",
+    "type": "combined",
+    "text": "pescado y verduras",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "cover",
+      "concepts": [
+        "pescado",
+        "verdura"
+      ]
+    }
+  },
+  {
+    "id": "C03",
+    "type": "combined",
+    "text": "legumbres y pasta",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "cover",
+      "concepts": [
+        "legumbre",
+        "pasta"
+      ]
+    }
+  },
+  {
+    "id": "C04",
+    "type": "combined",
+    "text": "salmón con verduras",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "sameDish",
+      "all": [
+        "salmon",
+        "verdura"
+      ],
+      "main": "salmon"
+    }
+  },
+  {
+    "id": "C05",
+    "type": "combined",
+    "text": "arroz sin carne",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "sameDish",
+      "all": [
+        "arroz"
+      ],
+      "main": "arroz",
+      "without": "carne"
+    }
+  },
+  {
+    "id": "C06",
+    "type": "combined",
+    "text": "pasta sin queso",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "sameDish",
+      "all": [
+        "pasta"
+      ],
+      "main": "pasta",
+      "without": "queso"
+    }
+  },
+  {
+    "id": "C07",
+    "type": "combined",
+    "text": "pollo y brócoli sin pescado",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "coverExcluding",
+      "concepts": [
+        "pollo",
+        "brocoli"
+      ],
+      "excluding": "pescado"
+    }
+  },
+  {
+    "id": "C08",
+    "type": "combined",
+    "text": "cenas ligeras y rápidas",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "share",
+      "concept": [
+        "ligero",
+        "quick"
+      ],
+      "slot": "dinner"
+    }
+  },
+  {
+    "id": "C09",
+    "type": "combined",
+    "text": "pescado con arroz",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "sameDish",
+      "all": [
+        "pescado",
+        "arroz"
+      ]
+    },
+    "note": "no partial grade: fish alone or rice alone is not 'pescado con arroz'"
+  },
+  {
+    "id": "C10",
+    "type": "combined",
+    "text": "huevos y verduras sin carne",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "coverExcluding",
+      "concepts": [
+        "huevo",
+        "verdura"
+      ],
+      "excluding": "carne"
+    }
+  },
+  {
+    "id": "C11",
+    "type": "combined",
+    "text": "comida casera sin cerdo",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "exclusion",
+      "concept": "cerdo"
+    },
+    "note": "'comida casera' holds for every menu; only the exclusion discriminates"
+  },
+  {
+    "id": "C12",
+    "type": "combined",
+    "text": "algo fresco y sin pescado",
+    "origin": "llm-blind",
+    "rule": {
+      "kind": "coverExcluding",
+      "concepts": [
+        "fresquito"
+      ],
+      "excluding": "pescado"
+    }
+  }
+]
