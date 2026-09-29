@@ -14,7 +14,7 @@ Aplicación web (responsive, uso principal en móvil) para elegir el menú seman
 
 Sustituye el flujo actual del autor en Notion.
 
-**Enfoque (PROC-enfoque): proyecto de IA aplicada; la app es la interfaz.** El sistema es **hybrid retrieval + grounded generation**, no RAG documental clásico: no hay chunking, ni problema de ventana de contexto, ni de escala, y en la memoria se describe así. El peso académico descansa en cuatro pilares, por orden:  
+**Enfoque (PROC-enfoque): proyecto de IA aplicada; la app es la interfaz.** El sistema es **hybrid retrieval + grounded generation**, no RAG documental clásico: no hay chunking, ni problema de ventana de contexto, ni de escala, y en la presentación se describe así. El peso académico descansa en cuatro pilares, por orden:  
 1. **extracción estructurada del menú** medida contra ground truth etiquetado a ciegas (EVAL-ground-truth, ING-parser-menu)  -
 2. **evaluación comparada de recuperación** —léxica vs. semántica vs. híbrida— sobre el golden dataset (EVAL-estrategia). 
 3. **faithfulness de la explicación** con LLM-as-judge (EVAL-estrategia). 
@@ -24,7 +24,8 @@ Sustituye el flujo actual del autor en Notion.
 
 | Restricción | Valor |
 |---|---|
-| Plazo | **3 semanas** de desarrollo + **1 semana** para memoria, presentación y vídeo de defensa |
+| Plazo | **3 semanas** de desarrollo + **1 semana** para los entregables |
+| Entregables | **Diapositivas**, un **vídeo** que explica lo hecho y un **README** que cuenta qué hace el producto y cómo instalarlo. No hay memoria escrita ni defensa ante tribunal |
 | Contexto | TFM de Máster en Desarrollo con IA. Debe demostrar: desarrollo asistido por IA, arquitectura, web moderna, LLM/RAG, testing, despliegue, seguridad, observabilidad |
 | Modo de trabajo | Desarrollo asistido por agentes bajo **SDD (Spec-Driven Development)**: las especificaciones viven en el repo y son la entrada de los agentes. Reglas de seguridad en [safety-first.md](safety-first.md) |
 | Coste | Proveedor LLM y hosting con capa gratuita o coste muy reducido |
@@ -42,7 +43,7 @@ Sustituye el flujo actual del autor en Notion.
 - App nativa, notificaciones, PWA offline.
 - OCR, imágenes, nutrición avanzada, supermercados, precios, pedidos.
 - Multiidioma, social. Microservicios, Kubernetes.
-- **Batch cooking** en cualquier forma: reordenar los platos entre días, generar un plan de preparación del domingo o reescribir recetas. Descartado el 2026-09-20 porque no es evaluable (no hay ground truth de una semana reordenada ni de la caducidad/batchabilidad de cada plato). Se documenta en la memoria como **línea futura con diseño esbozado**; el porqué, en el historial.
+- **Batch cooking** en cualquier forma: reordenar los platos entre días, generar un plan de preparación del domingo o reescribir recetas. Descartado el 2026-09-20 porque no es evaluable (no hay ground truth de una semana reordenada ni de la caducidad/batchabilidad de cada plato). Se cuenta en la presentación como **línea futura con diseño esbozado**; el porqué, en el historial.
 - **URL Shortener**: plan B de TFM si esta idea resulta inviable en plazo.
 
 ## 4. Pantallas previstas

@@ -67,7 +67,7 @@ Arquitectura hexagonal con un solo hexágono y dos adaptadores primarios, la web
 Cada cambio sigue `explore` (opcional) → `propose` → `apply` → `verify` → `archive` (PROC-sdd). Lo obligatorio lo impone CI, no `verify`.
 
 - **La seguridad entra por la spec:** el proposal identifica los datos tocados, los posibles abusos y las categorías OWASP que aplican. Cada endpoint o comando trae sus escenarios negativos de autorización y validación. Antes del `archive` se repasa la checklist de `safety-first.md` §4.
-- La memoria documenta este flujo **como proceso**: qué se delega a los agentes y qué se revisa (PROC-sdd-memoria).
+- La presentación y el vídeo cuentan este flujo **como proceso**: qué se delega a los agentes y qué se revisa (PROC-sdd-memoria).
 
 ## Cómo trabajar conmigo (el autor)
 
@@ -81,7 +81,7 @@ Cada cambio sigue `explore` (opcional) → `propose` → `apply` → `verify` �
 
 ## Restricciones
 
-- Plazo: 3 semanas de desarrollo + 1 de memoria y vídeo.
+- Plazo: 3 semanas de desarrollo + 1 para los entregables: diapositivas, vídeo y README (sin memoria escrita).
 - Stack: Next.js 16 (App Router) + TypeScript, Tailwind CSS v4, pnpm, Neon (PostgreSQL + pgvector), Gemini vía Genkit, Vercel, Sentry. Detalle en `context/decisiones.md`; lo pendiente, en `context/roadmap.md`.
 - Un solo rol: usuario registrado. Sin registro: las cuentas las crea la CLI. Sin usuario anónimo (SEG-roles, SEG-sistema-cerrado).
 - No se generan menús ni recetas. La IA extrae, estructura y recupera.

@@ -1,6 +1,6 @@
 # Cómo se hizo la plantilla para evaluar el buscador
 
-> **Tipo:** material para la memoria, en palabras sencillas. Cuenta el **proceso** de MF-12 (2026-09-28), con lo que funcionó y lo que no. Lo normativo está en EVAL-golden-sets (`decisiones.md`) y en la spec `retrieval-golden-set`. El argumento académico, en [enfoque-academico.md](../enfoque-academico.md) §5.
+> **Tipo:** material para las diapositivas y el vídeo, en palabras sencillas. Cuenta el **proceso** de MF-12 (2026-09-28), con lo que funcionó y lo que no. Lo normativo está en EVAL-golden-sets (`decisiones.md`) y en la spec `retrieval-golden-set`. El argumento académico, en [enfoque-academico.md](../enfoque-academico.md) §5.
 
 ---
 
