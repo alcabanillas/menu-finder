@@ -67,13 +67,13 @@ Los casos que la búsqueda léxica **no** puede resolver y la semántica sí son
 
 Y el contraejemplo, que también va al golden dataset: hay consultas que la léxica encuentra igual de bien o mejor. La comparativa del pilar (2) se hace por tipo de consulta, no en agregado, y se espera que cada tipo tenga un ganador distinto: ese es el resultado, no que "gane la semántica".
 
-Junto a estos van las consultas multi-restricción y las **consultas sin resultados**, que existen porque el filtro a nivel de plato las genera (BUS-descomponedor).
+Junto a estos van las consultas multi-restricción y las consultas con **menos de 5 resultados**, que existen porque el filtro duro a nivel de plato las genera (BUS-descomponedor).
 
 ## 5. Cómo se mide la recuperación sin engañarse
 
 *El proceso paso a paso, en palabras sencillas: [presentacion/proceso-golden-set-recuperacion.md](presentacion/proceso-golden-set-recuperacion.md).*
 
-La comparativa del pilar (2) solo vale lo que valga su **plantilla de respuestas correctas**: el golden set de recuperación (EVAL-golden-sets, MF-12). Para cada consulta de prueba, dice qué nota merece cada uno de los 36 menús: 2 muy relevante, 1 algo, 0 nada. MF-18 hace las mismas consultas a cada buscador y compara su ranking con esa plantilla, por tipo de consulta.
+La comparativa del pilar (2) solo vale lo que valga su **plantilla de respuestas correctas**: el golden set de recuperación (EVAL-golden-sets, MF-12). Para cada consulta de prueba, dice qué nota merece cada uno de los 36 menús: 2 muy relevante, 1 algo, 0 nada. MF-14 hace las mismas consultas a cada buscador y compara su ranking con esa plantilla, por tipo de consulta.
 
 No es una fase del pipeline: el buscador **estima** si un plato cumple una restricción (por palabras o por parecido de embeddings); la plantilla lo **sabe**, porque cada etiqueta la revisó una persona. Lo que la hace creíble:
 

@@ -52,7 +52,7 @@ Objetivo: construir algo que **resista** ataques y fallos, no solo algo que func
 - Las contraseñas las genera el CLI al crear la cuenta, aleatorias y de al menos 20 caracteres; así no pueden estar en listas de contraseñas filtradas. Si algún día el usuario elige la suya, DEBE comprobarse contra esas listas.
 - Al iniciar sesión DEBE emitirse un identificador de sesión nuevo (contra la fijación de sesión). Si la sesión usa JWT, DEBE verificarse la firma con un algoritmo fijado en el servidor, nunca el que declare el token, y rechazar `alg=none`.
 - Las sesiones DEBEN caducar y poder revocarse desde el servidor: desactivar una cuenta (p. ej. la de demo tras la evaluación) o cambiar su contraseña DEBE invalidar sus sesiones activas. Un JWT sin estado no se revoca hasta que caduca, así que la sesión DEBE guardarse en BD o la cuenta comprobarse como activa en cada petición.
-- Toda llamada al LLM DEBE pasar por los límites de SEG-rate-limit: por usuario y un tope global diario. Superarlos responde `429` y NO DEBE llegar al proveedor. Los contadores viven en la BD, no en memoria de la instancia.
+- Toda llamada al LLM DEBE pasar por el tope global diario de SEG-rate-limit. Superarlos responde `429` y NO DEBE llegar al proveedor. Los contadores viven en la BD, no en memoria de la instancia.
 - Los secretos (API keys, credenciales de BD, claves JWT) NO DEBEN estar hardcodeados ni commiteados; DEBEN venir de variables de entorno o un gestor de secretos.
 
 ### 2.3 Base de datos
