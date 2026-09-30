@@ -38,5 +38,5 @@
 
 ## 8. Close
 
-- [ ] 8.1 Run `pnpm lint`, `pnpm typecheck` and `pnpm test:run`, all green; open `reports/roadmap.html` and check it visually
+- [x] 8.1 Run `pnpm lint`, `pnpm typecheck` and `pnpm test:run`, all green; open `reports/roadmap.html` and check it visually
 - [ ] 8.2 Go through the checklist in `context/safety-first.md` §4 before archiving and record the result
