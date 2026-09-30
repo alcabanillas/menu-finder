@@ -52,7 +52,7 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 
 **Golden sets (antes de tocar el buscador)**
 - ✅ **MF-12** Golden set de recuperación: 43 consultas en cinco tipos, con nota 0/1/2 por menú calculada a partir de etiquetas por plato revisadas por el autor; se reconstruye con `pnpm evals:golden-set` (EVAL-golden-sets, spec `retrieval-golden-set`). [Cambio archivado](../openspec/changes/archive/2026-09-28-mf-12-golden-set-recuperacion/)
-- ⬜ **MF-13** Etiquetar 50 peticiones → estructura tipada esperada, para el descomponedor (EVAL-golden-sets)
+- ✅ **MF-13** Golden set del descomponedor: 61 peticiones (las 54 de recuperación y 7 largas generadas a ciegas) con su estructura tipada esperada, redactada por un LLM y revisada por el autor; lo valida un test en CI (EVAL-golden-sets, spec `decomposer-golden-set`). [Cambio archivado](../openspec/changes/archive/2026-09-30-mf-13-golden-set-descomponedor/)
 
 **Buscador**
 - ⬜ **MF-14** 📝 Spike T3: descomponer + ranquear los 36 en consola. Código tirable, fuera de la app: un script local lee `data/menu-platos.json` (formato `WeeklyMenu[]`, T2 §2) y `data/recetas.json` (formato `Recipe[]`, T2 §4), descompone con el LLM contra el schema Zod y ranquea en consola; sin BD, sin Next, sin Genkit. Su spec, breve, en `context/tareas/T3-spike-buscador.md` antes de escribirlo. Fija el schema del descomponedor ([decisiones.md §2](decisiones.md), punto 1)
@@ -85,7 +85,7 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 
 **Sale del sprint:** están todas las cifras que necesitan las diapositivas y el vídeo.
 
-- ⬜ **MF-28** Precisión/recall del descomponedor contra las 50 peticiones (EVAL-golden-sets)
+- ⬜ **MF-28** Precisión/recall del descomponedor contra las 61 peticiones de `evals/decomposer/golden-set.json` (EVAL-golden-sets)
 - ⬜ **MF-29** Faithfulness de la explicación con juez de otra familia (EVAL-estrategia, IA-proveedor)
 - ⬜ **MF-30** Ablaciones: frase entera vs. descomponer y agregar; tres variantes del texto vectorizado (EVAL-golden-sets)
 - ⬜ **MF-31** Experimento de comparación: parser vs. LLM en extracción de recetas (ING-determinista)

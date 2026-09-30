@@ -1,0 +1,650 @@
+[
+  {
+    "id": "L01",
+    "text": "garbanzos",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "literal", "term": "garbanzos", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "L02",
+    "text": "salmón",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "literal", "term": "salmón", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "L03",
+    "text": "tortilla de patatas",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "literal", "term": "tortilla de patatas", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "L04",
+    "text": "calabacín",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "literal", "term": "calabacín", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "L05",
+    "text": "merluza",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "literal", "term": "merluza", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "L06",
+    "text": "pollo",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "literal", "term": "pollo", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "L07",
+    "text": "macarrones",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "literal", "term": "macarrones", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "L08",
+    "text": "judías verdes",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "literal", "term": "judías verdes", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "L09",
+    "text": "arroz",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "literal", "term": "arroz", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "L10",
+    "text": "ternera",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "literal", "term": "ternera", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "L11",
+    "text": "espinacas",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "literal", "term": "espinacas", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "L12",
+    "text": "huevos",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "literal", "term": "huevos", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "L13",
+    "text": "alitas de pollo",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "literal", "term": "alitas de pollo", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "L14",
+    "text": "sardinas en lata",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "literal", "term": "sardinas en lata", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "L15",
+    "text": "pulpo",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "literal", "term": "pulpo", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "E01",
+    "text": "sin pescado crudo",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "fuzzy", "term": "pescado crudo", "polarity": "exclude", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "E02",
+    "text": "evitar pollo",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "exclusion", "term": "pollo", "polarity": "exclude", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "E03",
+    "text": "sin cerdo",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "exclusion", "term": "cerdo", "polarity": "exclude", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "E04",
+    "text": "sin pescado ni marisco",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "exclusion", "term": "pescado", "polarity": "exclude", "hard": false},
+      {"id": "c2", "type": "exclusion", "term": "marisco", "polarity": "exclude", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "E05",
+    "text": "evitar la carne roja",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "exclusion", "term": "carne roja", "polarity": "exclude", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "E06",
+    "text": "nada de queso",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "exclusion", "term": "queso", "polarity": "exclude", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "E07",
+    "text": "vegetariano",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "exclusion", "term": "vegetariano", "polarity": "exclude", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "A01",
+    "text": "cenas rápidas",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "attribute", "term": "rápidas", "polarity": "include", "hard": false, "slot": "dinner"}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "A02",
+    "text": "comidas rápidas",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "attribute", "term": "rápidas", "polarity": "include", "hard": false, "slot": "lunch"}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "A03",
+    "text": "para el invierno",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "attribute", "term": "invierno", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "A04",
+    "text": "menú de verano",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "attribute", "term": "verano", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "A05",
+    "text": "cenas de menos de 20 minutos",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "attribute", "term": "menos de 20 minutos", "polarity": "include", "hard": false, "slot": "dinner"}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "A06",
+    "text": "comidas fáciles",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "attribute", "term": "fáciles", "polarity": "include", "hard": false, "slot": "lunch"}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "A07",
+    "text": "para cenar",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "attribute", "term": "para cenar", "polarity": "include", "hard": false, "slot": "dinner"}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "A08",
+    "text": "para comer",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "attribute", "term": "para comer", "polarity": "include", "hard": false, "slot": "lunch"}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "A09",
+    "text": "recetas rápidas",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "attribute", "term": "rápidas", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "A10",
+    "text": "algo para días de calor",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "attribute", "term": "días de calor", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "A11",
+    "text": "cenas que no den mucho trabajo",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "attribute", "term": "no den mucho trabajo", "polarity": "include", "hard": false, "slot": "dinner"}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "A12",
+    "text": "platos para el finde",
+    "origin": "retrieval-golden-set",
+    "constraints": [],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "F01",
+    "text": "de cuchara",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "fuzzy", "term": "de cuchara", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "F02",
+    "text": "marisco",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "fuzzy", "term": "marisco", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "F03",
+    "text": "ligero",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "fuzzy", "term": "ligero", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "F04",
+    "text": "comida reconfortante",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "fuzzy", "term": "reconfortante", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "F05",
+    "text": "para invitados",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "fuzzy", "term": "para invitados", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "F06",
+    "text": "algo fresquito",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "fuzzy", "term": "fresquito", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "F07",
+    "text": "de picoteo",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "fuzzy", "term": "de picoteo", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "F08",
+    "text": "que guste a los niños",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "fuzzy", "term": "guste a los niños", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "C01",
+    "text": "pollo y arroz",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "literal", "term": "pollo", "polarity": "include", "hard": false},
+      {"id": "c2", "type": "literal", "term": "arroz", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "C02",
+    "text": "pescado y verduras",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "fuzzy", "term": "pescado", "polarity": "include", "hard": false},
+      {"id": "c2", "type": "fuzzy", "term": "verduras", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "C03",
+    "text": "legumbres y pasta",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "fuzzy", "term": "legumbres", "polarity": "include", "hard": false},
+      {"id": "c2", "type": "fuzzy", "term": "pasta", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "C04",
+    "text": "salmón con verduras",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "literal", "term": "salmón", "polarity": "include", "hard": false},
+      {"id": "c2", "type": "fuzzy", "term": "verduras", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [["c1", "c2"]],
+    "anyOf": []
+  },
+  {
+    "id": "C05",
+    "text": "arroz sin carne",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "literal", "term": "arroz", "polarity": "include", "hard": false},
+      {"id": "c2", "type": "exclusion", "term": "carne", "polarity": "exclude", "hard": false}
+    ],
+    "sameDish": [["c1", "c2"]],
+    "anyOf": []
+  },
+  {
+    "id": "C06",
+    "text": "pasta sin queso",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "fuzzy", "term": "pasta", "polarity": "include", "hard": false},
+      {"id": "c2", "type": "exclusion", "term": "queso", "polarity": "exclude", "hard": false}
+    ],
+    "sameDish": [["c1", "c2"]],
+    "anyOf": []
+  },
+  {
+    "id": "C07",
+    "text": "pollo y brócoli sin pescado",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "literal", "term": "pollo", "polarity": "include", "hard": false},
+      {"id": "c2", "type": "literal", "term": "brócoli", "polarity": "include", "hard": false},
+      {"id": "c3", "type": "exclusion", "term": "pescado", "polarity": "exclude", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "C08",
+    "text": "cenas ligeras y rápidas",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "fuzzy", "term": "ligeras", "polarity": "include", "hard": false, "slot": "dinner"},
+      {"id": "c2", "type": "attribute", "term": "rápidas", "polarity": "include", "hard": false, "slot": "dinner"}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "C09",
+    "text": "pescado con arroz",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "fuzzy", "term": "pescado", "polarity": "include", "hard": false},
+      {"id": "c2", "type": "literal", "term": "arroz", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [["c1", "c2"]],
+    "anyOf": []
+  },
+  {
+    "id": "C10",
+    "text": "huevos y verduras sin carne",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "literal", "term": "huevos", "polarity": "include", "hard": false},
+      {"id": "c2", "type": "fuzzy", "term": "verduras", "polarity": "include", "hard": false},
+      {"id": "c3", "type": "exclusion", "term": "carne", "polarity": "exclude", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "C11",
+    "text": "comida casera sin cerdo",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "fuzzy", "term": "casera", "polarity": "include", "hard": false},
+      {"id": "c2", "type": "exclusion", "term": "cerdo", "polarity": "exclude", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "C12",
+    "text": "algo fresco y sin pescado",
+    "origin": "retrieval-golden-set",
+    "constraints": [
+      {"id": "c1", "type": "fuzzy", "term": "fresco", "polarity": "include", "hard": false},
+      {"id": "c2", "type": "exclusion", "term": "pescado", "polarity": "exclude", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "R01",
+    "text": "Busca menús de cuchara, con garbanzos o lentejas, nada de carne roja y que sean fáciles de hacer.",
+    "origin": "llm-blind",
+    "constraints": [
+      {"id": "c1", "type": "fuzzy", "term": "de cuchara", "polarity": "include", "hard": false},
+      {"id": "c2", "type": "literal", "term": "garbanzos", "polarity": "include", "hard": false},
+      {"id": "c3", "type": "literal", "term": "lentejas", "polarity": "include", "hard": false},
+      {"id": "c4", "type": "exclusion", "term": "carne roja", "polarity": "exclude", "hard": false},
+      {"id": "c5", "type": "attribute", "term": "fáciles", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": [["c2", "c3"]]
+  },
+  {
+    "id": "R02",
+    "text": "Que haya arroz sin carne, pollo y alguna legumbre, pero nada de cerdo durante la semana.",
+    "origin": "llm-blind",
+    "constraints": [
+      {"id": "c1", "type": "literal", "term": "arroz", "polarity": "include", "hard": false},
+      {"id": "c2", "type": "exclusion", "term": "carne", "polarity": "exclude", "hard": false},
+      {"id": "c3", "type": "literal", "term": "pollo", "polarity": "include", "hard": false},
+      {"id": "c4", "type": "fuzzy", "term": "legumbre", "polarity": "include", "hard": false},
+      {"id": "c5", "type": "exclusion", "term": "cerdo", "polarity": "exclude", "hard": false}
+    ],
+    "sameDish": [["c1", "c2"]],
+    "anyOf": []
+  },
+  {
+    "id": "R03",
+    "text": "Para comer, platos con verduras y pescado, sin carne de cerdo, y que sean ligeros.",
+    "origin": "llm-blind",
+    "constraints": [
+      {"id": "c1", "type": "fuzzy", "term": "verduras", "polarity": "include", "hard": false, "slot": "lunch"},
+      {"id": "c2", "type": "fuzzy", "term": "pescado", "polarity": "include", "hard": false, "slot": "lunch"},
+      {"id": "c3", "type": "exclusion", "term": "carne de cerdo", "polarity": "exclude", "hard": false, "slot": "lunch"},
+      {"id": "c4", "type": "fuzzy", "term": "ligeros", "polarity": "include", "hard": false, "slot": "lunch"}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "R04",
+    "text": "Necesito un menú de verano, con gazpacho y ensaladas, sin platos pesados y con cenas ligeras.",
+    "origin": "llm-blind",
+    "constraints": [
+      {"id": "c1", "type": "attribute", "term": "verano", "polarity": "include", "hard": false},
+      {"id": "c2", "type": "literal", "term": "gazpacho", "polarity": "include", "hard": false},
+      {"id": "c3", "type": "literal", "term": "ensaladas", "polarity": "include", "hard": false},
+      {"id": "c4", "type": "fuzzy", "term": "platos pesados", "polarity": "exclude", "hard": false},
+      {"id": "c5", "type": "fuzzy", "term": "ligeras", "polarity": "include", "hard": false, "slot": "dinner"}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "R05",
+    "text": "Quiero sí o sí alguna receta con garbanzos, sin cerdo en toda la semana y con comidas de cuchara.",
+    "origin": "llm-blind",
+    "constraints": [
+      {"id": "c1", "type": "literal", "term": "garbanzos", "polarity": "include", "hard": true},
+      {"id": "c2", "type": "exclusion", "term": "cerdo", "polarity": "exclude", "hard": false},
+      {"id": "c3", "type": "fuzzy", "term": "de cuchara", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "R06",
+    "text": "Para las cenas, nada de fritos ni carne, con verduras y tortilla, y que sea fácil de preparar.",
+    "origin": "llm-blind",
+    "constraints": [
+      {"id": "c1", "type": "fuzzy", "term": "fritos", "polarity": "exclude", "hard": false, "slot": "dinner"},
+      {"id": "c2", "type": "exclusion", "term": "carne", "polarity": "exclude", "hard": false, "slot": "dinner"},
+      {"id": "c3", "type": "fuzzy", "term": "verduras", "polarity": "include", "hard": false, "slot": "dinner"},
+      {"id": "c4", "type": "literal", "term": "tortilla", "polarity": "include", "hard": false, "slot": "dinner"},
+      {"id": "c5", "type": "attribute", "term": "fácil", "polarity": "include", "hard": false, "slot": "dinner"}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "R07",
+    "text": "Solo menús con legumbres y verduras, nada de cerdo ni fritos, y mejor para días fríos.",
+    "origin": "llm-blind",
+    "constraints": [
+      {"id": "c1", "type": "fuzzy", "term": "legumbres", "polarity": "include", "hard": true},
+      {"id": "c2", "type": "fuzzy", "term": "verduras", "polarity": "include", "hard": true},
+      {"id": "c3", "type": "exclusion", "term": "cerdo", "polarity": "exclude", "hard": false},
+      {"id": "c4", "type": "fuzzy", "term": "fritos", "polarity": "exclude", "hard": false},
+      {"id": "c5", "type": "attribute", "term": "días fríos", "polarity": "include", "hard": false}
+    ],
+    "sameDish": [],
+    "anyOf": []
+  }
+]
