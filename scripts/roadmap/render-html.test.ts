@@ -54,27 +54,61 @@ describe("renderHtml", () => {
     expect(sectionOf(html, "sprint-Sprint 2 — App")).toContain("0/1");
   });
 
-  it("shows each item with its estimate, owner and dependencies", () => {
+  it("shows each item with its owner and dependencies, and its estimate in a column of its own", () => {
     const block = blockOfItem(html, "MF-16");
 
     expect(block).toContain("MF-16");
-    expect(block).toContain("10 h");
+    expect(block).toMatch(/<span class="hours">10 h<\/span>/);
     expect(block).toContain("A");
     expect(block).toContain("tras MF-14, MF-01");
     expect(block).toContain("bloqueado por MF-14");
   });
 
-  it("marks an item without estimate", () => {
-    expect(blockOfItem(html, "MF-20")).toContain("sin estimar");
+  it("marks a pending item without estimate in the estimate column", () => {
+    expect(blockOfItem(html, "MF-20")).toMatch(/<span class="hours">sin estimar<\/span>/);
   });
 
-  it("lists the ready items together", () => {
-    const ready = sectionOf(html, "ready");
+  it("shows a dash for a done item without estimate", () => {
+    const done = renderHtml(summaryOf([item("MF-05", { done: true })]));
 
-    expect(ready).toContain("MF-14");
-    expect(ready).toContain("MF-20");
-    expect(ready).not.toContain("MF-16");
-    expect(ready).not.toContain("MF-01");
+    expect(blockOfItem(done, "MF-05")).toMatch(/<span class="hours">—<\/span>/);
+  });
+
+  it("shows the remaining hours of each sprint", () => {
+    expect(sectionOf(html, "sprint-Sprint 1 — Datos")).toContain("17 h pendientes");
+  });
+
+  it("tags each row with its state and owner, so the filters can match it", () => {
+    expect(html).toContain('data-item="MF-16" data-state="blocked" data-owner="A"');
+    expect(html).toContain('data-item="MF-20" data-state="ready" data-owner="H"');
+    expect(html).toContain('data-item="MF-01" data-state="done" data-owner="A"');
+  });
+
+  it("offers a state filter with counts, on Pendientes by default", () => {
+    const filters = sectionOf(html, "filters");
+
+    expect(filters).toMatch(/id="state-pending"[^>]*checked/);
+    expect(filters).toContain("Pendientes (3)");
+    expect(filters).toContain("Listos (2)");
+    expect(filters).toContain("Bloqueados (1)");
+    expect(filters).toContain("Hechos (1)");
+    expect(filters).toContain("Todos (4)");
+  });
+
+  it("offers an owner filter, on Todos by default", () => {
+    const filters = sectionOf(html, "filters");
+
+    expect(filters).toMatch(/id="owner-all"[^>]*checked/);
+    for (const id of ["owner-H", "owner-HA", "owner-A"]) expect(filters).toContain(`id="${id}"`);
+  });
+
+  it("hides done items and empty sprints under the default filter, with CSS only", () => {
+    expect(html).toContain('body:has(#state-pending:checked) li[data-state="done"]');
+    expect(html).toMatch(/body:has\(#state-pending:checked\) section\[data-sprint\]:not\(:has\(/);
+  });
+
+  it("no longer has a separate list of ready items", () => {
+    expect(html).not.toContain('data-section="ready"');
   });
 
   it("shows the summary figures and the split by owner", () => {

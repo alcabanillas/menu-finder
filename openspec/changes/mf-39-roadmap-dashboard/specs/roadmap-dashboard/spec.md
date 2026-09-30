@@ -29,7 +29,7 @@ Items belong to the sprint of the nearest preceding `## Sprint <n>` heading. The
 - the items done and the total;
 - the remaining hours (the sum of the estimates of the pending items), and the same sum split by owner: `H`, `H→A`, `A` and no owner;
 - the days left from the run date to the deadline, both included, and the hours per day needed (remaining hours divided by days left);
-- one block per sprint with its progress (done items out of total) and each item with its ID, status, estimate, owner and dependencies.
+- one block per sprint with its progress (done items out of total) and its remaining hours, and each item with its ID, status, owner and dependencies, and its estimate in a column of its own so it reads at a glance.
 
 #### Scenario: Summary figures
 - **WHEN** the roadmap has 3 items, 1 done and 2 pending estimated at 4 h (`H`) and 6 h (`A`), the deadline is 2026-10-25 and the command runs on 2026-10-21
@@ -37,22 +37,45 @@ Items belong to the sprint of the nearest preceding `## Sprint <n>` heading. The
 
 #### Scenario: Sprint blocks
 - **WHEN** the roadmap has items under `## Sprint 1` and `## Sprint 2`
-- **THEN** the page shows one block per sprint, in roadmap order, each with its own progress and items
+- **THEN** the page shows one block per sprint, in roadmap order, each with its own progress, its remaining hours and its items
+
+#### Scenario: Estimate column
+- **WHEN** a pending item is estimated at 12 hours
+- **THEN** its row shows `12 h` in the estimate column, apart from the owner and dependencies; a pending item without estimate shows `sin estimar` there, and a done item without estimate shows `—`
 
 #### Scenario: Deadline passed
 - **WHEN** the run date is after the deadline
 - **THEN** the page shows 0 days left and flags the deadline as passed instead of a pace figure
 
 ### Requirement: Ready and blocked items
-The page SHALL show each pending item as ready when all its dependencies are done, and as blocked otherwise, naming the pending dependencies that block it. A pending item with no dependencies is ready. The page SHALL list the ready items together, so the items that can be worked on in parallel are visible at once.
+The page SHALL show each pending item as ready when all its dependencies are done, and as blocked otherwise, naming the pending dependencies that block it. A pending item with no dependencies is ready. Every item stays in its sprint block; the ready items are seen together through the state filter.
 
 #### Scenario: Ready item
 - **WHEN** MF-16 depends on MF-14 and MF-10, and both are done
-- **THEN** MF-16 appears as ready and in the list of ready items
+- **THEN** MF-16 appears as ready
 
 #### Scenario: Blocked item
 - **WHEN** MF-16 depends on MF-14 (pending) and MF-10 (done)
-- **THEN** MF-16 appears as blocked by MF-14 and is not in the list of ready items
+- **THEN** MF-16 appears as blocked by MF-14
+
+### Requirement: Filter items
+The page SHALL offer two filters that work without scripts:
+- state: `Pendientes` (the default: ready and blocked), `Listos`, `Bloqueados`, `Hechos` and `Todos`, each with its number of items;
+- owner: `Todos` (the default), `H`, `H→A` and `A`.
+
+Only the items matching both filters are visible, and a sprint block with no visible item is hidden.
+
+#### Scenario: Default view
+- **WHEN** the page opens
+- **THEN** the state filter is on `Pendientes`, the owner filter on `Todos`, done items are hidden and a sprint whose items are all done is hidden
+
+#### Scenario: Ready items together
+- **WHEN** the state filter is set to `Listos`
+- **THEN** only the ready items are visible, each in its sprint block, and the filter shows how many there are
+
+#### Scenario: Owner filter
+- **WHEN** the state filter is on `Pendientes` and the owner filter on `H`
+- **THEN** only the pending items owned by `H` are visible
 
 ### Requirement: Reject invalid input
 The command SHALL exit with a non-zero code, print a message naming the problem and its line, and write no page when the roadmap is missing or invalid.

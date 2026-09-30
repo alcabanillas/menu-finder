@@ -112,6 +112,38 @@ describe("summarize: figures", () => {
       ["Sprint 2", 0, 1],
     ]);
   });
+
+  it("sums the remaining hours of each sprint, counting only pending items", () => {
+    const summary = ok(
+      summarize(
+        roadmap([
+          item("MF-01", { done: true, estimateHours: 9, sprint: "Sprint 1" }),
+          item("MF-02", { estimateHours: 4, sprint: "Sprint 1" }),
+          item("MF-03", { sprint: "Sprint 1" }),
+          item("MF-20", { estimateHours: 2.5, sprint: "Sprint 2" }),
+        ]),
+        "2026-10-21",
+      ),
+    );
+
+    expect(summary.sprints.map((sprint) => sprint.remainingHours)).toEqual([4, 2.5]);
+  });
+
+  it("counts the items per state for the filter", () => {
+    const summary = ok(
+      summarize(
+        roadmap([
+          item("MF-01", { done: true }),
+          item("MF-02"),
+          item("MF-03", { dependsOn: ["MF-02"] }),
+          item("MF-04"),
+        ]),
+        "2026-10-21",
+      ),
+    );
+
+    expect(summary.stateCounts).toEqual({ pending: 3, ready: 2, blocked: 1, done: 1, all: 4 });
+  });
 });
 
 describe("summarize: ready and blocked items", () => {

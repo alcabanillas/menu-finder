@@ -30,7 +30,13 @@
 - [x] 6.1 Add MF-39, the `**Fecha límite:** 2026-10-25` line and the Sprint 4 calendar row ending on 2026-10-25 to `context/roadmap.md`; verify with `pnpm roadmap`
 - [ ] 6.2 Propose the metadata block (estimate, owner, dependencies) for every pending item and have the author review it before committing; verify that `pnpm roadmap` succeeds and the page reports 0 pending items without an estimate or an owner
 
-## 7. Close
+## 7. Filters and readability (TDD)
 
-- [x] 7.1 Run `pnpm lint`, `pnpm typecheck` and `pnpm test:run`, all green; open `reports/roadmap.html` and check it visually
-- [ ] 7.2 Go through the checklist in `context/safety-first.md` §4 before archiving and record the result
+- [x] 7.1 Write tests for "Estimate column", the remaining hours per sprint, and the "Filter items" requirement (filter inputs with counts and defaults, rows carrying their state and owner, no ready section, still no script); see them fail
+- [x] 7.2 Implement the sprint remaining hours in `summarize.ts` and the filters and estimate column in `render-html.ts` until the 7.1 tests pass
+- [x] 7.3 Open `reports/roadmap.html` in a browser and check each filter and the hidden empty sprints by hand
+
+## 8. Close
+
+- [ ] 8.1 Run `pnpm lint`, `pnpm typecheck` and `pnpm test:run`, all green; open `reports/roadmap.html` and check it visually
+- [ ] 8.2 Go through the checklist in `context/safety-first.md` §4 before archiving and record the result

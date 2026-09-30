@@ -13,8 +13,11 @@ export interface SprintView {
   name: string;
   done: number;
   total: number;
+  remainingHours: number;
   items: ItemView[];
 }
+
+export type StateCounts = Record<ItemState | "pending" | "all", number>;
 
 export interface Summary {
   deadline: string;
@@ -29,6 +32,7 @@ export interface Summary {
   deadlinePassed: boolean;
   hoursPerDay: number | null;
   ready: ItemView[];
+  stateCounts: StateCounts;
   sprints: SprintView[];
 }
 
@@ -93,6 +97,7 @@ export function summarize(roadmap: Roadmap, today: string): SummaryResult {
   });
 
   const pending = items.filter((entry) => !entry.done);
+  const inState = (state: ItemState) => views.filter((view) => view.state === state);
   const ownedBy = (owner: Owner | undefined) => sum(pending.filter((entry) => entry.owner === owner));
   const remainingHours = sum(pending);
 
@@ -114,13 +119,21 @@ export function summarize(roadmap: Roadmap, today: string): SummaryResult {
       daysLeft,
       deadlinePassed,
       hoursPerDay: deadlinePassed ? null : remainingHours / daysLeft,
-      ready: views.filter((view) => view.state === "ready"),
+      ready: inState("ready"),
+      stateCounts: {
+        pending: pending.length,
+        ready: inState("ready").length,
+        blocked: inState("blocked").length,
+        done: doneIds.size,
+        all: items.length,
+      },
       sprints: roadmap.sprints.map((name) => {
         const sprintItems = views.filter((view) => view.sprint === name);
         return {
           name,
           done: sprintItems.filter((view) => view.done).length,
           total: sprintItems.length,
+          remainingHours: sum(sprintItems.filter((view) => !view.done)),
           items: sprintItems,
         };
       }),
