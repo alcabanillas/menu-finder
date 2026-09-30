@@ -1,5 +1,3 @@
-> **Status (2026-09-30):** guide approved (3.1); long requests generated (3.2). The author decided to support "o" (BUS-superficie-consulta (a), already in `decisiones.md`), so 2.10–2.12 were added and are done; 3.3 done (R01–R07 unedited); 4.1–4.4 done (golden-set.json reviewed, 181 tests pass); 5.1–5.2 done; all tasks complete, ready to archive. `context/decisiones.md` also has an uncommitted format change (BUS-superficie-consulta moved to its own block), to be committed at the end. Branch `feature/mf-13-golden-set-descomponedor`, not committed yet; the pre-commit hook now passes. Remove this note when the change is archived.
-
 ## 1. Setup
 
 - [x] 1.1 Add `zod` as a dependency and `evals/**/*.test.ts` to the `include` of the Vitest `unit` project. Verify: `pnpm install` succeeds and `pnpm test:run` still passes.
