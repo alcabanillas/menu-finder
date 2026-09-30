@@ -29,6 +29,9 @@ Red-Green-Refactor cycle, applied to ALL functions and components from here on:
 
 Fase actual: **setup del repositorio**. Después del setup van, por este orden: los golden sets de búsqueda, el spike T3 y T4, la evaluación de la extracción (`context/roadmap.md`).
 
+## Project context
+This TFM is a part-time personal project. Estimate work in hours, not full-time sprint weeks. Check the actual PR and commit history before judging the timeline. The user decides the current priority task. When asked for the next task, give one plain recommendation instead of arguing against the user's stated priority.
+
 ## Carga de contexto: solo lo que vas a tocar
 
 **Regla (no negociable):** no leas documentos de `context/` enteros por defecto. Lee `context/producto.md` (alcance, corto) y, después, **solo** lo que indica la tabla para tu tarea. En `context/decisiones.md`, localiza las secciones con `grep -n "^#" context/decisiones.md` y lee únicamente las indicadas. Si la tarea cruza varias filas, suma sus lecturas.
@@ -51,6 +54,13 @@ Fase actual: **setup del repositorio**. Después del setup van, por este orden: 
 | Proponer algo nuevo o decidir | Lo abierto | — |
 | Qué toca ahora | — | `context/roadmap.md`: backlog, solo lo decidido |
 | Por qué algo es como es | — | El proposal del cambio archivado; antes del 2026-09-27, `context/historial-de-decisiones.md` (congelado) |
+
+## Decisions and documentation style
+- Never record a technology or design decision (Dxx, ADR) until the user has explicitly chosen it. Present the options and ask first.
+- Always use fully qualified cross-references, such as 'context/decisiones.md §4'. Never write a bare '§4' or 'ese documento'.
+- Keep doc entries concise, but not so compressed that they stop reading as clear prose.
+- Before editing, check that task and decision codes (T1, MF-13, D38) actually match what they refer to.
+
 
 ## Estructura del código
 
