@@ -41,8 +41,8 @@ export default defineConfig({
         test: {
           name: "unit",
           environment: "node",
-          // evals/: validación de los golden sets versionados (MF-13).
-          include: ["src/**/*.test.ts", "evals/**/*.test.ts"],
+          // evals/: validación de los golden sets versionados (MF-13). scripts/: tooling del proyecto (MF-39).
+          include: ["src/**/*.test.ts", "evals/**/*.test.ts", "scripts/**/*.test.ts"],
         },
       },
       {

@@ -46,3 +46,6 @@ next-env.d.ts
 
 # datos del nutricionista y todo lo generado a partir de ellos (SEG-datos-nutricionista)
 /data/
+
+# panel del roadmap generado por pnpm roadmap (MF-39)
+/reports/
