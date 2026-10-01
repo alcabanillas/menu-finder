@@ -49,3 +49,4 @@ next-env.d.ts
 
 # panel del roadmap generado por pnpm roadmap (MF-39)
 /reports/
+.neon

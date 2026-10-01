@@ -21,6 +21,8 @@
     "roadmap": "tsx scripts/roadmap/index.ts"
   },
   "dependencies": {
+    "@neon/config": "^1.8.3",
+    "@neon/env": "^1.4.8",
     "next": "16.3.6",
     "react": "19.2.8",
     "react-dom": "19.2.8",
