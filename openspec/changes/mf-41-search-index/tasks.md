@@ -2,7 +2,7 @@
 
 - [x] 1.1 The author reviews the decisions D2, D3 and D5 of `design.md` (driver, migrations, embeddings) and confirms or changes them; verify: the confirmation is in the chat and `design.md` is updated if anything changed
 - [x] 1.2 Check on npm and in the Genkit documentation the package names (PostgreSQL driver, `genkit`, its Google plugin), the embedding call, how the task prefix of `gemini-embedding-2` is passed and the environment variable the plugin reads; verify: the exact names are written in `design.md` D5 and each package exists, is maintained and is the one intended (`context/safety-first.md` §2.5)
-- [ ] 1.3 On a temporary Neon branch (created with an expiry), run `CREATE EXTENSION vector`; verify: it succeeds, and the branch is deleted afterwards
+- [x] 1.3 On a temporary Neon branch (created with an expiry), run `CREATE EXTENSION vector`; verify: it succeeds, and the branch is deleted afterwards
 
 ## 2. Dependencies
 
