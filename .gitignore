@@ -50,3 +50,6 @@ next-env.d.ts
 # panel del roadmap generado por pnpm roadmap (MF-39)
 /reports/
 .neon
+
+# Genkit local runtime and traces (they may hold request text)
+.genkit/

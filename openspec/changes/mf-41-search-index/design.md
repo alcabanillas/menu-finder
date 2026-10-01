@@ -1,0 +1,89 @@
+## Context
+
+See `proposal.md` for the motivation. Constraints that shape the approach:
+
+- **Hexagon (ADR-001):** `domain` imports nothing outside `domain` and `shared`, not even libraries. `cli` imports only `composition/cli-container`, application DTOs and use cases. A port exists only at a real external boundary: here the database and the embedding service. The CLI is the primary adapter; there is no web adapter in this change.
+- **Data:** 36 menus, 14 meals each, 608 menu dishes (591 with a recipe file, 17 without), 424 distinct dish names, 434 recipes of which 414 are used by a menu (measured on `data/menu-platos.json` and `data/recetas.json`). The 17 dishes without recipe have 14 distinct names, so the load writes 448 recipe rows. One recipe file serves two dish names; no dish name maps to two files.
+- **Neon:** project `menu-finder` in `aws-eu-central-1`, Postgres 18, free plan, Data API off, Neon Auth off. The pooled `DATABASE_URL` and the direct `DATABASE_URL_UNPOOLED` are in `.env.local`. Extensions are installed by migration, not by hand.
+- **Next changes:** `mf-42-menu-search` reads these tables and adds what the lexical match needs (D4 of that change); `mf-14-search-evaluation` only reads.
+
+**Status of the decisions below:** they are **proposals for the author's review**. They are not recorded in `context/decisiones.md` until the author confirms them (task 1.1).
+
+## Goals / Non-Goals
+
+**Goals:**
+- A load that can be re-run at no cost: no embedding call when nothing changed.
+- Nothing that has to be redone in MF-16 or MF-17: the schema, the load of the recipe text and the RLS are the final ones.
+
+**Non-Goals:**
+- Search, scoring and its evaluation: `mf-42-menu-search` and `mf-14-search-evaluation`.
+- Enrichment (food groups, `totalTimeMin`, season), user history, normalised ingredients: MF-16.
+- The web adapter, a limited database role and the production deploy: MF-17, MF-20, MF-22.
+- An index on the vectors (see D5), the three text variants of the ablation (MF-30).
+
+## Decisions
+
+### D1. Layout and ports
+
+```
+application/
+  dto/                dataset input (Zod)
+  ports/              SearchIndexWriter, EmbeddingsPort, DatasetSource
+  use-cases/          load-search-index, migrate
+infrastructure/
+  postgres/           pool, migration runner, SearchIndexWriter adapter
+  genkit/             EmbeddingsPort adapter
+  json-file/          DatasetSource (extends the existing folder)
+composition/          cli-container wires them
+cli/commands/         migrate, load
+```
+
+`SearchIndexWriter` is a write-only port. The read side (`SearchIndex`) comes with `mf-42-menu-search`, kept separate so that `search` and `evaluate-search` never need write access; the composition root can hand them a read-only connection later (MF-17) without changing the use cases.
+
+### D2. PostgreSQL driver: `pg` (node-postgres)
+
+**Confirmed by the author (2026-10-01).** The CLI needs transactions (load, migrations), and the direct connection (`DATABASE_URL_UNPOOLED`) is what `pg` expects. It is the most widely used driver, with no native build step. The same driver works later from Vercel functions with the pooled URL.
+
+*Alternatives:* `@neondatabase/serverless` (made for edge runtimes and HTTP queries; transactions need its WebSocket pool, more moving parts than this change needs); `postgres` (fewer users); Drizzle or Prisma (an ORM and a code generator for six tables and a handful of queries, and one more supply-chain surface, `context/safety-first.md` §2.5).
+
+### D3. Migrations: numbered SQL files in `postgres/migrations/` and a runner of about 40 lines
+
+**Confirmed by the author (2026-10-01).** `postgres/migrations/001-search-schema.sql`, at the repository root and not under `src/infrastructure/`, because a migration is SQL, not code of the hexagon. The runner lives in `infrastructure/postgres/` and reads that folder. Migrations are applied in order inside a transaction each, recorded in a `schema_migration` table (RLS on). A migration is plain SQL, so reviewing it is reading it. The skill-provided alternative, Drizzle Kit, adds a dependency and a second schema description for the same six tables.
+
+### D5. Embeddings: `gemini-embedding-2` through Genkit, stored as `vector(3072)`, no index
+
+**Model confirmed by the author (2026-10-01): `gemini-embedding-2`, not `gemini-embedding-001`.** Checked in the Gemini API documentation on 2026-10-01: `gemini-embedding-2` is the current stable model (released 2026-04-22, no shutdown date); `gemini-embedding-001` shuts down on 2028-05-14, names `gemini-embedding-2` as its replacement and is no longer on the pricing page. Their embedding spaces are incompatible, so starting with `gemini-embedding-2` avoids re-embedding later. Both give 3072 dimensions by default. The paid tier is required: on the free tier the content is used to improve Google's products (SEG-datos-nutricionista). A full load stays under 0.20 USD (448 texts, under 1M text tokens at 0.20 USD per 1M).
+
+`gemini-embedding-2` has no `task_type` parameter for text: the task goes inside the text as a prefix (for example `task: search result | query: …`). Recipes are embedded as documents and terms as queries with that prefix; how the Genkit plugin passes it is checked in task 1.2. The model name and dimensions are stored with every vector, so that a model change is visible and forces a recompute. **Column type confirmed by the author (2026-10-01): `vector(3072)`.** 448 vectors are compared by an exact scan, which returns exact and repeatable results, as the evaluation of MF-14 needs; an HNSW index is approximate and would only pay off with far more rows. Per the pgvector README, a fixed dimension is the normal use (an untyped `vector` column is meant for several models in one column, which is not the case here), and the database rejects a vector of the wrong size. *Growth path, not built now:* an HNSW index on `vector` is limited to 2000 dimensions, so if the rows grow, a later migration adds a half-precision expression index (`USING hnsw ((embedding::halfvec(3072)) halfvec_cosine_ops)`, up to 4000 dimensions) without changing the column. *Alternatives:* `halfvec(3072)` (half the storage, but 16-bit precision changes the similarities slightly and the menu scores are compared to six decimals); untyped `vector` (no migration on a dimension change, but no size check).
+
+**Checked on 2026-10-01 (task 1.2), in the npm registry and the Genkit and Gemini API documentation:**
+
+| Package | Version | Source | Install scripts |
+|---|---|---|---|
+| `pg` | 8.23.1 | `github.com/brianc/node-postgres`, MIT, maintainer `brianc` | none |
+| `@types/pg` (dev) | 8.23.1 | DefinitelyTyped | none |
+| `genkit` | 1.42.0 | `github.com/genkit-ai/genkit`, Apache-2.0 | none |
+| `@genkit-ai/google-genai` | 1.42.0 | same repo (`js/plugins/google-genai`), Apache-2.0, maintainers include `google-wombot`; peer `genkit ^1.42.0` | none |
+
+- **Call:** `genkit({ plugins: [googleAI()] })` and `ai.embedMany({ embedder: googleAI.embedder("gemini-embedding-2"), content })`, with `googleAI` from `@genkit-ai/google-genai`. The plugin reads the key from `GEMINI_API_KEY`, the name already in `.env.local`; the adapter passes it explicitly (`googleAI({ apiKey })`) so that the composition root, not the plugin, decides where it comes from.
+- **Task prefix:** the Gemini API documentation states that `gemini-embedding-2` does not support the `task_type` parameter, so the adapter does not pass `taskType` and writes the prefix itself: `title: {title} | text: {content}` for a document (`title: none` without a title) and `task: search result | query: {content}` for a query (used by `mf-42-menu-search`). For a recipe, `{title}` is the recipe title (or the dish name for a row with no recipe) and `{content}` the ingredient names joined by commas, or the title again when there are no ingredients, so that the text is never empty.
+
+D4 (lexical match) is in `mf-42-menu-search`; the D numbering is kept from the design of the original, unsplit MF-14.
+
+### D8. Tests
+
+- Use cases with fake ports: validation before any call, load atomicity (the fake writer fails and nothing is kept), the text sent to the embedding fake, errors without secrets.
+- Adapters (`infrastructure/`, no coverage threshold): integration tests against a **temporary Neon branch** created for the run, so that no test touches `production`. They run locally with `DATABASE_URL_TEST` and are skipped when it is not set; **CI does not run them in this change** (it has no database secret and `context/decisiones.md` §2 point 2 leaves the testing strategy open). The skip is printed, not silent.
+- CLI commands: the existing `run-cli` test style (fake container).
+
+## Risks / Trade-offs
+
+- **One recipe file with two dish names** → the single embedding uses the recipe title. The effect is one dish out of 608.
+- **Loading the preparation text** → it goes to Neon (decided in SEG-datos-nutricionista) and not to Gemini; a test asserts the text sent to the embedding service.
+- **Owner role in the CLI** → by design (ADR-001 §2); the web gets a limited role in MF-17/MF-20, and RLS without policies already denies every other role.
+
+## Migration Plan
+
+1. `pnpm ingest migrate` creates the schema on the `production` branch of the Neon project (it is empty today).
+2. `pnpm ingest load` fills it from `data/`.
+3. Rollback: the load replaces the dataset, so re-running it restores it; for the schema, a new migration drops what it must. No data is lost that is not in `data/`.

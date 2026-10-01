@@ -9,7 +9,7 @@
 > 4. Lo que falta **por hacer** vive en [roadmap.md](roadmap.md). Aquí solo lo que falta **por decidir** (§2); al decidirse, pasa a §1 y genera su ítem en el roadmap.
 > 5. El alcance está en [producto.md](producto.md), los hechos de los PDF en [datos.md](datos.md) y la argumentación académica en [enfoque-academico.md](enfoque-academico.md).
 >
-> **Última actualización:** 2026-09-30.
+> **Última actualización:** 2026-10-01.
 
 ---
 
@@ -31,7 +31,7 @@
 | Código | Decisión |
 |---|---|
 | OPS-vercel | Despliegue en **Vercel** (Render como alternativa). Kubernetes: no |
-| OPS-ci-cd | CI/CD con GitHub Actions: test → build → deploy. Dependabot / `pnpm audit` en CI |
+| OPS-ci-cd | CI/CD con GitHub Actions: test → build → deploy. Dependencias vigiladas por **Dependabot** (actualizaciones y alertas) y **OSV-Scanner** en CI, que cubre CVEs y paquetes maliciosos (avisos `MAL-` de OpenSSF, [safety-first.md](safety-first.md) §2.5). `pnpm audit` no se ejecuta en CI: OSV-Scanner lo cubre. Las vulnerabilidades aceptadas se excluyen en `osv-scanner.toml`, cada una con su motivo |
 | OPS-paquetes | **pnpm** como gestor de paquetes. Instala con lockfile congelado y, desde pnpm 10, no ejecuta scripts de instalación salvo los permitidos en `pnpm-workspace.yaml` (safety-first §2.5) |
 | OPS-calidad | Linter, Husky, pirámide de testing (unit / integration / E2E), Sentry. **Herramientas:** Vitest (unit e integración), Testing Library (componentes de `features/`), Playwright (E2E), `eslint-plugin-boundaries` (reglas de ADR-001 §3) y `eslint-plugin-sonarjs` (reglas `recommended` de Sonar, solo en `src/`: `scripts/datos/` se sustituye por la CLI y no se refactoriza). **Cobertura:** `@vitest/coverage-v8` sobre `src/`, sin tests, páginas de Next (las cubre Playwright), ficheros que solo declaran tipos ni el cableado de la CLI; el CI la genera con `pnpm test:coverage` y falla si no se cumple el umbral de cada tipo de código: **100 %** en la lógica de negocio (`domain/`, `application/`), **80 %** en lo que ve el usuario (`features/`, `shared/ui/`, `cli/`) y **sin umbral** en `infrastructure/` y en los tipos. Los cuatro indicadores (sentencias, ramas, funciones, líneas) cuentan por igual. Sin mutation testing: no cabe en el plazo. El pre-commit ejecuta lint y `pnpm test:run` |
 | OPS-observabilidad | **Sentry para producción; Developer UI de Genkit en local.** Sentry recoge errores y trazas. Las trazas de los flujos LLM las genera Genkit con OpenTelemetry y se exportan a Sentry por OTLP: **por verificar en el descomponedor (MF-40)**, incluido que en Vercel se envíen antes de que termine la función. En local, la Developer UI de Genkit muestra cada ejecución. No hay consola de debug en la app. **Qué viaja a Sentry:** la estructura de cada ejecución (tiempos, modelo, tokens, errores); **no** las entradas ni salidas de los pasos, que llevan texto de recetas y peticiones de usuario (SEG-datos-nutricionista) |
@@ -88,7 +88,7 @@ Las referencias del tipo "BUS-superficie-consulta (b)" apuntan a estos apartados
 | Código | Decisión |
 |---|---|
 | IA-criterio-agente | **Criterio de "agente" del proyecto.** Es agente pleno solo lo que cumple la definición de `ConceptosRAG-y-agentes.md` §2.1: **bucle + decisión + condición de parada**. Cumple solo el **extractor** (ING-determinista). No cumplen y se documentan como pipeline: el **descomponedor** (llamada única sin bucle, BUS-descomponedor; su relajación automática sería agente y es línea futura), el **juez de evaluación** (LLM-as-judge es un patrón, una llamada con schema en batch), el **explicador** (genera una vez, su control de calidad es externo), los parsers, los embeddings, el ranking y el CLI de ingesta |
-| IA-proveedor | **Proveedor.** Gemini vía Genkit para los tres flujos: Flash para descomponer y explicar (latencia); el extractor es batch y da igual. Embeddings `gemini-embedding-001` (multilingüe; la dimensión la fija el modelo, no la tabla). **El juez de evals es de otra familia** (p. ej. Claude Haiku 4.5): un modelo evaluándose a sí mismo es una objeción fácil de quien evalúa. Claves solo en `.env` local y en los secretos de Vercel |
+| IA-proveedor | **Proveedor.** Gemini vía Genkit para los tres flujos: Flash para descomponer y explicar (latencia); el extractor es batch y da igual. Embeddings `gemini-embedding-2` (multilingüe; la dimensión la fija el modelo, no la tabla), en el **nivel de pago**: en el gratuito Google usa el contenido para mejorar sus productos (SEG-datos-nutricionista). Porqué del cambio desde `gemini-embedding-001`: proposal de MF-41 (`openspec/changes/mf-41-search-index/`). **El juez de evals es de otra familia** (p. ej. Claude Haiku 4.5): un modelo evaluándose a sí mismo es una objeción fácil de quien evalúa. Claves solo en `.env` local y en los secretos de Vercel |
 
 ### 1.7 Evaluación
 

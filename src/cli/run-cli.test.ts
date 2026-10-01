@@ -7,6 +7,8 @@ const setup = () => {
   let built = 0;
   let menuRuns = 0;
   let recipesRuns = 0;
+  let migrateRuns = 0;
+  let loadRuns = 0;
   const createCommands = (): CliCommands => {
     built++;
     return {
@@ -18,12 +20,20 @@ const setup = () => {
         recipesRuns++;
         return 1;
       },
+      migrate: async () => {
+        migrateRuns++;
+        return 0;
+      },
+      load: async () => {
+        loadRuns++;
+        return 1;
+      },
     };
   };
   return {
     lines,
     run: (args: string[]) => runCli(args, { createCommands, print: (line) => lines.push(line) }),
-    counts: () => ({ built, menuRuns, recipesRuns }),
+    counts: () => ({ built, menuRuns, recipesRuns, migrateRuns, loadRuns }),
   };
 };
 
@@ -32,33 +42,49 @@ describe("runCli", () => {
     const { run, counts } = setup();
 
     expect(await run(["menu"])).toBe(0);
-    expect(counts()).toEqual({ built: 1, menuRuns: 1, recipesRuns: 0 });
+    expect(counts()).toEqual({ built: 1, menuRuns: 1, recipesRuns: 0, migrateRuns: 0, loadRuns: 0 });
   });
 
   it("runs the recipes command and returns its exit code", async () => {
     const { run, counts } = setup();
 
     expect(await run(["recipes"])).toBe(1);
-    expect(counts()).toEqual({ built: 1, menuRuns: 0, recipesRuns: 1 });
+    expect(counts()).toEqual({ built: 1, menuRuns: 0, recipesRuns: 1, migrateRuns: 0, loadRuns: 0 });
   });
 
-  it.each([[[]], [["foo"]], [["menu", "extra"]], [["recipes", "extra"]]])(
+  it("runs the migrate command and returns its exit code", async () => {
+    const { run, counts } = setup();
+
+    expect(await run(["migrate"])).toBe(0);
+    expect(counts()).toEqual({ built: 1, menuRuns: 0, recipesRuns: 0, migrateRuns: 1, loadRuns: 0 });
+  });
+
+  it("runs the load command and returns its exit code", async () => {
+    const { run, counts } = setup();
+
+    expect(await run(["load"])).toBe(1);
+    expect(counts()).toEqual({ built: 1, menuRuns: 0, recipesRuns: 0, migrateRuns: 0, loadRuns: 1 });
+  });
+
+  it.each([[[]], [["foo"]], [["menu", "extra"]], [["recipes", "extra"]], [["migrate", "extra"]], [["load", "--force"]]])(
     "prints the usage and exits with 2 without building the commands for %j",
     async (args) => {
       const { run, counts, lines } = setup();
 
       expect(await run(args)).toBe(2);
-      expect(lines.join("\n")).toContain("Usage: pnpm ingest <menu|recipes>");
-      expect(counts()).toEqual({ built: 0, menuRuns: 0, recipesRuns: 0 });
+      expect(lines.join("\n")).toContain("Usage: pnpm ingest <menu|recipes|migrate|load>");
+      expect(counts()).toEqual({ built: 0, menuRuns: 0, recipesRuns: 0, migrateRuns: 0, loadRuns: 0 });
     },
   );
 
-  it("lists both commands in the usage", async () => {
+  it("lists every command in the usage", async () => {
     const { run, lines } = setup();
 
     await run(["foo"]);
 
     expect(lines.some((line) => line.trim().startsWith("menu "))).toBe(true);
     expect(lines.some((line) => line.trim().startsWith("recipes "))).toBe(true);
+    expect(lines.some((line) => line.trim().startsWith("migrate "))).toBe(true);
+    expect(lines.some((line) => line.trim().startsWith("load "))).toBe(true);
   });
 });

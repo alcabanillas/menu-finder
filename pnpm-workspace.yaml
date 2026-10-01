@@ -1,4 +1,8 @@
 ignoredBuiltDependencies:
+  # Not needed (MF-41): it reads a Firebase web-app config this project does not use.
+  - "@firebase/util"
   - esbuild
+  # Not needed (MF-41): it only warns about version schemes of dependents.
+  - protobufjs
   - sharp
   - unrs-resolver
