@@ -66,6 +66,33 @@ This TFM is a part-time personal project. Estimate work in hours, not full-time 
 
 Arquitectura hexagonal con un solo hexágono y dos adaptadores primarios, la web (`app/`) y la CLI (`cli/`) (ARQ-hexagonal). **La estructura de `src/`, las reglas de dependencia y qué merece un puerto están solo en [ADR-001](context/adr/ADR-001-arquitectura-interna.md).** Léelo antes de crear o mover ficheros en `src/`. Las reglas las verifica ESLint en pre-commit y CI: si una importación rompe una regla, el fallo está en el diseño, no en la regla.
 
+### Rule: reuse a port before creating one (mandatory)
+
+Before designing a new port, read every file in `src/application/ports/` and the archived proposals that created them (`openspec/changes/archive/`). Reuse an existing port with a new adapter whenever one fits. Create a new port only for an external boundary no existing port covers, and say in `design.md` why none of the existing ones fits. A design that adds a port beside an existing one for the same data is a deviation: list it under "Deviations" and tell the author before `apply`.
+
+| | Example | Why |
+|---|---|---|
+| ❌ | `SearchIndexWriter.replace(content)` to store menus and recipes | `MenuRepository.saveAll` and `RecipeRepository.saveAll` already existed for that data, created in MF-11 and MF-38 for the database adapter |
+| ❌ | `DatasetSource.readMenus()` to read the menus again | A second way to reach data a repository already handles |
+| ✅ | `PostgresMenuRepository implements MenuRepository` | Same port, new adapter: `ingestMenus` does not change |
+| ✅ | `RecipeEmbeddingRepository`, new | No existing port stored vectors; `design.md` says so |
+| ✅ | `EmbeddingsPort`, `MigrationRunner`, new | New external boundaries: the Gemini API and the SQL migrations |
+
+### Rule: name by domain concept (mandatory)
+
+Folders in `domain/` and `application/`, ports, use cases and CLI commands are named after what they are or do in the domain (menu, recipe, dish, search, embedding). Never after the OpenSpec change or capability that created them, and never after a technology: Postgres, JSON, Genkit and the like appear only in `infrastructure/` names. A CLI command file has the name of its command.
+
+| | Example | Why |
+|---|---|---|
+| ❌ | `domain/search-index/` | `search-index` is the name of an OpenSpec capability, not a domain concept |
+| ❌ | `use-cases/load-search-index.ts` | Says neither what is loaded nor where |
+| ❌ | `cli/commands/search-index.ts` holding `migrate` and `load` | The file is not named after its commands |
+| ❌ | `use-cases/load-json-to-pg.ts` | A technology in the core |
+| ✅ | `domain/menu/dish-recipe.ts` | Dishes and recipes are domain concepts |
+| ✅ | `domain/search/embedding-text.ts` | A rule of the search |
+| ✅ | `use-cases/embed-recipes.ts`, `cli/commands/embed.ts` | Says what it does; the command and its file share the name |
+| ✅ | `infrastructure/postgres/postgres-menu-repository.ts` | The technology appears only in infrastructure |
+
 ## Datos
 
 - Los PDF y los JSON generados viven en `data/`, que **nunca se sube** (SEG-datos-nutricionista). Se generan en local con el runbook T0 (`pnpm datos:*`).

@@ -1,9 +1,9 @@
 # ADR-001 — Arquitectura interna: hexagonal sobre Next.js
 
-- **Estado:** aceptada (2026-09-19); **enmendada 2026-09-27**: la CLI pasa a ser un segundo adaptador primario, con su propio composition root (§2, §3, §5); la §2 solo fija lo decidido y la §4 incluye `RateLimiter`. **Segunda enmienda 2026-09-27**: la UI se organiza con la Scope Rule (`features/` y `shared/ui/`) y `app/` queda como capa de entrada (§2, §3, §5). **Tercera enmienda 2026-09-27**: el parseo que depende de la maquetación del documento de origen va en su adaptador, no en el dominio; el ejemplo de la §4 pasa a ser el parser del menú (MF-11). **Cuarta enmienda 2026-09-27**: la §4 añade `RecipeRepository`, que faltaba: `MenuDish` apunta a `recipeId`, así que las recetas se persisten igual que el menú y la lista
+- **Estado:** aceptada (2026-09-19); **enmendada 2026-09-27**: la CLI pasa a ser un segundo adaptador primario, con su propio composition root (§2, §3, §5); la §2 solo fija lo decidido y la §4 incluye `RateLimiter`. **Segunda enmienda 2026-09-27**: la UI se organiza con la Scope Rule (`features/` y `shared/ui/`) y `app/` queda como capa de entrada (§2, §3, §5). **Tercera enmienda 2026-09-27**: el parseo que depende de la maquetación del documento de origen va en su adaptador, no en el dominio; el ejemplo de la §4 pasa a ser el parser del menú (MF-11). **Cuarta enmienda 2026-09-27**: la §4 añade `RecipeRepository`, que faltaba: `MenuDish` apunta a `recipeId`, así que las recetas se persisten igual que el menú y la lista. **Quinta enmienda 2026-10-01**: la §2 precisa que "capacidad" es un concepto del dominio, y dos reglas para agentes (reutilizar un puerto antes de crear otro; nombrar por concepto del dominio) pasan a `AGENTS.md`, tras el rediseño de MF-41
 - **Decisión en [decisiones.md](../decisiones.md):** ARQ-hexagonal
 - **Audiencia:** este documento es **entrada directa de los agentes** que generen código (SDD). Las reglas de la §3 son normativas y verificables en CI.
-- **Punto único:** la estructura de `src/` y sus reglas solo se describen aquí. `AGENTS.md` remite a este documento; no las copia.
+- **Punto único:** la estructura de `src/` y sus reglas solo se describen aquí, salvo dos reglas obligatorias para agentes que viven en `AGENTS.md`: reutilizar un puerto antes de crear otro y nombrar por concepto del dominio. `AGENTS.md` remite a este documento para lo demás; no lo copia.
 
 ## 1. Contexto
 
@@ -44,7 +44,7 @@ src/
 
 **Por qué features en la UI y capas en el resto.** Se divide por feature donde las piezas son independientes y por capa donde comparten el modelo. Cada pantalla pinta cosas distintas; el backend, en cambio, es un único modelo (`Menu`, `Recipe`, `ShoppingList`) que usan casi todas las pantallas. Aplicarle la Scope Rule subiría casi todo el dominio y los puertos a `shared/`, dejando las features con un caso de uso cada una.
 
-Las subcarpetas de `domain/` e `infrastructure/` no se fijan de antemano: las crea la spec que las necesite, agrupando por capacidad (`domain/search/`, `infrastructure/llm/`).
+Las subcarpetas de `domain/` e `infrastructure/` no se fijan de antemano: las crea la spec que las necesite, agrupando por capacidad (`domain/search/`, `infrastructure/llm/`). "Capacidad" es aquí un concepto del dominio (menú, receta, búsqueda), no el nombre de un cambio o una capability de OpenSpec; la regla de nombres para agentes está en `AGENTS.md`.
 
 Fuera de `src/` está `scripts/datos/`: los scripts de generación local de datos (runbook T0). No forman parte del hexágono y se sustituyen por la CLI de ingesta (ING-cli-local).
 
