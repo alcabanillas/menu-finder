@@ -28,7 +28,7 @@
 ## 6. Roadmap data
 
 - [x] 6.1 Add MF-39, the `**Fecha límite:** 2026-10-25` line and the Sprint 4 calendar row ending on 2026-10-25 to `context/roadmap.md`; verify with `pnpm roadmap`
-- [ ] 6.2 Propose the metadata block (estimate, owner, dependencies) for every pending item and have the author review it before committing; verify that `pnpm roadmap` succeeds and the page reports 0 pending items without an estimate or an owner
+- [x] 6.2 Propose the metadata block (estimate, owner, dependencies) for every pending item and have the author review it before committing; verify that `pnpm roadmap` succeeds and the page reports 0 pending items without an estimate or an owner
 
 ## 7. Filters and readability (TDD)
 
@@ -39,4 +39,4 @@
 ## 8. Close
 
 - [x] 8.1 Run `pnpm lint`, `pnpm typecheck` and `pnpm test:run`, all green; open `reports/roadmap.html` and check it visually
-- [ ] 8.2 Go through the checklist in `context/safety-first.md` §4 before archiving and record the result
+- [x] 8.2 Go through the checklist in `context/safety-first.md` §4 before archiving and record the result Result: no endpoint, auth, DB query or LLM input; the script only reads `context/roadmap.md` and writes the gitignored `reports/`; no new dependency; no secret in the diff. Items about endpoints, sessions and logging do not apply.
