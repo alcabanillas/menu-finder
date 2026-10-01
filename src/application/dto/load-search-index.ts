@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { UnknownRecipeFile } from "@/domain/search-index/search-dataset";
-import type { DatasetSourceError } from "../ports/dataset-source";
+import type { DatasetSourceError } from "@/application/ports/dataset-source";
 
 // Shapes of the files written by `pnpm ingest menu` (`WeeklyMenu[]`) and `pnpm ingest recipes` (`Recipe[]`).
 const minutes = z.number().int().nonnegative().nullable();

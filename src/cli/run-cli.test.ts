@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { CliCommands } from "./run-cli";
-import { runCli } from "./run-cli";
+import type { CliCommands } from "@/cli/run-cli";
+import { runCli } from "@/cli/run-cli";
 
 const setup = () => {
   const lines: string[] = [];

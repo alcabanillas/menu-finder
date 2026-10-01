@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isFiller } from "./filler";
+import { isFiller } from "@/domain/menu-ingestion/filler";
 
 describe("isFiller", () => {
   it.each([

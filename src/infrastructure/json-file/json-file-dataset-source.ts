@@ -2,8 +2,8 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { DatasetFile, DatasetSource, DatasetSourceError } from "@/application/ports/dataset-source";
 import { err, ok, type Result } from "@/shared/result";
-import { MENU_DATASET_FILE } from "./json-file-menu-repository";
-import { RECIPE_DATASET_FILE } from "./json-file-recipe-repository";
+import { MENU_DATASET_FILE } from "@/infrastructure/json-file/json-file-menu-repository";
+import { RECIPE_DATASET_FILE } from "@/infrastructure/json-file/json-file-recipe-repository";
 
 const isMissing = (error: unknown) => (error as { code?: unknown } | null)?.code === "ENOENT";
 

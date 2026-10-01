@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EMBEDDING_MODEL, GenkitEmbeddings, type EmbedMany } from "./genkit-embeddings";
+import { EMBEDDING_MODEL, GenkitEmbeddings, type EmbedMany } from "@/infrastructure/genkit/genkit-embeddings";
 
 const KEY = "AIzaFAKE-key-for-tests";
 

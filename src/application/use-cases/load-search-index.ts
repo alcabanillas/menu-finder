@@ -8,10 +8,10 @@ import {
   weeklyMenusSchema,
   type LoadSearchIndexError,
   type LoadSearchIndexSummary,
-} from "../dto/load-search-index";
-import type { DatasetFile, DatasetSource, DatasetSourceError } from "../ports/dataset-source";
-import type { EmbeddingsPort } from "../ports/embeddings-port";
-import type { SearchIndexWriter } from "../ports/search-index-writer";
+} from "@/application/dto/load-search-index";
+import type { DatasetFile, DatasetSource, DatasetSourceError } from "@/application/ports/dataset-source";
+import type { EmbeddingsPort } from "@/application/ports/embeddings-port";
+import type { SearchIndexWriter } from "@/application/ports/search-index-writer";
 
 /** The embedded text: recipe title and ingredient names (EVAL-golden-sets, ablation (b)). */
 export const EMBEDDING_VARIANT = "name-ingredients";

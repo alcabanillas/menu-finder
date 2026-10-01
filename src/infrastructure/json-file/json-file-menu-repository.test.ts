@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { WeeklyMenu } from "@/domain/menu/weekly-menu";
 import { ok } from "@/shared/result";
-import { JsonFileMenuRepository } from "./json-file-menu-repository";
+import { JsonFileMenuRepository } from "@/infrastructure/json-file/json-file-menu-repository";
 
 const MENU: WeeklyMenu = {
   number: 3,

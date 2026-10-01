@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { MenuDish, WeeklyMenu } from "@/domain/menu/weekly-menu";
 import type { Recipe } from "@/domain/recipe/recipe";
-import { buildSearchDataset, embeddingDocument, embeddingSource, type IndexedRecipe } from "./search-dataset";
+import { buildSearchDataset, embeddingDocument, embeddingSource, type IndexedRecipe } from "@/domain/search-index/search-dataset";
 
 const dish = (name: string, recipeFile: string | null, position = 1): MenuDish => ({
   position,

@@ -6,7 +6,7 @@ import type {
   SearchIndexWriter,
 } from "@/application/ports/search-index-writer";
 import { err, ok, type Result } from "@/shared/result";
-import { describeDatabaseError } from "./describe-database-error";
+import { describeDatabaseError } from "@/infrastructure/postgres/describe-database-error";
 
 // Every value goes in as one JSON parameter per table and is expanded by `jsonb_to_recordset`:
 // one round trip per table, and nothing from the dataset is ever part of the SQL text.

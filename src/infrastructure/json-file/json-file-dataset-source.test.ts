@@ -2,7 +2,7 @@ import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { JsonFileDatasetSource } from "./json-file-dataset-source";
+import { JsonFileDatasetSource } from "@/infrastructure/json-file/json-file-dataset-source";
 
 const dataDir = async (files: Record<string, string>) => {
   const dir = await mkdtemp(join(tmpdir(), "dataset-"));

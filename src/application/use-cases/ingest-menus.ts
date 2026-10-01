@@ -7,9 +7,9 @@ import type {
   IngestMenusSummary,
   IngestMenusTotals,
   MenuFailure,
-} from "../dto/ingest-menus";
-import type { DocumentSource } from "../ports/document-source";
-import type { MenuRepository } from "../ports/menu-repository";
+} from "@/application/dto/ingest-menus";
+import type { DocumentSource } from "@/application/ports/document-source";
+import type { MenuRepository } from "@/application/ports/menu-repository";
 
 export type IngestMenusDeps = { source: DocumentSource; menus: MenuRepository };
 

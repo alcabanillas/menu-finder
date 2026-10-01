@@ -1,7 +1,6 @@
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import pg from "pg";
-import type { MissingVariables } from "@/application/dto/configuration";
 import { ingestMenus } from "@/application/use-cases/ingest-menus";
 import { ingestRecipes } from "@/application/use-cases/ingest-recipes";
 import { loadSearchIndex } from "@/application/use-cases/load-search-index";
@@ -14,6 +13,9 @@ import { LocalDocumentSource } from "@/infrastructure/local-documents/local-docu
 import { MIGRATIONS_DIR, PostgresMigrationRunner } from "@/infrastructure/postgres/postgres-migration-runner";
 import { PostgresSearchIndexWriter } from "@/infrastructure/postgres/postgres-search-index-writer";
 import { err, ok, type Result } from "@/shared/result";
+
+/** Environment variables a command needs and that are not set. Checked before connecting to anything. */
+export type MissingVariables = { kind: "missing-variables"; names: string[] };
 
 /** Resolved from this file, not from `process.cwd()`, so the CLI reads and writes the same folders wherever it runs. */
 const REPO_ROOT = fileURLToPath(new URL("../..", import.meta.url));

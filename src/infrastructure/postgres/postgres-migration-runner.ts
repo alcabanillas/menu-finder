@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import type pg from "pg";
 import type { MigrationError, MigrationRunner } from "@/application/ports/migration-runner";
 import { err, ok, type Result } from "@/shared/result";
-import { describeDatabaseError } from "./describe-database-error";
+import { describeDatabaseError } from "@/infrastructure/postgres/describe-database-error";
 
 /** `postgres/migrations/` at the repository root: SQL, not code of the hexagon (MF-41 design D3). */
 export const MIGRATIONS_DIR = fileURLToPath(new URL("../../../postgres/migrations", import.meta.url));

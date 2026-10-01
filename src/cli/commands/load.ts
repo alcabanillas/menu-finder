@@ -1,16 +1,10 @@
-import type { MissingVariables } from "@/application/dto/configuration";
 import type { LoadSearchIndexError, LoadSearchIndexSummary } from "@/application/dto/load-search-index";
-import type { MigrateError, MigrateSummary } from "@/application/use-cases/migrate";
+import { isMissingVariables, missingLines } from "@/cli/commands/missing-variables";
+import type { MissingVariables } from "@/composition/cli-container";
 import { redactSecrets } from "@/shared/redact-secrets";
 import type { Result } from "@/shared/result";
 
-export type { MissingVariables };
-
 type Print = (line: string) => void;
-
-const missingLines = ({ names }: MissingVariables): string[] => [
-  `Missing environment variable${names.length > 1 ? "s" : ""}: ${names.join(", ")}. Set them in .env.local.`,
-];
 
 const loadErrorLines = (error: LoadSearchIndexError | MissingVariables): string[] => {
   switch (error.kind) {
@@ -42,37 +36,11 @@ export async function runLoad({
   const result = await loadSearchIndex();
   if (!result.ok) {
     loadErrorLines(result.error).forEach((line) => print(redactSecrets(line)));
-    if (result.error.kind !== "missing-variables") print("The database is unchanged.");
+    if (!isMissingVariables(result.error)) print("The database is unchanged.");
     return 1;
   }
   const { menus, meals, dishes, recipes, nameOnlyRecipes, embedded, kept, model } = result.value;
   print(`Loaded ${menus} menus, ${meals} meals, ${dishes} dishes, ${recipes} recipes and ${nameOnlyRecipes} name-only rows.`);
   print(`Embeddings with ${model}: ${embedded} computed, ${kept} kept.`);
   return 0;
-}
-
-/** `ingest migrate`: applies the pending SQL migrations. Returns the exit code. */
-export async function runMigrate({
-  migrate,
-  print,
-}: {
-  migrate: () => Promise<Result<MigrateSummary, MigrateError | MissingVariables>>;
-  print: Print;
-}): Promise<number> {
-  const result = await migrate();
-  if (result.ok) {
-    if (result.value.applied.length === 0) print("No pending migrations.");
-    result.value.applied.forEach((id) => print(`Applied ${id}`));
-    return 0;
-  }
-  const error = result.error;
-  if (error.kind === "missing-variables") {
-    missingLines(error).forEach(print);
-    return 1;
-  }
-  error.applied.forEach((id) => print(`Applied ${id}`));
-  print(
-    redactSecrets(error.migration ? `${error.migration} failed: ${error.reason}` : `Cannot migrate: ${error.reason}`),
-  );
-  return 1;
 }

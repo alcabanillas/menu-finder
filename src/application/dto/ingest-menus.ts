@@ -1,6 +1,6 @@
 import type { Day, MealType } from "@/domain/menu/weekly-menu";
-import type { RepositoryError } from "../ports/menu-repository";
-import type { SourceError } from "../ports/document-source";
+import type { RepositoryError } from "@/application/ports/menu-repository";
+import type { SourceError } from "@/application/ports/document-source";
 
 export type MenuFailure = { menu: number; error: SourceError };
 

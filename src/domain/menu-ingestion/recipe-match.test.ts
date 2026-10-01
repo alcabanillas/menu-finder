@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveDish } from "./recipe-match";
+import { resolveDish } from "@/domain/menu-ingestion/recipe-match";
 
 const marked = (name: string) => ({ name, hasRecipeMark: true });
 

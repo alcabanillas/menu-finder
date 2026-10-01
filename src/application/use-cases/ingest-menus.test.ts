@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import type { WeeklyMenu } from "@/domain/menu/weekly-menu";
 import type { SourceMenu } from "@/domain/menu-ingestion/source-menu";
 import { err, ok, type Result } from "@/shared/result";
-import type { DocumentSource, MenuFolder, SourceError } from "../ports/document-source";
-import type { MenuRepository, RepositoryError } from "../ports/menu-repository";
-import { ingestMenus } from "./ingest-menus";
+import type { DocumentSource, MenuFolder, SourceError } from "@/application/ports/document-source";
+import type { MenuRepository, RepositoryError } from "@/application/ports/menu-repository";
+import { ingestMenus } from "@/application/use-cases/ingest-menus";
 
 type FakeMenu = { menu: SourceMenu; recipeFiles?: string[] } | { error: SourceError };
 

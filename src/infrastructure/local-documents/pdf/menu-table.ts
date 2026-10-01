@@ -2,7 +2,7 @@ import type { SourceError } from "@/application/ports/document-source";
 import type { Day, MealType } from "@/domain/menu/weekly-menu";
 import type { SourceMeal, SourceMenu } from "@/domain/menu-ingestion/source-menu";
 import { err, ok, type Result } from "@/shared/result";
-import { splitCellIntoDishes } from "./split-cell";
+import { splitCellIntoDishes } from "@/infrastructure/local-documents/pdf/split-cell";
 
 /** Lowercase, accent-free table label, punctuation kept: used to recognise day and meal rows. */
 export const normalizeLabel = (label: string | undefined): string =>

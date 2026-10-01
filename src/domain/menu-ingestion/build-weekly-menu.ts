@@ -1,7 +1,7 @@
-import type { Day, Meal, MealType, WeeklyMenu } from "../menu/weekly-menu";
-import { isFiller } from "./filler";
-import { isRecipeCandidate, resolveDish, type DishResolution } from "./recipe-match";
-import type { SourceDish, SourceMenu } from "./source-menu";
+import type { Day, Meal, MealType, WeeklyMenu } from "@/domain/menu/weekly-menu";
+import { isFiller } from "@/domain/menu-ingestion/filler";
+import { isRecipeCandidate, resolveDish, type DishResolution } from "@/domain/menu-ingestion/recipe-match";
+import type { SourceDish, SourceMenu } from "@/domain/menu-ingestion/source-menu";
 
 const DAYS: readonly Day[] = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 const MEAL_TYPES: readonly MealType[] = ["lunch", "dinner"];

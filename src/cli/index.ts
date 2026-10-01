@@ -1,10 +1,11 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { createCliContainer } from "@/composition/cli-container";
-import { runIngestMenu } from "./commands/ingest-menu";
-import { runIngestRecipes } from "./commands/ingest-recipes";
-import { runLoad, runMigrate } from "./commands/search-index";
-import { runCli } from "./run-cli";
+import { runIngestMenu } from "@/cli/commands/ingest-menu";
+import { runIngestRecipes } from "@/cli/commands/ingest-recipes";
+import { runLoad } from "@/cli/commands/load";
+import { runMigrate } from "@/cli/commands/migrate";
+import { runCli } from "@/cli/run-cli";
 
 // The only file that touches `process`. Secrets come from `.env.local` (git-ignored) or the environment.
 try {

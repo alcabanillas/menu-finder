@@ -4,8 +4,8 @@ import { PDFParse } from "pdf-parse";
 import type { DocumentSource, MenuFolder, SourceError, SourceRecipe } from "@/application/ports/document-source";
 import type { SourceMenu } from "@/domain/menu-ingestion/source-menu";
 import { err, ok, type Result } from "@/shared/result";
-import { toSourceMenu } from "./pdf/menu-table";
-import { parseRecipePage, type PositionedText } from "./pdf/recipe-page";
+import { toSourceMenu } from "@/infrastructure/local-documents/pdf/menu-table";
+import { parseRecipePage, type PositionedText } from "@/infrastructure/local-documents/pdf/recipe-page";
 
 const MENU_FOLDER = /^Menu (\d+)$/;
 const MENU_FILE = "menu.pdf";
@@ -14,6 +14,9 @@ const RECIPE_EXTENSION = ".pdf";
 const NON_RECIPE_FILES = /^(menu|lista_de_la_compra|valoracion.*)$/i;
 
 const errorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));
+
+const unreadable = (error: unknown): Result<never, SourceError> =>
+  err({ kind: "unreadable-document", reason: errorMessage(error) });
 
 const isNotFound = (error: unknown): boolean =>
   typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
@@ -50,7 +53,7 @@ export class LocalDocumentSource implements DocumentSource {
       data = await readFile(join(this.rawDir, folder.name, MENU_FILE));
     } catch (error) {
       if (isNotFound(error)) return err({ kind: "missing-file", file: MENU_FILE });
-      return err({ kind: "unreadable-document", reason: errorMessage(error) });
+      return unreadable(error);
     }
 
     let table: string[][] | undefined;
@@ -59,7 +62,7 @@ export class LocalDocumentSource implements DocumentSource {
       // The weekly menu is the first table of the first page.
       table = (await parser.getTable()).pages[0]?.tables[0];
     } catch (error) {
-      return err({ kind: "unreadable-document", reason: errorMessage(error) });
+      return unreadable(error);
     } finally {
       await parser.destroy();
     }
@@ -74,14 +77,14 @@ export class LocalDocumentSource implements DocumentSource {
       data = await readFile(join(this.rawDir, folder.name, fileName));
     } catch (error) {
       if (isNotFound(error)) return err({ kind: "missing-file", file: fileName });
-      return err({ kind: "unreadable-document", reason: errorMessage(error) });
+      return unreadable(error);
     }
 
     let pages: PositionedText[][];
     try {
       pages = await readPositionedText(data, 2);
     } catch (error) {
-      return err({ kind: "unreadable-document", reason: errorMessage(error) });
+      return unreadable(error);
     }
     return parseRecipePage(pages[0] ?? [], pages[1] ?? null);
   }

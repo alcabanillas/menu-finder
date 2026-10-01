@@ -107,7 +107,19 @@ const eslintConfig = defineConfig([
   ...nextTs,
   // Reglas de calidad de Sonar (bugs, code smells, complejidad) en el mismo lint (OPS-calidad).
   // Solo en src/: scripts/datos/ se sustituye por la CLI de ingesta y no se refactoriza.
-  { ...sonarjs.configs.recommended, files: ["src/**/*.{ts,tsx}"] },
+  {
+    ...sonarjs.configs.recommended,
+    files: ["src/**/*.{ts,tsx}"],
+    rules: {
+      ...sonarjs.configs.recommended.rules,
+      "sonarjs/cognitive-complexity": ["error", 15],
+      "sonarjs/no-duplicate-string": ["error", { threshold: 3 }],
+      "sonarjs/no-identical-functions": "error",
+      "sonarjs/no-nested-conditional": "warn",
+    },
+  },
+  // En los tests, repetir un dato de fixture deja cada caso legible; sacarlo a una constante lo esconde.
+  { files: ["src/**/*.test.{ts,tsx}"], rules: { "sonarjs/no-duplicate-string": "off" } },
   architecture,
   architectureTests,
   // scripts/datos/ son los scripts CommonJS de generación local de datos (T0).

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { err, ok, type Result } from "./result";
+import { err, ok, type Result } from "@/shared/result";
 
 describe("Result", () => {
   it("ok wraps a value and is narrowed by the ok flag", () => {

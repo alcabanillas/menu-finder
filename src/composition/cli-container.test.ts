@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createCliContainer } from "./cli-container";
+import { createCliContainer } from "@/composition/cli-container";
 
 // A host that does not exist: if the container tried to connect, the error would be a network error.
 const UNREACHABLE = "postgresql://user:password@unreachable.invalid/db";

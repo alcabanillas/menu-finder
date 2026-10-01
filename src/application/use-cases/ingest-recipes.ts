@@ -14,9 +14,9 @@ import type {
   MenuRecipeCount,
   RecipeAnomalyRow,
   RecipeFailure,
-} from "../dto/ingest-recipes";
-import type { DocumentSource } from "../ports/document-source";
-import type { RecipeRepository } from "../ports/recipe-repository";
+} from "@/application/dto/ingest-recipes";
+import type { DocumentSource } from "@/application/ports/document-source";
+import type { RecipeRepository } from "@/application/ports/recipe-repository";
 
 export type IngestRecipesDeps = { source: DocumentSource; recipes: RecipeRepository };
 

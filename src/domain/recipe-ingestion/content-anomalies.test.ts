@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RecipeContent } from "@/domain/recipe/recipe";
-import { checkRecipeContent } from "./content-anomalies";
+import { checkRecipeContent } from "@/domain/recipe-ingestion/content-anomalies";
 
 const complete: RecipeContent = {
   title: "Guiso de prueba",

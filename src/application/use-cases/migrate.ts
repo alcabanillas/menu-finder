@@ -1,5 +1,5 @@
 import { err, ok, type Result } from "@/shared/result";
-import type { MigrationError, MigrationRunner } from "../ports/migration-runner";
+import type { MigrationError, MigrationRunner } from "@/application/ports/migration-runner";
 
 export type MigrateSummary = { applied: string[] };
 

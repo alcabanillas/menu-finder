@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toComparableName } from "./comparable-name";
+import { toComparableName } from "@/domain/menu-ingestion/comparable-name";
 
 describe("toComparableName", () => {
   it.each([

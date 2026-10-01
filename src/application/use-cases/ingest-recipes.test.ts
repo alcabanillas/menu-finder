@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { Recipe, RecipeContent } from "@/domain/recipe/recipe";
 import { err, ok, type Result } from "@/shared/result";
-import type { DocumentSource, MenuFolder, SourceError, SourceRecipe } from "../ports/document-source";
-import type { RepositoryError } from "../ports/menu-repository";
-import type { RecipeRepository } from "../ports/recipe-repository";
-import { ingestRecipes } from "./ingest-recipes";
+import type { DocumentSource, MenuFolder, SourceError, SourceRecipe } from "@/application/ports/document-source";
+import type { RepositoryError } from "@/application/ports/menu-repository";
+import type { RecipeRepository } from "@/application/ports/recipe-repository";
+import { ingestRecipes } from "@/application/use-cases/ingest-recipes";
 
 const content: RecipeContent = {
   title: "Guiso de prueba",

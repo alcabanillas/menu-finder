@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { err } from "@/shared/result";
-import { normalizeLabel, toSourceMenu } from "./menu-table";
+import { normalizeLabel, toSourceMenu } from "@/infrastructure/local-documents/pdf/menu-table";
 
 describe("normalizeLabel", () => {
   it.each([

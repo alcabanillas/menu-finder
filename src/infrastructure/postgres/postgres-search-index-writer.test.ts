@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { IndexContent, NewEmbedding } from "@/application/ports/search-index-writer";
 import type { IndexedRecipe, SearchDataset } from "@/domain/search-index/search-dataset";
-import { MIGRATIONS_DIR, PostgresMigrationRunner } from "./postgres-migration-runner";
-import { PostgresSearchIndexWriter } from "./postgres-search-index-writer";
-import { createTestDatabase, TEST_DATABASE_URL, type TestDatabase } from "./test-database";
+import { MIGRATIONS_DIR, PostgresMigrationRunner } from "@/infrastructure/postgres/postgres-migration-runner";
+import { PostgresSearchIndexWriter } from "@/infrastructure/postgres/postgres-search-index-writer";
+import { createTestDatabase, TEST_DATABASE_URL, type TestDatabase } from "@/infrastructure/postgres/test-database";
 
 const VARIANT = "name-ingredients";
 

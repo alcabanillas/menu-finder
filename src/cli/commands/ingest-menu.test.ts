@@ -2,7 +2,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import type { DishQaRow, IngestMenusError, IngestMenusSummary } from "@/application/dto/ingest-menus";
 import { err, ok, type Result } from "@/shared/result";
-import { runIngestMenu } from "./ingest-menu";
+import { runIngestMenu } from "@/cli/commands/ingest-menu";
 
 const DATA_DIR = join("repo", "data");
 const QA_DIR = join(DATA_DIR, "qa");

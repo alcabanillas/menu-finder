@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { splitCellIntoDishes } from "./split-cell";
+import { splitCellIntoDishes } from "@/infrastructure/local-documents/pdf/split-cell";
 
 const marked = (name: string) => ({ name, hasRecipeMark: true });
 const unmarked = (name: string) => ({ name, hasRecipeMark: false });

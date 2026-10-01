@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { Recipe } from "@/domain/recipe/recipe";
 import { ok } from "@/shared/result";
-import { JsonFileRecipeRepository } from "./json-file-recipe-repository";
+import { JsonFileRecipeRepository } from "@/infrastructure/json-file/json-file-recipe-repository";
 
 const RECIPE: Recipe = {
   file: "Guiso-de-prueba",

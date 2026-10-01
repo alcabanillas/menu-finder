@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { redactSecrets } from "./redact-secrets";
+import { redactSecrets } from "@/shared/redact-secrets";
 
 describe("redactSecrets", () => {
   it("removes the user and password of a connection string", () => {

@@ -6,8 +6,8 @@ import type {
   MenuFailure,
 } from "@/application/dto/ingest-menus";
 import type { Result } from "@/shared/result";
-import { describeSourceError } from "../describe-source-error";
-import { isInside } from "../qa-path";
+import { describeSourceError } from "@/cli/describe-source-error";
+import { isInside } from "@/cli/qa-path";
 
 export type IngestMenuDeps = {
   ingestMenus: () => Promise<Result<IngestMenusSummary, IngestMenusError>>;

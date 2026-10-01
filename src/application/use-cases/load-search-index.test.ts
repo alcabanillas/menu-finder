@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import type { WeeklyMenu } from "@/domain/menu/weekly-menu";
 import type { Recipe } from "@/domain/recipe/recipe";
 import { err, ok, type Result } from "@/shared/result";
-import type { DatasetFile, DatasetSource, DatasetSourceError } from "../ports/dataset-source";
-import type { EmbeddingDocument, EmbeddingsPort } from "../ports/embeddings-port";
-import type { EmbeddingSource, IndexContent, SearchIndexWriter } from "../ports/search-index-writer";
-import { EMBEDDING_VARIANT, loadSearchIndex } from "./load-search-index";
+import type { DatasetFile, DatasetSource, DatasetSourceError } from "@/application/ports/dataset-source";
+import type { EmbeddingDocument, EmbeddingsPort } from "@/application/ports/embeddings-port";
+import type { EmbeddingSource, IndexContent, SearchIndexWriter } from "@/application/ports/search-index-writer";
+import { EMBEDDING_VARIANT, loadSearchIndex } from "@/application/use-cases/load-search-index";
 
 const MODEL = "fake-embedding";
 

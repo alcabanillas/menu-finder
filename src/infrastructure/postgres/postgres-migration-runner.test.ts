@@ -2,8 +2,8 @@ import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { MIGRATIONS_DIR, PostgresMigrationRunner } from "./postgres-migration-runner";
-import { createTestDatabase, TEST_DATABASE_URL, type TestDatabase } from "./test-database";
+import { MIGRATIONS_DIR, PostgresMigrationRunner } from "@/infrastructure/postgres/postgres-migration-runner";
+import { createTestDatabase, TEST_DATABASE_URL, type TestDatabase } from "@/infrastructure/postgres/test-database";
 
 const SEARCH_TABLES = ["meal", "menu", "menu_dish", "recipe", "recipe_embedding", "recipe_ingredient"];
 

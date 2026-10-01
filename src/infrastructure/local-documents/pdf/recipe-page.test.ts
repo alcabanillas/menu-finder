@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { LayoutAnomaly, SourceRecipe } from "@/application/ports/document-source";
 import { err } from "@/shared/result";
-import { parseRecipePage, type PositionedText } from "./recipe-page";
+import { parseRecipePage, type PositionedText } from "@/infrastructure/local-documents/pdf/recipe-page";
 
 const at = (x: number, y: number, text: string): PositionedText => ({ x, y, text });
 
