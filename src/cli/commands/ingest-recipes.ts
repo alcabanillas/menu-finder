@@ -9,9 +9,11 @@ import type {
 import type { Result } from "@/shared/result";
 import { describeSourceError } from "@/cli/describe-source-error";
 import { isInside } from "@/cli/qa-path";
+import { isMissingVariables, missingLines } from "@/cli/commands/missing-variables";
+import type { MissingVariables } from "@/composition/cli-container";
 
 export type IngestRecipesDeps = {
-  ingestRecipes: () => Promise<Result<IngestRecipesSummary, IngestRecipesError>>;
+  ingestRecipes: () => Promise<Result<IngestRecipesSummary, IngestRecipesError | MissingVariables>>;
   print: (line: string) => void;
   writeFile: (path: string, content: string) => Promise<void>;
   dataDir: string;
@@ -120,7 +122,8 @@ const toQaMarkdown = (summary: IngestRecipesSummary): string =>
     "",
   ].join("\n");
 
-const errorLines = (error: IngestRecipesError): string[] => {
+const errorLines = (error: IngestRecipesError | MissingVariables): string[] => {
+  if (isMissingVariables(error)) return missingLines(error);
   switch (error.kind) {
     case "source-unavailable":
       return [`Cannot read the recipes: ${describeSourceError(error.error)}`];

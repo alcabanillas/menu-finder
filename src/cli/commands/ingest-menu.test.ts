@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { DishQaRow, IngestMenusError, IngestMenusSummary } from "@/application/dto/ingest-menus";
 import { err, ok, type Result } from "@/shared/result";
 import { runIngestMenu } from "@/cli/commands/ingest-menu";
+import type { MissingVariables } from "@/composition/cli-container";
 
 const DATA_DIR = join("repo", "data");
 const QA_DIR = join(DATA_DIR, "qa");
@@ -50,7 +51,7 @@ const summary = (overrides: Partial<IngestMenusSummary> = {}): IngestMenusSummar
 });
 
 const run = async (
-  result: Result<IngestMenusSummary, IngestMenusError>,
+  result: Result<IngestMenusSummary, IngestMenusError | MissingVariables>,
   dirs: { dataDir: string; qaDir: string } = { dataDir: DATA_DIR, qaDir: QA_DIR },
 ) => {
   const lines: string[] = [];
@@ -138,6 +139,14 @@ describe("runIngestMenu", () => {
     expect(exitCode).toBe(1);
     expect(output).toContain("Menu 1 error: menu.pdf not found");
     expect(output).toContain("No menu could be parsed.");
+    expect(files.size).toBe(0);
+  });
+
+  it("exits with 1, names a missing variable and writes nothing", async () => {
+    const { exitCode, output, files } = await run(err({ kind: "missing-variables", names: ["DATABASE_URL_UNPOOLED"] }));
+
+    expect(exitCode).toBe(1);
+    expect(output).toBe("Missing environment variable: DATABASE_URL_UNPOOLED. Set them in .env.local.");
     expect(files.size).toBe(0);
   });
 

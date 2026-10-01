@@ -1,4 +1,4 @@
-import type { EmbeddingDocument } from "@/domain/search-index/search-dataset";
+import type { EmbeddingDocument } from "@/domain/search-index/recipe-rows";
 import type { Result } from "@/shared/result";
 
 export type { EmbeddingDocument };

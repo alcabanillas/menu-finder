@@ -1,9 +1,9 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { createCliContainer } from "@/composition/cli-container";
+import { runEmbed } from "@/cli/commands/embed";
 import { runIngestMenu } from "@/cli/commands/ingest-menu";
 import { runIngestRecipes } from "@/cli/commands/ingest-recipes";
-import { runLoad } from "@/cli/commands/load";
 import { runMigrate } from "@/cli/commands/migrate";
 import { runCli } from "@/cli/run-cli";
 
@@ -31,7 +31,7 @@ runCli(process.argv.slice(2), {
       menu: () => runIngestMenu({ ...container, ...output }),
       recipes: () => runIngestRecipes({ ...container, ...output }),
       migrate: () => runMigrate({ migrate: container.migrate, print }),
-      load: () => runLoad({ loadSearchIndex: container.loadSearchIndex, print }),
+      embed: () => runEmbed({ embedRecipes: container.embedRecipes, print }),
     };
   },
 })

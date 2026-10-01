@@ -8,7 +8,7 @@ const setup = () => {
   let menuRuns = 0;
   let recipesRuns = 0;
   let migrateRuns = 0;
-  let loadRuns = 0;
+  let embedRuns = 0;
   const createCommands = (): CliCommands => {
     built++;
     return {
@@ -24,8 +24,8 @@ const setup = () => {
         migrateRuns++;
         return 0;
       },
-      load: async () => {
-        loadRuns++;
+      embed: async () => {
+        embedRuns++;
         return 1;
       },
     };
@@ -33,7 +33,7 @@ const setup = () => {
   return {
     lines,
     run: (args: string[]) => runCli(args, { createCommands, print: (line) => lines.push(line) }),
-    counts: () => ({ built, menuRuns, recipesRuns, migrateRuns, loadRuns }),
+    counts: () => ({ built, menuRuns, recipesRuns, migrateRuns, embedRuns }),
   };
 };
 
@@ -42,38 +42,38 @@ describe("runCli", () => {
     const { run, counts } = setup();
 
     expect(await run(["menu"])).toBe(0);
-    expect(counts()).toEqual({ built: 1, menuRuns: 1, recipesRuns: 0, migrateRuns: 0, loadRuns: 0 });
+    expect(counts()).toEqual({ built: 1, menuRuns: 1, recipesRuns: 0, migrateRuns: 0, embedRuns: 0 });
   });
 
   it("runs the recipes command and returns its exit code", async () => {
     const { run, counts } = setup();
 
     expect(await run(["recipes"])).toBe(1);
-    expect(counts()).toEqual({ built: 1, menuRuns: 0, recipesRuns: 1, migrateRuns: 0, loadRuns: 0 });
+    expect(counts()).toEqual({ built: 1, menuRuns: 0, recipesRuns: 1, migrateRuns: 0, embedRuns: 0 });
   });
 
   it("runs the migrate command and returns its exit code", async () => {
     const { run, counts } = setup();
 
     expect(await run(["migrate"])).toBe(0);
-    expect(counts()).toEqual({ built: 1, menuRuns: 0, recipesRuns: 0, migrateRuns: 1, loadRuns: 0 });
+    expect(counts()).toEqual({ built: 1, menuRuns: 0, recipesRuns: 0, migrateRuns: 1, embedRuns: 0 });
   });
 
-  it("runs the load command and returns its exit code", async () => {
+  it("runs the embed command and returns its exit code", async () => {
     const { run, counts } = setup();
 
-    expect(await run(["load"])).toBe(1);
-    expect(counts()).toEqual({ built: 1, menuRuns: 0, recipesRuns: 0, migrateRuns: 0, loadRuns: 1 });
+    expect(await run(["embed"])).toBe(1);
+    expect(counts()).toEqual({ built: 1, menuRuns: 0, recipesRuns: 0, migrateRuns: 0, embedRuns: 1 });
   });
 
-  it.each([[[]], [["foo"]], [["menu", "extra"]], [["recipes", "extra"]], [["migrate", "extra"]], [["load", "--force"]]])(
+  it.each([[[]], [["foo"]], [["menu", "extra"]], [["recipes", "extra"]], [["migrate", "extra"]], [["embed", "--force"]]])(
     "prints the usage and exits with 2 without building the commands for %j",
     async (args) => {
       const { run, counts, lines } = setup();
 
       expect(await run(args)).toBe(2);
-      expect(lines.join("\n")).toContain("Usage: pnpm ingest <menu|recipes|migrate|load>");
-      expect(counts()).toEqual({ built: 0, menuRuns: 0, recipesRuns: 0, migrateRuns: 0, loadRuns: 0 });
+      expect(lines.join("\n")).toContain("Usage: pnpm ingest <migrate|recipes|menu|embed>");
+      expect(counts()).toEqual({ built: 0, menuRuns: 0, recipesRuns: 0, migrateRuns: 0, embedRuns: 0 });
     },
   );
 
@@ -85,6 +85,6 @@ describe("runCli", () => {
     expect(lines.some((line) => line.trim().startsWith("menu "))).toBe(true);
     expect(lines.some((line) => line.trim().startsWith("recipes "))).toBe(true);
     expect(lines.some((line) => line.trim().startsWith("migrate "))).toBe(true);
-    expect(lines.some((line) => line.trim().startsWith("load "))).toBe(true);
+    expect(lines.some((line) => line.trim().startsWith("embed "))).toBe(true);
   });
 });

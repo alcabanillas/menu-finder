@@ -1,7 +1,7 @@
 # T0 — Generación local de los datos
 
 > **Tipo:** Runbook.
-> **Objetivo:** generar en local, desde los PDF del nutricionista, los JSON que consume el resto del proyecto. Todo ocurre en `data/`, que está gitignoreado (SEG-datos-nutricionista): ni los PDF ni los JSON se suben al repo.
+> **Objetivo:** cargar en la BD de Neon, desde los PDF del nutricionista, los menús y las recetas, y generar en local los JSON que consumen los scripts de evaluación. Los ficheros viven en `data/`, que está gitignoreado (SEG-datos-nutricionista): ni los PDF ni los JSON se suben al repo.
 > **Contrato de los JSON:** [T2](T2-esquema-json-ingesta.md).
 
 ---
@@ -11,11 +11,11 @@
 | Paso | Entrada | Herramienta | Salida |
 |---|---|---|---|
 | 1 | `Lista_de_la_compra.pdf` | `pdftotext -layout` (Poppler) | `Lista_de_la_compra.pdf.txt`, junto al PDF |
-| 2 | `menu.pdf` | `pnpm ingest menu` (CLI de `src/`) | `data/menu-platos.json` (T2 §2) |
-| 3 | un PDF por receta | `pnpm ingest recipes` (CLI de `src/`) | `data/recetas.json` (T2 §4) |
+| 2 | un PDF por receta | `pnpm ingest recipes` (CLI de `src/`) | `data/recetas.json` (T2 §4) y la BD |
+| 3 | `menu.pdf` | `pnpm ingest menu` (CLI de `src/`) | `data/menu-platos.json` (T2 §2) y la BD |
 | 4 | `Lista_de_la_compra.pdf.txt` | `parse-lista-compra.js` | CSV de ítems (T2 §3, pendiente de documentar) |
 
-Menú y recetas se leen **directamente del PDF**. Solo la lista de la compra pasa por TXT, y por eso es la única que necesita Poppler.
+Las recetas van **antes** que el menú, porque cada plato de la BD apunta a su receta (MF-41). Menú y recetas se leen **directamente del PDF**. Solo la lista de la compra pasa por TXT, y por eso es la única que necesita Poppler.
 
 Cada paso escribe además una QA en `data/qa/`, para revisión manual. La del menú lista uno a uno, también en consola, los platos con `*` sin receta resuelta.
 
@@ -24,6 +24,7 @@ Cada paso escribe además una QA en `data/qa/`, para revisión manual. La del me
 - Los PDF en `data/raw/Dieta/Menu 1` … `Menu 36`, cada carpeta con `menu.pdf`, `Lista_de_la_compra.pdf` y un PDF por receta. Los `valoracion-*.pdf` se ignoran.
 - Node y `pnpm install` (dependencias: `pdf-parse` para el menú y `pdfjs-dist` para las recetas; pnpm no deja usar una dependencia que no esté declarada en `package.json`).
 - Poppler (`pdftotext`), solo para el paso 1.
+- `.env.local` (gitignoreado) con `DATABASE_URL_UNPOOLED` (la conexión directa de Neon), para los pasos 2 y 3, y `GEMINI_API_KEY` (nivel de pago, IA-proveedor), para los embeddings.
 - `data/marca.json`, creado a mano y nunca versionado, con los patrones del pie de la lista de la compra (eslogan y marca). Así el parser los descarta sin que el texto del nutricionista aparezca en el código (SEG-datos-nutricionista):
 
   ```json
@@ -71,12 +72,14 @@ head -n 25 "data/raw/Dieta/Menu 1/Lista_de_la_compra.pdf.txt"
 ## 4. Pasos 2–4 — Parsers
 
 ```bash
-pnpm ingest menu    # → data/menu-platos.json (sale con 1 si algún menú falla)
-pnpm ingest recipes # → data/recetas.json (sale con 1 si alguna receta falla)
-pnpm datos:lista     # → data/qa/lista-compra-items.csv
+pnpm ingest migrate # → aplica las migraciones pendientes de postgres/migrations a la BD
+pnpm ingest recipes # → data/recetas.json y la BD (sale con 1 si alguna receta falla)
+pnpm ingest menu    # → data/menu-platos.json y la BD (sale con 1 si algún menú falla)
+pnpm ingest embed   # → embeddings de las recetas en la BD; solo calcula los nuevos o cambiados
+pnpm datos:lista    # → data/qa/lista-compra-items.csv
 ```
 
-Los tres son idempotentes: se pueden relanzar y sobrescriben su salida. Las garantías esperadas de cada uno (recuentos, anomalías) están en T2 §2.5 y §4.4.
+Todos son idempotentes: se pueden relanzar. Los JSON se sobrescriben enteros; en la BD, cada receta o menú recibido sustituye a su versión anterior y no se borra lo que no llega (ING-cli-local). Las garantías esperadas de cada uno (recuentos, anomalías) están en T2 §2.5 y §4.4.
 
 ## 5. Regenerar desde cero
 

@@ -8,9 +8,11 @@ import type {
 import type { Result } from "@/shared/result";
 import { describeSourceError } from "@/cli/describe-source-error";
 import { isInside } from "@/cli/qa-path";
+import { isMissingVariables, missingLines } from "@/cli/commands/missing-variables";
+import type { MissingVariables } from "@/composition/cli-container";
 
 export type IngestMenuDeps = {
-  ingestMenus: () => Promise<Result<IngestMenusSummary, IngestMenusError>>;
+  ingestMenus: () => Promise<Result<IngestMenusSummary, IngestMenusError | MissingVariables>>;
   print: (line: string) => void;
   writeFile: (path: string, content: string) => Promise<void>;
   dataDir: string;
@@ -85,7 +87,8 @@ const toQaMarkdown = (summary: IngestMenusSummary): string =>
     "",
   ].join("\n");
 
-const errorLines = (error: IngestMenusError): string[] => {
+const errorLines = (error: IngestMenusError | MissingVariables): string[] => {
+  if (isMissingVariables(error)) return missingLines(error);
   switch (error.kind) {
     case "source-unavailable":
       return [`Cannot read the menus: ${describeSourceError(error.error)}`];

@@ -5,17 +5,17 @@ import { createCliContainer } from "@/composition/cli-container";
 const UNREACHABLE = "postgresql://user:password@unreachable.invalid/db";
 
 describe("createCliContainer", () => {
-  it("names a missing key for load and does not connect", async () => {
+  it("names a missing key for embed and does not connect", async () => {
     const container = createCliContainer({ DATABASE_URL_UNPOOLED: UNREACHABLE });
 
-    expect(await container.loadSearchIndex()).toEqual({
+    expect(await container.embedRecipes()).toEqual({
       ok: false,
       error: { kind: "missing-variables", names: ["GEMINI_API_KEY"] },
     });
   });
 
-  it("names every missing variable for load", async () => {
-    expect(await createCliContainer({}).loadSearchIndex()).toEqual({
+  it("names every missing variable for embed", async () => {
+    expect(await createCliContainer({}).embedRecipes()).toEqual({
       ok: false,
       error: { kind: "missing-variables", names: ["DATABASE_URL_UNPOOLED", "GEMINI_API_KEY"] },
     });
@@ -27,6 +27,16 @@ describe("createCliContainer", () => {
       error: { kind: "missing-variables", names: ["DATABASE_URL_UNPOOLED"] },
     });
   });
+
+  it.each(["ingestMenus", "ingestRecipes"] as const)(
+    "names a missing connection string for %s before reading any PDF",
+    async (command) => {
+      expect(await createCliContainer({})[command]()).toEqual({
+        ok: false,
+        error: { kind: "missing-variables", names: ["DATABASE_URL_UNPOOLED"] },
+      });
+    },
+  );
 
   it("treats an empty variable as missing", async () => {
     expect(await createCliContainer({ DATABASE_URL_UNPOOLED: "" }).migrate()).toEqual({

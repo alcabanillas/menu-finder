@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { IngestRecipesError, IngestRecipesSummary } from "@/application/dto/ingest-recipes";
 import { err, ok, type Result } from "@/shared/result";
 import { runIngestRecipes } from "@/cli/commands/ingest-recipes";
+import type { MissingVariables } from "@/composition/cli-container";
 
 const DATA_DIR = join("repo", "data");
 const QA_DIR = join(DATA_DIR, "qa");
@@ -39,7 +40,7 @@ const WITH_FAILURE: IngestRecipesSummary = {
   failures: [{ menu: 5, file: "Crema-de-prueba", error: { kind: "missing-section", section: "ingredients" } }],
 };
 
-const setup = (result: Result<IngestRecipesSummary, IngestRecipesError>, qaDir = QA_DIR) => {
+const setup = (result: Result<IngestRecipesSummary, IngestRecipesError | MissingVariables>, qaDir = QA_DIR) => {
   const lines: string[] = [];
   const files = new Map<string, string>();
   const ingestRecipes = vi.fn(async () => result);
@@ -143,7 +144,11 @@ describe("runIngestRecipes", () => {
     expect(lines).toContain("Menu 5/Crema-de-prueba error: missing section (ingredients)");
   });
 
-  it.each<[IngestRecipesError, string]>([
+  it.each<[IngestRecipesError | MissingVariables, string]>([
+    [
+      { kind: "missing-variables", names: ["DATABASE_URL_UNPOOLED"] },
+      "Missing environment variable: DATABASE_URL_UNPOOLED. Set them in .env.local.",
+    ],
     [{ kind: "source-unavailable", error: { kind: "missing-raw-directory", path: "raw" } }, "Cannot read the recipes: raw directory not found: raw"],
     [
       { kind: "no-recipe-parsed", failures: WITH_FAILURE.failures },

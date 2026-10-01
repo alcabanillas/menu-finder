@@ -40,7 +40,7 @@ infrastructure/
   json-file/    JsonFileMenuRepository, JsonFileRecipeRepository   unchanged
   postgres/     PostgresMenuRepository, PostgresRecipeRepository,
                 PostgresRecipeEmbeddingRepository, pool, migration runner
-  fan-out/      FanOutMenuRepository, FanOutRecipeRepository       JSON first, then Postgres
+  fan-out/      FanOutRepository<T>, one class for both ports       JSON first, then Postgres
   genkit/       EmbeddingsPort adapter
 composition/    cli-container wires them
 cli/commands/   migrate, embed (menu and recipes unchanged)
@@ -48,12 +48,12 @@ cli/commands/   migrate, embed (menu and recipes unchanged)
 
 | Command | Use case | Reads | Saves through |
 |---|---|---|---|
-| `ingest recipes` | `ingestRecipes` | the PDFs (`DocumentSource`) | `FanOutRecipeRepository`: JSON, then Postgres |
-| `ingest menu` | `ingestMenus` | the PDFs (`DocumentSource`) | `FanOutMenuRepository`: JSON, then Postgres |
+| `ingest recipes` | `ingestRecipes` | the PDFs (`DocumentSource`) | `FanOutRepository` (recipes): JSON, then Postgres |
+| `ingest menu` | `ingestMenus` | the PDFs (`DocumentSource`) | `FanOutRepository` (menus): JSON, then Postgres |
 | `ingest embed` | `embedRecipes` | the recipe rows (`RecipeEmbeddingRepository`) | `RecipeEmbeddingRepository` |
 
 - **PDF → database is the real load.** The JSON files are still written, first, because the golden-set scripts (`pnpm evals:golden-set`, MF-12) read them and they let the author work without the database; nothing reads them back into the database (decided by the author on 2026-10-01).
-- **The fan-out adapters** implement the port by calling the JSON adapter and then the Postgres one. When the second fails, the error says that the JSON file was written and why the database save failed (decided by the author on 2026-10-01). `RepositoryError` keeps its shape: the text goes in `reason`.
+- **The fan-out adapter** (`FanOutRepository<T>`, one generic class, since both ports are just `saveAll`) implements the port by calling the JSON adapter and then the Postgres one. When the second fails, the error says that the JSON file was written and why the database save failed (decided by the author on 2026-10-01). `RepositoryError` keeps its shape: the text goes in `reason`.
 - **`RecipeEmbeddingRepository`** is the only new port besides the migrations and the embedding service. `documents(variant)` returns every recipe row (the rows of dishes without recipe included) with its title, its ingredient names and, when there is one, the model and the text of its stored vector; `saveAll(variant, embeddings)` upserts the vectors in one transaction. `embed` needs nothing else, so the repository ports get no read method.
 - **The rows of the dishes without recipe** (`dish:<name>`, one per distinct name) are created by `PostgresMenuRepository`, because they only exist through a menu. Their key and the embedded text come from `domain/search-index/`.
 - The read side of the search (`SearchIndex`) comes with `mf-42-menu-search`, kept separate so that `search` and `evaluate-search` never need write access; the composition root can hand them a read-only connection later (MF-17) without changing the use cases.

@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import pg from "pg";
+import { MIGRATIONS_DIR, PostgresMigrationRunner } from "@/infrastructure/postgres/postgres-migration-runner";
 
 /**
  * Integration tests run against a temporary Neon branch, never `production`
@@ -13,6 +14,19 @@ if (!TEST_DATABASE_URL) {
 }
 
 export type TestDatabase = { pool: pg.Pool; schema: string; drop: () => Promise<void> };
+
+/** A test database with every migration of `postgres/migrations/` applied. */
+export async function createMigratedTestDatabase(url: string): Promise<TestDatabase> {
+  const db = await createTestDatabase(url);
+  const runner = new PostgresMigrationRunner(db.pool, MIGRATIONS_DIR);
+  const available = await runner.available();
+  if (!available.ok) throw new Error(available.error.reason);
+  for (const id of available.value.sort()) {
+    const applied = await runner.apply(id);
+    if (!applied.ok) throw new Error(applied.error.reason);
+  }
+  return db;
+}
 
 export async function createTestDatabase(url: string): Promise<TestDatabase> {
   const schema = `test_${randomBytes(6).toString("hex")}`;

@@ -3,7 +3,7 @@ export type CliCommands = {
   menu: () => Promise<number>;
   recipes: () => Promise<number>;
   migrate: () => Promise<number>;
-  load: () => Promise<number>;
+  embed: () => Promise<number>;
 };
 
 export type RunCliDeps = {
@@ -12,15 +12,16 @@ export type RunCliDeps = {
   print: (line: string) => void;
 };
 
+// Listed in the order they are run (MF-41 design D9): a dish points to its recipe row.
 const USAGE = [
-  "Usage: pnpm ingest <menu|recipes|migrate|load>",
-  "  menu     Ingest the weekly menus from data/raw/Dieta into data/menu-platos.json",
-  "  recipes  Ingest the recipes from data/raw/Dieta into data/recetas.json",
+  "Usage: pnpm ingest <migrate|recipes|menu|embed>",
   "  migrate  Apply the pending SQL migrations of postgres/migrations to the database",
-  "  load     Load data/menu-platos.json, data/recetas.json and their embeddings into the database",
+  "  recipes  Ingest the recipes from data/raw/Dieta into data/recetas.json and the database",
+  "  menu     Ingest the weekly menus from data/raw/Dieta into data/menu-platos.json and the database",
+  "  embed    Compute the missing or outdated recipe embeddings and store them in the database",
 ];
 
-const COMMANDS: (keyof CliCommands)[] = ["menu", "recipes", "migrate", "load"];
+const COMMANDS: (keyof CliCommands)[] = ["migrate", "recipes", "menu", "embed"];
 
 const isCommand = (name: string | undefined): name is keyof CliCommands =>
   COMMANDS.includes(name as keyof CliCommands);

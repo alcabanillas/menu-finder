@@ -8,9 +8,9 @@ import { err, ok, type Result } from "@/shared/result";
 export const RECIPE_DATASET_FILE = "recetas.json";
 
 /**
- * Temporary recipe store: the recipes serialized as they are to
- * `<dataDir>/recetas.json`, rewritten whole on every save. MF-16 replaces it
- * with a database adapter, which must upsert per recipe instead.
+ * The recipes serialized as they are to `<dataDir>/recetas.json`, rewritten
+ * whole on every save. Written before the database (MF-41 design D1), for the
+ * golden-set scripts and for working without the database.
  */
 export class JsonFileRecipeRepository implements RecipeRepository {
   constructor(private readonly dataDir: string) {}
