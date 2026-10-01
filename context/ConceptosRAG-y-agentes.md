@@ -113,7 +113,7 @@ Por qué importa para el TFM: si llamas "agente" a cada llamada al LLM, quien ev
 
 ### 2.2 Los componentes del sistema, uno a uno
 
-#### ✅ Descomponedor — el único agente en producción (BUS-descomponedor)
+#### ❌ Descomponedor — no es agente; su relajación automática sería agente, y es línea futura (BUS-descomponedor)
 
 ```
 entrada: "arroz con pollo y garbanzos, nada de cerdo"
@@ -121,19 +121,15 @@ entrada: "arroz con pollo y garbanzos, nada de cerdo"
 LLM con schema Zod → restricciones: "arroz con pollo" (un mismo plato), "garbanzos"
                       exclusión global: cerdo (penalización blanda)
   ↓
-consultar → ranking de los 36 menús
+buscador → puntúa los 36 menús → muestra los 5 primeros
   ↓
-¿una restricción marcada como dura deja 0 menús?
-   no → fin
-   sí → observa cuántos menús elimina cada restricción dura
-        decide: pasarla a blanda, o sustituirla por su hiperónimo ("garbanzos" → legumbre)
-        lo avisa en el chip y reconsulta
-        máximo 2 vueltas → si no, el mejor ranking parcial
+¿las restricciones duras dejan menos de 5?  → el chip dice cuántos menús elimina cada una
+                                              y el usuario la afloja y relanza
 ```
 
-Es agente porque **observa** el resultado, **decide** entre dos movimientos y tiene **condición de parada**.
+Es una llamada con schema: traduce una vez y no decide nada sobre el resultado. El bucle lo cierra el usuario (human-in-the-loop).
 
-Límite a tener presente: solo se activa con una restricción dura, y por defecto todas son blandas (BUS-superficie-consulta). En el uso normal el descomponedor es una llamada de traducción; el bucle es para los casos límite. Se cuenta así, sin inflarlo.
+**Línea futura:** que el LLM observe cuántos menús elimina cada restricción dura, **decida** cuál soltar según la intención ("sin gluten" suena a salud, "salmón" a preferencia) y reconsulte, con un máximo de 2 vueltas. Eso sí cumpliría la definición. El diseño lo deja preparado: el buscador recibe la estructura y devuelve ese recuento.
 
 #### 🧪 Extractor — agente, pero experimento (ING-determinista)
 
@@ -168,7 +164,7 @@ Patrón LLM-as-judge: puntúa faithfulness y relevancia de las explicaciones, en
 
 ### 2.3 Cómo se cuenta esto en la presentación
 
-> *El sistema es un buscador en lenguaje natural sobre un catálogo estructurado: traduce la petición a restricciones, las recupera plato a plato con búsqueda híbrida y explica el ranking con los datos recuperados. Combina componentes deterministas (parsers, ranking, ingesta) con tres usos de LLM —descomponer, explicar y evaluar—, clasificados según cumplan o no la definición de agente adoptada (bucle de observación, decisión y condición de parada). Solo el descomponedor la cumple en producción: ante una consulta sin resultados decide cómo relajarla y reconsulta, con un máximo de dos vueltas. La extracción de los PDF se resolvió de forma determinista; el agente extractor se conserva como experimento comparativo. El explicador y el juez se documentan como llamadas con schema, no como agentes. Se ha evitado deliberadamente usar un LLM donde una solución determinista es suficiente.*
+> *El sistema es un buscador en lenguaje natural sobre un catálogo estructurado: traduce la petición a restricciones, las recupera plato a plato con búsqueda híbrida y explica el ranking con los datos recuperados. Combina componentes deterministas (parsers, ranking, ingesta) con tres usos de LLM —descomponer, explicar y evaluar—, clasificados según cumplan o no la definición de agente adoptada (bucle de observación, decisión y condición de parada). Solo la cumple el agente extractor, que se conserva como experimento comparativo porque la extracción de los PDF se resolvió de forma determinista. El descomponedor, el explicador y el juez se documentan como llamadas con schema, no como agentes; la relajación automática de restricciones, que sí sería un agente, queda como línea futura con el diseño preparado. Se ha evitado deliberadamente usar un LLM donde una solución determinista es suficiente.*
 
 ### 2.4 Relación con Genkit (IA-proveedor)
 
