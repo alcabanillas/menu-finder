@@ -18,12 +18,6 @@ export type VersionSelection = {
   divergent: DivergentRecipe[];
 };
 
-// The contents are plain data built in the same key order, so their JSON is a structural comparison.
-const sameValue = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.stringify(b);
-
-// File names are unique map keys, so two of them are never equal.
-const byFileName = ([a]: [string, RecipeVersion[]], [b]: [string, RecipeVersion[]]): number => (a < b ? -1 : 1);
-
 /**
  * Keeps one recipe per file: the version from the highest-numbered menu. The
  * other versions are compared with it, field by field, to report the files
@@ -60,4 +54,14 @@ export function selectRecipeVersions(versions: RecipeVersion[]): VersionSelectio
   }
 
   return { recipes, repeatedFiles, divergent };
+}
+
+// File names are unique map keys, so two of them are never equal.
+function byFileName([a]: [string, RecipeVersion[]], [b]: [string, RecipeVersion[]]): number {
+  return a < b ? -1 : 1;
+}
+
+// The contents are plain data built in the same key order, so their JSON is a structural comparison.
+function sameValue(a: unknown, b: unknown): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
 }

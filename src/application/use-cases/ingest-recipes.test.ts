@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Recipe, RecipeContent } from "@/domain/recipe/recipe";
 import { err, ok, type Result } from "@/shared/result";
 import type { DocumentSource, MenuFolder, SourceError, SourceRecipe } from "@/application/ports/document-source";
-import type { RepositoryError } from "@/application/ports/menu-repository";
+import type { RepositoryError } from "@/application/ports/repository-error";
 import type { RecipeRepository } from "@/application/ports/recipe-repository";
 import { ingestRecipes } from "@/application/use-cases/ingest-recipes";
 

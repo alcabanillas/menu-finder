@@ -34,71 +34,6 @@ const CSV_HEADER = [
   "discarded_score",
 ];
 
-const formatScore = (score: number | null): string => (score === null ? "" : score.toFixed(2));
-
-const csvCell = (value: string | number): string => `"${String(value).replace(/"/g, '""')}"`;
-
-const toCsvLine = (row: DishQaRow): string =>
-  [
-    row.menu,
-    row.type,
-    row.day,
-    row.dish,
-    row.hasRecipeMark ? "1" : "0",
-    row.matchedRecipe ?? "",
-    formatScore(row.score),
-    row.discardedCandidate ?? "",
-    formatScore(row.discardedScore),
-  ]
-    .map(csvCell)
-    .join(",");
-
-const describeUnresolved = (row: DishQaRow): string => {
-  const candidate =
-    row.discardedCandidate === null
-      ? "no candidate"
-      : `discarded: ${row.discardedCandidate}, ${formatScore(row.discardedScore)}`;
-  return `menu ${row.menu}, ${row.day}, ${row.type}, "${row.dish}" (${candidate})`;
-};
-
-const describeFailure = ({ menu, error }: MenuFailure): string => `Menu ${menu} error: ${describeSourceError(error)}`;
-
-const summaryLines = ({ failures, totals, unresolved }: IngestMenusSummary): string[] => [
-  `Menus processed without error: ${totals.menusProcessed}/${totals.menusFound}`,
-  ...failures.map(describeFailure),
-  `Empty slots: ${totals.emptySlots}`,
-  `Slots with two or more dishes: ${totals.multiDishSlots}`,
-  `Resolved marked dishes: ${totals.resolved}`,
-  `Unmarked dishes: ${totals.unmarked}`,
-  `Unresolved marked dishes: ${totals.unresolved}`,
-  `Unclaimed recipe files: ${totals.unclaimedRecipeFiles}`,
-  ...(unresolved.length === 0
-    ? ["No unresolved marked dishes."]
-    : unresolved.map((row) => `Unresolved: ${describeUnresolved(row)}`)),
-];
-
-const toQaMarkdown = (summary: IngestMenusSummary): string =>
-  [
-    "# QA — menu ingestion",
-    "",
-    ...summaryLines(summary).map((line) => `- ${line}`),
-    "",
-    `Per-dish detail in \`${QA_CSV_FILE}\`.`,
-    "",
-  ].join("\n");
-
-const errorLines = (error: IngestMenusError | MissingVariables): string[] => {
-  if (isMissingVariables(error)) return missingLines(error);
-  switch (error.kind) {
-    case "source-unavailable":
-      return [`Cannot read the menus: ${describeSourceError(error.error)}`];
-    case "no-menu-parsed":
-      return [...error.failures.map(describeFailure), "No menu could be parsed."];
-    case "save-failed":
-      return [`Cannot save the menus: ${error.error.reason}`];
-  }
-};
-
 /** `ingest menu`: runs the ingestion, prints its summary and writes the QA report. Returns the exit code. */
 export async function runIngestMenu({ ingestMenus, print, writeFile, dataDir, qaDir }: IngestMenuDeps): Promise<number> {
   const qaFiles = [QA_CSV_FILE, QA_MD_FILE].map((file) => join(qaDir, file));
@@ -119,4 +54,79 @@ export async function runIngestMenu({ ingestMenus, print, writeFile, dataDir, qa
   await writeFile(csvPath, [CSV_HEADER.map(csvCell).join(","), ...summary.qaRows.map(toCsvLine)].join("\n"));
   await writeFile(mdPath, toQaMarkdown(summary));
   return summary.failures.length > 0 ? 1 : 0;
+}
+
+function errorLines(error: IngestMenusError | MissingVariables): string[] {
+  if (isMissingVariables(error)) return missingLines(error);
+  switch (error.kind) {
+    case "source-unavailable":
+      return [`Cannot read the menus: ${describeSourceError(error.error)}`];
+    case "no-menu-parsed":
+      return [...error.failures.map(describeFailure), "No menu could be parsed."];
+    case "save-failed":
+      return [`Cannot save the menus: ${error.error.reason}`];
+  }
+}
+
+function describeFailure({ menu, error }: MenuFailure): string {
+  return `Menu ${menu} error: ${describeSourceError(error)}`;
+}
+
+function summaryLines({ failures, totals, unresolved }: IngestMenusSummary): string[] {
+  return [
+    `Menus processed without error: ${totals.menusProcessed}/${totals.menusFound}`,
+    ...failures.map(describeFailure),
+    `Empty slots: ${totals.emptySlots}`,
+    `Slots with two or more dishes: ${totals.multiDishSlots}`,
+    `Resolved marked dishes: ${totals.resolved}`,
+    `Unmarked dishes: ${totals.unmarked}`,
+    `Unresolved marked dishes: ${totals.unresolved}`,
+    `Unclaimed recipe files: ${totals.unclaimedRecipeFiles}`,
+    ...(unresolved.length === 0
+      ? ["No unresolved marked dishes."]
+      : unresolved.map((row) => `Unresolved: ${describeUnresolved(row)}`)),
+  ];
+}
+
+function describeUnresolved(row: DishQaRow): string {
+  const candidate =
+    row.discardedCandidate === null
+      ? "no candidate"
+      : `discarded: ${row.discardedCandidate}, ${formatScore(row.discardedScore)}`;
+  return `menu ${row.menu}, ${row.day}, ${row.type}, "${row.dish}" (${candidate})`;
+}
+
+function formatScore(score: number | null): string {
+  return score === null ? "" : score.toFixed(2);
+}
+
+function csvCell(value: string | number): string {
+  return `"${String(value).replace(/"/g, '""')}"`;
+}
+
+function toCsvLine(row: DishQaRow): string {
+  return [
+    row.menu,
+    row.type,
+    row.day,
+    row.dish,
+    row.hasRecipeMark ? "1" : "0",
+    row.matchedRecipe ?? "",
+    formatScore(row.score),
+    row.discardedCandidate ?? "",
+    formatScore(row.discardedScore),
+  ]
+    .map(csvCell)
+    .join(",");
+}
+
+function toQaMarkdown(summary: IngestMenusSummary): string {
+  return [
+    "# QA — menu ingestion",
+    "",
+    ...summaryLines(summary).map((line) => `- ${line}`),
+    "",
+    `Per-dish detail in \`${QA_CSV_FILE}\`.`,
+    "",
+  ].join("\n");
 }

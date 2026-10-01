@@ -1,7 +1,7 @@
 import type { WeeklyMenu } from "@/domain/menu/weekly-menu";
 import type { Result } from "@/shared/result";
+import type { RepositoryError } from "@/application/ports/repository-error";
 
-export type RepositoryError = { kind: "write-failed"; reason: string };
 
 export interface MenuRepository {
   /** Stores the given menus. It must not remove menus it did not receive. */

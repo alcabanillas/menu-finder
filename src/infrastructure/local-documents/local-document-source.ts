@@ -13,14 +13,6 @@ const RECIPE_EXTENSION = ".pdf";
 /** Documents in a menu folder that are not recipes. */
 const NON_RECIPE_FILES = /^(menu|lista_de_la_compra|valoracion.*)$/i;
 
-const errorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));
-
-const unreadable = (error: unknown): Result<never, SourceError> =>
-  err({ kind: "unreadable-document", reason: errorMessage(error) });
-
-const isNotFound = (error: unknown): boolean =>
-  typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
-
 /** Reads the menus and recipe files from the local `data/raw/Dieta` folders. */
 export class LocalDocumentSource implements DocumentSource {
   constructor(private readonly rawDir: string) {}
@@ -109,4 +101,16 @@ async function readPositionedText(data: Buffer, maxPages: number): Promise<Posit
   } finally {
     await document.destroy();
   }
+}
+
+function isNotFound(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+}
+
+function unreadable(error: unknown): Result<never, SourceError> {
+  return err({ kind: "unreadable-document", reason: errorMessage(error) });
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }

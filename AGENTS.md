@@ -93,6 +93,16 @@ Folders in `domain/` and `application/`, ports, use cases and CLI commands are n
 | ✅ | `use-cases/embed-recipes.ts`, `cli/commands/embed.ts` | Says what it does; the command and its file share the name |
 | ✅ | `infrastructure/postgres/postgres-menu-repository.ts` | The technology appears only in infrastructure |
 
+### Rule: short functions, most important first (mandatory)
+
+Keep functions short: each does one thing that its name says. When a function grows steps, extract each step into a function named after what it does. Order a file top-down: imports, types and constants, then the exported function, then its helpers in the order they are called. A reader learns what the file does in the first function and reads down only for the detail. Helpers are `function` declarations, so they can sit below their caller.
+
+| | Example | Why |
+|---|---|---|
+| ❌ | `toQaRow`, `emptyTotals`, `addCounts` and then `ingestMenus` at the bottom | The reader meets the detail before knowing what it is for |
+| ❌ | A use case with a 30-line loop that reads, builds and counts inline | The steps have no names |
+| ✅ | `ingestMenus` first, then `readMenus`, `toQaRow`, `matchEvidence`, `addCounts` | Main flow first, each step named, in call order |
+
 ## Datos
 
 - Los PDF y los JSON generados viven en `data/`, que **nunca se sube** (SEG-datos-nutricionista). Se generan en local con el runbook T0 (`pnpm datos:*`).

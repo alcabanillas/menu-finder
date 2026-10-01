@@ -14,9 +14,6 @@ const BATCH_SIZE = 10;
 /** One vector per text, in order. Replaced in tests. */
 export type EmbedMany = (texts: string[]) => Promise<number[][]>;
 
-// `gemini-embedding-2` has no `task_type` for text: the task goes in the text (Gemini API docs, D5).
-const documentText = ({ title, content }: EmbeddingDocument): string => `title: ${title || "none"} | text: ${content}`;
-
 export class GenkitEmbeddings implements EmbeddingsPort {
   readonly model = EMBEDDING_MODEL;
 
@@ -55,4 +52,9 @@ export function createGenkitEmbeddings(apiKey: string): GenkitEmbeddings {
     async (texts) => (await ai.embedMany({ embedder, content: texts })).map((item) => item.embedding),
     apiKey,
   );
+}
+
+// `gemini-embedding-2` has no `task_type` for text: the task goes in the text (Gemini API docs, D5).
+function documentText({ title, content }: EmbeddingDocument): string {
+  return `title: ${title || "none"} | text: ${content}`;
 }

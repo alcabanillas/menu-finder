@@ -23,9 +23,6 @@ const USAGE = [
 
 const COMMANDS: (keyof CliCommands)[] = ["migrate", "recipes", "menu", "embed"];
 
-const isCommand = (name: string | undefined): name is keyof CliCommands =>
-  COMMANDS.includes(name as keyof CliCommands);
-
 /** Dispatches the CLI arguments to a command. Returns the exit code: 2 on a usage error. */
 export async function runCli(args: string[], { createCommands, print }: RunCliDeps): Promise<number> {
   const [command, ...rest] = args;
@@ -34,4 +31,8 @@ export async function runCli(args: string[], { createCommands, print }: RunCliDe
     return 2;
   }
   return createCommands()[command]();
+}
+
+function isCommand(name: string | undefined): name is keyof CliCommands {
+  return COMMANDS.includes(name as keyof CliCommands);
 }

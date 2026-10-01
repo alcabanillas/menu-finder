@@ -28,9 +28,6 @@ const UPSERT_EMBEDDINGS = `
 
 type DocumentRow = Omit<RecipeToEmbed, "stored"> & { model: string | null; source: string | null };
 
-const failure = (error: unknown): Result<never, EmbeddingStoreError> =>
-  err({ kind: "store-failed", reason: describeDatabaseError(error) });
-
 /** The recipe rows of Postgres and their `vector(3072)` embeddings. */
 export class PostgresRecipeEmbeddingRepository implements RecipeEmbeddingRepository {
   constructor(private readonly pool: pg.Pool) {}
@@ -66,4 +63,8 @@ export class PostgresRecipeEmbeddingRepository implements RecipeEmbeddingReposit
       return failure(error);
     }
   }
+}
+
+function failure(error: unknown): Result<never, EmbeddingStoreError> {
+  return err({ kind: "store-failed", reason: describeDatabaseError(error) });
 }

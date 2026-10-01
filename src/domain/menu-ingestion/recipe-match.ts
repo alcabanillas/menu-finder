@@ -20,21 +20,6 @@ export type DishResolution =
   | { status: "unresolved"; discarded: { recipe: string; score: number } | null }
   | { status: "unmarked" };
 
-const significantWords = (comparableName: string): Set<string> =>
-  new Set(comparableName.split(" ").filter((word) => word.length > 2));
-
-/** Fraction of the dish's significant words that also appear in the candidate's name. */
-const containmentScore = (dishWords: Set<string>, candidateName: string): number => {
-  const candidateWords = significantWords(candidateName);
-  if (dishWords.size === 0 || candidateWords.size === 0) return 0;
-  let shared = 0;
-  for (const word of dishWords) if (candidateWords.has(word)) shared++;
-  return shared / dishWords.size;
-};
-
-const isBreakfastRecipe = (comparableName: string): boolean =>
-  BREAKFAST_RECIPE_PREFIXES.some((prefix) => comparableName.startsWith(prefix));
-
 /** Whether a recipe file can be matched to a dish: excluded breakfast recipes cannot. */
 export const isRecipeCandidate = (recipeFile: string): boolean => !isBreakfastRecipe(toComparableName(recipeFile));
 
@@ -58,4 +43,21 @@ export function resolveDish(dish: DishToResolve, recipeFiles: readonly string[])
 
   if (best && best.score >= MATCH_THRESHOLD) return { status: "resolved", ...best };
   return { status: "unresolved", discarded: best };
+}
+
+function isBreakfastRecipe(comparableName: string): boolean {
+  return BREAKFAST_RECIPE_PREFIXES.some((prefix) => comparableName.startsWith(prefix));
+}
+
+function significantWords(comparableName: string): Set<string> {
+  return new Set(comparableName.split(" ").filter((word) => word.length > 2));
+}
+
+/** Fraction of the dish's significant words that also appear in the candidate's name. */
+function containmentScore(dishWords: Set<string>, candidateName: string): number {
+  const candidateWords = significantWords(candidateName);
+  if (dishWords.size === 0 || candidateWords.size === 0) return 0;
+  let shared = 0;
+  for (const word of dishWords) if (candidateWords.has(word)) shared++;
+  return shared / dishWords.size;
 }

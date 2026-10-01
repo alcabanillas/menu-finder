@@ -6,13 +6,6 @@ import type { Result } from "@/shared/result";
 
 type Print = (line: string) => void;
 
-const errorLines = (error: EmbedRecipesError | MissingVariables): string[] => {
-  if (isMissingVariables(error)) return missingLines(error);
-  return error.kind === "embedding-failed"
-    ? [`The embedding service failed: ${error.reason}`, "The stored embeddings are unchanged."]
-    : [`The database failed: ${error.reason}`, "The stored embeddings are unchanged."];
-};
-
 /** `ingest embed`: computes the missing or outdated recipe embeddings. Returns the exit code. */
 export async function runEmbed({
   embedRecipes,
@@ -33,4 +26,11 @@ export async function runEmbed({
   }
   print(`Embeddings with ${model} for ${recipes} recipe rows: ${embedded} computed, ${kept} kept.`);
   return 0;
+}
+
+function errorLines(error: EmbedRecipesError | MissingVariables): string[] {
+  if (isMissingVariables(error)) return missingLines(error);
+  return error.kind === "embedding-failed"
+    ? [`The embedding service failed: ${error.reason}`, "The stored embeddings are unchanged."]
+    : [`The database failed: ${error.reason}`, "The stored embeddings are unchanged."];
 }

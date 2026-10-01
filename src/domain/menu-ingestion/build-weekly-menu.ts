@@ -20,8 +20,6 @@ export type MenuCounts = {
 
 export type BuiltWeeklyMenu = { menu: WeeklyMenu; dishes: DishOutcome[]; counts: MenuCounts };
 
-const isKept = (dish: SourceDish): boolean => dish.hasRecipeMark || !isFiller(dish.name);
-
 /**
  * Builds the weekly menu from what a source read: always fourteen meals,
  * unmarked filler dropped, positions following source order, and each marked
@@ -73,4 +71,8 @@ export function buildWeeklyMenu(number: number, source: SourceMenu, recipeFiles:
     (file) => isRecipeCandidate(file) && !claimed.has(file),
   ).length;
   return { menu: { number, meals }, dishes, counts };
+}
+
+function isKept(dish: SourceDish): boolean {
+  return dish.hasRecipeMark || !isFiller(dish.name);
 }

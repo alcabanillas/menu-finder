@@ -1,5 +1,6 @@
 import type pg from "pg";
-import type { MenuRepository, RepositoryError } from "@/application/ports/menu-repository";
+import type { MenuRepository } from "@/application/ports/menu-repository";
+import type { RepositoryError } from "@/application/ports/repository-error";
 import type { WeeklyMenu } from "@/domain/menu/weekly-menu";
 import { missingRecipes, recipeKeyOf, type MissingRecipe } from "@/domain/menu/dish-recipe";
 import { err, ok, type Result } from "@/shared/result";
@@ -20,9 +21,6 @@ const INSERT_DISHES = `
   INSERT INTO menu_dish (menu_number, day, type, position, name, has_recipe_mark, recipe_key)
   SELECT * FROM jsonb_to_recordset($1::jsonb)
     AS r(menu_number int, day text, type text, position int, name text, has_recipe_mark boolean, recipe_key text)`;
-
-const describeMissing = ({ menu, dish, file }: MissingRecipe): string =>
-  `Menu ${menu}, dish "${dish}": recipe file ${file} is not in the database (run \`pnpm ingest recipes\` first)`;
 
 /** The menus in Postgres: menu → meal → dish, each dish pointing to its recipe row. */
 export class PostgresMenuRepository implements MenuRepository {
@@ -81,4 +79,8 @@ export class PostgresMenuRepository implements MenuRepository {
     await client.query(INSERT_MEALS, [asJson(meals.map(({ menu_number, day, type }) => ({ menu_number, day, type })))]);
     await client.query(INSERT_DISHES, [asJson(dishes)]);
   }
+}
+
+function describeMissing({ menu, dish, file }: MissingRecipe): string {
+  return `Menu ${menu}, dish "${dish}": recipe file ${file} is not in the database (run \`pnpm ingest recipes\` first)`;
 }

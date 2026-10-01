@@ -1,4 +1,4 @@
-import type { RepositoryError } from "@/application/ports/menu-repository";
+import type { RepositoryError } from "@/application/ports/repository-error";
 import { err, ok, type Result } from "@/shared/result";
 
 /** The shape `MenuRepository` and `RecipeRepository` share. */

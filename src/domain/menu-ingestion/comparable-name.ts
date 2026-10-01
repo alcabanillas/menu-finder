@@ -1,4 +1,4 @@
-const stripAccents = (text: string): string => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
 
 /** Lowercase, accent-free words separated by single spaces: the form dish and recipe names are compared in. */
 export const toComparableName = (text: string): string =>
@@ -6,3 +6,7 @@ export const toComparableName = (text: string): string =>
     .replace(/[^a-z0-9\s]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+
+function stripAccents(text: string): string {
+  return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}

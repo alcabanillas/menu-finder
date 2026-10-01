@@ -1,6 +1,7 @@
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { MenuRepository, RepositoryError } from "@/application/ports/menu-repository";
+import type { MenuRepository } from "@/application/ports/menu-repository";
+import type { RepositoryError } from "@/application/ports/repository-error";
 import type { WeeklyMenu } from "@/domain/menu/weekly-menu";
 import { err, ok, type Result } from "@/shared/result";
 

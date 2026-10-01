@@ -1,6 +1,6 @@
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { RepositoryError } from "@/application/ports/menu-repository";
+import type { RepositoryError } from "@/application/ports/repository-error";
 import type { RecipeRepository } from "@/application/ports/recipe-repository";
 import type { Recipe } from "@/domain/recipe/recipe";
 import { err, ok, type Result } from "@/shared/result";

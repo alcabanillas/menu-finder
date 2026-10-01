@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { RepositoryError } from "@/application/ports/menu-repository";
+import type { RepositoryError } from "@/application/ports/repository-error";
 import { FanOutRepository } from "@/infrastructure/fan-out/fan-out-repository";
 import { err, ok, type Result } from "@/shared/result";
 

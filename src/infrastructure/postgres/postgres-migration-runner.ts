@@ -18,9 +18,6 @@ const RECORD_TABLE = `
   ALTER TABLE schema_migration ENABLE ROW LEVEL SECURITY;
 `;
 
-const failure = (migration: string | null, error: unknown): Result<never, MigrationError> =>
-  err({ kind: "migration-failed", migration, reason: describeDatabaseError(error) });
-
 export class PostgresMigrationRunner implements MigrationRunner {
   constructor(
     private readonly pool: pg.Pool,
@@ -63,4 +60,8 @@ export class PostgresMigrationRunner implements MigrationRunner {
       client?.release();
     }
   }
+}
+
+function failure(migration: string | null, error: unknown): Result<never, MigrationError> {
+  return err({ kind: "migration-failed", migration, reason: describeDatabaseError(error) });
 }

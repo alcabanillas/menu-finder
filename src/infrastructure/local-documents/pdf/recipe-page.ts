@@ -32,110 +32,6 @@ const TIME_LABELS: Record<string, keyof RecipeTimes> = {
   "Espera/reposo:": "resting",
 };
 
-const collapse = (text: string): string => text.replace(/\s+/g, " ").trim();
-
-/** Drops the footer and orders the items in reading order: by line from the top, then left to right. */
-function readingOrder(items: PositionedText[]): PositionedText[] {
-  const body = items
-    .filter((item) => item.y > FOOTER_MAX_Y)
-    .map((item) => ({ ...item, text: item.text.trim() }))
-    .filter((item) => item.text)
-    .sort((a, b) => b.y - a.y);
-  return toLines(body).flat();
-}
-
-/** Groups items in reading order into lines, each sorted left to right. */
-function toLines(items: PositionedText[]): PositionedText[][] {
-  const lines: PositionedText[][] = [];
-  for (const item of items) {
-    const line = lines.at(-1);
-    if (line && Math.abs(line[0].y - item.y) < SAME_LINE_TOL) line.push(item);
-    else lines.push([item]);
-  }
-  return lines.map((line) => line.sort((a, b) => a.x - b.x));
-}
-
-/** Joins lines into paragraphs; a vertical gap of `PARAGRAPH_GAP` or more starts a new one. */
-function toParagraphs(items: PositionedText[]): string[] {
-  const paragraphs: string[] = [];
-  let previousY: number | null = null;
-  for (const line of toLines(items)) {
-    const text = collapse(line.map((item) => item.text).join(" "));
-    const y = line[0].y;
-    if (previousY !== null && previousY - y < PARAGRAPH_GAP) paragraphs[paragraphs.length - 1] += ` ${text}`;
-    else paragraphs.push(text);
-    previousY = y;
-  }
-  return paragraphs;
-}
-
-const toMinutes = (value: string): number | null => {
-  const match = TIME.exec(value);
-  if (!match) return null;
-  return Number(match[1]) * 60 + Number(match[2]) + Math.round(Number(match[3]) / 60);
-};
-
-function readTimes(block: PositionedText[], anomalies: LayoutAnomaly[]): RecipeTimes {
-  const times: RecipeTimes = { total: null, preparation: null, cooking: null, resting: null };
-  for (const item of block) {
-    const key = TIME_LABELS[item.text];
-    if (!key) {
-      if (item.x < COL_VALUE_X) anomalies.push({ kind: "unknown-time-label", text: item.text });
-      continue;
-    }
-    const value = block.find((other) => other.x >= COL_VALUE_X && Math.abs(other.y - item.y) < SAME_LINE_TOL);
-    if (!value) continue;
-    times[key] = toMinutes(value.text);
-    if (times[key] === null) anomalies.push({ kind: "invalid-time", label: item.text, text: value.text });
-  }
-  return times;
-}
-
-/** Splits the amount at its last bracket, which must open the text or follow a space. */
-function matchAmount(text: string): { householdMeasure: string | null; weight: RegExpExecArray } | null {
-  const open = text.lastIndexOf("(");
-  if (open < 0 || (open > 0 && text[open - 1] !== " ")) return null;
-  const weight = WEIGHT.exec(text.slice(open));
-  return weight ? { householdMeasure: open > 0 ? text.slice(0, open).trim() : null, weight } : null;
-}
-
-function readAmount(parts: string[], anomalies: LayoutAnomaly[]): Omit<RecipeIngredient, "name"> {
-  const text = collapse(parts.join(" "));
-  const match = matchAmount(text);
-  if (!match) {
-    anomalies.push({ kind: "unrecognized-amount", text });
-    return { householdMeasure: text || null, quantity: null, unit: null, optional: text.includes("*") };
-  }
-  return {
-    householdMeasure: match.householdMeasure,
-    quantity: Number(match.weight[1].replace(",", ".")),
-    unit: match.weight[2] as Unit,
-    optional: match.weight[3].includes("*"),
-  };
-}
-
-function readIngredients(block: PositionedText[], anomalies: LayoutAnomaly[]): RecipeIngredient[] {
-  const raw: { name: string; amount: string[] }[] = [];
-  for (const item of block) {
-    const current = raw.at(-1);
-    if (item.x >= COL_VALUE_X) {
-      if (current) current.amount.push(item.text);
-      else anomalies.push({ kind: "amount-without-ingredient", text: item.text });
-    } else if (INGREDIENT_START.test(item.text)) {
-      raw.push({ name: item.text.replace(/^-\s*/, ""), amount: [] });
-    } else if (current) {
-      current.name += ` ${item.text}`;
-    } else {
-      anomalies.push({ kind: "text-before-first-ingredient", text: item.text });
-    }
-  }
-  return raw.map(({ name, amount }) => {
-    if (!name.endsWith(":")) anomalies.push({ kind: "name-without-colon", text: name });
-    if (amount.length === 0) anomalies.push({ kind: "ingredient-without-amount", text: name });
-    return { name: collapse(name.replace(/:$/, "")), ...readAmount(amount, anomalies) };
-  });
-}
-
 /**
  * Reads a recipe page by the position of its text: title on top, times and
  * ingredients in the left column, preparation in the right one. The footer and
@@ -188,4 +84,110 @@ export function parseRecipePage(
     preparationY === undefined ? [] : toParagraphs(right.filter((item) => item.y < preparationY));
 
   return ok({ content: { title, times, ingredients, preparation }, anomalies });
+}
+
+/** Drops the footer and orders the items in reading order: by line from the top, then left to right. */
+function readingOrder(items: PositionedText[]): PositionedText[] {
+  const body = items
+    .filter((item) => item.y > FOOTER_MAX_Y)
+    .map((item) => ({ ...item, text: item.text.trim() }))
+    .filter((item) => item.text)
+    .sort((a, b) => b.y - a.y);
+  return toLines(body).flat();
+}
+
+/** Groups items in reading order into lines, each sorted left to right. */
+function toLines(items: PositionedText[]): PositionedText[][] {
+  const lines: PositionedText[][] = [];
+  for (const item of items) {
+    const line = lines.at(-1);
+    if (line && Math.abs(line[0].y - item.y) < SAME_LINE_TOL) line.push(item);
+    else lines.push([item]);
+  }
+  return lines.map((line) => line.sort((a, b) => a.x - b.x));
+}
+
+function collapse(text: string): string {
+  return text.replace(/\s+/g, " ").trim();
+}
+
+function readTimes(block: PositionedText[], anomalies: LayoutAnomaly[]): RecipeTimes {
+  const times: RecipeTimes = { total: null, preparation: null, cooking: null, resting: null };
+  for (const item of block) {
+    const key = TIME_LABELS[item.text];
+    if (!key) {
+      if (item.x < COL_VALUE_X) anomalies.push({ kind: "unknown-time-label", text: item.text });
+      continue;
+    }
+    const value = block.find((other) => other.x >= COL_VALUE_X && Math.abs(other.y - item.y) < SAME_LINE_TOL);
+    if (!value) continue;
+    times[key] = toMinutes(value.text);
+    if (times[key] === null) anomalies.push({ kind: "invalid-time", label: item.text, text: value.text });
+  }
+  return times;
+}
+
+function toMinutes(value: string): number | null {
+  const match = TIME.exec(value);
+  if (!match) return null;
+  return Number(match[1]) * 60 + Number(match[2]) + Math.round(Number(match[3]) / 60);
+}
+
+function readIngredients(block: PositionedText[], anomalies: LayoutAnomaly[]): RecipeIngredient[] {
+  const raw: { name: string; amount: string[] }[] = [];
+  for (const item of block) {
+    const current = raw.at(-1);
+    if (item.x >= COL_VALUE_X) {
+      if (current) current.amount.push(item.text);
+      else anomalies.push({ kind: "amount-without-ingredient", text: item.text });
+    } else if (INGREDIENT_START.test(item.text)) {
+      raw.push({ name: item.text.replace(/^-\s*/, ""), amount: [] });
+    } else if (current) {
+      current.name += ` ${item.text}`;
+    } else {
+      anomalies.push({ kind: "text-before-first-ingredient", text: item.text });
+    }
+  }
+  return raw.map(({ name, amount }) => {
+    if (!name.endsWith(":")) anomalies.push({ kind: "name-without-colon", text: name });
+    if (amount.length === 0) anomalies.push({ kind: "ingredient-without-amount", text: name });
+    return { name: collapse(name.replace(/:$/, "")), ...readAmount(amount, anomalies) };
+  });
+}
+
+function readAmount(parts: string[], anomalies: LayoutAnomaly[]): Omit<RecipeIngredient, "name"> {
+  const text = collapse(parts.join(" "));
+  const match = matchAmount(text);
+  if (!match) {
+    anomalies.push({ kind: "unrecognized-amount", text });
+    return { householdMeasure: text || null, quantity: null, unit: null, optional: text.includes("*") };
+  }
+  return {
+    householdMeasure: match.householdMeasure,
+    quantity: Number(match.weight[1].replace(",", ".")),
+    unit: match.weight[2] as Unit,
+    optional: match.weight[3].includes("*"),
+  };
+}
+
+/** Splits the amount at its last bracket, which must open the text or follow a space. */
+function matchAmount(text: string): { householdMeasure: string | null; weight: RegExpExecArray } | null {
+  const open = text.lastIndexOf("(");
+  if (open < 0 || (open > 0 && text[open - 1] !== " ")) return null;
+  const weight = WEIGHT.exec(text.slice(open));
+  return weight ? { householdMeasure: open > 0 ? text.slice(0, open).trim() : null, weight } : null;
+}
+
+/** Joins lines into paragraphs; a vertical gap of `PARAGRAPH_GAP` or more starts a new one. */
+function toParagraphs(items: PositionedText[]): string[] {
+  const paragraphs: string[] = [];
+  let previousY: number | null = null;
+  for (const line of toLines(items)) {
+    const text = collapse(line.map((item) => item.text).join(" "));
+    const y = line[0].y;
+    if (previousY !== null && previousY - y < PARAGRAPH_GAP) paragraphs[paragraphs.length - 1] += ` ${text}`;
+    else paragraphs.push(text);
+    previousY = y;
+  }
+  return paragraphs;
 }

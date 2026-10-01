@@ -1,7 +1,7 @@
 import type { ContentAnomaly } from "@/domain/recipe-ingestion/content-anomalies";
 import type { DivergentRecipe, RecipeField } from "@/domain/recipe-ingestion/select-versions";
 import type { LayoutAnomaly, SourceError } from "@/application/ports/document-source";
-import type { RepositoryError } from "@/application/ports/menu-repository";
+import type { RepositoryError } from "@/application/ports/repository-error";
 
 export type RecipeFailure = { menu: number; file: string; error: SourceError };
 

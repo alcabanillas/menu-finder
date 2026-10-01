@@ -3,7 +3,8 @@ import type { WeeklyMenu } from "@/domain/menu/weekly-menu";
 import type { SourceMenu } from "@/domain/menu-ingestion/source-menu";
 import { err, ok, type Result } from "@/shared/result";
 import type { DocumentSource, MenuFolder, SourceError } from "@/application/ports/document-source";
-import type { MenuRepository, RepositoryError } from "@/application/ports/menu-repository";
+import type { MenuRepository } from "@/application/ports/menu-repository";
+import type { RepositoryError } from "@/application/ports/repository-error";
 import { ingestMenus } from "@/application/use-cases/ingest-menus";
 
 type FakeMenu = { menu: SourceMenu; recipeFiles?: string[] } | { error: SourceError };

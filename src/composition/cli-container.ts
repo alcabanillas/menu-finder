@@ -14,7 +14,7 @@ import { MIGRATIONS_DIR, PostgresMigrationRunner } from "@/infrastructure/postgr
 import { PostgresMenuRepository } from "@/infrastructure/postgres/postgres-menu-repository";
 import { PostgresRecipeEmbeddingRepository } from "@/infrastructure/postgres/postgres-recipe-embedding-repository";
 import { PostgresRecipeRepository } from "@/infrastructure/postgres/postgres-recipe-repository";
-import { err, ok, type Result } from "@/shared/result";
+import { err, type Result } from "@/shared/result";
 
 /** Environment variables a command needs and that are not set. Checked before connecting to anything. */
 export type MissingVariables = { kind: "missing-variables"; names: string[] };
@@ -28,67 +28,56 @@ const GEMINI_API_KEY = "GEMINI_API_KEY";
 
 type Env = Record<string, string | undefined>;
 
-/** The CLI owns the owner role of the database (ADR-001 §2); the web gets a limited role later (MF-17, MF-20). */
-async function withPool<T>(url: string, run: (pool: pg.Pool) => Promise<T>): Promise<T> {
-  const pool = new pg.Pool({ connectionString: url, max: 2 });
-  try {
-    return await run(pool);
-  } finally {
-    await pool.end();
-  }
-}
-
 export function createCliContainer(env: Env = {}) {
   const dataDir = join(REPO_ROOT, "data");
   const source = new LocalDocumentSource(join(dataDir, "raw", "Dieta"));
-  const jsonMenus = new JsonFileMenuRepository(dataDir);
-  const jsonRecipes = new JsonFileRecipeRepository(dataDir);
+
+  // PDF → JSON file → database (MF-41 design D1): the use cases get one repository and do not know there are two.
+  const menuRepository = (pool: pg.Pool) =>
+    new FanOutRepository(new JsonFileMenuRepository(dataDir), new PostgresMenuRepository(pool), `data/${MENU_DATASET_FILE}`);
+  const recipeRepository = (pool: pg.Pool) =>
+    new FanOutRepository(
+      new JsonFileRecipeRepository(dataDir),
+      new PostgresRecipeRepository(pool),
+      `data/${RECIPE_DATASET_FILE}`,
+    );
 
   // Every variable is checked before anything is read or any connection is opened.
-  const required = (...names: string[]): Result<string[], MissingVariables> => {
-    const missing = names.filter((name) => !env[name]);
-    return missing.length > 0 ? err({ kind: "missing-variables", names: missing }) : ok(names.map((name) => env[name]!));
-  };
+  const onDatabase = <T>(work: (pool: pg.Pool) => Promise<T>) =>
+    requiring(env, [DATABASE_URL], ([url]) => withPool(url, work));
 
   return {
     dataDir,
     qaDir: join(dataDir, "qa"),
-    // PDF → JSON file → database (MF-41 design D1): the use cases get one repository and do not know there are two.
-    ingestMenus: async () => {
-      const vars = required(DATABASE_URL);
-      if (!vars.ok) return vars;
-      const [url] = vars.value;
-      return withPool(url, (pool) =>
-        ingestMenus({
-          source,
-          menus: new FanOutRepository(jsonMenus, new PostgresMenuRepository(pool), `data/${MENU_DATASET_FILE}`),
-        }),
-      );
-    },
-    ingestRecipes: async () => {
-      const vars = required(DATABASE_URL);
-      if (!vars.ok) return vars;
-      const [url] = vars.value;
-      return withPool(url, (pool) =>
-        ingestRecipes({
-          source,
-          recipes: new FanOutRepository(jsonRecipes, new PostgresRecipeRepository(pool), `data/${RECIPE_DATASET_FILE}`),
-        }),
-      );
-    },
-    migrate: async () => {
-      const vars = required(DATABASE_URL);
-      if (!vars.ok) return vars;
-      const [url] = vars.value;
-      return withPool(url, (pool) => migrate({ runner: new PostgresMigrationRunner(pool, MIGRATIONS_DIR) }));
-    },
-    embedRecipes: async () => {
-      const vars = required(DATABASE_URL, GEMINI_API_KEY);
-      if (!vars.ok) return vars;
-      const [url, key] = vars.value;
-      return withPool(url, (pool) =>
-        embedRecipes({ store: new PostgresRecipeEmbeddingRepository(pool), embeddings: createGenkitEmbeddings(key) }),
-      );
-    },
+    ingestMenus: () => onDatabase((pool) => ingestMenus({ source, menus: menuRepository(pool) })),
+    ingestRecipes: () => onDatabase((pool) => ingestRecipes({ source, recipes: recipeRepository(pool) })),
+    migrate: () => onDatabase((pool) => migrate({ runner: new PostgresMigrationRunner(pool, MIGRATIONS_DIR) })),
+    embedRecipes: () =>
+      requiring(env, [DATABASE_URL, GEMINI_API_KEY], ([url, apiKey]) =>
+        withPool(url, (pool) =>
+          embedRecipes({ store: new PostgresRecipeEmbeddingRepository(pool), embeddings: createGenkitEmbeddings(apiKey) }),
+        ),
+      ),
   };
+}
+
+/** Runs `work` with the values of `names`, or names every unset or empty one and runs nothing. */
+async function requiring<T>(
+  env: Env,
+  names: string[],
+  work: (values: string[]) => Promise<T>,
+): Promise<T | Result<never, MissingVariables>> {
+  const missing = names.filter((name) => !env[name]);
+  if (missing.length > 0) return err({ kind: "missing-variables", names: missing });
+  return work(names.map((name) => env[name]!));
+}
+
+/** The CLI owns the owner role of the database (ADR-001 §2); the web gets a limited role later (MF-17, MF-20). */
+async function withPool<T>(url: string, work: (pool: pg.Pool) => Promise<T>): Promise<T> {
+  const pool = new pg.Pool({ connectionString: url, max: 2 });
+  try {
+    return await work(pool);
+  } finally {
+    await pool.end();
+  }
 }

@@ -1,6 +1,7 @@
 import type { MenuFailure } from "@/application/dto/ingest-menus";
 
-export type SourceError = MenuFailure["error"];
+// The CLI only sees the use case DTOs, not the ports (ADR-001 §3): the source error reaches it inside a failure.
+type SourceError = MenuFailure["error"];
 
 export const describeSourceError = (error: SourceError): string => {
   switch (error.kind) {
