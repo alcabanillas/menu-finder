@@ -3,16 +3,17 @@
 See `proposal.md` for the motivation. Constraints that shape the approach:
 
 - **Hexagon (ADR-001):** `domain` imports nothing outside `domain` and `shared`, not even libraries. `cli` imports only `composition/cli-container`, application DTOs and use cases. A port exists only at a real external boundary: here the database and the embedding service. The CLI is the primary adapter; there is no web adapter in this change.
-- **Data:** 36 menus, 14 meals each, 608 menu dishes (591 with a recipe file, 17 without), 424 distinct dish names, 434 recipes of which 414 are used by a menu (measured on `data/menu-platos.json` and `data/recetas.json`). The 17 dishes without recipe have 14 distinct names, so the load writes 448 recipe rows. One recipe file serves two dish names; no dish name maps to two files.
+- **Data:** 36 menus, 14 meals each, 608 menu dishes (591 with a recipe file, 17 without), 424 distinct dish names, 434 recipes of which 414 are used by a menu (measured on `data/menu-platos.json` and `data/recetas.json`). The 17 dishes without recipe have 14 distinct names, so the database gets 448 recipe rows. One recipe file serves two dish names; no dish name maps to two files.
 - **Neon:** project `menu-finder` in `aws-eu-central-1`, Postgres 18, free plan, Data API off, Neon Auth off. The pooled `DATABASE_URL` and the direct `DATABASE_URL_UNPOOLED` are in `.env.local`. Extensions are installed by migration, not by hand.
 - **Next changes:** `mf-42-menu-search` reads these tables and adds what the lexical match needs (D4 of that change); `mf-14-search-evaluation` only reads.
 
-**Status of the decisions below:** they are **proposals for the author's review**. They are not recorded in `context/decisiones.md` until the author confirms them (task 1.1).
+**Status of the decisions below:** all confirmed by the author (D2, D3 and D5 in task 1.1; D1 and D9, with the names of the new ports, use cases and adapters, in task 1.4). They are recorded in `context/decisiones.md` when the change is closed (task 8.1).
 
 ## Goals / Non-Goals
 
 **Goals:**
-- A load that can be re-run at no cost: no embedding call when nothing changed.
+- The database as one more adapter of the existing repository ports, with the ingestion use cases unchanged.
+- Commands that can be re-run at no cost: no embedding call when nothing changed.
 - Nothing that has to be redone in MF-16 or MF-17: the schema, the load of the recipe text and the RLS are the final ones.
 
 **Non-Goals:**
@@ -23,26 +24,50 @@ See `proposal.md` for the motivation. Constraints that shape the approach:
 
 ## Decisions
 
-### D1. Layout and ports
+### D1. Layout and ports: the database behind `MenuRepository` and `RecipeRepository`
+
+**Decided by the author (2026-10-01), replacing the first version of this design.** The database is one more adapter of the two repository ports that MF-11 and MF-38 created for it. The use cases `ingestMenus` and `ingestRecipes` do not change.
 
 ```
 application/
-  dto/                dataset input (Zod)
-  ports/              SearchIndexWriter, EmbeddingsPort, DatasetSource
-  use-cases/          load-search-index, migrate
+  ports/        MenuRepository, RecipeRepository   unchanged
+                RecipeEmbeddingRepository           new
+                EmbeddingsPort, MigrationRunner     new
+  use-cases/    ingest-menus, ingest-recipes        unchanged
+                embed-recipes                       recipe rows → Gemini → database
+                migrate
 infrastructure/
-  postgres/           pool, migration runner, SearchIndexWriter adapter
-  genkit/             EmbeddingsPort adapter
-  json-file/          DatasetSource (extends the existing folder)
-composition/          cli-container wires them
-cli/commands/         migrate, load
+  json-file/    JsonFileMenuRepository, JsonFileRecipeRepository   unchanged
+  postgres/     PostgresMenuRepository, PostgresRecipeRepository,
+                PostgresRecipeEmbeddingRepository, pool, migration runner
+  fan-out/      FanOutMenuRepository, FanOutRecipeRepository       JSON first, then Postgres
+  genkit/       EmbeddingsPort adapter
+composition/    cli-container wires them
+cli/commands/   migrate, embed (menu and recipes unchanged)
 ```
 
-`SearchIndexWriter` is a write-only port. The read side (`SearchIndex`) comes with `mf-42-menu-search`, kept separate so that `search` and `evaluate-search` never need write access; the composition root can hand them a read-only connection later (MF-17) without changing the use cases.
+| Command | Use case | Reads | Saves through |
+|---|---|---|---|
+| `ingest recipes` | `ingestRecipes` | the PDFs (`DocumentSource`) | `FanOutRecipeRepository`: JSON, then Postgres |
+| `ingest menu` | `ingestMenus` | the PDFs (`DocumentSource`) | `FanOutMenuRepository`: JSON, then Postgres |
+| `ingest embed` | `embedRecipes` | the recipe rows (`RecipeEmbeddingRepository`) | `RecipeEmbeddingRepository` |
+
+- **PDF → database is the real load.** The JSON files are still written, first, because the golden-set scripts (`pnpm evals:golden-set`, MF-12) read them and they let the author work without the database; nothing reads them back into the database (decided by the author on 2026-10-01).
+- **The fan-out adapters** implement the port by calling the JSON adapter and then the Postgres one. When the second fails, the error says that the JSON file was written and why the database save failed (decided by the author on 2026-10-01). `RepositoryError` keeps its shape: the text goes in `reason`.
+- **`RecipeEmbeddingRepository`** is the only new port besides the migrations and the embedding service. `documents(variant)` returns every recipe row (the rows of dishes without recipe included) with its title, its ingredient names and, when there is one, the model and the text of its stored vector; `saveAll(variant, embeddings)` upserts the vectors in one transaction. `embed` needs nothing else, so the repository ports get no read method.
+- **The rows of the dishes without recipe** (`dish:<name>`, one per distinct name) are created by `PostgresMenuRepository`, because they only exist through a menu. Their key and the embedded text come from `domain/search-index/`.
+- The read side of the search (`SearchIndex`) comes with `mf-42-menu-search`, kept separate so that `search` and `evaluate-search` never need write access; the composition root can hand them a read-only connection later (MF-17) without changing the use cases.
+
+### D9. What a save writes
+
+- **Upsert, never delete what was not received** (ING-cli-local, "idempotente por número de menú"; MF-11 design). `PostgresRecipeRepository.saveAll` inserts or replaces each recipe it receives with its ingredients. `PostgresMenuRepository.saveAll` replaces each menu it receives (its 14 meals and their dishes) and keeps the others. A recipe or menu that disappears from the PDFs stays in the database until a migration or a manual step removes it.
+- **One transaction per save.**
+- **Recipes first.** `menu_dish.recipe_key` references `recipe`, so the order is `ingest recipes` → `ingest menu` → `ingest embed` (decided by the author on 2026-10-01; the T0 runbook is updated). Before writing, `PostgresMenuRepository` checks the recipe files its menus point to. When some are missing it saves the menus that are complete and returns an error that names each menu, dish and file; the command exits 1.
+- **Embeddings are only recomputed when their text or model changed.** `embed` builds the text of every recipe row, compares it with the stored one and sends only the new or changed ones to Gemini, all before its single write. Vectors of recipes that no longer exist go with their recipe (`ON DELETE CASCADE`).
 
 ### D2. PostgreSQL driver: `pg` (node-postgres)
 
-**Confirmed by the author (2026-10-01).** The CLI needs transactions (load, migrations), and the direct connection (`DATABASE_URL_UNPOOLED`) is what `pg` expects. It is the most widely used driver, with no native build step. The same driver works later from Vercel functions with the pooled URL.
+**Confirmed by the author (2026-10-01).** The CLI needs transactions (saves, migrations), and the direct connection (`DATABASE_URL_UNPOOLED`) is what `pg` expects. It is the most widely used driver, with no native build step. The same driver works later from Vercel functions with the pooled URL.
 
 *Alternatives:* `@neondatabase/serverless` (made for edge runtimes and HTTP queries; transactions need its WebSocket pool, more moving parts than this change needs); `postgres` (fewer users); Drizzle or Prisma (an ORM and a code generator for six tables and a handful of queries, and one more supply-chain surface, `context/safety-first.md` §2.5).
 
@@ -72,7 +97,8 @@ D4 (lexical match) is in `mf-42-menu-search`; the D numbering is kept from the d
 
 ### D8. Tests
 
-- Use cases with fake ports: validation before any call, load atomicity (the fake writer fails and nothing is kept), the text sent to the embedding fake, errors without secrets.
+- Use cases with fake ports: `embed` sends only new or changed texts, never the preparation, and writes nothing when the service fails; errors without secrets. The tests of `ingestMenus` and `ingestRecipes` do not change, which is the proof that the use cases did not.
+- Fan-out adapters with fake repositories: order, the JSON error stops before the database, the database error says that the JSON was written.
 - Adapters (`infrastructure/`, no coverage threshold): integration tests against a **temporary Neon branch** created for the run, so that no test touches `production`. They run locally with `DATABASE_URL_TEST` and are skipped when it is not set; **CI does not run them in this change** (it has no database secret and `context/decisiones.md` §2 point 2 leaves the testing strategy open). The skip is printed, not silent.
 - CLI commands: the existing `run-cli` test style (fake container).
 
@@ -84,6 +110,6 @@ D4 (lexical match) is in `mf-42-menu-search`; the D numbering is kept from the d
 
 ## Migration Plan
 
-1. `pnpm ingest migrate` creates the schema on the `production` branch of the Neon project (it is empty today).
-2. `pnpm ingest load` fills it from `data/`.
-3. Rollback: the load replaces the dataset, so re-running it restores it; for the schema, a new migration drops what it must. No data is lost that is not in `data/`.
+1. `pnpm ingest migrate` creates the schema on the `production` branch of the Neon project (done on 2026-10-01 by the first version of this change, which also loaded the data; the schema does not change).
+2. `pnpm ingest recipes`, `pnpm ingest menu` and `pnpm ingest embed`, in that order, bring it in line with the PDFs; the second run of `embed` computes nothing.
+3. Rollback: the saves are upserts, so running the ingestion again restores what is in the PDFs; for the schema, a new migration drops what it must. No data is lost that is not in `data/`.

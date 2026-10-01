@@ -75,7 +75,7 @@ For the `semantic` strategy, the score of a dish for a term SHALL come from the 
 
 #### Scenario: Index not loaded
 - **WHEN** the semantic strategy runs and the database has no embeddings
-- **THEN** the search returns an error that names the `load` command and returns no ranking
+- **THEN** the search returns an error that names the `embed` command and returns no ranking
 
 ### Requirement: Hybrid strategy
 The `hybrid` strategy SHALL score a dish for a term as the mean of its lexical score and its semantic score, with equal weights. The weight SHALL be fixed in the code and SHALL NOT be adjusted from the golden-set results.
