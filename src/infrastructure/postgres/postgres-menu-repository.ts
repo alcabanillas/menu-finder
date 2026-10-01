@@ -1,7 +1,7 @@
 import type pg from "pg";
 import type { MenuRepository, RepositoryError } from "@/application/ports/menu-repository";
 import type { WeeklyMenu } from "@/domain/menu/weekly-menu";
-import { missingRecipes, recipeKeyOf, type MissingRecipe } from "@/domain/search-index/recipe-rows";
+import { missingRecipes, recipeKeyOf, type MissingRecipe } from "@/domain/menu/dish-recipe";
 import { err, ok, type Result } from "@/shared/result";
 import { describeDatabaseError } from "@/infrastructure/postgres/describe-database-error";
 import { asJson, inTransaction } from "@/infrastructure/postgres/transaction";

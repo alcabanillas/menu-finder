@@ -1,7 +1,7 @@
 import type { EmbedRecipesError, EmbedRecipesSummary } from "@/application/dto/embed-recipes";
 import type { EmbeddingsPort } from "@/application/ports/embeddings-port";
 import type { RecipeEmbeddingRepository } from "@/application/ports/recipe-embedding-repository";
-import { embeddingDocument, embeddingSource } from "@/domain/search-index/recipe-rows";
+import { embeddingDocument, embeddingSource } from "@/domain/search/embedding-text";
 import { err, ok, type Result } from "@/shared/result";
 
 /** The embedded text: recipe title and ingredient names (EVAL-golden-sets, ablation (b)). */
