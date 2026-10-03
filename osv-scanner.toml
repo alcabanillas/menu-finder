@@ -21,3 +21,10 @@ reason = "Unbounded memory in W3C Baggage propagation (@opentelemetry/core). Nee
 [[IgnoredVulns]]
 id = "GHSA-w5hq-g745-h8pq"
 reason = "uuid v3/v5/v6 bounds check when a buf argument is passed. The only call found in the installed genkit chain is gaxios `v4()` without arguments (checked 2026-10-01); the project does not use uuid."
+
+# Accepted 2026-10-03. braces has no patched version. It comes only through development tools:
+# micromatch, used by eslint-plugin-boundaries and by eslint-config-next (via fast-glob).
+# Remove this entry when braces publishes a fix.
+[[IgnoredVulns]]
+id = "GHSA-vfj7-8cjw-p6xm"
+reason = "braces stack exhaustion on deeply nested brace patterns. Only development tools use it (ESLint plugins, through micromatch), and the patterns they expand come from the project's own lint configuration, never from user input. Nothing in the production build uses it."
