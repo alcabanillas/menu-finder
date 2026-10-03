@@ -1,12 +1,12 @@
-import type { EmbeddingDocument } from "@/domain/search/embedding-text";
-import type { Result } from "@/shared/result";
+import type { EmbeddingDocument } from '@/domain/search/embedding-text';
+import type { Result } from '@/shared/result';
 
 export type { EmbeddingDocument };
 
 /** One vector per document, in the same order. */
 export type Embeddings = { model: string; dimensions: number; vectors: number[][] };
 
-export type EmbeddingError = { kind: "embedding-failed"; reason: string };
+export type EmbeddingError = { kind: 'embedding-failed'; reason: string };
 
 export interface EmbeddingsPort {
   /** The model the vectors come from: a different model means every stored vector is recomputed. */

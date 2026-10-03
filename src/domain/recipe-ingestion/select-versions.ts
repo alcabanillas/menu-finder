@@ -1,11 +1,11 @@
-import type { Recipe, RecipeContent } from "@/domain/recipe/recipe";
+import type { Recipe, RecipeContent } from '@/domain/recipe/recipe';
 
 /** One recipe file as read from one menu folder. */
 export type RecipeVersion = { menu: number; file: string; content: RecipeContent };
 
-export type RecipeField = "title" | "times" | "ingredients" | "preparation";
+export type RecipeField = 'title' | 'times' | 'ingredients' | 'preparation';
 
-const FIELDS: RecipeField[] = ["title", "times", "ingredients", "preparation"];
+const FIELDS: RecipeField[] = ['title', 'times', 'ingredients', 'preparation'];
 
 /** A file whose versions differ from the kept one. */
 export type DivergentRecipe = { file: string; keptMenu: number; differingMenus: number[]; fields: RecipeField[] };
@@ -35,7 +35,7 @@ export function selectRecipeVersions(versions: RecipeVersion[]): VersionSelectio
     const [kept, ...others] = [...fileVersions].sort((a, b) => b.menu - a.menu);
     recipes.push({ file, sourceMenu: kept.menu, ...kept.content });
     if (others.length === 0) continue;
-    repeatedFiles++;
+    repeatedFiles += 1;
 
     const differing = others
       .map((other) => ({

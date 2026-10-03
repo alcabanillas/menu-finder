@@ -1,10 +1,10 @@
-import type pg from "pg";
-import type { RepositoryError } from "@/application/ports/repository-error";
-import type { RecipeRepository } from "@/application/ports/recipe-repository";
-import type { Recipe } from "@/domain/recipe/recipe";
-import { err, ok, type Result } from "@/shared/result";
-import { describeDatabaseError } from "@/infrastructure/postgres/describe-database-error";
-import { asJson, inTransaction } from "@/infrastructure/postgres/transaction";
+import type pg from 'pg';
+import type { RepositoryError } from '@/application/ports/repository-error';
+import type { RecipeRepository } from '@/application/ports/recipe-repository';
+import type { Recipe } from '@/domain/recipe/recipe';
+import { err, ok, type Result } from '@/shared/result';
+import { describeDatabaseError } from '@/infrastructure/postgres/describe-database-error';
+import { asJson, inTransaction } from '@/infrastructure/postgres/transaction';
 
 const UPSERT_RECIPES = `
   INSERT INTO recipe (key, file, source_menu, title, total_min, preparation_min, cooking_min, resting_min, preparation)
@@ -53,14 +53,14 @@ export class PostgresRecipeRepository implements RecipeRepository {
     try {
       await inTransaction(this.pool, async (client) => {
         await client.query(UPSERT_RECIPES, [asJson(rows)]);
-        await client.query("DELETE FROM recipe_ingredient WHERE recipe_key = ANY($1::text[])", [
+        await client.query('DELETE FROM recipe_ingredient WHERE recipe_key = ANY($1::text[])', [
           recipes.map(({ file }) => file),
         ]);
         await client.query(INSERT_INGREDIENTS, [asJson(ingredients)]);
       });
       return ok(undefined);
     } catch (error) {
-      return err({ kind: "write-failed", reason: describeDatabaseError(error) });
+      return err({ kind: 'write-failed', reason: describeDatabaseError(error) });
     }
   }
 }

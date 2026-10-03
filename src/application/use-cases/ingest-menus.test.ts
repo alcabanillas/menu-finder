@@ -1,11 +1,11 @@
-import { describe, expect, it } from "vitest";
-import type { WeeklyMenu } from "@/domain/menu/weekly-menu";
-import type { SourceMenu } from "@/domain/menu-ingestion/source-menu";
-import { err, ok, type Result } from "@/shared/result";
-import type { DocumentSource, MenuFolder, SourceError } from "@/application/ports/document-source";
-import type { MenuRepository } from "@/application/ports/menu-repository";
-import type { RepositoryError } from "@/application/ports/repository-error";
-import { ingestMenus } from "@/application/use-cases/ingest-menus";
+import { describe, expect, it } from 'vitest';
+import type { WeeklyMenu } from '@/domain/menu/weekly-menu';
+import type { SourceMenu } from '@/domain/menu-ingestion/source-menu';
+import { err, ok, type Result } from '@/shared/result';
+import type { DocumentSource, MenuFolder, SourceError } from '@/application/ports/document-source';
+import type { MenuRepository } from '@/application/ports/menu-repository';
+import type { RepositoryError } from '@/application/ports/repository-error';
+import { ingestMenus } from '@/application/use-cases/ingest-menus';
 
 type FakeMenu = { menu: SourceMenu; recipeFiles?: string[] } | { error: SourceError };
 
@@ -15,25 +15,25 @@ const fakeSource = (menus: Record<number, FakeMenu>): DocumentSource => ({
   listMenuFolders: async () => ok(Object.keys(menus).map((key) => folder(Number(key)))),
   readMenu: async ({ number }) => {
     const entry = menus[number];
-    return "error" in entry ? err(entry.error) : ok(entry.menu);
+    return 'error' in entry ? err(entry.error) : ok(entry.menu);
   },
   listRecipeFiles: async ({ number }) => {
     const entry = menus[number];
-    return "error" in entry ? [] : (entry.recipeFiles ?? []);
+    return 'error' in entry ? [] : (entry.recipeFiles ?? []);
   },
   readRecipe: async () => {
-    throw new Error("not expected");
+    throw new Error('not expected');
   },
 });
 
 const missingRawDirectory: DocumentSource = {
-  listMenuFolders: async () => err({ kind: "missing-raw-directory", path: "raw" }),
+  listMenuFolders: async () => err({ kind: 'missing-raw-directory', path: 'raw' }),
   readMenu: async () => {
-    throw new Error("not expected");
+    throw new Error('not expected');
   },
   listRecipeFiles: async () => [],
   readRecipe: async () => {
-    throw new Error("not expected");
+    throw new Error('not expected');
   },
 };
 
@@ -48,13 +48,13 @@ const fakeRepository = (result: Result<void, RepositoryError> = ok(undefined)) =
   return { repository, saved };
 };
 
-const lunch = (...dishes: SourceMenu["meals"][number]["dishes"]): SourceMenu => ({
-  meals: [{ day: "monday", type: "lunch", dishes }],
+const lunch = (...dishes: SourceMenu['meals'][number]['dishes']): SourceMenu => ({
+  meals: [{ day: 'monday', type: 'lunch', dishes }],
 });
 const EMPTY: FakeMenu = { menu: { meals: [] } };
 
-describe("ingestMenus", () => {
-  it("saves the parsed menus in numeric order", async () => {
+describe('ingestMenus', () => {
+  it('saves the parsed menus in numeric order', async () => {
     const { repository, saved } = fakeRepository();
 
     await ingestMenus({ source: fakeSource({ 10: EMPTY, 2: EMPTY, 1: EMPTY }), menus: repository });
@@ -67,105 +67,105 @@ describe("ingestMenus", () => {
     const { repository, saved } = fakeRepository();
     const source = fakeSource({
       1: EMPTY,
-      2: { error: { kind: "missing-meal-row", meal: "dinner" } },
-      3: { error: { kind: "missing-file", file: "menu.pdf" } },
+      2: { error: { kind: 'missing-meal-row', meal: 'dinner' } },
+      3: { error: { kind: 'missing-file', file: 'menu.pdf' } },
     });
 
     const result = await ingestMenus({ source, menus: repository });
 
     expect(saved[0].map((menu) => menu.number)).toEqual([1]);
     expect(result.ok && result.value.failures).toEqual([
-      { menu: 2, error: { kind: "missing-meal-row", meal: "dinner" } },
-      { menu: 3, error: { kind: "missing-file", file: "menu.pdf" } },
+      { menu: 2, error: { kind: 'missing-meal-row', meal: 'dinner' } },
+      { menu: 3, error: { kind: 'missing-file', file: 'menu.pdf' } },
     ]);
     expect(result.ok && [result.value.totals.menusProcessed, result.value.totals.menusFound]).toEqual([1, 3]);
   });
 
-  it("fails without saving when the source is missing", async () => {
+  it('fails without saving when the source is missing', async () => {
     const { repository, saved } = fakeRepository();
 
     const result = await ingestMenus({ source: missingRawDirectory, menus: repository });
 
-    expect(result).toEqual(err({ kind: "source-unavailable", error: { kind: "missing-raw-directory", path: "raw" } }));
+    expect(result).toEqual(err({ kind: 'source-unavailable', error: { kind: 'missing-raw-directory', path: 'raw' } }));
     expect(saved).toEqual([]);
   });
 
-  it("fails without saving when no menu could be parsed", async () => {
+  it('fails without saving when no menu could be parsed', async () => {
     const { repository, saved } = fakeRepository();
-    const source = fakeSource({ 1: { error: { kind: "no-table" } } });
+    const source = fakeSource({ 1: { error: { kind: 'no-table' } } });
 
     const result = await ingestMenus({ source, menus: repository });
 
-    expect(result).toEqual(err({ kind: "no-menu-parsed", failures: [{ menu: 1, error: { kind: "no-table" } }] }));
+    expect(result).toEqual(err({ kind: 'no-menu-parsed', failures: [{ menu: 1, error: { kind: 'no-table' } }] }));
     expect(saved).toEqual([]);
   });
 
-  it("fails without saving anything else when there are no menu folders", async () => {
+  it('fails without saving anything else when there are no menu folders', async () => {
     const { repository, saved } = fakeRepository();
 
     const result = await ingestMenus({ source: fakeSource({}), menus: repository });
 
-    expect(result).toEqual(err({ kind: "no-menu-parsed", failures: [] }));
+    expect(result).toEqual(err({ kind: 'no-menu-parsed', failures: [] }));
     expect(saved).toEqual([]);
   });
 
-  it("reports a repository failure as an error", async () => {
-    const { repository } = fakeRepository(err({ kind: "write-failed", reason: "disk full" }));
+  it('reports a repository failure as an error', async () => {
+    const { repository } = fakeRepository(err({ kind: 'write-failed', reason: 'disk full' }));
 
     const result = await ingestMenus({ source: fakeSource({ 1: EMPTY }), menus: repository });
 
-    expect(result).toEqual(err({ kind: "save-failed", error: { kind: "write-failed", reason: "disk full" } }));
+    expect(result).toEqual(err({ kind: 'save-failed', error: { kind: 'write-failed', reason: 'disk full' } }));
   });
 
-  it("leaves the discarded fields empty for an unresolved dish with no candidate", async () => {
+  it('leaves the discarded fields empty for an unresolved dish with no candidate', async () => {
     const { repository } = fakeRepository();
-    const source = fakeSource({ 1: { menu: lunch({ name: "Merluza al horno", hasRecipeMark: true }) } });
+    const source = fakeSource({ 1: { menu: lunch({ name: 'Merluza al horno', hasRecipeMark: true }) } });
 
     const result = await ingestMenus({ source, menus: repository });
-    if (!result.ok) throw new Error("expected ok");
+    if (!result.ok) throw new Error('expected ok');
 
     expect(result.value.unresolved).toEqual([
-      expect.objectContaining({ dish: "Merluza al horno", discardedCandidate: null, discardedScore: null }),
+      expect.objectContaining({ dish: 'Merluza al horno', discardedCandidate: null, discardedScore: null }),
     ]);
   });
 
-  it("returns one QA row per dish, the unresolved dishes and the totals across menus", async () => {
+  it('returns one QA row per dish, the unresolved dishes and the totals across menus', async () => {
     const { repository } = fakeRepository();
     const source = fakeSource({
       1: {
         menu: lunch(
-          { name: "Merluza al horno", hasRecipeMark: true },
-          { name: "Pollo al curry con arroz", hasRecipeMark: true },
+          { name: 'Merluza al horno', hasRecipeMark: true },
+          { name: 'Pollo al curry con arroz', hasRecipeMark: true },
         ),
-        recipeFiles: ["Merluza-al-horno", "Pollo-con-verduras"],
+        recipeFiles: ['Merluza-al-horno', 'Pollo-con-verduras'],
       },
-      2: { menu: lunch({ name: "Pimientos asados", hasRecipeMark: false }), recipeFiles: ["Tarta-de-queso"] },
+      2: { menu: lunch({ name: 'Pimientos asados', hasRecipeMark: false }), recipeFiles: ['Tarta-de-queso'] },
     });
 
     const result = await ingestMenus({ source, menus: repository });
-    if (!result.ok) throw new Error("expected ok");
+    if (!result.ok) throw new Error('expected ok');
 
     const unresolvedRow = {
       menu: 1,
-      day: "monday",
-      type: "lunch",
+      day: 'monday',
+      type: 'lunch',
       position: 2,
-      dish: "Pollo al curry con arroz",
+      dish: 'Pollo al curry con arroz',
       hasRecipeMark: true,
       matchedRecipe: null,
       score: null,
-      discardedCandidate: "Pollo-con-verduras",
+      discardedCandidate: 'Pollo-con-verduras',
       discardedScore: 0.5,
     };
     expect(result.value.qaRows).toEqual([
       {
         menu: 1,
-        day: "monday",
-        type: "lunch",
+        day: 'monday',
+        type: 'lunch',
         position: 1,
-        dish: "Merluza al horno",
+        dish: 'Merluza al horno',
         hasRecipeMark: true,
-        matchedRecipe: "Merluza-al-horno",
+        matchedRecipe: 'Merluza-al-horno',
         score: 1,
         discardedCandidate: null,
         discardedScore: null,
@@ -173,10 +173,10 @@ describe("ingestMenus", () => {
       unresolvedRow,
       {
         menu: 2,
-        day: "monday",
-        type: "lunch",
+        day: 'monday',
+        type: 'lunch',
         position: 1,
-        dish: "Pimientos asados",
+        dish: 'Pimientos asados',
         hasRecipeMark: false,
         matchedRecipe: null,
         score: null,

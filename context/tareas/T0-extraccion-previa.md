@@ -24,7 +24,7 @@ Cada paso escribe además una QA en `data/qa/`, para revisión manual. La del me
 - Los PDF en `data/raw/Dieta/Menu 1` … `Menu 36`, cada carpeta con `menu.pdf`, `Lista_de_la_compra.pdf` y un PDF por receta. Los `valoracion-*.pdf` se ignoran.
 - Node y `pnpm install` (dependencias: `pdf-parse` para el menú y `pdfjs-dist` para las recetas; pnpm no deja usar una dependencia que no esté declarada en `package.json`).
 - Poppler (`pdftotext`), solo para el paso 1.
-- `.env.local` (gitignoreado) con `DATABASE_URL_UNPOOLED` (la conexión directa de Neon), para los pasos 2 y 3, y `GEMINI_API_KEY` (nivel de pago, IA-proveedor), para los embeddings.
+- `.env.local` (gitignoreado) con `DATABASE_URL_UNPOOLED` (la conexión directa de Neon), para los pasos 2 y 3, y `GEMINI_API_KEY` (nivel de pago, IA-proveedor), para los embeddings. Opcional: `DATABASE_URL_TEST`, la conexión directa de una rama de Neon solo para pruebas (nunca `production`), con la que `pnpm test:run` ejecuta también los tests de integración de Postgres; sin ella se saltan. Vitest solo lee esa variable de `.env.local`.
 - `data/marca.json`, creado a mano y nunca versionado, con los patrones del pie de la lista de la compra (eslogan y marca). Así el parser los descarta sin que el texto del nutricionista aparezca en el código (SEG-datos-nutricionista):
 
   ```json

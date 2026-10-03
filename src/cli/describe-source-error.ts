@@ -1,23 +1,24 @@
-import type { MenuFailure } from "@/application/dto/ingest-menus";
+import type { MenuFailure } from '@/application/dto/ingest-menus';
 
 // The CLI only sees the use case DTOs, not the ports (ADR-001 §3): the source error reaches it inside a failure.
-type SourceError = MenuFailure["error"];
+type SourceError = MenuFailure['error'];
 
+/** One line saying why a PDF or its folder could not be read. */
 export const describeSourceError = (error: SourceError): string => {
   switch (error.kind) {
-    case "missing-raw-directory":
+    case 'missing-raw-directory':
       return `raw directory not found: ${error.path}`;
-    case "missing-file":
+    case 'missing-file':
       return `${error.file} not found`;
-    case "unreadable-document":
+    case 'unreadable-document':
       return `unreadable document: ${error.reason}`;
-    case "no-table":
-      return "no table found";
-    case "missing-header":
-      return "no Lunes..Domingo header row";
-    case "missing-meal-row":
+    case 'no-table':
+      return 'no table found';
+    case 'missing-header':
+      return 'no Lunes..Domingo header row';
+    case 'missing-meal-row':
       return `missing meal row (${error.meal})`;
-    case "missing-section":
+    case 'missing-section':
       return `missing section (${error.section})`;
   }
 };

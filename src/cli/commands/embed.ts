@@ -1,8 +1,8 @@
-import type { EmbedRecipesError, EmbedRecipesSummary } from "@/application/dto/embed-recipes";
-import { isMissingVariables, missingLines } from "@/cli/commands/missing-variables";
-import type { MissingVariables } from "@/composition/cli-container";
-import { redactSecrets } from "@/shared/redact-secrets";
-import type { Result } from "@/shared/result";
+import type { EmbedRecipesError, EmbedRecipesSummary } from '@/application/dto/embed-recipes';
+import { isMissingVariables, missingLines } from '@/cli/commands/missing-variables';
+import type { MissingVariables } from '@/composition/cli-container';
+import { redactSecrets } from '@/shared/redact-secrets';
+import type { Result } from '@/shared/result';
 
 type Print = (line: string) => void;
 
@@ -21,7 +21,7 @@ export async function runEmbed({
   }
   const { recipes, embedded, kept, model } = result.value;
   if (recipes === 0) {
-    print("The database has no recipes: run `pnpm ingest recipes` and `pnpm ingest menu` first.");
+    print('The database has no recipes: run `pnpm ingest recipes` and `pnpm ingest menu` first.');
     return 1;
   }
   print(`Embeddings with ${model} for ${recipes} recipe rows: ${embedded} computed, ${kept} kept.`);
@@ -30,7 +30,7 @@ export async function runEmbed({
 
 function errorLines(error: EmbedRecipesError | MissingVariables): string[] {
   if (isMissingVariables(error)) return missingLines(error);
-  return error.kind === "embedding-failed"
-    ? [`The embedding service failed: ${error.reason}`, "The stored embeddings are unchanged."]
-    : [`The database failed: ${error.reason}`, "The stored embeddings are unchanged."];
+  return error.kind === 'embedding-failed'
+    ? [`The embedding service failed: ${error.reason}`, 'The stored embeddings are unchanged.']
+    : [`The database failed: ${error.reason}`, 'The stored embeddings are unchanged.'];
 }

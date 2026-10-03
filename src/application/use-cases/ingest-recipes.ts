@@ -1,12 +1,12 @@
-import type { Recipe, RecipeIngredient } from "@/domain/recipe/recipe";
-import { checkRecipeContent } from "@/domain/recipe-ingestion/content-anomalies";
+import type { Recipe, RecipeIngredient } from '@/domain/recipe/recipe';
+import { checkRecipeContent } from '@/domain/recipe-ingestion/content-anomalies';
 import {
   selectRecipeVersions,
   type DivergentRecipe,
   type RecipeField,
   type RecipeVersion,
-} from "@/domain/recipe-ingestion/select-versions";
-import { err, ok, type Result } from "@/shared/result";
+} from '@/domain/recipe-ingestion/select-versions';
+import { err, ok, type Result } from '@/shared/result';
 import type {
   IngestRecipesError,
   IngestRecipesSummary,
@@ -14,13 +14,13 @@ import type {
   MenuRecipeCount,
   RecipeAnomalyRow,
   RecipeFailure,
-} from "@/application/dto/ingest-recipes";
-import type { DocumentSource, MenuFolder } from "@/application/ports/document-source";
-import type { RecipeRepository } from "@/application/ports/recipe-repository";
+} from '@/application/dto/ingest-recipes';
+import type { DocumentSource, MenuFolder } from '@/application/ports/document-source';
+import type { RecipeRepository } from '@/application/ports/recipe-repository';
 
 export type IngestRecipesDeps = { source: DocumentSource; recipes: RecipeRepository };
 
-const NO_UNIT = "none";
+const NO_UNIT = 'none';
 
 type ReadRecipes = {
   versions: RecipeVersion[];
@@ -39,14 +39,14 @@ export async function ingestRecipes({
   recipes,
 }: IngestRecipesDeps): Promise<Result<IngestRecipesSummary, IngestRecipesError>> {
   const folders = await source.listMenuFolders();
-  if (!folders.ok) return err({ kind: "source-unavailable", error: folders.error });
+  if (!folders.ok) return err({ kind: 'source-unavailable', error: folders.error });
 
   const { versions, failures, anomalies, perMenu } = await readRecipes(source, folders.value);
-  if (versions.length === 0) return err({ kind: "no-recipe-parsed", failures });
+  if (versions.length === 0) return err({ kind: 'no-recipe-parsed', failures });
 
   const selection = selectRecipeVersions(versions);
   const saved = await recipes.saveAll(selection.recipes);
-  if (!saved.ok) return err({ kind: "save-failed", error: saved.error });
+  if (!saved.ok) return err({ kind: 'save-failed', error: saved.error });
 
   return ok({
     perMenu,
@@ -74,7 +74,7 @@ async function readFolder(source: DocumentSource, folder: MenuFolder, read: Read
       read.failures.push({ menu: folder.number, file, error: recipe.error });
       continue;
     }
-    parsed++;
+    parsed += 1;
     const { content, anomalies } = recipe.value;
     read.versions.push({ menu: folder.number, file, content });
     for (const anomaly of [...anomalies, ...checkRecipeContent(content)]) {
@@ -100,10 +100,10 @@ function computeTotals(
     repeatedFiles,
     divergentFiles: divergent.length,
     divergentByField: {
-      title: divergentByField("title"),
-      times: divergentByField("times"),
-      ingredients: divergentByField("ingredients"),
-      preparation: divergentByField("preparation"),
+      title: divergentByField('title'),
+      times: divergentByField('times'),
+      ingredients: divergentByField('ingredients'),
+      preparation: divergentByField('preparation'),
     },
     withTotalTime: countBy(recipes, (recipe) => recipe.times.total !== null),
     withPreparation: countBy(recipes, (recipe) => recipe.preparation.length > 0),

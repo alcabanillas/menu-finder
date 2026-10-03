@@ -124,7 +124,7 @@ function parseStream(entries) {
     // mode === 'items'
     if (/^\(opcional\)$/i.test(entry)) {
       if (items.length) items[items.length - 1].opcional = true;
-      else warnings.push(`"(opcional)" suelto sin ítem previo`);
+      else warnings.push('"(opcional)" suelto sin ítem previo');
       continue;
     }
     if (entry.startsWith('-')) {

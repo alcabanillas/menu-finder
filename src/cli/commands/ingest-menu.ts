@@ -1,15 +1,15 @@
-import { join } from "node:path";
+import { join } from 'node:path';
 import type {
   DishQaRow,
   IngestMenusError,
   IngestMenusSummary,
   MenuFailure,
-} from "@/application/dto/ingest-menus";
-import type { Result } from "@/shared/result";
-import { describeSourceError } from "@/cli/describe-source-error";
-import { isInside } from "@/cli/qa-path";
-import { isMissingVariables, missingLines } from "@/cli/commands/missing-variables";
-import type { MissingVariables } from "@/composition/cli-container";
+} from '@/application/dto/ingest-menus';
+import type { Result } from '@/shared/result';
+import { describeSourceError } from '@/cli/describe-source-error';
+import { isInside } from '@/cli/qa-path';
+import { isMissingVariables, missingLines } from '@/cli/commands/missing-variables';
+import type { MissingVariables } from '@/composition/cli-container';
 
 export type IngestMenuDeps = {
   ingestMenus: () => Promise<Result<IngestMenusSummary, IngestMenusError | MissingVariables>>;
@@ -19,19 +19,19 @@ export type IngestMenuDeps = {
   qaDir: string;
 };
 
-const QA_CSV_FILE = "menu-platos-pdftable.csv";
-const QA_MD_FILE = "qa-menu-platos-pdftable.md";
+const QA_CSV_FILE = 'menu-platos-pdftable.csv';
+const QA_MD_FILE = 'qa-menu-platos-pdftable.md';
 
 const CSV_HEADER = [
-  "menu",
-  "bloque",
-  "dia",
-  "plato",
-  "tiene_receta_marcada",
-  "match_receta",
-  "score_match",
-  "discarded_candidate",
-  "discarded_score",
+  'menu',
+  'bloque',
+  'dia',
+  'plato',
+  'tiene_receta_marcada',
+  'match_receta',
+  'score_match',
+  'discarded_candidate',
+  'discarded_score',
 ];
 
 /** `ingest menu`: runs the ingestion, prints its summary and writes the QA report. Returns the exit code. */
@@ -51,7 +51,7 @@ export async function runIngestMenu({ ingestMenus, print, writeFile, dataDir, qa
   const summary = result.value;
   summaryLines(summary).forEach(print);
   const [csvPath, mdPath] = qaFiles;
-  await writeFile(csvPath, [CSV_HEADER.map(csvCell).join(","), ...summary.qaRows.map(toCsvLine)].join("\n"));
+  await writeFile(csvPath, [CSV_HEADER.map(csvCell).join(','), ...summary.qaRows.map(toCsvLine)].join('\n'));
   await writeFile(mdPath, toQaMarkdown(summary));
   return summary.failures.length > 0 ? 1 : 0;
 }
@@ -59,11 +59,11 @@ export async function runIngestMenu({ ingestMenus, print, writeFile, dataDir, qa
 function errorLines(error: IngestMenusError | MissingVariables): string[] {
   if (isMissingVariables(error)) return missingLines(error);
   switch (error.kind) {
-    case "source-unavailable":
+    case 'source-unavailable':
       return [`Cannot read the menus: ${describeSourceError(error.error)}`];
-    case "no-menu-parsed":
-      return [...error.failures.map(describeFailure), "No menu could be parsed."];
-    case "save-failed":
+    case 'no-menu-parsed':
+      return [...error.failures.map(describeFailure), 'No menu could be parsed.'];
+    case 'save-failed':
       return [`Cannot save the menus: ${error.error.reason}`];
   }
 }
@@ -83,7 +83,7 @@ function summaryLines({ failures, totals, unresolved }: IngestMenusSummary): str
     `Unresolved marked dishes: ${totals.unresolved}`,
     `Unclaimed recipe files: ${totals.unclaimedRecipeFiles}`,
     ...(unresolved.length === 0
-      ? ["No unresolved marked dishes."]
+      ? ['No unresolved marked dishes.']
       : unresolved.map((row) => `Unresolved: ${describeUnresolved(row)}`)),
   ];
 }
@@ -91,13 +91,13 @@ function summaryLines({ failures, totals, unresolved }: IngestMenusSummary): str
 function describeUnresolved(row: DishQaRow): string {
   const candidate =
     row.discardedCandidate === null
-      ? "no candidate"
+      ? 'no candidate'
       : `discarded: ${row.discardedCandidate}, ${formatScore(row.discardedScore)}`;
   return `menu ${row.menu}, ${row.day}, ${row.type}, "${row.dish}" (${candidate})`;
 }
 
 function formatScore(score: number | null): string {
-  return score === null ? "" : score.toFixed(2);
+  return score === null ? '' : score.toFixed(2);
 }
 
 function csvCell(value: string | number): string {
@@ -110,23 +110,23 @@ function toCsvLine(row: DishQaRow): string {
     row.type,
     row.day,
     row.dish,
-    row.hasRecipeMark ? "1" : "0",
-    row.matchedRecipe ?? "",
+    row.hasRecipeMark ? '1' : '0',
+    row.matchedRecipe ?? '',
     formatScore(row.score),
-    row.discardedCandidate ?? "",
+    row.discardedCandidate ?? '',
     formatScore(row.discardedScore),
   ]
     .map(csvCell)
-    .join(",");
+    .join(',');
 }
 
 function toQaMarkdown(summary: IngestMenusSummary): string {
   return [
-    "# QA — menu ingestion",
-    "",
+    '# QA — menu ingestion',
+    '',
     ...summaryLines(summary).map((line) => `- ${line}`),
-    "",
+    '',
     `Per-dish detail in \`${QA_CSV_FILE}\`.`,
-    "",
-  ].join("\n");
+    '',
+  ].join('\n');
 }

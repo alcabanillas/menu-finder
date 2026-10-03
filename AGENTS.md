@@ -101,6 +101,8 @@ Keep functions short: each does one thing that its name says. When a function gr
 |---|---|---|
 | ❌ | `toQaRow`, `emptyTotals`, `addCounts` and then `ingestMenus` at the bottom | The reader meets the detail before knowing what it is for |
 | ❌ | A use case with a 30-line loop that reads, builds and counts inline | The steps have no names |
+| ❌ | `const visit = (node) => { … }` defined inside a loop or a function body, called at its end | A hidden helper: the reader parses it before knowing why. Make it a named `function` below its caller |
+| ❌ | A script whose main loop sits at the bottom of the file | Scripts follow the same order: `main()` first, then its steps |
 | ✅ | `ingestMenus` first, then `readMenus`, `toQaRow`, `matchEvidence`, `addCounts` | Main flow first, each step named, in call order |
 
 ## Datos

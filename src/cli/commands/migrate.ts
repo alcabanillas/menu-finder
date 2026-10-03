@@ -1,8 +1,8 @@
-import type { MigrateError, MigrateSummary } from "@/application/use-cases/migrate";
-import { isMissingVariables, missingLines } from "@/cli/commands/missing-variables";
-import type { MissingVariables } from "@/composition/cli-container";
-import { redactSecrets } from "@/shared/redact-secrets";
-import type { Result } from "@/shared/result";
+import type { MigrateError, MigrateSummary } from '@/application/use-cases/migrate';
+import { isMissingVariables, missingLines } from '@/cli/commands/missing-variables';
+import type { MissingVariables } from '@/composition/cli-container';
+import { redactSecrets } from '@/shared/redact-secrets';
+import type { Result } from '@/shared/result';
 
 type Print = (line: string) => void;
 
@@ -16,7 +16,7 @@ export async function runMigrate({
 }): Promise<number> {
   const result = await migrate();
   if (result.ok) {
-    if (result.value.applied.length === 0) print("No pending migrations.");
+    if (result.value.applied.length === 0) print('No pending migrations.');
     result.value.applied.forEach((id) => print(`Applied ${id}`));
     return 0;
   }

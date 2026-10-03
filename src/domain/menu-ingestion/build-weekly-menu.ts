@@ -1,10 +1,10 @@
-import type { Day, Meal, MealType, WeeklyMenu } from "@/domain/menu/weekly-menu";
-import { isFiller } from "@/domain/menu-ingestion/filler";
-import { isRecipeCandidate, resolveDish, type DishResolution } from "@/domain/menu-ingestion/recipe-match";
-import type { SourceDish, SourceMenu } from "@/domain/menu-ingestion/source-menu";
+import type { Day, Meal, MealType, WeeklyMenu } from '@/domain/menu/weekly-menu';
+import { isFiller } from '@/domain/menu-ingestion/filler';
+import { isRecipeCandidate, resolveDish, type DishResolution } from '@/domain/menu-ingestion/recipe-match';
+import type { SourceDish, SourceMenu } from '@/domain/menu-ingestion/source-menu';
 
-const DAYS: readonly Day[] = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
-const MEAL_TYPES: readonly MealType[] = ["lunch", "dinner"];
+const DAYS: readonly Day[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+const MEAL_TYPES: readonly MealType[] = ['lunch', 'dinner'];
 
 /** A kept dish with its resolution: the evidence the QA report needs and the menu does not store. */
 export type DishOutcome = { day: Day; type: MealType; position: number; name: string; resolution: DishResolution };
@@ -44,8 +44,8 @@ export function buildWeeklyMenu(number: number, source: SourceMenu, recipeFiles:
         .filter((meal) => meal.day === day && meal.type === type)
         .flatMap((meal) => meal.dishes)
         .filter(isKept);
-      if (kept.length === 0) counts.emptySlots++;
-      if (kept.length > 1) counts.multiDishSlots++;
+      if (kept.length === 0) counts.emptySlots += 1;
+      if (kept.length > 1) counts.multiDishSlots += 1;
 
       return {
         day,
@@ -53,14 +53,14 @@ export function buildWeeklyMenu(number: number, source: SourceMenu, recipeFiles:
         dishes: kept.map((dish, index) => {
           const position = index + 1;
           const resolution = resolveDish(dish, recipeFiles);
-          counts[resolution.status]++;
-          if (resolution.status === "resolved") claimed.add(resolution.recipe);
+          counts[resolution.status] += 1;
+          if (resolution.status === 'resolved') claimed.add(resolution.recipe);
           dishes.push({ day, type, position, name: dish.name, resolution });
           return {
             position,
             name: dish.name,
             hasRecipeMark: dish.hasRecipeMark,
-            recipeFile: resolution.status === "resolved" ? resolution.recipe : null,
+            recipeFile: resolution.status === 'resolved' ? resolution.recipe : null,
           };
         }),
       };

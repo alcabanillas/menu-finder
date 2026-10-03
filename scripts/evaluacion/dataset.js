@@ -73,4 +73,4 @@ function allDishNames(menus) {
   return new Set(menus.flatMap((menu) => dishesOf(menu).map((dish) => dish.name)));
 }
 
-module.exports = { DATA_DIR, readJson, loadMenus, dishesOf, allDishNames };
+module.exports = { readJson, loadMenus, dishesOf, allDishNames };

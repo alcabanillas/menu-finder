@@ -1,15 +1,15 @@
-import type pg from "pg";
+import type pg from 'pg';
 
 /** Runs `work` in one transaction: every statement is kept, or none is. */
 export async function inTransaction<T>(pool: pg.Pool, work: (client: pg.PoolClient) => Promise<T>): Promise<T> {
   const client = await pool.connect();
   try {
-    await client.query("BEGIN");
+    await client.query('BEGIN');
     const result = await work(client);
-    await client.query("COMMIT");
+    await client.query('COMMIT');
     return result;
   } catch (error) {
-    await client.query("ROLLBACK").catch(() => undefined);
+    await client.query('ROLLBACK').catch(() => undefined);
     throw error;
   } finally {
     client.release();

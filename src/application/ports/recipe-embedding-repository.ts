@@ -1,4 +1,4 @@
-import type { Result } from "@/shared/result";
+import type { Result } from '@/shared/result';
 
 /** A recipe row to embed, with what its stored vector of the variant was computed from, if it has one. */
 export type RecipeToEmbed = {
@@ -11,7 +11,7 @@ export type RecipeToEmbed = {
 
 export type NewEmbedding = { recipeKey: string; model: string; dimensions: number; source: string; vector: number[] };
 
-export type EmbeddingStoreError = { kind: "store-failed"; reason: string };
+export type EmbeddingStoreError = { kind: 'store-failed'; reason: string };
 
 /** The recipe rows of the database and their embeddings, one per variant (EVAL-golden-sets). */
 export interface RecipeEmbeddingRepository {

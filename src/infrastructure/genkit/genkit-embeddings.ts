@@ -1,11 +1,11 @@
-import { googleAI } from "@genkit-ai/google-genai";
-import { genkit } from "genkit";
-import type { EmbeddingDocument, EmbeddingError, Embeddings, EmbeddingsPort } from "@/application/ports/embeddings-port";
-import { redactSecrets } from "@/shared/redact-secrets";
-import { err, ok, type Result } from "@/shared/result";
+import { googleAI } from '@genkit-ai/google-genai';
+import { genkit } from 'genkit';
+import type { EmbeddingDocument, EmbeddingError, Embeddings, EmbeddingsPort } from '@/application/ports/embeddings-port';
+import { redactSecrets } from '@/shared/redact-secrets';
+import { err, ok, type Result } from '@/shared/result';
 
 /** IA-proveedor (MF-41 design D5). */
-export const EMBEDDING_MODEL = "gemini-embedding-2";
+export const EMBEDDING_MODEL = 'gemini-embedding-2';
 
 // Texts per call to `embedMany`. For `gemini-embedding-2` the Genkit plugin sends one request per text,
 // all at once (`Promise.all`): with 100 the API answered 503 in the first real load (MF-41 task 6.2).
@@ -14,6 +14,7 @@ const BATCH_SIZE = 10;
 /** One vector per text, in order. Replaced in tests. */
 export type EmbedMany = (texts: string[]) => Promise<number[][]>;
 
+/** Embeds documents with Gemini through Genkit, `BATCH_SIZE` texts per call. Errors never carry the API key. */
 export class GenkitEmbeddings implements EmbeddingsPort {
   readonly model = EMBEDDING_MODEL;
 
@@ -32,13 +33,13 @@ export class GenkitEmbeddings implements EmbeddingsPort {
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      return err({ kind: "embedding-failed", reason: redactSecrets(message, [this.apiKey]) });
+      return err({ kind: 'embedding-failed', reason: redactSecrets(message, [this.apiKey]) });
     }
 
     const dimensions = vectors[0]?.length ?? 0;
     const other = vectors.find((vector) => vector.length !== dimensions);
     if (other) {
-      return err({ kind: "embedding-failed", reason: `vectors of different sizes: ${dimensions} and ${other.length}` });
+      return err({ kind: 'embedding-failed', reason: `vectors of different sizes: ${dimensions} and ${other.length}` });
     }
     return ok({ model: this.model, dimensions, vectors });
   }
@@ -56,5 +57,5 @@ export function createGenkitEmbeddings(apiKey: string): GenkitEmbeddings {
 
 // `gemini-embedding-2` has no `task_type` for text: the task goes in the text (Gemini API docs, D5).
 function documentText({ title, content }: EmbeddingDocument): string {
-  return `title: ${title || "none"} | text: ${content}`;
+  return `title: ${title || 'none'} | text: ${content}`;
 }

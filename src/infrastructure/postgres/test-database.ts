@@ -1,6 +1,6 @@
-import { randomBytes } from "node:crypto";
-import pg from "pg";
-import { MIGRATIONS_DIR, PostgresMigrationRunner } from "@/infrastructure/postgres/postgres-migration-runner";
+import { randomBytes } from 'node:crypto';
+import pg from 'pg';
+import { MIGRATIONS_DIR, PostgresMigrationRunner } from '@/infrastructure/postgres/postgres-migration-runner';
 
 /**
  * Integration tests run against a temporary Neon branch, never `production`
@@ -9,8 +9,11 @@ import { MIGRATIONS_DIR, PostgresMigrationRunner } from "@/infrastructure/postgr
  */
 export const TEST_DATABASE_URL = process.env.DATABASE_URL_TEST;
 
+/** Random bytes in each test schema name: 12 hex characters, so parallel test files never share a schema. */
+const SCHEMA_SUFFIX_BYTES = 6;
+
 if (!TEST_DATABASE_URL) {
-  process.stderr.write("DATABASE_URL_TEST is not set: the Postgres integration tests are skipped.\n");
+  process.stderr.write('DATABASE_URL_TEST is not set: the Postgres integration tests are skipped.\n');
 }
 
 export type TestDatabase = { pool: pg.Pool; schema: string; drop: () => Promise<void> };
@@ -28,8 +31,9 @@ export async function createMigratedTestDatabase(url: string): Promise<TestDatab
   return db;
 }
 
+/** A new empty schema on the test database, with a pool whose search path points to it. */
 export async function createTestDatabase(url: string): Promise<TestDatabase> {
-  const schema = `test_${randomBytes(6).toString("hex")}`;
+  const schema = `test_${randomBytes(SCHEMA_SUFFIX_BYTES).toString('hex')}`;
   const admin = new pg.Client({ connectionString: url });
   await admin.connect();
   // The schema name is generated here from random hex, never from input.

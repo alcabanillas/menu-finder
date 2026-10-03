@@ -1,5 +1,5 @@
-import type { EmbeddingError } from "@/application/ports/embeddings-port";
-import type { EmbeddingStoreError } from "@/application/ports/recipe-embedding-repository";
+import type { EmbeddingError } from '@/application/ports/embeddings-port';
+import type { EmbeddingStoreError } from '@/application/ports/recipe-embedding-repository';
 
 export type EmbedRecipesSummary = {
   /** Recipe rows in the database, the rows of dishes without recipe file included. */

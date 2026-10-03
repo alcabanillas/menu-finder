@@ -1,4 +1,4 @@
-import type { Day, MealType } from "@/domain/menu/weekly-menu";
+import type { Day, MealType } from '@/domain/menu/weekly-menu';
 
 /** A dish as the source lists it: its name and whether the source marks it as having a recipe. */
 export type SourceDish = { name: string; hasRecipeMark: boolean };

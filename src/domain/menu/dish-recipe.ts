@@ -1,7 +1,7 @@
-import type { MenuDish, WeeklyMenu } from "@/domain/menu/weekly-menu";
+import type { MenuDish, WeeklyMenu } from '@/domain/menu/weekly-menu';
 
 /** Key of the recipe row of a dish without recipe file: one row per distinct dish name. */
-const NAME_ONLY_PREFIX = "dish:";
+const NAME_ONLY_PREFIX = 'dish:';
 
 /** The recipe row a dish points to: its recipe file, or a name-only row for a dish without one. */
 export const recipeKeyOf = ({ name, recipeFile }: MenuDish): string => recipeFile ?? `${NAME_ONLY_PREFIX}${name}`;

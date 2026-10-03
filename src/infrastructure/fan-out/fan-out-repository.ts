@@ -1,5 +1,5 @@
-import type { RepositoryError } from "@/application/ports/repository-error";
-import { err, ok, type Result } from "@/shared/result";
+import type { RepositoryError } from '@/application/ports/repository-error';
+import { err, ok, type Result } from '@/shared/result';
 
 /** The shape `MenuRepository` and `RecipeRepository` share. */
 type SaveAll<T> = { saveAll(items: T[]): Promise<Result<void, RepositoryError>> };
@@ -23,7 +23,7 @@ export class FanOutRepository<T> implements SaveAll<T> {
     const saved = await this.database.saveAll(items);
     if (saved.ok) return ok(undefined);
     return err({
-      kind: "write-failed",
+      kind: 'write-failed',
       reason: `${this.fileName} was written, but the database save failed: ${saved.error.reason}`,
     });
   }

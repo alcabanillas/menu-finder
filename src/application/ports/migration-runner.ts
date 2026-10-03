@@ -1,7 +1,7 @@
-import type { Result } from "@/shared/result";
+import type { Result } from '@/shared/result';
 
 /** `migration` is `null` when the failure is not about one migration (listing, connecting). */
-export type MigrationError = { kind: "migration-failed"; migration: string | null; reason: string };
+export type MigrationError = { kind: 'migration-failed'; migration: string | null; reason: string };
 
 /** The SQL migrations in `postgres/migrations/` and the record of the ones applied to the database. */
 export interface MigrationRunner {

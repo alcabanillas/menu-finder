@@ -1,11 +1,11 @@
-import type { EmbedRecipesError, EmbedRecipesSummary } from "@/application/dto/embed-recipes";
-import type { EmbeddingsPort } from "@/application/ports/embeddings-port";
-import type { RecipeEmbeddingRepository } from "@/application/ports/recipe-embedding-repository";
-import { embeddingDocument, embeddingSource } from "@/domain/search/embedding-text";
-import { err, ok, type Result } from "@/shared/result";
+import type { EmbedRecipesError, EmbedRecipesSummary } from '@/application/dto/embed-recipes';
+import type { EmbeddingsPort } from '@/application/ports/embeddings-port';
+import type { RecipeEmbeddingRepository } from '@/application/ports/recipe-embedding-repository';
+import { embeddingDocument, embeddingSource } from '@/domain/search/embedding-text';
+import { err, ok, type Result } from '@/shared/result';
 
 /** The embedded text: recipe title and ingredient names (EVAL-golden-sets, ablation (b)). */
-export const EMBEDDING_VARIANT = "name-ingredients";
+export const EMBEDDING_VARIANT = 'name-ingredients';
 
 export type EmbedRecipesDeps = { store: RecipeEmbeddingRepository; embeddings: EmbeddingsPort };
 
@@ -41,7 +41,7 @@ export async function embedRecipes({
   const { model, dimensions, vectors } = computed.value;
   if (vectors.length !== pending.length) {
     return err({
-      kind: "embedding-failed",
+      kind: 'embedding-failed',
       reason: `the service returned ${vectors.length} vectors for ${pending.length} texts`,
     });
   }

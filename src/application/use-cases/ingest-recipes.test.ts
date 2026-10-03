@@ -1,23 +1,23 @@
-import { describe, expect, it } from "vitest";
-import type { Recipe, RecipeContent } from "@/domain/recipe/recipe";
-import { err, ok, type Result } from "@/shared/result";
-import type { DocumentSource, MenuFolder, SourceError, SourceRecipe } from "@/application/ports/document-source";
-import type { RepositoryError } from "@/application/ports/repository-error";
-import type { RecipeRepository } from "@/application/ports/recipe-repository";
-import { ingestRecipes } from "@/application/use-cases/ingest-recipes";
+import { describe, expect, it } from 'vitest';
+import type { Recipe, RecipeContent } from '@/domain/recipe/recipe';
+import { err, ok, type Result } from '@/shared/result';
+import type { DocumentSource, MenuFolder, SourceError, SourceRecipe } from '@/application/ports/document-source';
+import type { RepositoryError } from '@/application/ports/repository-error';
+import type { RecipeRepository } from '@/application/ports/recipe-repository';
+import { ingestRecipes } from '@/application/use-cases/ingest-recipes';
 
 const content: RecipeContent = {
-  title: "Guiso de prueba",
+  title: 'Guiso de prueba',
   times: { total: 30, preparation: 10, cooking: 20, resting: null },
   ingredients: [
-    { name: "Garbanzo", householdMeasure: null, quantity: 100, unit: "g", optional: false },
-    { name: "Sal", householdMeasure: "al gusto", quantity: 1, unit: "g", optional: true },
+    { name: 'Garbanzo', householdMeasure: null, quantity: 100, unit: 'g', optional: false },
+    { name: 'Sal', householdMeasure: 'al gusto', quantity: 1, unit: 'g', optional: true },
   ],
-  preparation: ["Cocer.", "Servir."],
+  preparation: ['Cocer.', 'Servir.'],
 };
 
 type FakeFile = SourceRecipe | { error: SourceError };
-const recipe = (changes: Partial<RecipeContent> = {}, anomalies: SourceRecipe["anomalies"] = []): FakeFile => ({
+const recipe = (changes: Partial<RecipeContent> = {}, anomalies: SourceRecipe['anomalies'] = []): FakeFile => ({
   content: { ...content, ...changes },
   anomalies,
 });
@@ -30,13 +30,13 @@ const fakeSource = (menus: Record<number, Record<string, FakeFile>>) => {
   const source: DocumentSource = {
     listMenuFolders: async () => ok(Object.keys(menus).map((key) => folder(Number(key)))),
     readMenu: async () => {
-      throw new Error("not expected");
+      throw new Error('not expected');
     },
     listRecipeFiles: async ({ number }) => Object.keys(menus[number]),
     readRecipe: async ({ number }, file) => {
       reads.push(`${number}/${file}`);
       const entry = menus[number][file];
-      return "error" in entry ? err(entry.error) : ok(entry);
+      return 'error' in entry ? err(entry.error) : ok(entry);
     },
   };
   return { source, reads };
@@ -59,38 +59,38 @@ const run = async (menus: Record<number, Record<string, FakeFile>>, repository =
   return result.value;
 };
 
-describe("ingestRecipes", () => {
-  it("reads the menus in numeric order and the files in name order", async () => {
+describe('ingestRecipes', () => {
+  it('reads the menus in numeric order and the files in name order', async () => {
     const { source, reads } = fakeSource({ 10: { B: recipe(), A: recipe() }, 2: { C: recipe() } });
 
     await ingestRecipes({ source, recipes: fakeRepository().repository });
 
-    expect(reads).toEqual(["2/C", "10/A", "10/B"]);
+    expect(reads).toEqual(['2/C', '10/A', '10/B']);
   });
 
-  it("saves one recipe per file, from the highest menu", async () => {
+  it('saves one recipe per file, from the highest menu', async () => {
     const { repository, saved } = fakeRepository();
 
-    await run({ 3: { Guiso: recipe({ title: "Viejo" }) }, 12: { Guiso: recipe() } }, repository);
+    await run({ 3: { Guiso: recipe({ title: 'Viejo' }) }, 12: { Guiso: recipe() } }, repository);
 
-    expect(saved).toEqual([[{ file: "Guiso", sourceMenu: 12, ...content }]]);
+    expect(saved).toEqual([[{ file: 'Guiso', sourceMenu: 12, ...content }]]);
   });
 
-  it("records a failed file with its menu and cause, and saves the others", async () => {
+  it('records a failed file with its menu and cause, and saves the others', async () => {
     const { repository, saved } = fakeRepository();
-    const missing: SourceError = { kind: "missing-section", section: "ingredients" };
+    const missing: SourceError = { kind: 'missing-section', section: 'ingredients' };
 
     const summary = await run({ 5: { Crema: failing(missing), Guiso: recipe() } }, repository);
 
-    expect(summary.failures).toEqual([{ menu: 5, file: "Crema", error: missing }]);
-    expect(saved[0].map((saved) => saved.file)).toEqual(["Guiso"]);
+    expect(summary.failures).toEqual([{ menu: 5, file: 'Crema', error: missing }]);
+    expect(saved[0].map((saved) => saved.file)).toEqual(['Guiso']);
   });
 
-  it("does not let a failed version win", async () => {
+  it('does not let a failed version win', async () => {
     const { repository, saved } = fakeRepository();
 
     const summary = await run(
-      { 3: { Guiso: recipe() }, 12: { Guiso: failing({ kind: "unreadable-document", reason: "bad" }) } },
+      { 3: { Guiso: recipe() }, 12: { Guiso: failing({ kind: 'unreadable-document', reason: 'bad' }) } },
       repository,
     );
 
@@ -98,57 +98,57 @@ describe("ingestRecipes", () => {
     expect(summary.failures).toHaveLength(1);
   });
 
-  it("reports layout and content anomalies with their menu and file", async () => {
+  it('reports layout and content anomalies with their menu and file', async () => {
     const summary = await run({
-      15: { Tostada: recipe({ preparation: [] }, [{ kind: "missing-closing-line" }]) },
+      15: { Tostada: recipe({ preparation: [] }, [{ kind: 'missing-closing-line' }]) },
     });
 
     expect(summary.anomalies).toEqual([
-      { menu: 15, file: "Tostada", anomaly: { kind: "missing-closing-line" } },
-      { menu: 15, file: "Tostada", anomaly: { kind: "empty-preparation" } },
+      { menu: 15, file: 'Tostada', anomaly: { kind: 'missing-closing-line' } },
+      { menu: 15, file: 'Tostada', anomaly: { kind: 'empty-preparation' } },
     ]);
   });
 
-  it("fails without saving when the raw directory is missing", async () => {
+  it('fails without saving when the raw directory is missing', async () => {
     const { repository, saved } = fakeRepository();
     const source: DocumentSource = {
       ...fakeSource({}).source,
-      listMenuFolders: async () => err({ kind: "missing-raw-directory", path: "raw" }),
+      listMenuFolders: async () => err({ kind: 'missing-raw-directory', path: 'raw' }),
     };
 
     expect(await ingestRecipes({ source, recipes: repository })).toEqual(
-      err({ kind: "source-unavailable", error: { kind: "missing-raw-directory", path: "raw" } }),
+      err({ kind: 'source-unavailable', error: { kind: 'missing-raw-directory', path: 'raw' } }),
     );
     expect(saved).toEqual([]);
   });
 
-  it("fails without saving when no recipe could be parsed", async () => {
+  it('fails without saving when no recipe could be parsed', async () => {
     const { repository, saved } = fakeRepository();
-    const error: SourceError = { kind: "unreadable-document", reason: "bad" };
+    const error: SourceError = { kind: 'unreadable-document', reason: 'bad' };
 
     const result = await ingestRecipes({
       source: fakeSource({ 1: { Guiso: failing(error) }, 2: {} }).source,
       recipes: repository,
     });
 
-    expect(result).toEqual(err({ kind: "no-recipe-parsed", failures: [{ menu: 1, file: "Guiso", error }] }));
+    expect(result).toEqual(err({ kind: 'no-recipe-parsed', failures: [{ menu: 1, file: 'Guiso', error }] }));
     expect(saved).toEqual([]);
   });
 
-  it("fails when the recipes cannot be saved", async () => {
-    const failure: RepositoryError = { kind: "write-failed", reason: "disk full" };
+  it('fails when the recipes cannot be saved', async () => {
+    const failure: RepositoryError = { kind: 'write-failed', reason: 'disk full' };
 
     const result = await ingestRecipes({
       source: fakeSource({ 1: { Guiso: recipe() } }).source,
       recipes: fakeRepository(err(failure)).repository,
     });
 
-    expect(result).toEqual(err({ kind: "save-failed", error: failure }));
+    expect(result).toEqual(err({ kind: 'save-failed', error: failure }));
   });
 
-  it("counts the files found and parsed per menu", async () => {
+  it('counts the files found and parsed per menu', async () => {
     const summary = await run({
-      1: { Guiso: recipe(), Crema: failing({ kind: "unreadable-document", reason: "bad" }) },
+      1: { Guiso: recipe(), Crema: failing({ kind: 'unreadable-document', reason: 'bad' }) },
       2: { Guiso: recipe() },
     });
 
@@ -158,24 +158,24 @@ describe("ingestRecipes", () => {
     ]);
   });
 
-  it("reports the divergent files", async () => {
-    const summary = await run({ 3: { Guiso: recipe({ title: "Viejo" }) }, 12: { Guiso: recipe() } });
+  it('reports the divergent files', async () => {
+    const summary = await run({ 3: { Guiso: recipe({ title: 'Viejo' }) }, 12: { Guiso: recipe() } });
 
-    expect(summary.divergent).toEqual([{ file: "Guiso", keptMenu: 12, differingMenus: [3], fields: ["title"] }]);
+    expect(summary.divergent).toEqual([{ file: 'Guiso', keptMenu: 12, differingMenus: [3], fields: ['title'] }]);
   });
 
-  it("computes the totals, with the content figures over the saved recipes", async () => {
+  it('computes the totals, with the content figures over the saved recipes', async () => {
     const summary = await run({
       1: {
-        Guiso: recipe({ title: "Viejo" }),
+        Guiso: recipe({ title: 'Viejo' }),
         Arroz: recipe({
           times: { ...content.times, total: null },
           preparation: [],
           ingredients: [
-            { name: "garbanzo", householdMeasure: "una pizca", quantity: null, unit: null, optional: false },
+            { name: 'garbanzo', householdMeasure: 'una pizca', quantity: null, unit: null, optional: false },
           ],
         }),
-        Crema: failing({ kind: "unreadable-document", reason: "bad" }),
+        Crema: failing({ kind: 'unreadable-document', reason: 'bad' }),
       },
       2: { Guiso: recipe(), Tortilla: recipe() },
       3: { Tortilla: recipe() },

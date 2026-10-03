@@ -1,24 +1,24 @@
-import { toComparableName } from "@/domain/menu-ingestion/comparable-name";
+import { toComparableName } from '@/domain/menu-ingestion/comparable-name';
 
 // Only a full match resolves: every significant word of the dish must be in the
 // file name. A partial match is reported as unresolved for manual review
 // instead of being accepted silently (MF-11, task 9.3).
-export const MATCH_THRESHOLD = 1;
+const MATCH_THRESHOLD = 1;
 
 // Breakfast recipes share their folder with the menu's dishes but are out of
 // scope (only lunch and dinner are parsed); matching them only adds noise.
 // Some folders truncate these file names, so they are compared by prefix.
 const BREAKFAST_RECIPE_PREFIXES = [
-  "tostada integral con hummus y hojas de espinacas",
-  "tostada integral con un poco de aceite de oliva virgen",
+  'tostada integral con hummus y hojas de espinacas',
+  'tostada integral con un poco de aceite de oliva virgen',
 ];
 
 export type DishToResolve = { name: string; hasRecipeMark: boolean };
 
 export type DishResolution =
-  | { status: "resolved"; recipe: string; score: number }
-  | { status: "unresolved"; discarded: { recipe: string; score: number } | null }
-  | { status: "unmarked" };
+  | { status: 'resolved'; recipe: string; score: number }
+  | { status: 'unresolved'; discarded: { recipe: string; score: number } | null }
+  | { status: 'unmarked' };
 
 /** Whether a recipe file can be matched to a dish: excluded breakfast recipes cannot. */
 export const isRecipeCandidate = (recipeFile: string): boolean => !isBreakfastRecipe(toComparableName(recipeFile));
@@ -30,7 +30,7 @@ export const isRecipeCandidate = (recipeFile: string): boolean => !isBreakfastRe
  * discarded so the QA report can show it without presenting it as a match.
  */
 export function resolveDish(dish: DishToResolve, recipeFiles: readonly string[]): DishResolution {
-  if (!dish.hasRecipeMark) return { status: "unmarked" };
+  if (!dish.hasRecipeMark) return { status: 'unmarked' };
 
   const dishWords = significantWords(toComparableName(dish.name));
   let best: { recipe: string; score: number } | null = null;
@@ -41,8 +41,8 @@ export function resolveDish(dish: DishToResolve, recipeFiles: readonly string[])
     if (score > (best?.score ?? 0)) best = { recipe, score };
   }
 
-  if (best && best.score >= MATCH_THRESHOLD) return { status: "resolved", ...best };
-  return { status: "unresolved", discarded: best };
+  if (best && best.score >= MATCH_THRESHOLD) return { status: 'resolved', ...best };
+  return { status: 'unresolved', discarded: best };
 }
 
 function isBreakfastRecipe(comparableName: string): boolean {
@@ -50,7 +50,7 @@ function isBreakfastRecipe(comparableName: string): boolean {
 }
 
 function significantWords(comparableName: string): Set<string> {
-  return new Set(comparableName.split(" ").filter((word) => word.length > 2));
+  return new Set(comparableName.split(' ').filter((word) => word.length > 2));
 }
 
 /** Fraction of the dish's significant words that also appear in the candidate's name. */
@@ -58,6 +58,6 @@ function containmentScore(dishWords: Set<string>, candidateName: string): number
   const candidateWords = significantWords(candidateName);
   if (dishWords.size === 0 || candidateWords.size === 0) return 0;
   let shared = 0;
-  for (const word of dishWords) if (candidateWords.has(word)) shared++;
+  for (const word of dishWords) if (candidateWords.has(word)) shared += 1;
   return shared / dishWords.size;
 }

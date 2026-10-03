@@ -1,2 +1,3 @@
-pnpm exec lint-staged
+pnpm lint-staged
+pnpm knip
 pnpm test:run

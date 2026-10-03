@@ -1,13 +1,13 @@
-import type pg from "pg";
+import type pg from 'pg';
 import type {
   EmbeddingStoreError,
   NewEmbedding,
   RecipeEmbeddingRepository,
   RecipeToEmbed,
-} from "@/application/ports/recipe-embedding-repository";
-import { err, ok, type Result } from "@/shared/result";
-import { describeDatabaseError } from "@/infrastructure/postgres/describe-database-error";
-import { asJson, inTransaction } from "@/infrastructure/postgres/transaction";
+} from '@/application/ports/recipe-embedding-repository';
+import { err, ok, type Result } from '@/shared/result';
+import { describeDatabaseError } from '@/infrastructure/postgres/describe-database-error';
+import { asJson, inTransaction } from '@/infrastructure/postgres/transaction';
 
 // Byte order (`COLLATE "C"`), so the order does not depend on the database locale.
 const SELECT_DOCUMENTS = `
@@ -26,7 +26,7 @@ const UPSERT_EMBEDDINGS = `
   ON CONFLICT (recipe_key, variant) DO UPDATE SET
     model = EXCLUDED.model, dimensions = EXCLUDED.dimensions, source = EXCLUDED.source, embedding = EXCLUDED.embedding`;
 
-type DocumentRow = Omit<RecipeToEmbed, "stored"> & { model: string | null; source: string | null };
+type DocumentRow = Omit<RecipeToEmbed, 'stored'> & { model: string | null; source: string | null };
 
 /** The recipe rows of Postgres and their `vector(3072)` embeddings. */
 export class PostgresRecipeEmbeddingRepository implements RecipeEmbeddingRepository {
@@ -54,7 +54,7 @@ export class PostgresRecipeEmbeddingRepository implements RecipeEmbeddingReposit
       model,
       dimensions,
       source,
-      embedding: `[${vector.join(",")}]`,
+      embedding: `[${vector.join(',')}]`,
     }));
     try {
       await inTransaction(this.pool, (client) => client.query(UPSERT_EMBEDDINGS, [asJson(rows), variant]));
@@ -66,5 +66,5 @@ export class PostgresRecipeEmbeddingRepository implements RecipeEmbeddingReposit
 }
 
 function failure(error: unknown): Result<never, EmbeddingStoreError> {
-  return err({ kind: "store-failed", reason: describeDatabaseError(error) });
+  return err({ kind: 'store-failed', reason: describeDatabaseError(error) });
 }

@@ -2,34 +2,34 @@
 // Every string that comes from the roadmap goes through escapeHtml.
 // The filters are radio buttons read by CSS `:has()` rules, so they work without scripts.
 
-import type { Owner } from "./types";
-import type { ItemView, SprintView, StateCounts, Summary } from "./summarize";
+import type { Owner } from './types';
+import type { ItemView, SprintView, StateCounts, Summary } from './summarize';
 
-const ESCAPES: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+const ESCAPES: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 
 export const escapeHtml = (value: string): string => value.replace(/[&<>"']/g, (char) => ESCAPES[char]);
 
-const number = (value: number) => value.toLocaleString("es-ES", { maximumFractionDigits: 1 });
-const hours = (value: number | undefined) => (value === undefined ? "sin estimar" : `${number(value)} h`);
+const number = (value: number) => value.toLocaleString('es-ES', { maximumFractionDigits: 1 });
+const hours = (value: number | undefined) => (value === undefined ? 'sin estimar' : `${number(value)} h`);
 const percent = (done: number, total: number) => (total === 0 ? 0 : Math.round((done / total) * 100));
 
-const STATE_LABEL = { done: "hecho", ready: "listo", blocked: "bloqueado" } as const;
+const STATE_LABEL = { done: 'hecho', ready: 'listo', blocked: 'bloqueado' } as const;
 
 // State filter: count key, label, the rows it hides and the selector a visible row matches.
 const STATE_FILTERS = [
-  { key: "pending", label: "Pendientes", hide: 'li[data-state="done"]', match: ':not([data-state="done"])' },
-  { key: "ready", label: "Listos", hide: 'li[data-item]:not([data-state="ready"])', match: '[data-state="ready"]' },
-  { key: "blocked", label: "Bloqueados", hide: 'li[data-item]:not([data-state="blocked"])', match: '[data-state="blocked"]' },
-  { key: "done", label: "Hechos", hide: 'li[data-item]:not([data-state="done"])', match: '[data-state="done"]' },
-  { key: "all", label: "Todos", hide: "", match: "" },
+  { key: 'pending', label: 'Pendientes', hide: 'li[data-state="done"]', match: ':not([data-state="done"])' },
+  { key: 'ready', label: 'Listos', hide: 'li[data-item]:not([data-state="ready"])', match: '[data-state="ready"]' },
+  { key: 'blocked', label: 'Bloqueados', hide: 'li[data-item]:not([data-state="blocked"])', match: '[data-state="blocked"]' },
+  { key: 'done', label: 'Hechos', hide: 'li[data-item]:not([data-state="done"])', match: '[data-state="done"]' },
+  { key: 'all', label: 'Todos', hide: '', match: '' },
 ] as const satisfies ReadonlyArray<{ key: keyof StateCounts; label: string; hide: string; match: string }>;
 
 // Owner filter: "all" plus one entry per owner. `H→A` needs an ASCII id.
 const OWNER_FILTERS: ReadonlyArray<{ id: string; label: string; owner?: Owner }> = [
-  { id: "all", label: "Todos" },
-  { id: "H", label: "H", owner: "H" },
-  { id: "HA", label: "H→A", owner: "H→A" },
-  { id: "A", label: "A", owner: "A" },
+  { id: 'all', label: 'Todos' },
+  { id: 'H', label: 'H', owner: 'H' },
+  { id: 'HA', label: 'H→A', owner: 'H→A' },
+  { id: 'A', label: 'A', owner: 'A' },
 ];
 
 const filterCss = () => {
@@ -47,7 +47,7 @@ const filterCss = () => {
   for (const owner of OWNER_FILTERS.filter((entry) => entry.owner)) {
     rules.push(`body:has(#owner-${owner.id}:checked) li[data-item]:not([data-owner="${owner.owner}"]) { display:none; }`);
   }
-  return rules.join("\n");
+  return rules.join('\n');
 };
 
 const CSS = `
@@ -84,29 +84,29 @@ ul.items li { display:grid; grid-template-columns:4.5rem 1fr 5.5rem auto; gap:4p
 ${filterCss()}
 `;
 
-const ownerTag = (item: ItemView) => (item.owner ? escapeHtml(item.owner) : "sin responsable");
+const ownerTag = (item: ItemView) => (item.owner ? escapeHtml(item.owner) : 'sin responsable');
 
 const itemRow = (item: ItemView) => {
   const meta = [ownerTag(item)];
-  if (item.dependsOn.length > 0) meta.push(`tras ${escapeHtml(item.dependsOn.join(", "))}`);
-  if (item.blockedBy.length > 0) meta.push(`bloqueado por ${escapeHtml(item.blockedBy.join(", "))}`);
-  const owner = item.owner ? escapeHtml(item.owner) : "none";
+  if (item.dependsOn.length > 0) meta.push(`tras ${escapeHtml(item.dependsOn.join(', '))}`);
+  if (item.blockedBy.length > 0) meta.push(`bloqueado por ${escapeHtml(item.blockedBy.join(', '))}`);
+  const owner = item.owner ? escapeHtml(item.owner) : 'none';
   return `<li data-item="${escapeHtml(item.id)}" data-state="${item.state}" data-owner="${owner}">
   <span class="id">${escapeHtml(item.id)}</span>
   <span>${escapeHtml(item.text)}</span>
-  <span class="hours">${item.done && item.estimateHours === undefined ? "—" : hours(item.estimateHours)}</span>
+  <span class="hours">${item.done && item.estimateHours === undefined ? '—' : hours(item.estimateHours)}</span>
   <span class="tag ${item.state}">${STATE_LABEL[item.state]}</span>
-  <span class="meta">${meta.join(" · ")}</span></li>`;
+  <span class="meta">${meta.join(' · ')}</span></li>`;
 };
 
 const summarySection = (summary: Summary) => {
   const pace = summary.deadlinePassed
-    ? `<div class="kpi"><span class="muted">Ritmo</span><strong class="blocked">Plazo vencido</strong></div>`
+    ? '<div class="kpi"><span class="muted">Ritmo</span><strong class="blocked">Plazo vencido</strong></div>'
     : `<div class="kpi"><span class="muted">Ritmo necesario</span><strong>${number(summary.hoursPerDay ?? 0)} h/día</strong></div>`;
   const byOwner = summary.remainingByOwner;
   const gaps = [
-    summary.pendingWithoutEstimate > 0 ? `${summary.pendingWithoutEstimate} pendientes sin estimar` : "",
-    summary.pendingWithoutOwner > 0 ? `${summary.pendingWithoutOwner} pendientes sin responsable` : "",
+    summary.pendingWithoutEstimate > 0 ? `${summary.pendingWithoutEstimate} pendientes sin estimar` : '',
+    summary.pendingWithoutOwner > 0 ? `${summary.pendingWithoutOwner} pendientes sin responsable` : '',
   ].filter(Boolean);
   return `<section data-section="summary">
 <div class="kpis">
@@ -117,23 +117,23 @@ const summarySection = (summary: Summary) => {
 </div>
 <ul class="owners">
   <li><span>H</span> ${hours(byOwner.H)}</li>
-  <li><span>H→A</span> ${hours(byOwner["H→A"])}</li>
+  <li><span>H→A</span> ${hours(byOwner['H→A'])}</li>
   <li><span>A</span> ${hours(byOwner.A)}</li>
   <li><span>Sin responsable</span> ${hours(byOwner.none)}</li>
 </ul>
-${gaps.length > 0 ? `<p class="blocked">${gaps.join(" · ")}</p>` : ""}
+${gaps.length > 0 ? `<p class="blocked">${gaps.join(' · ')}</p>` : ''}
 </section>`;
 };
 
 const radio = (group: string, id: string, label: string, checked: boolean) =>
-  `<input type="radio" name="${group}" id="${group}-${id}"${checked ? " checked" : ""}><label for="${group}-${id}">${escapeHtml(label)}</label>`;
+  `<input type="radio" name="${group}" id="${group}-${id}"${checked ? ' checked' : ''}><label for="${group}-${id}">${escapeHtml(label)}</label>`;
 
 const filtersSection = (counts: StateCounts) => `<section data-section="filters" class="filters">
 <fieldset><legend>Estado</legend>
-${STATE_FILTERS.map((state) => radio("state", state.key, `${state.label} (${counts[state.key]})`, state.key === "pending")).join("\n")}
+${STATE_FILTERS.map((state) => radio('state', state.key, `${state.label} (${counts[state.key]})`, state.key === 'pending')).join('\n')}
 </fieldset>
 <fieldset><legend>Responsable</legend>
-${OWNER_FILTERS.map((owner) => radio("owner", owner.id, owner.label, owner.id === "all")).join("\n")}
+${OWNER_FILTERS.map((owner) => radio('owner', owner.id, owner.label, owner.id === 'all')).join('\n')}
 </fieldset>
 </section>`;
 
@@ -142,7 +142,7 @@ const sprintSection = (sprint: SprintView) => {
   return `<section data-section="sprint-${name}" data-sprint="${name}">
 <h2>${name} <span class="muted">${sprint.done}/${sprint.total} · ${hours(sprint.remainingHours)} pendientes</span></h2>
 <div class="bar"><div style="width:${percent(sprint.done, sprint.total)}%"></div></div>
-<ul class="items">${sprint.items.map(itemRow).join("\n")}</ul>
+<ul class="items">${sprint.items.map(itemRow).join('\n')}</ul>
 </section>`;
 };
 
@@ -161,7 +161,7 @@ export function renderHtml(summary: Summary): string {
 <p class="muted">Generado el ${escapeHtml(summary.today)} desde context/roadmap.md. Horas: estimaciones, no mediciones. H = humano · A = agente · H→A = decide el humano, ejecuta un agente.</p>
 ${summarySection(summary)}
 ${filtersSection(summary.stateCounts)}
-${summary.sprints.map(sprintSection).join("\n")}
+${summary.sprints.map(sprintSection).join('\n')}
 </main>
 </body>
 </html>
