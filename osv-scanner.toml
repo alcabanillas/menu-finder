@@ -1,4 +1,4 @@
-# Accepted vulnerabilities (MF-41, openspec/changes/mf-41-search-index/proposal.md).
+# Accepted vulnerabilities (MF-41, openspec/changes/archive/2026-10-03-mf-41-search-index/proposal.md).
 # All four come through genkit@1.42.0, which pins @opentelemetry/core ~1.25, @opentelemetry/sdk-node ^0.52
 # and uuid ^10. The patched versions are new majors: forcing them with pnpm overrides makes genkit fail to
 # load (`core_1.getEnv is not a function`), checked on 2026-10-01. None is reachable as the project uses
