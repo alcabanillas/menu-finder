@@ -100,7 +100,7 @@ For each marked dish, the system SHALL compute a containment score against every
 - **THEN** none of them is ever selected as a dish's recipe
 
 ### Requirement: Menu dataset output
-On completion, the system SHALL save the successfully parsed menus, which for now means writing `data/menu-platos.json` as a JSON array of weekly menus, one per parsed menu, in menu-number order. Each weekly menu SHALL have `number` (the folder number, as a number) and `meals`: exactly fourteen meals, one per day (`monday`..`sunday`) and type (`lunch` for the `Comida` row, `dinner` for the `Cena` row), ordered by day and then `lunch` before `dinner`. Each meal SHALL have `day`, `type` and `dishes`; each dish SHALL have `position` (1-based order within the cell), `name`, `hasRecipeMark` and `recipeFile` (the resolved recipe file name without extension, or `null`). The dataset SHALL NOT contain match scores or discarded candidates. Menus that failed SHALL be omitted.
+On completion, the system SHALL save the successfully parsed menus in two places, in this order: first `data/menu-platos.json`, then the database (capability `search-index`, requirement "Database content"). The file SHALL be a JSON array of weekly menus, one per parsed menu, in menu-number order. Each weekly menu SHALL have `number` (the folder number, as a number) and `meals`: exactly fourteen meals, one per day (`monday`..`sunday`) and type (`lunch` for the `Comida` row, `dinner` for the `Cena` row), ordered by day and then `lunch` before `dinner`. Each meal SHALL have `day`, `type` and `dishes`; each dish SHALL have `position` (1-based order within the cell), `name`, `hasRecipeMark` and `recipeFile` (the resolved recipe file name without extension, or `null`). The dataset SHALL NOT contain match scores or discarded candidates. Menus that failed SHALL be omitted. When the database save fails after the file was written, the command SHALL say that the file was written and why the database save failed.
 
 #### Scenario: Output shape
 - **WHEN** menu folder `Menu 3` is parsed successfully
@@ -117,6 +117,10 @@ On completion, the system SHALL save the successfully parsed menus, which for no
 #### Scenario: No match evidence in the dataset
 - **WHEN** a marked dish is resolved with score `1`, and another is unresolved with a discarded candidate
 - **THEN** neither dish entry in the dataset contains a score or a candidate; both appear only in the QA report
+
+#### Scenario: Database not updated
+- **WHEN** the file is written and the database save fails
+- **THEN** the command exits with a non-zero code and says that `data/menu-platos.json` was written and why the database save failed
 
 ### Requirement: Unresolved marked dishes reporting
 Every marked dish left unresolved SHALL be reported individually, both in the console output and in the QA report, with its menu, day, meal, dish name, best discarded candidate (or none) and that candidate's score. Scores SHALL be shown rounded to two decimals. The QA report SHALL show a recipe in its matched-recipe field only for resolved dishes; a discarded candidate SHALL appear only in fields that identify it as discarded.
@@ -149,8 +153,7 @@ The console output SHALL include, across all menus, the number of menus processe
 - **THEN** the console reports `1/2` menus processed without error and lists the second menu's error with its cause
 
 ### Requirement: Local-only CLI command
-The menu ingestion SHALL be exposed as a CLI command that runs locally, reads only from the raw menus directory, writes only under `data/` (the menu dataset and the QA report under `data/qa/`), and makes no network requests. The command SHALL reject unknown arguments with a usage message and a non-zero exit code before reading or writing anything. It SHALL exit with a non-zero code when the raw menus directory does not exist or no menu could be processed, and with a non-zero code when at least one menu failed; it SHALL exit with code zero otherwise, including when some marked dishes are unresolved.
-
+The menu ingestion SHALL be exposed as a CLI command that runs locally, reads only from the raw menus directory, writes only under `data/` (the menu dataset and the QA report under `data/qa/`) and to the database named by `DATABASE_URL_UNPOOLED`, and makes no other network request. The command SHALL reject unknown arguments with a usage message and a non-zero exit code before reading or writing anything. It SHALL exit with a non-zero code when the raw menus directory does not exist or no menu could be processed, and with a non-zero code when at least one menu failed or could not be saved; it SHALL exit with code zero otherwise, including when some marked dishes are unresolved.
 #### Scenario: Successful run
 - **WHEN** every menu is parsed without error
 - **THEN** the command writes the menu dataset and the QA report under `data/` and exits with code zero
