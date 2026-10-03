@@ -26,14 +26,14 @@ See `proposal.md` for the motivation. Constraints that shape the approach:
 
 ### D1. Layout and ports: the database behind `MenuRepository` and `RecipeRepository`
 
-**Decided by the author (2026-10-01), replacing the first version of this design.** The database is one more adapter of the two repository ports that MF-11 and MF-38 created for it. The use cases `ingestMenus` and `ingestRecipes` do not change.
+**Decided by the author (2026-10-01), replacing the first version of this design.** The database is one more adapter of the two repository ports that MF-11 and MF-38 created for it. The behavior of the use cases `ingestMenus` and `ingestRecipes` does not change. Their code was later refactored into short named steps (`readMenus`, `readRecipes`, `readFolder`), with the same tests.
 
 ```
 application/
   ports/        MenuRepository, RecipeRepository   unchanged
                 RecipeEmbeddingRepository           new
                 EmbeddingsPort, MigrationRunner     new
-  use-cases/    ingest-menus, ingest-recipes        unchanged
+  use-cases/    ingest-menus, ingest-recipes        same behavior
                 embed-recipes                       recipe rows → Gemini → database
                 migrate
 infrastructure/
@@ -97,9 +97,9 @@ D4 (lexical match) is in `mf-42-menu-search`; the D numbering is kept from the d
 
 ### D8. Tests
 
-- Use cases with fake ports: `embed` sends only new or changed texts, never the preparation, and writes nothing when the service fails; errors without secrets. The tests of `ingestMenus` and `ingestRecipes` do not change, which is the proof that the use cases did not.
+- Use cases with fake ports: `embed` sends only new or changed texts, never the preparation, and writes nothing when the service fails; errors without secrets. The tests of `ingestMenus` and `ingestRecipes` only change their imports, which is the proof that the behavior of the use cases did not.
 - Fan-out adapters with fake repositories: order, the JSON error stops before the database, the database error says that the JSON was written.
-- Adapters (`infrastructure/`, no coverage threshold): integration tests against a **temporary Neon branch** created for the run, so that no test touches `production`. They run locally with `DATABASE_URL_TEST` and are skipped when it is not set; **CI does not run them in this change** (it has no database secret and `context/decisiones.md` §2 point 2 leaves the testing strategy open). The skip is printed, not silent.
+- Adapters (`infrastructure/`, no coverage threshold): integration tests against a **Neon branch kept for tests**, never `production`, whose direct URL is `DATABASE_URL_TEST` (Vitest reads only that variable from `.env.local`). Each test file creates its own schema with a random name, applies the migrations there and drops it at the end, so runs do not see each other and the branch is not created per run. They run locally and are skipped when it is not set; **CI does not run them in this change** (it has no database secret and `context/decisiones.md` §2 point 2 leaves the testing strategy open). The skip is printed, not silent.
 - CLI commands: the existing `run-cli` test style (fake container).
 
 ## Risks / Trade-offs

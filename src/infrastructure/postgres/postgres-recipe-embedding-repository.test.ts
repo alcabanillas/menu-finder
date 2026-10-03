@@ -33,7 +33,7 @@ const embedding = (recipeKey: string, source: string, seed = 1): NewEmbedding =>
   vector: vector(seed),
 });
 
-describe.skipIf(!TEST_DATABASE_URL)('PostgresRecipeEmbeddingRepository (temporary Neon branch)', () => {
+describe.skipIf(!TEST_DATABASE_URL)('PostgresRecipeEmbeddingRepository (Neon test branch)', () => {
   let db: TestDatabase;
   let store: PostgresRecipeEmbeddingRepository;
   beforeEach(async () => {

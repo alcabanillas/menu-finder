@@ -1,6 +1,6 @@
 import type { SourceError } from '@/application/ports/document-source';
 import type { Day, MealType } from '@/domain/menu/weekly-menu';
-import type { SourceMeal, SourceMenu } from '@/domain/menu-ingestion/source-menu';
+import type { SourceMeal, SourceMenu } from '@/domain/menu/source-menu';
 import { err, ok, type Result } from '@/shared/result';
 import { splitCellIntoDishes } from '@/infrastructure/local-documents/pdf/split-cell';
 

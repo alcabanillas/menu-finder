@@ -88,7 +88,7 @@ de los 36 PDFs (verificado, es esperado, no un fallo de extracción).
   línea que termina en `*` cierra un plato, y una línea que empieza por mayúscula (mientras
   la anterior no termina en preposición o artículo — de/con/al/en/y/la/el/...) señala el
   inicio de un plato nuevo. El relleno genérico sin `*` (una pieza de fruta, un yogur o
-  kéfir sin azúcar) no es un plato y se descarta (`src/domain/menu-ingestion/filler.ts`).
+  kéfir sin azúcar) no es un plato y se descarta (`src/domain/menu/filler.ts`).
 - **`position`** — orden del plato en su celda, contado después de descartar el relleno.
 - **`hasRecipeMark`** — dato **literal del PDF**, no inferido: el nutricionista
   marca con un asterisco los platos que llevan receta propia (el propio PDF lo explicita:

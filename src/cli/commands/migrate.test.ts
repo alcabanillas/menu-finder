@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { MigrateError, MigrateSummary } from '@/application/use-cases/migrate';
+import type { MigrateError, MigrateSummary } from '@/application/dto/migrate';
 import { runMigrate } from '@/cli/commands/migrate';
 import type { MissingVariables } from '@/composition/cli-container';
 import { err, ok, type Result } from '@/shared/result';

@@ -1,5 +1,5 @@
 import type { MealType } from '@/domain/menu/weekly-menu';
-import type { SourceMenu } from '@/domain/menu-ingestion/source-menu';
+import type { SourceMenu } from '@/domain/menu/source-menu';
 import type { RecipeContent } from '@/domain/recipe/recipe';
 import type { Result } from '@/shared/result';
 

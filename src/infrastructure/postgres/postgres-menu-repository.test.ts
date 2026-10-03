@@ -33,7 +33,7 @@ const menu = (number: number, lunch: MenuDish[], dinner: MenuDish[] = []): Weekl
   ],
 });
 
-describe.skipIf(!TEST_DATABASE_URL)('PostgresMenuRepository (temporary Neon branch)', () => {
+describe.skipIf(!TEST_DATABASE_URL)('PostgresMenuRepository (Neon test branch)', () => {
   let db: TestDatabase;
   let menus: PostgresMenuRepository;
   beforeEach(async () => {

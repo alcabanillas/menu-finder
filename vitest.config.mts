@@ -34,7 +34,7 @@ export default defineConfig({
         'src/application/ports/**',
         'src/application/dto/**',
         'src/domain/menu/weekly-menu.ts',
-        'src/domain/menu-ingestion/source-menu.ts',
+        'src/domain/menu/source-menu.ts',
       ],
       reporter: ['text', 'html', 'lcov'],
     },

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { RecipeContent } from '@/domain/recipe/recipe';
-import { selectRecipeVersions } from '@/domain/recipe-ingestion/select-versions';
+import { selectRecipeVersions } from '@/domain/recipe/select-versions';
 
 const content: RecipeContent = {
   title: 'Tortilla de prueba',

@@ -7,7 +7,7 @@ import { createTestDatabase, TEST_DATABASE_URL, type TestDatabase } from '@/infr
 
 const SEARCH_TABLES = ['meal', 'menu', 'menu_dish', 'recipe', 'recipe_embedding', 'recipe_ingredient'];
 
-describe.skipIf(!TEST_DATABASE_URL)('PostgresMigrationRunner (temporary Neon branch)', () => {
+describe.skipIf(!TEST_DATABASE_URL)('PostgresMigrationRunner (Neon test branch)', () => {
   let db: TestDatabase;
   beforeEach(async () => {
     db = await createTestDatabase(TEST_DATABASE_URL!);

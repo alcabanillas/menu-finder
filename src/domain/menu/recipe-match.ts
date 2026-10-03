@@ -1,4 +1,4 @@
-import { toComparableName } from '@/domain/menu-ingestion/comparable-name';
+import { toComparableName } from '@/domain/menu/comparable-name';
 
 // Only a full match resolves: every significant word of the dish must be in the
 // file name. A partial match is reported as unresolved for manual review

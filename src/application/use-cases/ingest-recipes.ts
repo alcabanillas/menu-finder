@@ -1,11 +1,11 @@
 import type { Recipe, RecipeIngredient } from '@/domain/recipe/recipe';
-import { checkRecipeContent } from '@/domain/recipe-ingestion/content-anomalies';
+import { checkRecipeContent } from '@/domain/recipe/content-anomalies';
 import {
   selectRecipeVersions,
   type DivergentRecipe,
   type RecipeField,
   type RecipeVersion,
-} from '@/domain/recipe-ingestion/select-versions';
+} from '@/domain/recipe/select-versions';
 import { err, ok, type Result } from '@/shared/result';
 import type {
   IngestRecipesError,

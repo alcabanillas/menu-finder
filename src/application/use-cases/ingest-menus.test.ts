@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { WeeklyMenu } from '@/domain/menu/weekly-menu';
-import type { SourceMenu } from '@/domain/menu-ingestion/source-menu';
+import type { SourceMenu } from '@/domain/menu/source-menu';
 import { err, ok, type Result } from '@/shared/result';
 import type { DocumentSource, MenuFolder, SourceError } from '@/application/ports/document-source';
 import type { MenuRepository } from '@/application/ports/menu-repository';

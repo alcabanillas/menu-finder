@@ -3,7 +3,7 @@ import pg from 'pg';
 import { MIGRATIONS_DIR, PostgresMigrationRunner } from '@/infrastructure/postgres/postgres-migration-runner';
 
 /**
- * Integration tests run against a temporary Neon branch, never `production`
+ * Integration tests run against a Neon branch kept for tests, never `production`
  * (MF-41 design D8), whose direct URL is in `DATABASE_URL_TEST`. Each test
  * file gets its own schema, dropped at the end, so runs do not see each other.
  */

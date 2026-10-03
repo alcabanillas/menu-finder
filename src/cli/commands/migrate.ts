@@ -1,4 +1,4 @@
-import type { MigrateError, MigrateSummary } from '@/application/use-cases/migrate';
+import type { MigrateError, MigrateSummary } from '@/application/dto/migrate';
 import { isMissingVariables, missingLines } from '@/cli/commands/missing-variables';
 import type { MissingVariables } from '@/composition/cli-container';
 import { redactSecrets } from '@/shared/redact-secrets';

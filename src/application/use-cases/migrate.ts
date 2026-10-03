@@ -1,10 +1,6 @@
 import { err, ok, type Result } from '@/shared/result';
-import type { MigrationError, MigrationRunner } from '@/application/ports/migration-runner';
-
-export type MigrateSummary = { applied: string[] };
-
-/** The failure, with the migrations applied before it in the same run. */
-export type MigrateError = MigrationError & { applied: string[] };
+import type { MigrateError, MigrateSummary } from '@/application/dto/migrate';
+import type { MigrationRunner } from '@/application/ports/migration-runner';
 
 /** `pnpm ingest migrate`: applies the pending migrations in file-name order, stopping at the first failure. */
 export async function migrate({ runner }: { runner: MigrationRunner }): Promise<Result<MigrateSummary, MigrateError>> {

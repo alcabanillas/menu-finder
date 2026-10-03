@@ -1,6 +1,6 @@
 import type { WeeklyMenu } from '@/domain/menu/weekly-menu';
-import { buildWeeklyMenu, type DishOutcome, type MenuCounts } from '@/domain/menu-ingestion/build-weekly-menu';
-import type { DishResolution } from '@/domain/menu-ingestion/recipe-match';
+import { buildWeeklyMenu, type DishOutcome, type MenuCounts } from '@/domain/menu/build-weekly-menu';
+import type { DishResolution } from '@/domain/menu/recipe-match';
 import { err, ok, type Result } from '@/shared/result';
 import type {
   DishQaRow,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { buildWeeklyMenu } from '@/domain/menu-ingestion/build-weekly-menu';
-import type { SourceDish, SourceMenu } from '@/domain/menu-ingestion/source-menu';
+import { buildWeeklyMenu } from '@/domain/menu/build-weekly-menu';
+import type { SourceDish, SourceMenu } from '@/domain/menu/source-menu';
 
 const marked = (name: string): SourceDish => ({ name, hasRecipeMark: true });
 const unmarked = (name: string): SourceDish => ({ name, hasRecipeMark: false });

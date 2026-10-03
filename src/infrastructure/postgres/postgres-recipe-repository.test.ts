@@ -20,7 +20,7 @@ const tortilla: Recipe = {
 };
 const crema: Recipe = { ...tortilla, file: 'Crema', title: 'Crema de calabaza', ingredients: [tortilla.ingredients[0]] };
 
-describe.skipIf(!TEST_DATABASE_URL)('PostgresRecipeRepository (temporary Neon branch)', () => {
+describe.skipIf(!TEST_DATABASE_URL)('PostgresRecipeRepository (Neon test branch)', () => {
   let db: TestDatabase;
   let recipes: PostgresRecipeRepository;
   beforeEach(async () => {

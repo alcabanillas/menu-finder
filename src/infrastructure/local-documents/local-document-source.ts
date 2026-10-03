@@ -2,7 +2,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { PDFParse } from 'pdf-parse';
 import type { DocumentSource, MenuFolder, SourceError, SourceRecipe } from '@/application/ports/document-source';
-import type { SourceMenu } from '@/domain/menu-ingestion/source-menu';
+import type { SourceMenu } from '@/domain/menu/source-menu';
 import { err, ok, type Result } from '@/shared/result';
 import { toSourceMenu } from '@/infrastructure/local-documents/pdf/menu-table';
 import { parseRecipePage, type PositionedText } from '@/infrastructure/local-documents/pdf/recipe-page';
