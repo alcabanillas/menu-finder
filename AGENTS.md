@@ -115,6 +115,7 @@ Keep functions short: each does one thing that its name says. When a function gr
 
 Cada cambio sigue `explore` (opcional) → `propose` → `apply` → `verify` → `archive` (PROC-sdd). Lo obligatorio lo impone CI, no `verify`.
 
+- **Tamaño antes de `propose` (obligatorio):** cuando el autor elige un ítem de `context/roadmap.md`, antes de `/opsx:propose` se reevalúa su estimación. Si pasa de 2 h, se propone al autor dividirlo (el umbral es una recomendación: decide el autor) y, si acepta, se divide en subtasks `MF-nn.k` de 2 h o menos, con sangría bajo el ítem en `context/roadmap.md`. Cada subtask lleva un **Resultado** (algo que se ve o se ejecuta al terminar), se hace, se prueba y se archiva por separado, y es un cambio de OpenSpec propio (`mf-20-1-…`). El ítem conserva su ID y la estimación total. Se divide solo el ítem elegido, no los lejanos. Un ítem con cambio activo en `openspec/changes/` no se divide en el roadmap: su descomposición es su `tasks.md`.
 - **La seguridad entra por la spec:** el proposal identifica los datos tocados, los posibles abusos y las categorías OWASP que aplican. Cada endpoint o comando trae sus escenarios negativos de autorización y validación. Antes del `archive` se repasa la checklist de `safety-first.md` §4.
 - La presentación y el vídeo cuentan este flujo **como proceso**: qué se delega a los agentes y qué se revisa (PROC-sdd-memoria).
 

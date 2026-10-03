@@ -4,9 +4,9 @@
 >
 > Si algo de aquí contradice a [decisiones.md](decisiones.md), manda decisiones.md y este fichero se corrige.
 >
-> **IDs:** cada ítem tiene un ID neutro `MF-<nn>`, independiente del sprint. Es inmutable: no se renumera al reordenar, al borrar ni al cambiar de sprint, y un ítem nuevo toma el siguiente número libre. El sprint es la sección donde está el ítem: moverlo de sprint es moverlo de sección.
+> **IDs:** cada ítem tiene un ID neutro `MF-<nn>`, independiente del sprint. Es inmutable: no se renumera al reordenar, al borrar ni al cambiar de sprint, y un ítem nuevo toma el siguiente número libre. El sprint es la sección donde está el ítem: moverlo de sprint es moverlo de sección. **Subtasks:** un ítem de más de 2 h se divide en subtasks `MF-<nn>.<k>` de 2 h o menos, en líneas con sangría bajo el ítem, cada una con su **Resultado** (algo que se ve o se ejecuta al terminar). El ítem conserva su ID y la estimación total; las horas de las subtasks suman esa estimación. `pnpm roadmap` ignora las subtasks y cuenta solo el ítem.
 >
-> **Enlace con OpenSpec:** un ítem 📝 se empieza con `/opsx:propose`, y el nombre del cambio empieza por su ID en minúsculas (`mf-14-buscador`). Su *definition of done* son los escenarios de su spec. Al archivarse el cambio, el ítem pasa a ✅ con el enlace a su carpeta en `openspec/changes/archive/`. Así queda la cadena backlog → proposal → spec → código → tests.
+> **Enlace con OpenSpec:** un ítem 📝 se empieza con `/opsx:propose`, y el nombre del cambio empieza por su ID en minúsculas (`mf-14-buscador`). Su *definition of done* son los escenarios de su spec. Si el ítem tiene subtasks, cada subtask es un cambio con su ID en minúsculas (`mf-20-1-auth-server`) y el ítem pasa a ✅ cuando están archivados todos. Al archivarse el cambio, el ítem pasa a ✅ con el enlace a su carpeta en `openspec/changes/archive/`. Así queda la cadena backlog → proposal → spec → código → tests.
 >
 > **Leyenda:** ✅ hecho · ⬜ pendiente · 📝 necesita spec en `tareas/` antes de escribir código (SDD).
 
@@ -77,9 +77,13 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 
 **Sale del sprint:** la app está desplegada en Vercel, con login, y el flujo semanal funciona de principio a fin.
 
-- ⬜ **MF-20** (~5 h · H→A) 📝 Autenticación con email y contraseña, cuentas creadas por el CLI y sin registro, un solo rol, cuenta de demo para el tutor entregada en el formulario del máster. Sus tests negativos de autorización (sin sesión y contra datos de otro usuario) corren en CI y bloquean el merge ([safety-first §3](safety-first.md)) (SEG-auth con Better Auth, SEG-roles, SEG-sistema-cerrado)
+- ⬜ **MF-20** (~5,5 h · H→A) 📝 Autenticación con email y contraseña, cuentas creadas por el CLI y sin registro, un solo rol, cuenta de demo para el tutor entregada en el formulario del máster. Sus tests negativos de autorización (sin sesión y contra datos de otro usuario) corren en CI y bloquean el merge ([safety-first §3](safety-first.md)) (SEG-auth con Better Auth, SEG-roles, SEG-sistema-cerrado). El test contra datos de otro usuario va en MF-43, que crea la `Selection`
+  - ⬜ MF-20.1 (~2 h) Better Auth en `infrastructure/` con `disableSignUp: true`, sesión en BD y migración de sus tablas. Primero verifica que se pueden crear cuentas por la API de servidor con el registro desactivado (SEG-auth). **Resultado:** un test crea una cuenta por la API de servidor e inicia sesión con ella, y el registro público se rechaza
+  - ⬜ MF-20.2 (~1,5 h · tras MF-20.1) Comando de la CLI para crear cuentas, incluida la de demo (SEG-sistema-cerrado). **Resultado:** el comando crea una cuenta y con ella se inicia sesión
+  - ⬜ MF-20.3 (~2 h · tras MF-20.1) `/login`, logout y sesión comprobada en servidor para proteger rutas, con el test negativo «sin sesión». **Resultado:** en el navegador inicias sesión con una cuenta de MF-20.2 y ves una ruta protegida; sin sesión no entras
+- ⬜ **MF-43** (~3 h · A · tras MF-41, MF-20) 📝 `/planner` provisional: lista de los 36 menús con «elegir», que guarda la Selection del usuario. Sin buscador; MF-22 lo sustituye. Es la app de plan B si el buscador no llega (UI-flujo-semanal). Incluye el test negativo de autorización contra la `Selection` de otro usuario (MF-20)
 - ⬜ **MF-21** (~1,5 h · A · tras MF-20) 📝 Límites de uso: el rate limit de login de Better Auth con contadores en Neon y el tope global diario del LLM, con tests de abuso (SEG-rate-limit)
-- ⬜ **MF-22** (~8 h · A · tras MF-19, MF-40) `/planner` como buscador con chips, top 5 y explicación, sobre el modelo de ARQ-modelo-datos (UI-planner-buscador, BUS-superficie-consulta (e)). Revisa las vulnerabilidades aceptadas de Genkit (`osv-scanner.toml`, proposal de MF-41)
+- ⬜ **MF-22** (~8 h · A · tras MF-19, MF-40, MF-43) `/planner` como buscador con chips, top 5 y explicación, sobre el modelo de ARQ-modelo-datos (UI-planner-buscador, BUS-superficie-consulta (e)). Sustituye al `/planner` provisional de MF-43. Revisa las vulnerabilidades aceptadas de Genkit (`osv-scanner.toml`, proposal de MF-41)
 - ⬜ **MF-23** (~3,5 h · A) `/menu` con la card de receta (UI-card-receta)
 - ⬜ **MF-24** (~4,5 h · A · tras MF-10) `/shopping-list` como checklist contra la BD (ING-lista-compra, UI-flujo-semanal)
 - ⬜ **MF-25** (~2,5 h · A) `/` dashboard (UI-home-sin-login)
