@@ -119,7 +119,7 @@ When the same recipe file name is read from several menus, the system SHALL keep
 - **THEN** the recipe is saved from menu `3`, and the error for menu `12` is reported
 
 ### Requirement: Recipe dataset output
-On completion, the system SHALL save the recipes, which for now means writing `data/recetas.json` as a JSON array sorted by file name. Each recipe SHALL have `file` (the file name without extension), `sourceMenu` (the menu number of the kept version), `title`, `times` with `total`, `preparation`, `cooking` and `resting` (minutes or `null`), `ingredients` as a list of `{ name, householdMeasure, quantity, unit, optional }`, and `preparation` as a list of paragraphs. The dataset SHALL NOT contain anomaly counts, discarded versions, nor any text from the page footer or the closing block.
+On completion, the system SHALL save the recipes in two places, in this order: first `data/recetas.json`, then the database (capability `search-index`, requirement "Database content"). The file SHALL be a JSON array sorted by file name. Each recipe SHALL have `file` (the file name without extension), `sourceMenu` (the menu number of the kept version), `title`, `times` with `total`, `preparation`, `cooking` and `resting` (minutes or `null`), `ingredients` as a list of `{ name, householdMeasure, quantity, unit, optional }`, and `preparation` as a list of paragraphs. The dataset SHALL NOT contain anomaly counts, discarded versions, nor any text from the page footer or the closing block. When the database save fails after the file was written, the command SHALL say that the file was written and why the database save failed.
 
 #### Scenario: Output shape
 - **WHEN** `Tortilla-de-patata` is parsed from menu `4`
@@ -128,6 +128,10 @@ On completion, the system SHALL save the recipes, which for now means writing `d
 #### Scenario: Sorted by file name
 - **WHEN** the recipes `Tortilla-de-patata` and `Arroz-con-verduras` are parsed
 - **THEN** `Arroz-con-verduras` comes first in the dataset
+
+#### Scenario: Database not updated
+- **WHEN** the file is written and the database save fails
+- **THEN** the command exits with a non-zero code and says that `data/recetas.json` was written and why the database save failed
 
 ### Requirement: Recipe ingestion report
 The console output and the QA report SHALL include: the number of recipe files found and parsed, per menu and in total; the number of distinct recipe files; the number of files read from two or more menus; the number of files with divergent versions, overall and per differing field; the number of recipes with a total time and with a preparation (and the number of paragraphs); the number of ingredients, of ingredients with quantity and unit, and of optional ingredients; the number of distinct ingredient names (lowercased); the count of ingredients per unit; every per-file error with its menu, file and cause; and every anomaly with its menu and file. The QA report SHALL also list every divergent file with its kept menu, the differing menus and the differing fields. Statistics about recipe content SHALL be computed over the saved recipes.
@@ -145,7 +149,7 @@ The console output and the QA report SHALL include: the number of recipe files f
 - **THEN** the report shows `2` files found and `1` parsed for menu `1`
 
 ### Requirement: Local-only recipe command
-The recipe ingestion SHALL be exposed as the CLI command `recipes`, which runs locally, reads only from the raw menus directory, writes only under `data/` (the recipe dataset and the QA report under `data/qa/`), and makes no network requests. Any extra argument SHALL be rejected with a usage message and a non-zero exit code before reading or writing anything. The command SHALL exit with a non-zero code when the raw menus directory does not exist, when no recipe could be parsed (and then SHALL write no dataset), or when at least one recipe file failed; it SHALL exit with code zero otherwise, including when anomalies were reported.
+The recipe ingestion SHALL be exposed as the CLI command `recipes`, which runs locally, reads only from the raw menus directory, writes only under `data/` (the recipe dataset and the QA report under `data/qa/`) and to the database named by `DATABASE_URL_UNPOOLED`, and makes no other network request. Any extra argument SHALL be rejected with a usage message and a non-zero exit code before reading or writing anything. The command SHALL exit with a non-zero code when the raw menus directory does not exist, when no recipe could be parsed (and then SHALL write no dataset), when at least one recipe file failed, or when the recipes could not be saved; it SHALL exit with code zero otherwise, including when anomalies were reported.
 
 #### Scenario: Successful run with anomalies
 - **WHEN** every recipe file is parsed and some anomalies are reported

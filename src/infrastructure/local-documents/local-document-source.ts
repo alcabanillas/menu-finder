@@ -1,22 +1,21 @@
-import { readdir, readFile } from "node:fs/promises";
-import { join } from "node:path";
-import { PDFParse } from "pdf-parse";
-import type { DocumentSource, MenuFolder, SourceError, SourceRecipe } from "@/application/ports/document-source";
-import type { SourceMenu } from "@/domain/menu-ingestion/source-menu";
-import { err, ok, type Result } from "@/shared/result";
-import { toSourceMenu } from "./pdf/menu-table";
-import { parseRecipePage, type PositionedText } from "./pdf/recipe-page";
+import { readdir, readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { PDFParse } from 'pdf-parse';
+import type { DocumentSource, MenuFolder, SourceError, SourceRecipe } from '@/application/ports/document-source';
+import type { SourceMenu } from '@/domain/menu/source-menu';
+import { err, ok, type Result } from '@/shared/result';
+import { toSourceMenu } from '@/infrastructure/local-documents/pdf/menu-table';
+import { parseRecipePage, type PositionedText } from '@/infrastructure/local-documents/pdf/recipe-page';
 
 const MENU_FOLDER = /^Menu (\d+)$/;
-const MENU_FILE = "menu.pdf";
-const RECIPE_EXTENSION = ".pdf";
+const MENU_FILE = 'menu.pdf';
+const RECIPE_EXTENSION = '.pdf';
 /** Documents in a menu folder that are not recipes. */
 const NON_RECIPE_FILES = /^(menu|lista_de_la_compra|valoracion.*)$/i;
 
-const errorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));
-
-const isNotFound = (error: unknown): boolean =>
-  typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+// PDF.js gives each text item a transform matrix [a, b, c, d, e, f]: e and f are its x and y on the page.
+const TRANSFORM_X = 4;
+const TRANSFORM_Y = 5;
 
 /** Reads the menus and recipe files from the local `data/raw/Dieta` folders. */
 export class LocalDocumentSource implements DocumentSource {
@@ -32,7 +31,7 @@ export class LocalDocumentSource implements DocumentSource {
         }),
       );
     } catch {
-      return err({ kind: "missing-raw-directory", path: this.rawDir });
+      return err({ kind: 'missing-raw-directory', path: this.rawDir });
     }
   }
 
@@ -49,8 +48,8 @@ export class LocalDocumentSource implements DocumentSource {
     try {
       data = await readFile(join(this.rawDir, folder.name, MENU_FILE));
     } catch (error) {
-      if (isNotFound(error)) return err({ kind: "missing-file", file: MENU_FILE });
-      return err({ kind: "unreadable-document", reason: errorMessage(error) });
+      if (isNotFound(error)) return err({ kind: 'missing-file', file: MENU_FILE });
+      return unreadable(error);
     }
 
     let table: string[][] | undefined;
@@ -59,12 +58,12 @@ export class LocalDocumentSource implements DocumentSource {
       // The weekly menu is the first table of the first page.
       table = (await parser.getTable()).pages[0]?.tables[0];
     } catch (error) {
-      return err({ kind: "unreadable-document", reason: errorMessage(error) });
+      return unreadable(error);
     } finally {
       await parser.destroy();
     }
 
-    return table ? toSourceMenu(table) : err({ kind: "no-table" });
+    return table ? toSourceMenu(table) : err({ kind: 'no-table' });
   }
 
   async readRecipe(folder: MenuFolder, file: string): Promise<Result<SourceRecipe, SourceError>> {
@@ -73,15 +72,15 @@ export class LocalDocumentSource implements DocumentSource {
     try {
       data = await readFile(join(this.rawDir, folder.name, fileName));
     } catch (error) {
-      if (isNotFound(error)) return err({ kind: "missing-file", file: fileName });
-      return err({ kind: "unreadable-document", reason: errorMessage(error) });
+      if (isNotFound(error)) return err({ kind: 'missing-file', file: fileName });
+      return unreadable(error);
     }
 
     let pages: PositionedText[][];
     try {
       pages = await readPositionedText(data, 2);
     } catch (error) {
-      return err({ kind: "unreadable-document", reason: errorMessage(error) });
+      return unreadable(error);
     }
     return parseRecipePage(pages[0] ?? [], pages[1] ?? null);
   }
@@ -90,15 +89,15 @@ export class LocalDocumentSource implements DocumentSource {
 /** The text items of the first `maxPages` pages, with their position. */
 async function readPositionedText(data: Buffer, maxPages: number): Promise<PositionedText[][]> {
   // pdfjs-dist is ESM-only and heavy: loaded only when a recipe is read.
-  const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs');
   const document = await getDocument({ data: new Uint8Array(data), verbosity: 0 }).promise;
   try {
     const pages: PositionedText[][] = [];
-    for (let number = 1; number <= Math.min(document.numPages, maxPages); number++) {
+    for (let number = 1; number <= Math.min(document.numPages, maxPages); number += 1) {
       const { items } = await (await document.getPage(number)).getTextContent();
       pages.push(
         items.flatMap((item) =>
-          "str" in item ? [{ x: item.transform[4] as number, y: item.transform[5] as number, text: item.str }] : [],
+          'str' in item ? [{ x: item.transform[TRANSFORM_X] as number, y: item.transform[TRANSFORM_Y] as number, text: item.str }] : [],
         ),
       );
     }
@@ -106,4 +105,16 @@ async function readPositionedText(data: Buffer, maxPages: number): Promise<Posit
   } finally {
     await document.destroy();
   }
+}
+
+function isNotFound(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT';
+}
+
+function unreadable(error: unknown): Result<never, SourceError> {
+  return err({ kind: 'unreadable-document', reason: errorMessage(error) });
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }

@@ -17,19 +17,19 @@ const STARTS_UPPERCASE = /^[A-ZÁÉÍÓÚÑ]/;
  */
 export function splitCellIntoDishes(cellText: string): ParsedDish[] {
   const lines = cellText
-    .split("\n")
+    .split('\n')
     .map((line) => line.trim())
     .filter(Boolean);
   const dishes: ParsedDish[] = [];
   let buffer: string[] = [];
 
   const closeUnmarked = () => {
-    const name = buffer.join(" ").trim();
+    const name = buffer.join(' ').trim();
     buffer = [];
     if (name) dishes.push({ name, hasRecipeMark: false });
   };
   const closeMarked = () => {
-    const name = buffer.join(" ").replace(RECIPE_MARK, "").trim();
+    const name = buffer.join(' ').replace(RECIPE_MARK, '').trim();
     buffer = [];
     if (name) dishes.push({ name, hasRecipeMark: true });
   };

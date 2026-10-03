@@ -1,8 +1,8 @@
 // Turns a parsed roadmap into the dashboard figures (MF-39). Pure: the run date is a parameter.
 
-import type { Owner, Roadmap, RoadmapError, RoadmapItem } from "./types";
+import type { Owner, Roadmap, RoadmapError, RoadmapItem } from './types';
 
-export type ItemState = "done" | "ready" | "blocked";
+type ItemState = 'done' | 'ready' | 'blocked';
 
 export interface ItemView extends RoadmapItem {
   state: ItemState;
@@ -17,7 +17,7 @@ export interface SprintView {
   items: ItemView[];
 }
 
-export type StateCounts = Record<ItemState | "pending" | "all", number>;
+export type StateCounts = Record<ItemState | 'pending' | 'all', number>;
 
 export interface Summary {
   deadline: string;
@@ -25,7 +25,7 @@ export interface Summary {
   done: number;
   total: number;
   remainingHours: number;
-  remainingByOwner: Record<Owner | "none", number>;
+  remainingByOwner: Record<Owner | 'none', number>;
   pendingWithoutEstimate: number;
   pendingWithoutOwner: number;
   daysLeft: number;
@@ -87,13 +87,13 @@ export function summarize(roadmap: Roadmap, today: string): SummaryResult {
   const errors = dependencyErrors(items);
   if (errors.length > 0) return { ok: false, errors };
   const cycle = findCycle(items);
-  if (cycle) return { ok: false, errors: [{ message: `dependency cycle: ${cycle.join(" → ")}` }] };
+  if (cycle) return { ok: false, errors: [{ message: `dependency cycle: ${cycle.join(' → ')}` }] };
 
   const doneIds = new Set(items.filter((entry) => entry.done).map((entry) => entry.id));
   const views: ItemView[] = items.map((entry) => {
-    if (entry.done) return { ...entry, state: "done", blockedBy: [] };
+    if (entry.done) return { ...entry, state: 'done', blockedBy: [] };
     const blockedBy = entry.dependsOn.filter((dependency) => !doneIds.has(dependency));
-    return { ...entry, state: blockedBy.length === 0 ? "ready" : "blocked", blockedBy };
+    return { ...entry, state: blockedBy.length === 0 ? 'ready' : 'blocked', blockedBy };
   });
 
   const pending = items.filter((entry) => !entry.done);
@@ -113,17 +113,17 @@ export function summarize(roadmap: Roadmap, today: string): SummaryResult {
       done: doneIds.size,
       total: items.length,
       remainingHours,
-      remainingByOwner: { H: ownedBy("H"), "H→A": ownedBy("H→A"), A: ownedBy("A"), none: ownedBy(undefined) },
+      remainingByOwner: { H: ownedBy('H'), 'H→A': ownedBy('H→A'), A: ownedBy('A'), none: ownedBy(undefined) },
       pendingWithoutEstimate: pending.filter((entry) => entry.estimateHours === undefined).length,
       pendingWithoutOwner: pending.filter((entry) => entry.owner === undefined).length,
       daysLeft,
       deadlinePassed,
       hoursPerDay: deadlinePassed ? null : remainingHours / daysLeft,
-      ready: inState("ready"),
+      ready: inState('ready'),
       stateCounts: {
         pending: pending.length,
-        ready: inState("ready").length,
-        blocked: inState("blocked").length,
+        ready: inState('ready').length,
+        blocked: inState('blocked').length,
         done: doneIds.size,
         all: items.length,
       },

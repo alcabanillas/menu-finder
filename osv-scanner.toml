@@ -1,0 +1,23 @@
+# Accepted vulnerabilities (MF-41, openspec/changes/mf-41-search-index/proposal.md).
+# All four come through genkit@1.42.0, which pins @opentelemetry/core ~1.25, @opentelemetry/sdk-node ^0.52
+# and uuid ^10. The patched versions are new majors: forcing them with pnpm overrides makes genkit fail to
+# load (`core_1.getEnv is not a function`), checked on 2026-10-01. None is reachable as the project uses
+# genkit today. Review again in MF-40 and MF-22, when genkit runs in the decomposer and on Vercel.
+# Dependabot does not read this file: the same four alerts are dismissed in GitHub with the reason
+# "Vulnerable code is not actually used".
+
+[[IgnoredVulns]]
+id = "GHSA-q7rr-3cgh-j5r3"
+reason = "Prometheus exporter crash (@opentelemetry/sdk-node, auto-instrumentations-node). Needs the Prometheus exporter listening; genkit never configures it and the project must never enable it (OTEL_METRICS_EXPORTER=prometheus)."
+
+[[IgnoredVulns]]
+id = "GHSA-45rx-2jwx-cxfr"
+reason = "JaegerPropagator DoS on a malformed header (@opentelemetry/propagator-jaeger). Only active when 'jaeger' is in the configured propagators; the default is tracecontext,baggage and the project never adds jaeger."
+
+[[IgnoredVulns]]
+id = "GHSA-8988-4f7v-96qf"
+reason = "Unbounded memory in W3C Baggage propagation (@opentelemetry/core). Needs incoming HTTP requests whose baggage header OpenTelemetry extracts; the CLI receives none and genkit adds no HTTP instrumentation. Review in MF-22, when genkit runs behind HTTP on Vercel."
+
+[[IgnoredVulns]]
+id = "GHSA-w5hq-g745-h8pq"
+reason = "uuid v3/v5/v6 bounds check when a buf argument is passed. The only call found in the installed genkit chain is gaxios `v4()` without arguments (checked 2026-10-01); the project does not use uuid."

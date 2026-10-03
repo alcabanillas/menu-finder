@@ -1,6 +1,6 @@
-export type Day = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
+export type Day = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
 
-export type MealType = "lunch" | "dinner";
+export type MealType = 'lunch' | 'dinner';
 
 export type MenuDish = {
   /** 1-based order within the menu cell. */

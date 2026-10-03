@@ -1,49 +1,71 @@
-import type { WeeklyMenu } from "@/domain/menu/weekly-menu";
-import { buildWeeklyMenu, type DishOutcome } from "@/domain/menu-ingestion/build-weekly-menu";
-import { err, ok, type Result } from "@/shared/result";
+import type { WeeklyMenu } from '@/domain/menu/weekly-menu';
+import { buildWeeklyMenu, type DishOutcome, type MenuCounts } from '@/domain/menu/build-weekly-menu';
+import type { DishResolution } from '@/domain/menu/recipe-match';
+import { err, ok, type Result } from '@/shared/result';
 import type {
   DishQaRow,
   IngestMenusError,
   IngestMenusSummary,
   IngestMenusTotals,
   MenuFailure,
-} from "../dto/ingest-menus";
-import type { DocumentSource } from "../ports/document-source";
-import type { MenuRepository } from "../ports/menu-repository";
+} from '@/application/dto/ingest-menus';
+import type { DocumentSource, MenuFolder } from '@/application/ports/document-source';
+import type { MenuRepository } from '@/application/ports/menu-repository';
 
 export type IngestMenusDeps = { source: DocumentSource; menus: MenuRepository };
 
-const toQaRow = (menu: number, { day, type, position, name, resolution }: DishOutcome): DishQaRow => ({
-  menu,
-  day,
-  type,
-  position,
-  dish: name,
-  hasRecipeMark: resolution.status !== "unmarked",
-  matchedRecipe: resolution.status === "resolved" ? resolution.recipe : null,
-  score: resolution.status === "resolved" ? resolution.score : null,
-  discardedCandidate: resolution.status === "unresolved" ? (resolution.discarded?.recipe ?? null) : null,
-  discardedScore: resolution.status === "unresolved" ? (resolution.discarded?.score ?? null) : null,
-});
+type ReadMenus = { weeklyMenus: WeeklyMenu[]; failures: MenuFailure[]; qaRows: DishQaRow[]; totals: IngestMenusTotals };
+
+type MatchEvidence = Pick<DishQaRow, 'matchedRecipe' | 'score' | 'discardedCandidate' | 'discardedScore'>;
+
+const NO_EVIDENCE: MatchEvidence = { matchedRecipe: null, score: null, discardedCandidate: null, discardedScore: null };
 
 /**
- * Reads every menu of the source in numeric order, builds its weekly menu and
- * saves the menus that could be read. A menu that fails is recorded and the
- * others go on; nothing is saved when no menu could be read.
+ * Reads every menu of the source, builds its weekly menu and saves the menus
+ * that could be read. Nothing is saved when no menu could be read.
  */
 export async function ingestMenus({
   source,
   menus,
 }: IngestMenusDeps): Promise<Result<IngestMenusSummary, IngestMenusError>> {
   const folders = await source.listMenuFolders();
-  if (!folders.ok) return err({ kind: "source-unavailable", error: folders.error });
+  if (!folders.ok) return err({ kind: 'source-unavailable', error: folders.error });
 
-  const ordered = [...folders.value].sort((a, b) => a.number - b.number);
-  const weeklyMenus: WeeklyMenu[] = [];
-  const failures: MenuFailure[] = [];
-  const qaRows: DishQaRow[] = [];
-  const totals: IngestMenusTotals = {
-    menusFound: ordered.length,
+  const { weeklyMenus, failures, qaRows, totals } = await readMenus(source, folders.value);
+  if (weeklyMenus.length === 0) return err({ kind: 'no-menu-parsed', failures });
+
+  const saved = await menus.saveAll(weeklyMenus);
+  if (!saved.ok) return err({ kind: 'save-failed', error: saved.error });
+
+  return ok({ failures, totals, qaRows, unresolved: qaRows.filter(isUnresolved) });
+}
+
+/** Reads and builds every menu in numeric order. A menu that fails is recorded and the others go on. */
+async function readMenus(source: DocumentSource, folders: MenuFolder[]): Promise<ReadMenus> {
+  const read: ReadMenus = { weeklyMenus: [], failures: [], qaRows: [], totals: emptyTotals(folders.length) };
+
+  for (const folder of [...folders].sort((a, b) => a.number - b.number)) {
+    const menu = await source.readMenu(folder);
+    if (!menu.ok) {
+      read.failures.push({ menu: folder.number, error: menu.error });
+      continue;
+    }
+    const built = buildWeeklyMenu(folder.number, menu.value, await source.listRecipeFiles(folder));
+    read.weeklyMenus.push(built.menu);
+    read.qaRows.push(...built.dishes.map((dish) => toQaRow(folder.number, dish)));
+    read.totals.menusProcessed += 1;
+    addCounts(read.totals, built.counts);
+  }
+  return read;
+}
+
+function isUnresolved(row: DishQaRow): boolean {
+  return row.hasRecipeMark && row.matchedRecipe === null;
+}
+
+function emptyTotals(menusFound: number): IngestMenusTotals {
+  return {
+    menusFound,
     menusProcessed: 0,
     emptySlots: 0,
     multiDishSlots: 0,
@@ -52,25 +74,36 @@ export async function ingestMenus({
     unresolved: 0,
     unclaimedRecipeFiles: 0,
   };
+}
 
-  for (const folder of ordered) {
-    const read = await source.readMenu(folder);
-    if (!read.ok) {
-      failures.push({ menu: folder.number, error: read.error });
-      continue;
-    }
-    const built = buildWeeklyMenu(folder.number, read.value, await source.listRecipeFiles(folder));
-    weeklyMenus.push(built.menu);
-    qaRows.push(...built.dishes.map((dish) => toQaRow(folder.number, dish)));
-    totals.menusProcessed++;
-    for (const key of Object.keys(built.counts) as (keyof typeof built.counts)[]) totals[key] += built.counts[key];
+function toQaRow(menu: number, { day, type, position, name, resolution }: DishOutcome): DishQaRow {
+  return {
+    menu,
+    day,
+    type,
+    position,
+    dish: name,
+    hasRecipeMark: resolution.status !== 'unmarked',
+    ...matchEvidence(resolution),
+  };
+}
+
+/** What the QA report shows of a dish's match: the accepted recipe, or the candidate discarded below the threshold. */
+function matchEvidence(resolution: DishResolution): MatchEvidence {
+  switch (resolution.status) {
+    case 'resolved':
+      return { ...NO_EVIDENCE, matchedRecipe: resolution.recipe, score: resolution.score };
+    case 'unresolved':
+      return {
+        ...NO_EVIDENCE,
+        discardedCandidate: resolution.discarded?.recipe ?? null,
+        discardedScore: resolution.discarded?.score ?? null,
+      };
+    case 'unmarked':
+      return NO_EVIDENCE;
   }
+}
 
-  if (weeklyMenus.length === 0) return err({ kind: "no-menu-parsed", failures });
-
-  const saved = await menus.saveAll(weeklyMenus);
-  if (!saved.ok) return err({ kind: "save-failed", error: saved.error });
-
-  const unresolved = qaRows.filter((row) => row.hasRecipeMark && row.matchedRecipe === null);
-  return ok({ failures, totals, qaRows, unresolved });
+function addCounts(totals: IngestMenusTotals, counts: MenuCounts): void {
+  for (const key of Object.keys(counts) as (keyof MenuCounts)[]) totals[key] += counts[key];
 }

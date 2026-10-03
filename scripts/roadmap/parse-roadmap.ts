@@ -1,7 +1,7 @@
 // Parses context/roadmap.md into items, sprints and deadline (MF-39).
 // Notation: `- ⬜ **MF-16** (~10 h · A · tras MF-14, MF-10) Text`; every metadata field is optional.
 
-import { OWNERS, type Owner, type ParseResult, type RoadmapError, type RoadmapItem } from "./types";
+import { OWNERS, type Owner, type ParseResult, type RoadmapError, type RoadmapItem } from './types';
 
 const ITEM = /^\s*-\s*(✅|⬜)\s*\*\*(MF-\d+)\*\*\s*(?:\(([^)]*)\))?\s*(.*)$/u;
 const SPRINT = /^##\s+(Sprint\s+\d+.*)$/;
@@ -11,38 +11,38 @@ const ESTIMATE = /^~(\d+(?:[.,]\d+)?)\s*h$/;
 const DEPENDENCIES = /^tras\s+(.+)$/;
 const ID = /^MF-\d+$/;
 
-type Metadata = Pick<RoadmapItem, "estimateHours" | "owner" | "dependsOn">;
-type Field = "estimate" | "owner" | "dependencies";
-const FIELD_ORDER: Field[] = ["estimate", "owner", "dependencies"];
+type Metadata = Pick<RoadmapItem, 'estimateHours' | 'owner' | 'dependsOn'>;
+type Field = 'estimate' | 'owner' | 'dependencies';
+const FIELD_ORDER: Field[] = ['estimate', 'owner', 'dependencies'];
 
 const isOwner = (value: string): value is Owner => (OWNERS as readonly string[]).includes(value);
 
 const fieldKind = (field: string): Field => {
-  if (field.startsWith("~")) return "estimate";
-  if (DEPENDENCIES.test(field) || field.startsWith("tras")) return "dependencies";
-  return "owner";
+  if (field.startsWith('~')) return 'estimate';
+  if (DEPENDENCIES.test(field) || field.startsWith('tras')) return 'dependencies';
+  return 'owner';
 };
 
 // Returns the metadata, or the reason it is invalid.
 const parseMetadata = (block: string): Metadata | string => {
   const metadata: Metadata = { dependsOn: [] };
   let lastField = -1;
-  for (const field of block.split("·").map((part) => part.trim())) {
+  for (const field of block.split('·').map((part) => part.trim())) {
     const kind = fieldKind(field);
     const position = FIELD_ORDER.indexOf(kind);
-    if (position <= lastField) return `metadata fields must follow the order estimate · owner · dependencies`;
+    if (position <= lastField) return 'metadata fields must follow the order estimate · owner · dependencies';
     lastField = position;
 
-    if (kind === "estimate") {
+    if (kind === 'estimate') {
       const match = ESTIMATE.exec(field);
-      const hours = match ? Number(match[1].replace(",", ".")) : Number.NaN;
+      const hours = match ? Number(match[1].replace(',', '.')) : Number.NaN;
       if (!(hours > 0)) return `invalid estimate "${field}", expected "~N h" with N > 0`;
       metadata.estimateHours = hours;
-    } else if (kind === "owner") {
-      if (!isOwner(field)) return `unknown owner "${field}", expected one of ${OWNERS.join(", ")}`;
+    } else if (kind === 'owner') {
+      if (!isOwner(field)) return `unknown owner "${field}", expected one of ${OWNERS.join(', ')}`;
       metadata.owner = field;
     } else {
-      const ids = (DEPENDENCIES.exec(field)?.[1] ?? "").split(",").map((id) => id.trim());
+      const ids = (DEPENDENCIES.exec(field)?.[1] ?? '').split(',').map((id) => id.trim());
       const invalid = ids.find((id) => !ID.test(id));
       if (invalid !== undefined) return `invalid dependency "${invalid}", expected "tras MF-xx, MF-yy"`;
       metadata.dependsOn = ids;
@@ -71,7 +71,7 @@ export function parseRoadmap(markdown: string): ParseResult {
     const deadlineMatch = DEADLINE.exec(text);
     if (deadlineMatch) {
       const value = deadlineMatch[1];
-      if (deadline !== undefined) errors.push({ line, message: "more than one Fecha límite line" });
+      if (deadline !== undefined) errors.push({ line, message: 'more than one Fecha límite line' });
       else if (!isValidDate(value)) errors.push({ line, message: `invalid Fecha límite "${value}", expected YYYY-MM-DD` });
       else deadline = value;
       return;
@@ -105,15 +105,15 @@ export function parseRoadmap(markdown: string): ParseResult {
     }
 
     const metadata = block === undefined ? { dependsOn: [] } : parseMetadata(block);
-    if (typeof metadata === "string") {
+    if (typeof metadata === 'string') {
       errors.push({ line, message: `${id}: ${metadata}` });
       return;
     }
 
-    items.push({ id, done: status === "✅", sprint, text: rest.trim(), ...metadata, line });
+    items.push({ id, done: status === '✅', sprint, text: rest.trim(), ...metadata, line });
   });
 
-  if (deadline === undefined && !errors.some((error) => error.message.includes("Fecha límite"))) {
+  if (deadline === undefined && !errors.some((error) => error.message.includes('Fecha límite'))) {
     errors.push({ message: 'missing "**Fecha límite:** YYYY-MM-DD" line' });
   }
 

@@ -1,4 +1,4 @@
-export type Unit = "g" | "ml" | "kg" | "l";
+export type Unit = 'g' | 'ml' | 'kg' | 'l';
 
 /** Whole minutes; `null` when the source gives no value. */
 export type RecipeTimes = {

@@ -42,7 +42,7 @@ validación cruzada *a posteriori*, no parte del contrato de cada pata.
   camino). Los candidatos a receta son los `.pdf` de la carpeta del menú.
 - **Salida:** `data/menu-platos.json` (un array con los 36 menús). **Gitignoreado** (SEG-datos-nutricionista):
   contiene nombres de plato reales, así que no se sube al repo público. Lo escribe
-  `JsonFileMenuRepository`, un adaptador temporal: en MF-16 se sustituye por la carga en BD.
+  `JsonFileMenuRepository`, antes de que el mismo comando guarde los menús en la BD (MF-41).
   El comando escribe además la QA en `data/qa/` (`menu-platos-pdftable.csv`, un plato por
   fila con su score, y `qa-menu-platos-pdftable.md`, el resumen): **no forma parte del
   contrato**, es para revisión manual.
@@ -88,7 +88,7 @@ de los 36 PDFs (verificado, es esperado, no un fallo de extracción).
   línea que termina en `*` cierra un plato, y una línea que empieza por mayúscula (mientras
   la anterior no termina en preposición o artículo — de/con/al/en/y/la/el/...) señala el
   inicio de un plato nuevo. El relleno genérico sin `*` (una pieza de fruta, un yogur o
-  kéfir sin azúcar) no es un plato y se descarta (`src/domain/menu-ingestion/filler.ts`).
+  kéfir sin azúcar) no es un plato y se descarta (`src/domain/menu/filler.ts`).
 - **`position`** — orden del plato en su celda, contado después de descartar el relleno.
 - **`hasRecipeMark`** — dato **literal del PDF**, no inferido: el nutricionista
   marca con un asterisco los platos que llevan receta propia (el propio PDF lo explicita:

@@ -1,6 +1,6 @@
 // Types shared by the roadmap dashboard (MF-39).
 
-export const OWNERS = ["H", "A", "H→A"] as const;
+export const OWNERS = ['H', 'A', 'H→A'] as const;
 export type Owner = (typeof OWNERS)[number];
 
 export interface RoadmapItem {
