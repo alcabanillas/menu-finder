@@ -87,6 +87,30 @@ describe.skipIf(!TEST_DATABASE_URL)('createAccountCreator (Neon test branch)', (
     expect(await countRows(db.pool, 'user')).toBe(1);
   });
 
+  it.each([
+    ['a name of 31 characters', 'n'.repeat(31)],
+    ['a name of 10 000 characters', 'n'.repeat(10_000)],
+    ['a name with a null byte', 'a\u0000b'],
+    ['a name with a line break', 'Ana\nG.'],
+  ])('rejects %s, names the field and adds no row', async (_label, name) => {
+    const created = await accounts.create({ email: EMAIL, password: PASSWORD, name });
+
+    expect(created).toEqual({ ok: false, error: { kind: 'invalid-input', field: 'name' } });
+    expect(await countRows(db.pool, 'user')).toBe(0);
+  });
+
+  it('accepts a name of exactly 30 characters', async () => {
+    const created = await accounts.create({ email: EMAIL, password: PASSWORD, name: 'n'.repeat(30) });
+
+    expect(created.ok).toBe(true);
+  });
+
+  it('reports an unstorable email before an invalid name', async () => {
+    const created = await accounts.create({ email: 'a\u0000b@example.test', password: PASSWORD, name: 'n'.repeat(31) });
+
+    expect(created).toEqual({ ok: false, error: { kind: 'invalid-input', field: 'email' } });
+  });
+
   it('does not throw for a password of 10 000 characters, and adds no row', async () => {
     const created = await create({ email: EMAIL, password: 'p'.repeat(10_000) });
 

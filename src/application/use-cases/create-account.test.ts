@@ -31,6 +31,22 @@ describe('createAccount', () => {
     expect(received[0].name).toBe('Ana G.');
   });
 
+  it('cuts the default name at 30 characters when the part before the @ is longer', async () => {
+    const { accounts, received } = fakeCreator();
+
+    await createAccount({ accounts }, { email: `${'a'.repeat(40)}@example.test`, password: 'a-long-enough-pass' });
+
+    expect(received[0].name).toBe('a'.repeat(30));
+  });
+
+  it('does not cut a name it is given: the port refuses one that is too long', async () => {
+    const { accounts, received } = fakeCreator();
+
+    await createAccount({ accounts }, { email: 'ana@example.test', password: 'a-long-enough-pass', name: 'n'.repeat(31) });
+
+    expect(received[0].name).toBe('n'.repeat(31));
+  });
+
   it('treats a blank name as no name', async () => {
     const { accounts, received } = fakeCreator();
 

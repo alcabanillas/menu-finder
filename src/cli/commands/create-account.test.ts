@@ -47,7 +47,7 @@ describe('runCreateAccount', () => {
     expect(text).toContain(`${EMAIL} already has an account`);
   });
 
-  it.each(['email', 'password'] as const)('names the invalid %s', async (field) => {
+  it.each(['email', 'password', 'name'] as const)('names the invalid %s', async (field) => {
     const { code, text } = await createWith(err({ kind: 'invalid-input', field }));
 
     expect(code).toBe(1);

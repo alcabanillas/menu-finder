@@ -1,4 +1,4 @@
-import type { AccountCreator, AccountError } from '@/application/ports/account-creator';
+import { MAX_NAME_LENGTH, type AccountCreator, type AccountError } from '@/application/ports/account-creator';
 import { err, type Result } from '@/shared/result';
 
 export type CreateAccountInput = { email: string; password: string; name?: string };
@@ -6,7 +6,10 @@ export type CreateAccountInput = { email: string; password: string; name?: strin
 /** `password-required` is the only error that does not come from the port: nothing was sent to it. */
 export type CreateAccountError = AccountError | { kind: 'password-required' };
 
-/** `pnpm ingest account`: creates an account. Without a name, the account takes the part of the email before the `@`. */
+/**
+ * `pnpm ingest account`: creates an account. Without a name, the account takes the part of the email before the `@`,
+ * cut at the length a name may have; a name that is given is passed as it is, and the port refuses one that is too long.
+ */
 export async function createAccount(
   { accounts }: { accounts: AccountCreator },
   { email, password, name }: CreateAccountInput,
@@ -17,7 +20,7 @@ export async function createAccount(
 }
 
 function localPart(email: string): string {
-  return email.split('@')[0];
+  return email.split('@')[0].slice(0, MAX_NAME_LENGTH);
 }
 
 // A failure message may repeat the request it rejected; the password must not reach any output.

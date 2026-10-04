@@ -10,7 +10,8 @@ const PASSWORD = 'correct-horse-battery';
 const EMAIL = 'ana@example.test';
 const HOSTILE_EMAILS = ["' OR 1=1; --", 'ana😀@example.test', 'a\u0000b@example.test', `${'a'.repeat(10_000)}@example.test`];
 
-const HOSTILE_NAMES = ["' OR 1=1; --", 'Ana😀', 'a\u0000b', 'a'.repeat(10_000), '<script>alert(1)</script>'];
+// Each is too long or holds a control character: the limit is 30 characters and none of them.
+const HOSTILE_NAMES = ['a\u0000b', 'a'.repeat(10_000), 'Ana\nG.', "x'; DROP TABLE \"user\"; -- and a very long tail"];
 
 describe.skipIf(!TEST_DATABASE_URL)('ingest account through the CLI container (Neon test branch)', () => {
   let db: TestDatabase;
@@ -72,11 +73,19 @@ describe.skipIf(!TEST_DATABASE_URL)('ingest account through the CLI container (N
     expect(await count('user')).toBe(0);
   });
 
-  it.each(HOSTILE_NAMES)('answers a hostile name with a result, not an error, and keeps what it stores sane: %#', async (name) => {
+  it.each(HOSTILE_NAMES)('refuses the hostile name %# as invalid and adds no row', async (name) => {
     const result = await create(EMAIL, PASSWORD, name);
 
-    expect(await count('user')).toBe(result.ok ? 1 : 0);
-    expect(JSON.stringify(result)).not.toMatch(/invalid byte|unterminated|syntax error|\bpg_|relation "/i);
+    expect(result).toEqual({ ok: false, error: { kind: 'invalid-input', field: 'name' } });
+    expect(await count('user')).toBe(0);
+  });
+
+  it('names an account after an email whose part before the @ is longer than 30 characters', async () => {
+    const result = await create(`${'a'.repeat(40)}@example.test`);
+
+    expect(result.ok).toBe(true);
+    const { rows } = await db.pool.query<{ name: string }>('SELECT name FROM "user"');
+    expect(rows).toEqual([{ name: 'a'.repeat(30) }]);
   });
 
   it.each(HOSTILE_EMAILS)('answers a hostile email with a result, not an error, and changes nothing else: %#', async (email) => {
