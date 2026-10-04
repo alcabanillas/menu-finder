@@ -218,7 +218,7 @@ function rank(menus: ScoredMenu[], units: Unit[], strategy: SearchStrategy): Sea
 function toResultDto(
   strategy: SearchStrategy,
   units: Unit[],
-  { top, tiedWithFirst }: Ranking,
+  { top, tiedWithFirst, ranked }: Ranking,
   { removedBy }: HardFilter,
 ): SearchResultDto {
   return {
@@ -232,6 +232,7 @@ function toResultDto(
       })),
     })),
     tiedWithFirst,
+    ranked: ranked.map(({ menu, score }) => ({ menu, score })),
     removedBy: removedBy.map(({ constraints, menusRemoved }) => ({ constraints, menusRemoved })),
   };
 }
