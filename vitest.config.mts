@@ -46,6 +46,9 @@ export default defineConfig({
           environment: 'node',
           // evals/: validación de los golden sets versionados (MF-13). scripts/: tooling del proyecto (MF-39).
           include: ['src/**/*.test.ts', 'evals/**/*.test.ts', 'scripts/**/*.test.ts'],
+          // Transformed, not loaded as is, so that a test's mock of `next/headers` also reaches the import inside
+          // better-auth's `nextCookies` plugin (MF-20.3).
+          server: { deps: { inline: ['better-auth'] } },
         },
       },
       {
