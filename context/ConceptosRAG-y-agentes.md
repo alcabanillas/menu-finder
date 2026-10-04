@@ -80,6 +80,33 @@ Lo que da peso académico no es el tamaño del índice sino lo que puedes **medi
 
 Un CRUD con un embedding no mide nada. Esto sí.
 
+### 1.5 Por qué se puntúa el catálogo entero, y cómo escalaría
+
+**La pregunta que llegará:** *"¿cargáis todos los menús en memoria en cada búsqueda? Con una BD grande eso no escala."*
+
+**La respuesta corta:** es el mismo patrón de recuperar y puntuar, con el conjunto de candidatos igual al catálogo entero. Con 36 menús y 608 platos no hay nada que recortar, y puntuarlos todos da un resultado exacto y repetible, que es lo que necesita la comparación de estrategias de MF-14. La decisión vigente es BUS-superficie-consulta en `context/decisiones.md` §1.5.
+
+**Por qué el algoritmo actual necesita ver todo el catálogo** (spec `menu-search`):
+
+1. **La nota semántica se reescala por término (min-max):** el plato más parecido saca 1 y el menos parecido 0, y para eso hay que conocerlos a todos.
+2. **Las exclusiones premian la ausencia:** "sin carne" favorece a los menús *sin* coincidencias, y un índice solo encuentra lo que *sí* coincide.
+3. **Algunas salidas son globales:** cuántos menús elimina cada restricción dura y cuántos empatan con el primero.
+
+**Cómo escalaría: recuperación en dos fases**, el patrón clásico de RAG:
+
+1. **Recuperar:** cada término positivo trae su top-k de platos con un índice (HNSW sobre los embeddings, GIN sobre el texto completo). Los menús que contienen esos platos son los candidatos.
+2. **Reordenar:** el algoritmo actual puntúa solo los candidatos. Las exclusiones duras eliminan candidatos, las blandas restan según cuántas veces aparece el término, y las de un mismo plato ("arroz sin carne") se evalúan plato a plato.
+
+El algoritmo actual **es** la fase 2. Escalar es poner la fase 1 delante, no cambiar de patrón. Lo que tendría un coste real:
+
+- **La nota semántica:** sin el mínimo global, el min-max no sirve y habría que recalibrarla, con un umbral absoluto o con una nota por posición en el top-k (por ejemplo, *Reciprocal Rank Fusion* en la híbrida). En MF-42 se midió que un umbral absoluto sobre la similitud no separa los términos sin sentido de los válidos (`pnpm evals:similarity-floor`).
+- **Peticiones con solo exclusiones** ("algo sin gluten"): no hay positivos de donde sacar candidatos. Se buscarían en la BD los menús que *sí* tienen el término y se tomaría el resto, sin top-k.
+- **Pérdida de recall:** un menú bueno en conjunto puede no tener ningún plato en el top-k de un término y quedar fuera. Se mitiga con un k generoso, y se mediría con hit@5 con corte y sin corte.
+- **Los conteos globales:** consultas `COUNT` aparte, apoyadas en el índice.
+- **El determinismo:** un índice HNSW es aproximado, así que dos búsquedas iguales podrían no devolver lo mismo.
+
+**Por qué no se hace ahora:** el catálogo es cerrado y fijo (SEG-sistema-cerrado: los menús de un solo profesional), así que la fase 1 no aportaría nada y costaría la exactitud que necesita MF-14.
+
 ---
 
 ## Parte 2 — ¿Qué es un agente y qué es solo una llamada al LLM?
