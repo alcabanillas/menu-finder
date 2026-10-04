@@ -83,11 +83,6 @@ function processLine(context: ParseContext, line: string): void {
     return;
   }
 
-  if (line.toLowerCase() === '(opcional)') {
-    markLastItemOptional(context.items);
-    return;
-  }
-
   processContentLine(context, line);
 }
 
@@ -144,6 +139,11 @@ function processContentLine(context: ParseContext, line: string): void {
 }
 
 function processStandardItemLine(context: ParseContext, line: string): void {
+  if (line.toLowerCase() === '(opcional)') {
+    markLastItemOptional(context.items);
+    return;
+  }
+
   if (line.startsWith('- ')) {
     flushPendingItem(context);
     parseOrQueueItem(context, line);

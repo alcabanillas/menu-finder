@@ -187,6 +187,28 @@ describe('parseShoppingListPage', () => {
     ]);
   });
 
+  it('keeps a lone (opcional) line of a free-text category on its own name, not on the previous category', () => {
+    const page = [
+      at(36, 750, 'Lista de la compra'),
+      at(36, 700, 'Verduras, hortalizas y derivados'),
+      at(36, 680, '- Tomate crudo: 40g'),
+      at(36, 660, 'Especias'),
+      at(36, 640, 'Curry , Pimienta'),
+      at(36, 620, 'negra , Romero'),
+      at(36, 600, '(opcional)'),
+      at(36, 580, 'Grasas y aceites'),
+    ];
+
+    const result = parseShoppingListPage([page]);
+
+    expect(result.items).toEqual([
+      { category: 'Verduras, hortalizas y derivados', name: 'Tomate crudo', quantity: 40, unit: 'g', optional: false },
+      { category: 'Especias', name: 'Curry', quantity: null, unit: null, optional: false },
+      { category: 'Especias', name: 'Pimienta negra', quantity: null, unit: null, optional: false },
+      { category: 'Especias', name: 'Romero', quantity: null, unit: null, optional: true },
+    ]);
+  });
+
   it('joins a list of two pages where a category splits across the page break', () => {
     const page1 = [
       at(36, 750, 'Lista de la compra'),

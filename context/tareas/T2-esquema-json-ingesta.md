@@ -190,7 +190,7 @@ CREATE TABLE shopping_item (
 - **`position`:** entero correlativo ($1, 2, \dots$) que preserva estrictamente el orden de lectura original del PDF.
 - **`category`:** una de las 13 categorías reconocidas (p. ej. `Cárnicos y derivados`, `Verduras, hortalizas y derivados`).
 - **`name`:** nombre del ingrediente o ítem (si está partido en dos líneas consecutivas, se une con un espacio).
-- **`quantity`:** número decimal o entero (admite coma y punto en origen), o `null` si no indica cantidad medible (recuentos o categorías de texto libre).
+- **`quantity`:** número decimal o entero (admite coma y punto en origen), o `null` en las categorías de texto libre (un recuento como `Huevo: 3` sí tiene cantidad).
 - **`unit`:** `'g'`, `'ml'` o `null` (para unidades por piezas/recuentos o texto libre).
 - **`optional`:** booleano `true` si incluye la marca `(opcional)` al final de la línea o en la línea inmediatamente siguiente.
 
@@ -209,8 +209,8 @@ De los 36 menús, exactamente 17 ocupan dos páginas (menús 4, 5, 6, 11, 15, 16
 La ejecución contra los 36 PDF reales del nutricionista produce:
 - **36 listas leídas:** 17 de dos páginas y 19 de una página.
 - **2.943 ítems** almacenados en base de datos.
-- **661 ítems opcionales** detectados.
-- **577 ítems sin cantidad** (especias, aceites y recuentos sin unidad).
+- **667 ítems opcionales** detectados, tantos como marcas `(opcional)` hay en los PDF.
+- **577 ítems sin cantidad**: todos de las categorías de texto libre (especias y aceites).
 - **0 fallos** y **0 anomalías**.
 - **Idempotencia transaccional:** reejecutar el comando realiza un `DELETE WHERE menu_number = ANY(...)` e `INSERT` en una sola transacción, manteniendo idénticos los 2.943 registros sin duplicados.
 
