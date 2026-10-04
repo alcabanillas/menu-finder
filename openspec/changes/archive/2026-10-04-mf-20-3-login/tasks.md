@@ -33,14 +33,14 @@ Every test task comes before its implementation task and is run and seen failing
 
 - [x] 5.1 Playwright tests that need no database, run in CI: `/planner` with no cookie and with a forged cookie redirects to `/login`; `/` without a session shows the sign-in form and no sign-up or recovery; `/api/auth/sign-up/email`, `/api/auth/sign-in/email`, `/api/auth/update-user` and `/api/auth/list-sessions` answer 404. Replace `e2e/home.spec.ts`. Run and see them fail before 4.6, pass after
 - [x] 5.2 Playwright tests that need the database of the app (`DATABASE_URL`, the development branch), skipped in CI until MF-44, each run creating its own account with `pnpm ingest account`: sign in with an account created by `pnpm ingest account`, from `/login` and from `/`, and land on `/planner`; `/` with a session goes to `/planner`; wrong password and unknown email show the same message; `/login?next=https://evil.example` ends on `/planner`; hostile values give the wrong-credentials message; sign out ends on `/` and the old cookie is sent to `/login`; `/login` with a session goes to `/planner`. Run locally and see them pass
-- [ ] 5.3 In `.github/workflows/ci.yml`, give the build and e2e steps a random `BETTER_AUTH_SECRET` per run, `BETTER_AUTH_URL=http://localhost:3000` and a dummy `DATABASE_URL`; verify on the PR that the tests of 5.1 run and pass in CI
+- [x] 5.3 In `.github/workflows/ci.yml`, give the build and e2e steps a random `BETTER_AUTH_SECRET` per run, `BETTER_AUTH_URL=http://localhost:3000` and a dummy `DATABASE_URL`; verify on the PR that the tests of 5.1 run and pass in CI
 - [x] 5.4 By hand in the browser: sign in with an account of MF-20.2, see `/planner`, sign out, check that `/planner` sends you to `/login`, and check the three log lines in the `pnpm dev` output (no email, no password)
 
 ## 6. Closing
 
 - [x] 6.1 Update `context/decisiones.md` §1.8: SEG-auth (the web uses server actions with `nextCookies`, no auth endpoint mounted; sign-ins logged with user id; in the web a session lasts 7 days from sign-in, because the cookie is only renewed in a server action, design risk 1, option A) and SEG-rate-limit (the login limit is our own counter behind `RateLimiter`, because the library limiter only runs in its HTTP handler), with the D1 reason; and §1.3 UI-home-sin-login (for now `/` shows the sign-in form and sends a signed-in user to `/planner`; the informative home and the dashboard are deferred)
-- [ ] 6.2 Update `context/roadmap.md`: mark MF-20.3 done with the link to the archived change, and update MF-21 (own counter of failed sign-ins per IP behind `RateLimiter`, estimate +0.5 h)
-- [ ] 6.3 Update the Purpose of `openspec/specs/authentication/spec.md` at archive: it covers the login page and protected routes now
+- [x] 6.2 Update `context/roadmap.md`: mark MF-20.3 done with the link to the archived change, and update MF-21 (own counter of failed sign-ins per IP behind `RateLimiter`, estimate +0.5 h)
+- [x] 6.3 Update the Purpose of `openspec/specs/authentication/spec.md` at archive: it covers the login page and protected routes now
 - [x] 6.4 Go through `context/safety-first.md` §4 and record each answer here; `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm test:e2e` pass
 
   Checklist of `context/safety-first.md` §4 (2026-10-04):
