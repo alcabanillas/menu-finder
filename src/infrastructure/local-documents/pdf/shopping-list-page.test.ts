@@ -211,6 +211,45 @@ describe('parseShoppingListPage', () => {
     ]);
   });
 
+  it('continues a left-column category onto page 2 even when page 1 has right-column categories', () => {
+    const page1 = [
+      at(36, 780, 'Lista de la compra'),
+      at(36, 700, 'Pescados, moluscos, crustáceos y derivados'),
+      at(36, 60, '- Mero: 100g'),
+      at(300, 700, 'Grasas y aceites'),
+      at(300, 600, 'Aceite de oliva virgen extra'),
+    ];
+    const page2 = [
+      at(36, 792, '- Rodaballo: 250g'),
+    ];
+
+    const result = parseShoppingListPage([page1, page2]);
+
+    expect(result.items).toEqual([
+      {
+        category: 'Pescados, moluscos, crustáceos y derivados',
+        name: 'Mero',
+        quantity: 100,
+        unit: 'g',
+        optional: false,
+      },
+      {
+        category: 'Pescados, moluscos, crustáceos y derivados',
+        name: 'Rodaballo',
+        quantity: 250,
+        unit: 'g',
+        optional: false,
+      },
+      {
+        category: 'Grasas y aceites',
+        name: 'Aceite de oliva virgen extra',
+        quantity: null,
+        unit: null,
+        optional: false,
+      },
+    ]);
+  });
+
   it('reports a list of one page as having 1 page', () => {
     const page = [
       at(36, 750, 'Lista de la compra'),

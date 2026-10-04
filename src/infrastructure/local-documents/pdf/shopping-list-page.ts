@@ -184,31 +184,38 @@ function markLastItemOptional(items: ShoppingItem[]): void {
 }
 
 function extractLines(pages: PositionedText[][]): string[] {
-  return pages.flatMap(extractPageLines);
-}
+  const titles: string[] = [];
+  const leftLines: string[] = [];
+  const rightLines: string[] = [];
 
-function extractPageLines(page: PositionedText[]): string[] {
-  const lines: string[] = [];
-  for (const columnItems of extractPageColumns(page)) {
-    for (const lineItems of toLines(columnItems)) {
-      const text = collapse(lineItems.map((item) => item.text).join(' '));
-      if (text) lines.push(text);
-    }
+  for (let p = 0; p < pages.length; p += 1) {
+    const isFirstPage = p === 0;
+    const body = pages[p]
+      .filter((item) => item.y > FOOTER_MAX_Y)
+      .map((item) => ({ ...item, text: item.text.trim() }))
+      .filter((item) => item.text);
+
+    const isTitle = (item: PositionedText) =>
+      TITLE_PATTERN.test(item.text) || (isFirstPage && item.y > TITLE_MIN_Y);
+
+    const titleItems = body.filter(isTitle).sort((a, b) => b.y - a.y);
+    const content = body.filter((item) => !isTitle(item));
+    const leftItems = content.filter((item) => item.x < COL_SPLIT_X).sort((a, b) => b.y - a.y);
+    const rightItems = content.filter((item) => item.x >= COL_SPLIT_X).sort((a, b) => b.y - a.y);
+
+    appendLines(titles, toLines(titleItems));
+    appendLines(leftLines, toLines(leftItems));
+    appendLines(rightLines, toLines(rightItems));
   }
-  return lines;
+
+  return [...titles, ...leftLines, ...rightLines];
 }
 
-function extractPageColumns(items: PositionedText[]): PositionedText[][] {
-  const body = items
-    .filter((item) => item.y > FOOTER_MAX_Y)
-    .map((item) => ({ ...item, text: item.text.trim() }))
-    .filter((item) => item.text);
-
-  const title = body.filter((item) => item.y > TITLE_MIN_Y).sort((a, b) => b.y - a.y);
-  const left = body.filter((item) => item.y <= TITLE_MIN_Y && item.x < COL_SPLIT_X).sort((a, b) => b.y - a.y);
-  const right = body.filter((item) => item.y <= TITLE_MIN_Y && item.x >= COL_SPLIT_X).sort((a, b) => b.y - a.y);
-
-  return [title, left, right].filter((col) => col.length > 0);
+function appendLines(target: string[], lineGroups: PositionedText[][]): void {
+  for (const lineItems of lineGroups) {
+    const text = collapse(lineItems.map((item) => item.text).join(' '));
+    if (text) target.push(text);
+  }
 }
 
 function toLines(items: PositionedText[]): PositionedText[][] {

@@ -202,17 +202,17 @@ El parser une las líneas continuas de la categoría y separa por ` , `, creando
 
 ### 3.4 El caso de dos páginas
 
-De los 36 menús, exactamente 17 ocupan dos páginas (menús 4, 5, 6, 11, 15, 16, 17, 20, 22, 23, 26, 30, 31, 32, 34, 35, 36). La segunda página continúa el flujo de la primera sin repetir título; una categoría puede iniciarse al final de la página 1 y continuar con sus ítems en la página 2. El lector procesa todas las páginas del documento como un único flujo continuo y reporta el número de páginas por menú en consola y en el informe de QA (`data/qa/qa-lista-compra.md`).
+De los 36 menús, exactamente 17 ocupan dos páginas (menús 4, 5, 6, 11, 15, 16, 17, 20, 22, 23, 26, 30, 31, 32, 34, 35, 36). La plantilla del PDF organiza las categorías en dos columnas fijas e independientes: la columna izquierda aloja las primeras categorías (`Bebidas`, `Cárnicos`... hasta `Pescados`) y la columna derecha aloja las restantes (`Frutas`, `Verduras`, `Especias` y `Grasas y aceites`). Cuando una columna desborda la página 1, continúa directamente en la misma columna de la página 2 sin repetir cabecera de documento (los ítems superiores de la página 2 pueden situarse en $y > 750$). El extractor procesa el flujo en orden de columna a través de las páginas (columna izquierda de todas las páginas, y después columna derecha de todas las páginas), preservando la pertenencia de cada ítem a su categoría (p. ej. en el menú 16, el `Rodaballo` que abre la columna izquierda de la página 2 se asigna correctamente a `Pescados`).
 
 ### 3.5 Garantías y validación de aceptación
 
 La ejecución contra los 36 PDF reales del nutricionista produce:
 - **36 listas leídas:** 17 de dos páginas y 19 de una página.
-- **2.918 ítems** almacenados en base de datos.
-- **658 ítems opcionales** detectados.
+- **2.943 ítems** almacenados en base de datos.
+- **661 ítems opcionales** detectados.
 - **577 ítems sin cantidad** (especias, aceites y recuentos sin unidad).
 - **0 fallos** y **0 anomalías**.
-- **Idempotencia transaccional:** reejecutar el comando realiza un `DELETE WHERE menu_number = ANY(...)` e `INSERT` en una sola transacción, manteniendo idénticos los 2.918 registros sin duplicados.
+- **Idempotencia transaccional:** reejecutar el comando realiza un `DELETE WHERE menu_number = ANY(...)` e `INSERT` en una sola transacción, manteniendo idénticos los 2.943 registros sin duplicados.
 
 ### 3.6 Límites
 
