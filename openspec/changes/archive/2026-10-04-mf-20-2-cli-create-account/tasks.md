@@ -22,7 +22,7 @@
 
 ## 5. Run it for real and close
 
-- [ ] 5.1 Update the usage lines of `run-cli.ts`, `context/tareas/T0-extraccion-previa.md` (the command in the local runbook, and whether the demo account needs a line: the open question of `design.md`) and `context/roadmap.md` (MF-20.2 ✅ with the archive link; new item "change a password from the CLI", with the author's agreement); verify: `grep` of the codes and a read of the changed lines
+- [x] 5.1 Update the usage lines of `run-cli.ts`, `context/tareas/T0-extraccion-previa.md` (the command in the local runbook, and whether the demo account needs a line: the open question of `design.md`) and `context/roadmap.md` (MF-20.2 ✅ with the archive link; new item "change a password from the CLI", with the author's agreement); verify: `grep` of the codes and a read of the changed lines
 - [x] 5.2 On the development branch, run `pnpm ingest account <test-email>` by hand in the Windows terminal (prompt with no echo), then `echo <password> | pnpm ingest account <other-email>`, then a repeated email, then with a variable unset; verify: the password is never visible on screen or in the shell history, the repeated email and the unset variable give their messages and exit codes, and a sign-in with the first account works (the **Result** of the roadmap item)
 - [x] 5.3 Run `pnpm lint`, `pnpm typecheck`, `pnpm test:coverage` and `pnpm knip`; verify: all pass
 - [x] 5.4 Update `context/decisiones.md` §1.8 (SEG-auth or SEG-sistema-cerrado: the CLI creates accounts with `pnpm ingest account`, the password comes from a prompt or stdin, an existing email is an error), only after the author confirms the wording; verify: a read of the changed lines

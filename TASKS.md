@@ -1,33 +1,27 @@
 # MF-20.2 — state (2026-10-04)
 
-Branch `feature/mf-20-2-cli-create-account`, worktree `C:\Projects\master-desarrollo-ia\menu-finder-worktrees\mf-20-2-cli-create-account`. Change: `openspec/changes/mf-20-2-cli-create-account/` (13 of 15 tasks done; 5.1 stays open until the archive link exists).
-
-## Checklist (mirrors `tasks.md`)
-
-- [x] 1 Checks, 2 port and use case, 3 command, 4 wiring and integration test
-- [ ] 5.1 T0 runbook and MF-45 are done; the roadmap line "MF-20.2 ✅ with the archive link" waits for the archive
-- [x] 5.2 Manual run on the Neon branch `mf-20-2-cli-create-account`: prompt, stdin, repeated email, missing secret; password not echoed (confirmed by the author). The accounts `prueba1@example.test` and `prueba2@example.test` are still in that branch
-- [x] 5.3 `pnpm lint`, `pnpm typecheck`, `pnpm test:coverage`, `pnpm knip`
-- [x] 5.4 `context/decisiones.md` (SEG-auth / SEG-sistema-cerrado), after the author confirms the wording
-- [x] 5.5 Safety checklist `context/safety-first.md` §4 at the end of `tasks.md`
-- [ ] Then: `/opsx:verify`, `/opsx:archive`, roadmap MF-20.2 ✅ with archive link, PR
+Branch `feature/mf-20-2-cli-create-account`, worktree `C:\Projects\master-desarrollo-ia\menu-finder-worktrees\mf-20-2-cli-create-account`. **Archived**: `openspec/changes/archive/2026-10-04-mf-20-2-cli-create-account/` (17 of 17 tasks). Main spec `openspec/specs/authentication/spec.md` synced (9 requirements). MF-20.2 is ✅ in `context/roadmap.md`.
 
 ## Blocked on me
 
-- Next step: `/opsx:verify`, then `/opsx:archive`, which also sets MF-20.2 ✅ in `context/roadmap.md`. Nothing needs the author before that.
-- Confirm that the `neondb_owner` password of every Neon branch was rotated after a connection string was shown in the chat (the checklist in `tasks.md` says it was; not verified).
-- The two test accounts in the Neon branch `mf-20-2-cli-create-account` can stay; that branch expires on 2026-10-05.
+- Open the PR for `feature/mf-20-2-cli-create-account` (the `gh` CLI is not installed here: use the web URL), and merge it.
+- Confirm that the `neondb_owner` password of every Neon branch was rotated after a connection string was shown in the chat (the checklist in the archived `tasks.md` says it was; not verified).
+- The Neon branch `mf-20-2-cli-create-account` holds two test accounts (`prueba1@example.test`, `prueba2@example.test`); it expires on 2026-10-05.
+
 ## Changed
 
 - New: `src/application/ports/account-creator.ts`, `src/application/use-cases/create-account.ts`, `src/cli/commands/create-account.ts`, `src/cli/read-password.ts` and their tests, `src/composition/cli-container-account.test.ts`.
-- Edited: `src/infrastructure/auth/create-account.ts` (implements the port), `src/composition/cli-container.ts` (`createAccount`, fixed base URL), `src/cli/run-cli.ts` (arguments per command), `src/cli/index.ts`.
-- Docs: `context/tareas/T0-extraccion-previa.md` (account command and the method to resolve database URLs), `context/roadmap.md` (MF-45: change a password).
-- Decided by the author: D1 prompt without echo, stdin as fallback; optional name; fixed `http://localhost:3000` with a comment; an existing email is an error.
+- Edited: `src/infrastructure/auth/create-account.ts` (implements the port, validates the name), `src/composition/cli-container.ts`, `src/cli/run-cli.ts`, `src/cli/index.ts`.
+- Docs: `context/tareas/T0-extraccion-previa.md` (account command and the method to resolve database URLs), `context/decisiones.md` (SEG-sistema-cerrado, SEG-auth limits), `context/roadmap.md` (MF-20.2 ✅; new MF-45 change a password, MF-46 authentication in production).
+- Decided by the author: password from a no-echo prompt or stdin; optional name; fixed base URL with a comment; an existing email is an error; name of 30 characters at most.
+
+## Next
+
+- MF-20.3 (`/login`, logout, protected routes), MF-44 (integration tests in CI), then MF-46 (production). Production has no auth tables yet and must not get migration 002 before MF-20 is archived whole.
 
 ## Found
 
-- `DATABASE_URL_UNPOOLED` in `.env.local` points to `production`, which has no migration 002 yet.
+- `DATABASE_URL_UNPOOLED` in `.env.local` points to `production`; the worktree's `.env.local` points to the Neon branch `mf-20-2-cli-create-account` and has its own `BETTER_AUTH_SECRET`. Do not copy the `.env.local` of `main` over it.
 - `NEON_BRANCH` in `.env.local` is read by nothing in the repo.
-- Neon roles and passwords are per branch (my earlier "project-level role" claim was wrong).
-- The integration test of 4.3 passed at the first run, so its red phase was not seen.
-- `.env.local` of this worktree is a copy of the one in `main`; copy it again after any change there.
+- Neon roles and passwords are per branch.
+- The integration test of task 4.3 passed at the first run, so its red phase was not seen.
