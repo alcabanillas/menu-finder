@@ -97,6 +97,8 @@ Un CRUD con un embedding no mide nada. Esto sí.
 1. **Recuperar:** cada término positivo trae su top-k de platos con un índice (HNSW sobre los embeddings, GIN sobre el texto completo). Los menús que contienen esos platos son los candidatos.
 2. **Reordenar:** el algoritmo actual puntúa solo los candidatos. Las exclusiones duras eliminan candidatos, las blandas restan según cuántas veces aparece el término, y las de un mismo plato ("arroz sin carne") se evalúan plato a plato.
 
+**Ningún término se puntúa dos veces contra el catálogo.** Hoy cada término se compara una sola vez con los 608 platos (una consulta de texto completo y una de similitud), y con esas notas se puntúan los 36 menús. Escalado, la fase 1 no recorre el catálogo, sino que el índice devuelve el top-k de platos ya con su similitud, y la fase 2 reutiliza esas notas. Solo le faltan las de los platos de un menú candidato que no entraron en el top-k de ese término. Para esos platos hay dos opciones: darles nota 0, porque se parecen poco, o calcularlas solo para ellos (por ejemplo, 20 menús × 42 platos), nunca para el catálogo entero.
+
 El algoritmo actual **es** la fase 2. Escalar es poner la fase 1 delante, no cambiar de patrón. Lo que tendría un coste real:
 
 - **La nota semántica:** sin el mínimo global, el min-max no sirve y habría que recalibrarla, con un umbral absoluto o con una nota por posición en el top-k (por ejemplo, *Reciprocal Rank Fusion* en la híbrida). En MF-42 se midió que un umbral absoluto sobre la similitud no separa los términos sin sentido de los válidos (`pnpm evals:similarity-floor`).
