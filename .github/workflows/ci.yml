@@ -32,19 +32,33 @@ jobs:
 
       - run: pnpm lint
       - run: pnpm typecheck
+      # Integration tests run against a Neon branch made only for CI (never production). Direct (unpooled) URL; without
+      # the secret (forks, no access) they are skipped.
       - run: pnpm test:coverage
+        env:
+          DATABASE_URL_TEST: ${{ secrets.DATABASE_URL_TEST }}
 
-      # The web container needs these to start (MF-20.3). A throwaway secret per run, never a real one; the database URL
-      # points nowhere: the end-to-end tests that run here never reach the database (no cookie, or a forged one).
-      - name: Set throwaway authentication variables
+      # The web container and the CLI need these (MF-20.3). A throwaway secret per run, never a real one. The database is
+      # the Neon `ci` branch; where the secret is missing (forks) the URL points nowhere and the sign-in end-to-end
+      # tests are skipped: the rest never reach the database (no cookie, or a forged one).
+      - name: Set authentication and database variables
+        env:
+          DATABASE_URL_TEST: ${{ secrets.DATABASE_URL_TEST }}
         run: |
           secret="$(openssl rand -base64 32)"
           echo "::add-mask::$secret"
           {
             echo "BETTER_AUTH_SECRET=$secret"
             echo "BETTER_AUTH_URL=http://localhost:3000"
-            echo "DATABASE_URL=postgresql://ci:ci@unreachable.invalid:5432/none"
+            echo "DATABASE_URL=${DATABASE_URL_TEST:-postgresql://ci:ci@unreachable.invalid:5432/none}"
+            echo "DATABASE_URL_UNPOOLED=${DATABASE_URL_TEST:-postgresql://ci:ci@unreachable.invalid:5432/none}"
+            echo "DATABASE_URL_TEST=$DATABASE_URL_TEST"
           } >> "$GITHUB_ENV"
+
+      # The sign-in end-to-end tests use the real schema of the `ci` branch; the migrations are idempotent.
+      - name: Migrate the CI database
+        if: env.DATABASE_URL_TEST != ''
+        run: pnpm ingest migrate
 
       - run: pnpm build
 
