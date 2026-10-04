@@ -31,6 +31,14 @@ describe('rankMenus', () => {
     expect(ranking.tiedWithFirst).toBe(2);
   });
 
+  it('lists every ranked menu, in the same order, past the fifth one', () => {
+    const twelve = Array.from({ length: 12 }, (_, index) => scored(index + 1, 0.6 + index / 100));
+
+    expect(rankMenus([...twelve, scored(13, 0.1)]).ranked.map(({ menu }) => menu)).toEqual([
+      12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1,
+    ]);
+  });
+
   it('returns fewer than five menus when fewer are ranked', () => {
     expect(order([scored(4, 0.7), scored(8, 0.9)])).toEqual([8, 4]);
   });
@@ -42,11 +50,11 @@ describe('rankMenus', () => {
   });
 
   it('returns an empty ranking with no tie when no menu reaches 0.6', () => {
-    expect(rankMenus([scored(1, 0.5), scored(2, 0.5)])).toEqual({ top: [], tiedWithFirst: 0 });
+    expect(rankMenus([scored(1, 0.5), scored(2, 0.5)])).toEqual({ top: [], tiedWithFirst: 0, ranked: [] });
   });
 
   it('returns an empty ranking with no tie when no menu is ranked', () => {
-    expect(rankMenus([])).toEqual({ top: [], tiedWithFirst: 0 });
+    expect(rankMenus([])).toEqual({ top: [], tiedWithFirst: 0, ranked: [] });
   });
 
   it('keeps the evidence of every unit of the menus it returns', () => {

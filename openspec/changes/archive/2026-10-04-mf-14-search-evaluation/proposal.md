@@ -6,7 +6,8 @@ Roadmap item **MF-14**, third of three changes (`mf-41-search-index` → `mf-42-
 
 - **CLI:** `pnpm ingest evaluate-search` runs the three strategies on the structures of `evals/decomposer/golden-set.json` and measures them against the grades of `evals/retrieval/golden-set.json`, per query type, with nDCG@5 and hit@5.
 - **Report:** the result is committed as `evals/search/results.md` (ids and metrics only).
-- No LLM-as-judge, no ablations (MF-30), no change to the search.
+- **Search result:** `searchMenus` also returns the whole ranking (menu number and score), so that the metrics can handle ties. The order, the top five and the scores do not change.
+- No LLM-as-judge, no ablations (MF-30), no change to how the search scores.
 
 ## Capabilities
 
@@ -14,12 +15,11 @@ Roadmap item **MF-14**, third of three changes (`mf-41-search-index` → `mf-42-
 - `search-evaluation`: the command that measures the three strategies against the golden sets, per query type, and the report it writes.
 
 ### Modified Capabilities
-
-None.
+- `menu-search`: the result also lists every ranked menu with its score ("Top five and ties").
 
 ## Impact
 
-- **Code:** `src/domain/search/` (metrics), `src/application/` (use case `evaluate-search`, port `GoldenSetSource`, DTO `evaluation-report`), `src/infrastructure/golden-sets/`, `src/composition/cli-container.ts`, `src/cli/commands/`.
+- **Code:** `src/domain/search/` (metrics, the whole ranking in `rank-menus`), `src/application/dto/search-result.ts`, `src/application/` (use case `evaluate-search`, port `GoldenSetSource`, DTO `evaluation-report`), `src/infrastructure/golden-sets/`, `src/composition/cli-container.ts`, `src/cli/commands/`.
 - **Dependencies:** none new.
 - **Systems:** Neon (read only); Gemini API receives the constraint terms of the golden set to embed.
 - **Files:** `evals/search/results.md`, committed.
@@ -44,4 +44,4 @@ EVAL-estrategia, EVAL-golden-sets, BUS-superficie-consulta (d), BUS-descomponedo
 
 ### Deviations and consequences
 
-- **Declared limitations:** (1) with 36 menus and 43 queries the per-type differences are small samples (7 to 10 queries per type), and the report says so; (2) none of the 43 kept queries has a `hard` constraint or an `anyOf` group, and only three have a `sameDish` group, so the table says nothing about the hard filters or the alternatives: those are covered only by the unit tests of `mf-42-menu-search`.
+- **Declared limitations:** (1) with 36 menus and 43 queries the per-type differences are small samples (7 to 10 queries per type), and the report says so; (2) none of the 43 kept queries has a `hard` constraint or an `anyOf` group, and only three have a `sameDish` group, so the table says nothing about the hard filters or the alternatives: those are covered only by the unit tests of `mf-42-menu-search`; (3) the report is reproducible only with the same term embeddings: the Gemini API does not promise identical vectors between runs, so the report names its model (author's decision R2, task 0.1).

@@ -8,6 +8,7 @@ import { runMigrate } from '@/cli/commands/migrate';
 import { runCreateAccount } from '@/cli/commands/create-account';
 import { readPassword } from '@/cli/read-password';
 import { runSearch } from '@/cli/commands/search';
+import { runEvaluateSearch } from '@/cli/commands/evaluate-search';
 import { runCli } from '@/cli/run-cli';
 
 // The only file that touches `process`. Secrets come from `.env.local` (git-ignored) or the environment.
@@ -51,6 +52,13 @@ runCli(process.argv.slice(2), {
           strategy,
           readFile: (path) => readFile(path, 'utf8'),
           searchMenus: container.searchMenus,
+          print,
+        }),
+      'evaluate-search': () =>
+        runEvaluateSearch({
+          evaluateSearch: container.evaluateSearch,
+          reportPath: container.searchReportPath,
+          writeFile: output.writeFile,
           print,
         }),
     };
