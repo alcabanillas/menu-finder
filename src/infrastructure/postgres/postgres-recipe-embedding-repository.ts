@@ -1,5 +1,7 @@
 import type pg from 'pg';
+import type { DishAddress } from '@/application/ports/dish-text-search';
 import type {
+  DishSimilarity,
   EmbeddingStoreError,
   NewEmbedding,
   RecipeEmbeddingRepository,
@@ -26,7 +28,16 @@ const UPSERT_EMBEDDINGS = `
   ON CONFLICT (recipe_key, variant) DO UPDATE SET
     model = EXCLUDED.model, dimensions = EXCLUDED.dimensions, source = EXCLUDED.source, embedding = EXCLUDED.embedding`;
 
-type DocumentRow = Omit<RecipeToEmbed, 'stored'> & { model: string | null; source: string | null };
+// Exact scan with the cosine distance of pgvector (`<=>`), so the result is exact and repeatable (MF-41 design D5).
+const SELECT_SIMILARITIES = `
+  SELECT d.menu_number AS menu, d.day, d.type AS meal, d.position, 1 - (e.embedding <=> $2::vector) AS similarity
+  FROM menu_dish d
+  JOIN recipe_embedding e ON e.recipe_key = d.recipe_key AND e.variant = $1
+  ORDER BY d.menu_number, d.day, d.type, d.position`;
+
+type SimilarityRow = DishAddress & { similarity: number };
+
+type DocumentRow =Omit<RecipeToEmbed, 'stored'> & { model: string | null; source: string | null };
 
 /** The recipe rows of Postgres and their `vector(3072)` embeddings. */
 export class PostgresRecipeEmbeddingRepository implements RecipeEmbeddingRepository {
@@ -59,6 +70,15 @@ export class PostgresRecipeEmbeddingRepository implements RecipeEmbeddingReposit
     try {
       await inTransaction(this.pool, (client) => client.query(UPSERT_EMBEDDINGS, [asJson(rows), variant]));
       return ok(undefined);
+    } catch (error) {
+      return failure(error);
+    }
+  }
+
+  async similarities(variant: string, vector: number[]): Promise<Result<DishSimilarity[], EmbeddingStoreError>> {
+    try {
+      const { rows } = await this.pool.query<SimilarityRow>(SELECT_SIMILARITIES, [variant, `[${vector.join(',')}]`]);
+      return ok(rows.map(({ similarity, ...dish }) => ({ dish, similarity })));
     } catch (error) {
       return failure(error);
     }

@@ -6,7 +6,7 @@ The search is built as **final code on the hexagon**, not as a throwaway spike (
 
 ## What Changes
 
-- **Search use case** (`searchMenus`): receives the typed structure of the golden set of MF-13 (constraints, `sameDish` and `anyOf` groups), scores the 36 menus, returns the **top 5** and, for each hard constraint, how many menus it removes (the UI chip shows it, BUS-descomponedor). It runs with three strategies, `lexical`, `semantic` and `hybrid`.
+- **Search use case** (`searchMenus`): receives the typed structure that the decomposer will emit, the expected output of the golden set of MF-13 (constraints, `sameDish` and `anyOf` groups, without the golden-set metadata), scores the 36 menus, returns the **top 5** and, for each hard constraint, how many menus it removes (the UI chip shows it, BUS-descomponedor). It runs with three strategies, `lexical`, `semantic` and `hybrid`.
 - **Lexical match in Postgres:** a migration adds what the full-text match needs on top of the schema of `mf-41-search-index`.
 - **CLI:** `pnpm ingest search <structure.json> [--strategy lexical|semantic|hybrid]` runs a search.
 - **No LLM at search time** except the embedding of a term. No decomposer, no relaxation loop (future work, `context/producto.md` §3), no enrichment (MF-16: food groups, `totalTimeMin`, season), no evaluation, no user interface.
@@ -22,7 +22,7 @@ None.
 
 ## Impact
 
-- **Code:** `src/domain/search/`, `src/application/` (use case `search-menus`, port `SearchIndex`, DTOs `search-request` and `search-result`), `src/infrastructure/postgres/` (`SearchIndex` adapter, a new migration), `src/infrastructure/genkit/` (query task prefix), `src/composition/cli-container.ts`, `src/cli/commands/`.
+- **Code:** `src/domain/search/`, `src/application/` (use case `search-menus`, DTOs `search-request` and `search-result`, a read method added to `MenuRepository` and another to `RecipeEmbeddingRepository`, and the new port `DishTextSearch`), `src/infrastructure/postgres/` (the adapters of those three, migration `003`), `src/infrastructure/genkit/` (query task prefix), `src/composition/cli-container.ts`, `src/cli/commands/`.
 - **Dependencies:** none new; it uses the driver and Genkit added by `mf-41-search-index`.
 - **Systems:** Neon (read only); Gemini API receives the constraint terms to embed.
 - **Config:** the database URL and `GEMINI_API_KEY` in `.env.local` (git-ignored). No secret in the repo.
@@ -50,4 +50,6 @@ BUS-superficie-consulta (a) to (f), BUS-descomponedor, BUS-unidad-plato, BUS-vec
 
 - **BUS-superficie-consulta (c) and (d):** the exclusion, attribute and season mechanisms depend on the enrichment (MF-16). Without it, an exclusion matches the term by text, and an attribute query ("cenas rápidas", "para el invierno") can only be answered by the semantic part. `mf-14-search-evaluation` reports how far that goes per type. Not a contradiction: it is the measurement that decides.
 - **IA-criterio-agente:** the search is a pipeline, not an agent. The decomposer stays an agent only if the relaxation loop comes back (`context/producto.md` §3).
+- **Existing ports extended:** the dish catalog is read through `MenuRepository` and the similarities through `RecipeEmbeddingRepository`, which only had write methods until now; only `DishTextSearch` is a new port (`design.md` D1). `MenuRepository` is also what MF-43 needs to list the menus, so the method is shared.
+- **Migration number:** `003`, because `002` is reserved for a parallel change that touches other tables.
 - **Declared limitations:** (1) the hybrid weight is fixed before looking at results, so it is not tuned on the golden set; (2) semantic scores are calibrated per constraint, not globally.

@@ -100,6 +100,32 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresRecipeEmbeddingRepository (Neon tes
     expect(result.ok && result.value[0].stored).toBeNull();
   });
 
+  it('gives the cosine similarity of a vector to the recipe of every menu dish, addressed by dish', async () => {
+    await store.saveAll(VARIANT, [embedding('Tortilla', 'first', 1), embedding('dish:Fruta', 'first', 3)]);
+
+    const result = await store.similarities(VARIANT, vector(1));
+
+    expect(result.ok && result.value.map(({ dish }) => dish)).toEqual([
+      { menu: 1, day: 'monday', meal: 'lunch', position: 1 },
+      { menu: 1, day: 'monday', meal: 'lunch', position: 2 },
+    ]);
+    const [tortillaDish, frutaDish] = result.ok ? result.value.map(({ similarity }) => similarity) : [];
+    expect(tortillaDish).toBeCloseTo(1, 4);
+    expect(frutaDish).toBeLessThan(tortillaDish);
+  });
+
+  it('gives no similarity when no embedding of the variant is stored', async () => {
+    await store.saveAll('other-variant', [embedding('Tortilla', 'first')]);
+
+    expect(await store.similarities(VARIANT, vector(1))).toEqual({ ok: true, value: [] });
+  });
+
+  it('returns the database error for a vector of the wrong size', async () => {
+    await store.saveAll(VARIANT, [embedding('Tortilla', 'first')]);
+
+    expect(await store.similarities(VARIANT, [1, 2, 3])).toMatchObject({ ok: false, error: { kind: 'store-failed' } });
+  });
+
   it('saves no vector when one of them is wrong', async () => {
     const result = await store.saveAll(VARIANT, [
       embedding('Tortilla', 'first'),

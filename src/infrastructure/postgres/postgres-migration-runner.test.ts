@@ -29,12 +29,26 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresMigrationRunner (Neon test branch)'
   it('lists the migration files and creates the six search tables and the record on an empty database', async () => {
     const runner = new PostgresMigrationRunner(db.pool, MIGRATIONS_DIR);
 
-    expect(await runner.available()).toEqual({ ok: true, value: ['001-search-schema.sql'] });
+    expect(await runner.available()).toEqual({
+      ok: true,
+      value: ['001-search-schema.sql', '003-dish-text-search.sql'],
+    });
     expect(await runner.applied()).toEqual({ ok: true, value: [] });
     expect(await runner.apply('001-search-schema.sql')).toEqual({ ok: true, value: undefined });
     expect((await tables()).map((t) => t.name)).toEqual([...SEARCH_TABLES, 'schema_migration'].sort());
     const vector = await db.pool.query("SELECT 1 FROM pg_extension WHERE extname = 'vector'");
     expect(vector.rowCount).toBe(1);
+  });
+
+  it('applies 003 on top of 001 alone: unaccent and a Spanish text search configuration without accents', async () => {
+    const runner = new PostgresMigrationRunner(db.pool, MIGRATIONS_DIR);
+    await runner.apply('001-search-schema.sql');
+
+    expect(await runner.apply('003-dish-text-search.sql')).toEqual({ ok: true, value: undefined });
+    const { rows } = await db.pool.query<{ lexemes: string }>(
+      "SELECT to_tsvector('spanish_unaccent', 'Salmón SALMON salmonete garbanzos')::text AS lexemes",
+    );
+    expect(rows[0].lexemes).toBe("'garbanz':4 'salmon':1,2 'salmonet':3");
   });
 
   it('enables row-level security on every table it creates', async () => {

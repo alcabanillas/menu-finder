@@ -3,9 +3,8 @@ import type { WeeklyMenu } from '@/domain/menu/weekly-menu';
 import type { SourceMenu } from '@/domain/menu/source-menu';
 import { err, ok, type Result } from '@/shared/result';
 import type { DocumentSource, MenuFolder, SourceError } from '@/application/ports/document-source';
-import type { MenuRepository } from '@/application/ports/menu-repository';
 import type { RepositoryError } from '@/application/ports/repository-error';
-import { ingestMenus } from '@/application/use-cases/ingest-menus';
+import { ingestMenus, type IngestMenusDeps } from '@/application/use-cases/ingest-menus';
 
 type FakeMenu = { menu: SourceMenu; recipeFiles?: string[] } | { error: SourceError };
 
@@ -39,7 +38,7 @@ const missingRawDirectory: DocumentSource = {
 
 const fakeRepository = (result: Result<void, RepositoryError> = ok(undefined)) => {
   const saved: WeeklyMenu[][] = [];
-  const repository: MenuRepository = {
+  const repository: IngestMenusDeps['menus'] = {
     saveAll: async (menus) => {
       saved.push(menus);
       return result;
