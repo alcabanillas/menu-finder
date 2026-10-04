@@ -5,6 +5,7 @@ import { createAccount } from '@/application/use-cases/create-account';
 import { ingestMenus } from '@/application/use-cases/ingest-menus';
 import { ingestRecipes } from '@/application/use-cases/ingest-recipes';
 import { embedRecipes } from '@/application/use-cases/embed-recipes';
+import { evaluateSearch } from '@/application/use-cases/evaluate-search';
 import { migrate } from '@/application/use-cases/migrate';
 import type { SearchRequestDto } from '@/application/dto/search-request';
 import type { SearchStrategy } from '@/application/dto/search-result';
@@ -13,6 +14,7 @@ import { searchMenus } from '@/application/use-cases/search-menus';
 import { PostgresDishTextSearch } from '@/infrastructure/postgres/postgres-dish-text-search';
 import { createAccountCreator } from '@/infrastructure/auth/create-account';
 import { FanOutRepository } from '@/infrastructure/fan-out/fan-out-repository';
+import { FileGoldenSetSource } from '@/infrastructure/golden-sets/file-golden-set-source';
 import { createGenkitEmbeddings } from '@/infrastructure/genkit/genkit-embeddings';
 import { JsonFileMenuRepository, MENU_DATASET_FILE } from '@/infrastructure/json-file/json-file-menu-repository';
 import { JsonFileRecipeRepository, RECIPE_DATASET_FILE } from '@/infrastructure/json-file/json-file-recipe-repository';
@@ -63,9 +65,18 @@ export function createCliContainer(env: Env = {}) {
   const onDatabase = <T>(work: (pool: pg.Pool) => Promise<T>) =>
     requiring(env, [DATABASE_URL], ([url]) => withPool(url, work));
 
+  // The search ports over one pool, shared by `search` and `evaluate-search`.
+  const searchPorts = (pool: pg.Pool, embeddings: EmbeddingsPort) => ({
+    menus: new PostgresMenuRepository(pool),
+    dishText: new PostgresDishTextSearch(pool),
+    recipeEmbeddings: new PostgresRecipeEmbeddingRepository(pool),
+    embeddings,
+  });
+
   return {
     dataDir,
     qaDir: join(dataDir, 'qa'),
+    searchReportPath: join(REPO_ROOT, 'evals', 'search', 'results.md'),
     ingestMenus: () => onDatabase((pool) => ingestMenus({ source, menus: menuRepository(pool) })),
     ingestRecipes: () => onDatabase((pool) => ingestRecipes({ source, recipes: recipeRepository(pool) })),
     migrate: () => onDatabase((pool) => migrate({ runner: new PostgresMigrationRunner(pool, MIGRATIONS_DIR) })),
@@ -89,11 +100,16 @@ export function createCliContainer(env: Env = {}) {
     searchMenus: (dto: SearchRequestDto, strategy: SearchStrategy) =>
       requiring(env, strategy === 'lexical' ? [DATABASE_URL] : [DATABASE_URL, GEMINI_API_KEY], ([url, apiKey]) =>
         withPool(url, (pool) =>
-          searchMenus(dto, strategy, {
-            menus: new PostgresMenuRepository(pool),
-            dishText: new PostgresDishTextSearch(pool),
-            recipeEmbeddings: new PostgresRecipeEmbeddingRepository(pool),
-            embeddings: apiKey === undefined ? NO_EMBEDDINGS : createGenkitEmbeddings(apiKey),
+          searchMenus(dto, strategy, searchPorts(pool, apiKey === undefined ? NO_EMBEDDINGS : createGenkitEmbeddings(apiKey))),
+        ),
+      ),
+    // Read only: the three strategies, so the key is always needed (spec search-evaluation).
+    evaluateSearch: () =>
+      requiring(env, [DATABASE_URL, GEMINI_API_KEY], ([url, apiKey]) =>
+        withPool(url, (pool) =>
+          evaluateSearch({
+            goldenSets: new FileGoldenSetSource(join(REPO_ROOT, 'evals')),
+            ...searchPorts(pool, createGenkitEmbeddings(apiKey)),
           }),
         ),
       ),

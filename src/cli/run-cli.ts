@@ -11,6 +11,7 @@ export type CliCommands = {
   embed: () => Promise<number>;
   account: (args: string[]) => Promise<number>;
   search: (options: SearchOptions) => Promise<number>;
+  'evaluate-search': () => Promise<number>;
 };
 
 export type RunCliDeps = {
@@ -28,17 +29,19 @@ const ARGUMENTS: Record<ArgsCommand, { min: number; max: number }> = {
   menu: { min: 0, max: 0 },
   embed: { min: 0, max: 0 },
   account: { min: 1, max: 2 },
+  'evaluate-search': { min: 0, max: 0 },
 };
 
 // Listed in the order they are run (MF-41 design D9): a dish points to its recipe row.
 const USAGE = [
-  'Usage: pnpm ingest <migrate|recipes|menu|embed|account|search>',
+  'Usage: pnpm ingest <migrate|recipes|menu|embed|account|search|evaluate-search>',
   '  migrate                 Apply the pending SQL migrations of postgres/migrations to the database',
   '  recipes                 Ingest the recipes from data/raw/Dieta into data/recetas.json and the database',
   '  menu                    Ingest the weekly menus from data/raw/Dieta into data/menu-platos.json and the database',
   '  embed                   Compute the missing or outdated recipe embeddings and store them in the database',
   '  account <email> [name]  Create an account; the password is asked at a prompt, or read from stdin',
   '  search <structure.json> Search the menus with a structure file [--strategy lexical|semantic|hybrid]',
+  '  evaluate-search         Measure the three strategies against the golden sets into evals/search/results.md',
 ];
 
 const STRATEGIES: SearchStrategy[] = ['lexical', 'semantic', 'hybrid'];

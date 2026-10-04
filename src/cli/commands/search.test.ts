@@ -28,6 +28,10 @@ const RESULT: SearchResultDto = {
     { menu: 7, score: 0.5, evidence: [{ constraints: ['c1'], dish: null }] },
   ],
   tiedWithFirst: 1,
+  ranked: [
+    { menu: 3, score: 1 },
+    { menu: 7, score: 0.5 },
+  ],
   removedBy: [
     { constraints: ['c1'], menusRemoved: 31 },
     { constraints: ['c3', 'c4'], menusRemoved: 2 },

@@ -262,6 +262,10 @@ describe('searchMenus', () => {
           { menu: 3, score: 1, evidence: [{ constraints: ['c1'], dish: lunchDish('Arroz con pollo') }] },
         ],
         tiedWithFirst: 2,
+        ranked: [
+          { menu: 1, score: 1 },
+          { menu: 3, score: 1 },
+        ],
         removedBy: [],
       }),
     );

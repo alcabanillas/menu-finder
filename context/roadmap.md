@@ -67,11 +67,11 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 - ⬜ **MF-15** (~10,5 h · H→A · tras MF-14) 📝 T4: ground truth de extracción por adjudicación ciega de discrepancias parser ↔ LLM, 30 recetas + 5 menús ampliable a 10 (EVAL-ground-truth, semilla en [T4](tareas/T4-evaluacion-extraccion.md)). Incluye el experimento de comparación de ING-determinista: precisión por campo, coste y latencia del parser, del LLM con structured output y del agente con reintento. No bloquea nada del producto: alimenta el pilar 1 de la presentación
 
 **Carga**
-- ⬜ **MF-16** (~7 h · A · tras MF-14, MF-10) 📝 CLI de ingesta idempotente, con limpieza de marca y enriquecimiento (ING-cli-local, ING-parser-menu, ING-trazabilidad, SEG-datos-nutricionista, BUS-superficie-consulta (c)). Parsers del menú y de recetas terminados ([T2](tareas/T2-esquema-json-ingesta.md) patas 1 y 3); pendientes el parser de la lista (pata 2) y la trazabilidad, solo de lista y recetas. Enriquecimiento: `totalTimeMin`, tabla ingrediente → grupo y temporada por plato (ING-temporada; se salta si en MF-14 la búsqueda ya acierta en A03 y A04). Se escribe después de MF-14, con lo que este mida
+- ⬜ **MF-16** (~7 h · A · tras MF-14, MF-10) 📝 CLI de ingesta idempotente, con limpieza de marca y enriquecimiento (ING-cli-local, ING-parser-menu, ING-trazabilidad, SEG-datos-nutricionista, BUS-superficie-consulta (c)). Parsers del menú y de recetas terminados ([T2](tareas/T2-esquema-json-ingesta.md) patas 1 y 3); pendientes el parser de la lista (pata 2) y la trazabilidad, solo de lista y recetas. Enriquecimiento: `totalTimeMin`, tabla ingrediente → grupo y temporada por plato (ING-temporada; se salta si en MF-14 la búsqueda ya acierta en A03 y A04. Medido en MF-14: nDCG@5 0,42 y 0,24 con la semántica, ranking vacío con la léxica y la híbrida, [`evals/search/results.md`](../evals/search/results.md)). Se escribe después de MF-14, con lo que este mida
 - ⬜ **MF-17** (~3 h · H→A · tras MF-16) BD de producción con el modelo de ARQ-modelo-datos y el dataset cargado; en Neon, sin Data API y con RLS en todas las tablas ([safety-first §2.4](safety-first.md))
 
 **Evaluación de recuperación**
-- ⬜ **MF-19** (~1 h · H · tras MF-14) Decidir si el vector store entra o sale, a la vista de la tabla (ARQ-modelo-datos)
+- ⬜ **MF-19** (~1 h · H · tras MF-14) Decidir si el vector store entra o sale, a la vista de la tabla [`evals/search/results.md`](../evals/search/results.md) (ARQ-modelo-datos). Entra también en la decisión que la híbrida no ordena nada sin acierto léxico (BUS-superficie-consulta (d))
 
 ## Sprint 2 — Frontend y app
 

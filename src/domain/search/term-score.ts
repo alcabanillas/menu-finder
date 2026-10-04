@@ -19,9 +19,12 @@ export function rescaleSimilarities(similarities: number[]): number[] {
   return similarities.map((similarity) => (similarity - lowest) / range);
 }
 
+/** The weight of the semantic part of the hybrid score; the lexical part gets the rest. */
+export const HYBRID_WEIGHT = 0.5;
+
 /** The mean of both parts, with equal weights fixed in the code and never tuned on the golden set. */
 export function hybridScore(lexical: number, semantic: number): number {
-  return (lexical + semantic) / 2;
+  return (1 - HYBRID_WEIGHT) * lexical + HYBRID_WEIGHT * semantic;
 }
 
 /**

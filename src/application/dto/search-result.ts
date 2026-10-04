@@ -3,13 +3,19 @@ import type { SearchRequestError } from '@/application/dto/search-request';
 /** How a term is matched against a dish: by its text, by its embedding, or by the mean of both. */
 export type SearchStrategy = 'lexical' | 'semantic' | 'hybrid';
 
-/** The five best menus, how many tie with the first one, and the menus each hard constraint removes on its own. */
+/**
+ * The five best menus, how many tie with the first one, every ranked menu with its score (for the evaluation, which
+ * needs the ties past the fifth), and the menus each hard constraint removes on its own.
+ */
 export type SearchResultDto = {
   strategy: SearchStrategy;
   menus: RankedMenuDto[];
   tiedWithFirst: number;
+  ranked: MenuScoreDto[];
   removedBy: RemovedMenusDto[];
 };
+
+type MenuScoreDto = { menu: number; score: number };
 
 type RankedMenuDto = { menu: number; score: number; evidence: EvidenceDto[] };
 

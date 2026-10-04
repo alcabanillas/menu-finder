@@ -84,6 +84,19 @@ describe('createCliContainer', () => {
   });
 
   // The variables are checked before any connection is opened, so these tests need no database.
+  describe('evaluateSearch', () => {
+    it('names every missing variable and reads nothing', async () => {
+      expect(await createCliContainer({}).evaluateSearch()).toEqual({
+        ok: false,
+        error: { kind: 'missing-variables', names: ['DATABASE_URL_UNPOOLED', 'GEMINI_API_KEY'] },
+      });
+    });
+
+    it('writes the report to evals/search/results.md of the repository', () => {
+      expect(createCliContainer({}).searchReportPath.replaceAll('\\', '/')).toMatch(/\/evals\/search\/results\.md$/);
+    });
+  });
+
   describe('searchMenus', () => {
     it('asks only for the direct database URL with the lexical strategy', async () => {
       const result = await createCliContainer({}).searchMenus(STRUCTURE, 'lexical');
