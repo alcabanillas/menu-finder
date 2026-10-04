@@ -1,15 +1,15 @@
 # MF-20.2 — state (2026-10-04)
 
-Branch `feature/mf-20-2-cli-create-account`, worktree `C:\Projects\master-desarrollo-ia\menu-finder-worktrees\mf-20-2-cli-create-account`. Change: `openspec/changes/mf-20-2-cli-create-account/` (10 of 15 tasks done).
+Branch `feature/mf-20-2-cli-create-account`, worktree `C:\Projects\master-desarrollo-ia\menu-finder-worktrees\mf-20-2-cli-create-account`. Change: `openspec/changes/mf-20-2-cli-create-account/` (13 of 15 tasks done; 5.1 stays open until the archive link exists).
 
 ## Checklist (mirrors `tasks.md`)
 
 - [x] 1 Checks, 2 port and use case, 3 command, 4 wiring and integration test
 - [x] 5.1 T0 runbook, MF-45 in the roadmap
-- [ ] 5.2 Manual run (needs a non-production Neon branch with the auth tables; the author types the URL)
-- [ ] 5.3 `pnpm lint`, `pnpm typecheck`, `pnpm test:coverage`, `pnpm knip`
-- [ ] 5.4 `context/decisiones.md` (SEG-auth / SEG-sistema-cerrado), after the author confirms the wording
-- [ ] 5.5 Safety checklist `context/safety-first.md` §4 at the end of `tasks.md`
+- [x] 5.2 Manual run on the Neon branch `mf-20-2-cli-create-account`: prompt, stdin, repeated email, missing secret; password not echoed (confirmed by the author); test accounts deleted afterwards
+- [x] 5.3 `pnpm lint`, `pnpm typecheck`, `pnpm test:coverage`, `pnpm knip`
+- [x] 5.4 `context/decisiones.md` (SEG-auth / SEG-sistema-cerrado), after the author confirms the wording
+- [x] 5.5 Safety checklist `context/safety-first.md` §4 at the end of `tasks.md`
 - [ ] Then: `/opsx:verify`, `/opsx:archive`, roadmap MF-20.2 ✅ with archive link, PR
 
 ## Blocked on me
