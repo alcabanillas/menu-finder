@@ -16,10 +16,10 @@
 
 ## 3. Phase 3 — Database and use case
 
-- [ ] 3.1 Add `postgres/migrations/004-shopping-list.sql` (`shopping_item`: `menu_number` FK to `menu` with cascade, `position`, `category`, `name`, `quantity numeric`, `unit` check `g|ml`, `optional`, PK `(menu_number, position)`, row-level security without policy); write the failing test in `postgres-migration-runner.test.ts` style that the table exists with its constraints, then see it pass after the migration
-- [ ] 3.2 Write the failing tests of `PostgresShoppingListRepository` for "Rerun gives the same rows", "Other menus kept", "Menu not ingested yet" and "Names are data, never SQL" (test database as in `postgres-recipe-repository.test.ts`); add `ShoppingListRepository` (`src/application/ports/shopping-list-repository.ts`) and the adapter; tests pass
-- [ ] 3.3 Write the failing tests of `ingestShoppingLists` with fakes for "Missing list", "Unreadable PDF" (failure recorded, others go on), "List without items" and "no list could be read, nothing saved"; add the use case and its DTO in `src/application/dto/ingest-shopping-lists.ts`; tests pass
-- [ ] 3.4 Run `pnpm lint` to confirm the dependency rules of ADR-001 hold (domain imports nothing from infrastructure, the use case sees only ports); commit the phase
+- [x] 3.1 Add `postgres/migrations/004-shopping-list.sql` (`shopping_item`: `menu_number` FK to `menu` with cascade, `position`, `category`, `name`, `quantity numeric`, `unit` check `g|ml`, `optional`, PK `(menu_number, position)`, row-level security without policy); write the failing test in `postgres-migration-runner.test.ts` style that the table exists with its constraints, then see it pass after the migration
+- [x] 3.2 Write the failing tests of `PostgresShoppingListRepository` for "Rerun gives the same rows", "Other menus kept", "Menu not ingested yet" and "Names are data, never SQL" (test database as in `postgres-recipe-repository.test.ts`); add `ShoppingListRepository` (`src/application/ports/shopping-list-repository.ts`) and the adapter; tests pass
+- [x] 3.3 Write the failing tests of `ingestShoppingLists` with fakes for "Missing list", "Unreadable PDF" (failure recorded, others go on), "List without items" and "no list could be read, nothing saved"; add the use case and its DTO in `src/application/dto/ingest-shopping-lists.ts`; tests pass
+- [x] 3.4 Run `pnpm lint` to confirm the dependency rules of ADR-001 hold (domain imports nothing from infrastructure, the use case sees only ports); commit the phase
 
 ## 4. Phase 4 — CLI, cleanup and documents
 
