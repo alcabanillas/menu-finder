@@ -20,11 +20,15 @@ The command SHALL read the file `Lista_de_la_compra.pdf` (case-insensitive) of e
 - **THEN** a failure with the reason is recorded for that menu and the other menus are still read
 
 ### Requirement: Page reading
-The system SHALL read every page of the list PDF, in page order, as one continuous text, and SHALL report the number of pages read. The title line `Lista de la compra` SHALL be discarded. The page footer (the generator line and the slogan) SHALL be discarded by its position on the page, not by matching its text, and SHALL appear in no item, anomaly or report.
+The page has two fixed columns. The system SHALL read every page of the list PDF following each column across the pages (the left column of every page in page order, then the right column of every page), so that a category that overflows a column continues at the top of the same column on the next page, and SHALL report the number of pages read. The title line `Lista de la compra` SHALL be discarded. The page footer (the generator line and the slogan) SHALL be discarded by its position on the page, not by matching its text, and SHALL appear in no item, anomaly or report.
 
 #### Scenario: A list of two pages
 - **WHEN** a list has the category `Pescados, moluscos, crustáceos y derivados` at the bottom of page 1 and its items at the top of page 2
 - **THEN** the items belong to that category, and the list is reported as having 2 pages
+
+#### Scenario: Left column overflows while the right column starts on page 1
+- **WHEN** page 1 has categories in both columns and the left column continues, without repeating its category header, at the top of page 2
+- **THEN** the items at the top of page 2 belong to the last category of the left column of page 1, not to the last category of the right column
 
 #### Scenario: A list of one page
 - **WHEN** a list has a single page

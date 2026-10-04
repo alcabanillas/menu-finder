@@ -4,7 +4,7 @@
 
 The shopping list leg is the only one of the three (menu, recipes, list) still parsed by a script outside the hexagon: `scripts/datos/parse-lista-compra.js`. It has no tests, reads `Lista_de_la_compra.pdf.txt` files made by hand from the PDF, and its contract is still "pending" in T2 §3. MF-11 and MF-38 already moved menus and recipes into `pnpm ingest`; this change (roadmap **MF-10**) does the same for the list, with TDD (PROC-tdd), and goes one step further: it reads the PDF directly and saves to the database, with no JSON and no TXT in between (ING-lista-compra: the list is "persisted in a relational database"; the checklist of MF-24 works against it).
 
-Two facts measured on the 36 real PDFs shape the work. **17 of them have two pages** (menus 4, 5, 6, 11, 15, 16, 17, 20, 22, 23, 26, 30, 31, 32, 34, 35, 36) and a category can start on page 1 and continue on page 2, which a copy-paste to TXT can hide. And the text that `pdf-parse` extracts is already one column in reading order, so the column splitting of the script is not needed.
+Two facts measured on the 36 real PDFs shape the work. **17 of them have two pages** (menus 4, 5, 6, 11, 15, 16, 17, 20, 22, 23, 26, 30, 31, 32, 34, 35, 36) and a category can start on page 1 and continue on page 2, which a copy-paste to TXT can hide. And the page has two fixed columns, so a column that overflows continues at the top of the same column on page 2; the parser has to follow each column across the pages, as the column splitting of the old script did for the TXT.
 
 ## What Changes
 

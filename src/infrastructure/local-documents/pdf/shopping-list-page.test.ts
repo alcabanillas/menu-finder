@@ -26,6 +26,22 @@ describe('parseShoppingListPage', () => {
     ]);
   });
 
+  it('reads a decimal amount written with a comma or a point', () => {
+    const page = [
+      at(36, 750, 'Lista de la compra'),
+      at(36, 700, 'Lácteos y derivados'),
+      at(36, 680, '- Leche: 1,5ml'),
+      at(36, 660, '- Nata: 2.5g'),
+    ];
+
+    const result = parseShoppingListPage([page]);
+
+    expect(result.items.map(({ name, quantity, unit }) => ({ name, quantity, unit }))).toEqual([
+      { name: 'Leche', quantity: 1.5, unit: 'ml' },
+      { name: 'Nata', quantity: 2.5, unit: 'g' },
+    ]);
+  });
+
   it('reads an item that is a count without a unit', () => {
     const page = [
       at(36, 750, 'Lista de la compra'),

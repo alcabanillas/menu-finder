@@ -145,6 +145,21 @@ describe('LocalDocumentSource', () => {
       );
     });
 
+    it('finds the list whatever the capitalization of its file name', async () => {
+      await addFolder('Menu 5');
+      const pdf = createSyntheticPdf([
+        [
+          { text: 'Huevos y derivados', x: 36, y: 700 },
+          { text: '- Huevo de gallina: 2', x: 36, y: 680 },
+        ],
+      ]);
+      await writeFile(join(rawDir, 'Menu 5', 'LISTA_DE_LA_COMPRA.PDF'), pdf);
+
+      const result = await new LocalDocumentSource(rawDir).readShoppingList({ number: 5, name: 'Menu 5' });
+
+      expect(result.ok && result.value.items).toHaveLength(1);
+    });
+
     it('fails with missing-file when the folder has no Lista_de_la_compra.pdf', async () => {
       await addFolder('Menu 3');
 
