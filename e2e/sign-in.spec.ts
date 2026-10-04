@@ -2,9 +2,9 @@ import { execSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { expect, test, type Page } from '@playwright/test';
 
-// Spec authentication, MF-20.3, against the database the app uses (`.env.local`, the Neon development branch). CI has
-// no database until MF-44, so these run locally only. The account is created by the CLI, as every account is.
-test.skip(!!process.env.CI, 'needs the database of the app; CI has none until MF-44');
+// Spec authentication, MF-20.3, against the database the app uses: locally `.env.local` (the Neon development branch),
+// in CI the Neon `ci` branch. The account is created by the CLI, as every account is.
+test.skip(!!process.env.CI && !process.env.DATABASE_URL_TEST, 'needs the database of the app; CI has none without the DATABASE_URL_TEST secret');
 
 const WRONG_CREDENTIALS = 'El email o la contraseña no son correctos.';
 const SESSION_COOKIE = 'better-auth.session_token';
