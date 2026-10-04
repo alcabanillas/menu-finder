@@ -1,13 +1,13 @@
 import { betterAuth } from 'better-auth';
+import {
+  MAX_NAME_LENGTH,
+  type AccountCreator,
+  type AccountError,
+  type AccountField,
+  type NewAccount,
+} from '@/application/ports/account-creator';
 import { authOptions, type AuthConfig } from '@/infrastructure/auth/auth-options';
 import { err, ok, type Result } from '@/shared/result';
-
-export type NewAccount = { email: string; password: string; name: string };
-
-export type AccountError =
-  | { kind: 'invalid-input'; field: 'email' | 'password' }
-  | { kind: 'email-taken' }
-  | { kind: 'failed'; reason: string };
 
 type OpenAuth = ReturnType<typeof openAuth>;
 
@@ -19,9 +19,9 @@ const CONTROL_CHARACTERS = /[\u0000-\u001f\u007f]/;
  * Creates accounts with trusted server code. It builds the setup whose sign-up is open (MF-20.1 design D1, option c),
  * so only the composition root of the CLI may call it, and no route may ever mount that setup.
  */
-export function createAccountCreator(config: AuthConfig) {
+export function createAccountCreator(config: AuthConfig): AccountCreator {
   const auth = openAuth(config);
-  return (account: NewAccount) => createAccount(auth, account);
+  return { create: (account) => createAccount(auth, account) };
 }
 
 function openAuth(config: AuthConfig) {
@@ -30,6 +30,7 @@ function openAuth(config: AuthConfig) {
 
 async function createAccount(auth: OpenAuth, account: NewAccount): Promise<Result<{ userId: string }, AccountError>> {
   if (!isStorableEmail(account.email)) return err(invalidInput('email'));
+  if (!isStorableName(account.name)) return err(invalidInput('name'));
   try {
     if (await emailTaken(auth, account.email)) return err({ kind: 'email-taken' });
     const created = await auth.api.signUpEmail({ body: account });
@@ -43,6 +44,11 @@ async function createAccount(auth: OpenAuth, account: NewAccount): Promise<Resul
 // library would store a 10 000-character address.
 function isStorableEmail(email: string): boolean {
   return email.length <= MAX_EMAIL_LENGTH && !CONTROL_CHARACTERS.test(email);
+}
+
+// The same reason as the email: a null byte makes PostgreSQL fail, and the library logs the internal error.
+function isStorableName(name: string): boolean {
+  return name.length <= MAX_NAME_LENGTH && !CONTROL_CHARACTERS.test(name);
 }
 
 // The library answers a sign-up for an existing email with a generic success, so that a visitor cannot learn which
@@ -77,7 +83,7 @@ function validationError(error: unknown): AccountError {
   return { kind: 'failed', reason: message || 'invalid input' };
 }
 
-function invalidInput(field: 'email' | 'password'): AccountError {
+function invalidInput(field: AccountField): AccountError {
   return { kind: 'invalid-input', field };
 }
 

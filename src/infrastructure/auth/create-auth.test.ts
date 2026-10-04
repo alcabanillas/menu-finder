@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import type { AccountCreator } from '@/application/ports/account-creator';
 import { createAccountCreator } from '@/infrastructure/auth/create-account';
 import { createAuth } from '@/infrastructure/auth/create-auth';
 import {
-  type AccountCreator,
   clearTables,
   configFor,
   countRows,
@@ -32,11 +32,11 @@ const HOSTILE_VALUES = [
 describe.skipIf(!TEST_DATABASE_URL)('createAuth (Neon test branch)', () => {
   let db: TestDatabase;
   let auth: ReturnType<typeof createAuth>;
-  let createAccount: AccountCreator;
+  let accounts: AccountCreator;
   beforeAll(async () => {
     db = await createMigratedTestDatabase(TEST_DATABASE_URL!);
     auth = createAuth(configFor(db.pool));
-    createAccount = createAccountCreator(configFor(db.pool));
+    accounts = createAccountCreator(configFor(db.pool));
   });
   afterAll(async () => {
     await db.drop();
@@ -54,7 +54,7 @@ describe.skipIf(!TEST_DATABASE_URL)('createAuth (Neon test branch)', () => {
     });
 
     it('rejects the email of an existing account exactly as it rejects a new email', async () => {
-      await seedAccount(createAccount, EMAIL);
+      await seedAccount(accounts, EMAIL);
 
       const existing = await signUp(auth, EMAIL);
       const fresh = await signUp(auth, 'new@example.test');
@@ -67,7 +67,7 @@ describe.skipIf(!TEST_DATABASE_URL)('createAuth (Neon test branch)', () => {
 
   describe('sign-in', () => {
     beforeEach(async () => {
-      await seedAccount(createAccount, EMAIL);
+      await seedAccount(accounts, EMAIL);
     });
 
     it('starts a session and sets an HttpOnly cookie for correct credentials', async () => {
@@ -115,7 +115,7 @@ describe.skipIf(!TEST_DATABASE_URL)('createAuth (Neon test branch)', () => {
   describe('session', () => {
     let cookie: string;
     beforeEach(async () => {
-      await seedAccount(createAccount, EMAIL);
+      await seedAccount(accounts, EMAIL);
       cookie = sessionCookie(await signIn(auth, EMAIL));
     });
 
@@ -162,7 +162,7 @@ describe.skipIf(!TEST_DATABASE_URL)('createAuth (Neon test branch)', () => {
   describe('cookie and secret', () => {
     let cookie: string;
     beforeEach(async () => {
-      await seedAccount(createAccount, EMAIL);
+      await seedAccount(accounts, EMAIL);
       cookie = sessionCookie(await signIn(auth, EMAIL));
     });
 
