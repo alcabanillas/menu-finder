@@ -29,7 +29,10 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresMigrationRunner (Neon test branch)'
   it('lists the migration files and creates the six search tables and the record on an empty database', async () => {
     const runner = new PostgresMigrationRunner(db.pool, MIGRATIONS_DIR);
 
-    expect(await runner.available()).toEqual({ ok: true, value: ['001-search-schema.sql'] });
+    expect(await runner.available()).toEqual({
+      ok: true,
+      value: ['001-search-schema.sql', '002-auth-schema.sql'],
+    });
     expect(await runner.applied()).toEqual({ ok: true, value: [] });
     expect(await runner.apply('001-search-schema.sql')).toEqual({ ok: true, value: undefined });
     expect((await tables()).map((t) => t.name)).toEqual([...SEARCH_TABLES, 'schema_migration'].sort());
