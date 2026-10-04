@@ -1,6 +1,7 @@
 import type { MealType } from '@/domain/menu/weekly-menu';
 import type { SourceMenu } from '@/domain/menu/source-menu';
 import type { RecipeContent } from '@/domain/recipe/recipe';
+import type { ShoppingItem } from '@/domain/shopping/shopping-list';
 import type { Result } from '@/shared/result';
 
 /** A menu folder of the source, with the number taken from its name. */
@@ -32,6 +33,19 @@ export type LayoutAnomaly =
 /** A recipe as the source reads it, with the anomalies found in its layout. */
 export type SourceRecipe = { content: RecipeContent; anomalies: LayoutAnomaly[] };
 
+/** Something in a shopping list document's layout that the reader could not place; the list is still read. */
+export type ShoppingListAnomaly =
+  | { kind: 'line-before-first-category'; text: string }
+  | { kind: 'item-without-readable-amount'; text: string }
+  | { kind: 'unrecognized-line'; text: string };
+
+/** A shopping list as the source reads it, with page count and anomalies found in its layout. */
+export type SourceShoppingList = {
+  pages: number;
+  items: ShoppingItem[];
+  anomalies: ShoppingListAnomaly[];
+};
+
 /** Where the nutritionist's menus and recipe files are read from. */
 export interface DocumentSource {
   /** The menu folders; fails when the source itself is missing. */
@@ -42,4 +56,6 @@ export interface DocumentSource {
   listRecipeFiles(folder: MenuFolder): Promise<string[]>;
   /** One recipe document of the folder, by the base name `listRecipeFiles` returned. */
   readRecipe(folder: MenuFolder, file: string): Promise<Result<SourceRecipe, SourceError>>;
+  /** One shopping list document of the folder (`Lista_de_la_compra.pdf`). */
+  readShoppingList(folder: MenuFolder): Promise<Result<SourceShoppingList, SourceError>>;
 }

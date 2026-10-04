@@ -318,6 +318,38 @@ describe('parseShoppingListPage', () => {
     expect(result.items).toHaveLength(0);
   });
 
+  it('reads items across two columns on the same page in reading order', () => {
+    const page = [
+      at(200, 780, 'Lista de la compra'),
+      // Left column (x < 280)
+      at(36, 700, 'Bebidas (no lácteas)'),
+      at(36, 680, '- Agua: 200ml'),
+      // Right column (x >= 280)
+      at(300, 700, 'Frutas y derivados'),
+      at(300, 680, '- Manzana: 100g'),
+    ];
+
+    const result = parseShoppingListPage([page]);
+
+    expect(result.items).toEqual([
+      {
+        category: 'Bebidas (no lácteas)',
+        name: 'Agua',
+        quantity: 200,
+        unit: 'ml',
+        optional: false,
+      },
+      {
+        category: 'Frutas y derivados',
+        name: 'Manzana',
+        quantity: 100,
+        unit: 'g',
+        optional: false,
+      },
+    ]);
+    expect(result.anomalies).toHaveLength(0);
+  });
+
   it('can be structured as a ShoppingList domain entity', () => {
     const list: ShoppingList = {
       menuNumber: 1,

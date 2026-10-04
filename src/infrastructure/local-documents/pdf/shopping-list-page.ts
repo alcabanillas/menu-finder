@@ -1,20 +1,11 @@
+import type { ShoppingListAnomaly, SourceShoppingList } from '@/application/ports/document-source';
 import type { Unit } from '@/domain/recipe/recipe';
 import type { ShoppingItem } from '@/domain/shopping/shopping-list';
+import type { PositionedText } from '@/infrastructure/local-documents/pdf/positioned-text';
 
-export type PositionedText = { x: number; y: number; text: string };
+export type { PositionedText };
 
 const ANOMALY_UNREADABLE_AMOUNT = 'item-without-readable-amount' as const;
-
-type ShoppingListAnomaly =
-  | { kind: 'line-before-first-category'; text: string }
-  | { kind: typeof ANOMALY_UNREADABLE_AMOUNT; text: string }
-  | { kind: 'unrecognized-line'; text: string };
-
-export type ParsedShoppingList = {
-  pages: number;
-  items: ShoppingItem[];
-  anomalies: ShoppingListAnomaly[];
-};
 
 const CATEGORY_HEADERS = [
   'Azúcar, chocolate y derivados',
@@ -37,6 +28,8 @@ const FREE_TEXT_CATEGORIES = new Set<string>(['Especias', 'Grasas y aceites']);
 const SAME_LINE_TOL = 2;
 // Measured on the 36 real PDFs: footer lines sit at y <= 11.3, lowest content line sits at y >= 56.7.
 const FOOTER_MAX_Y = 40;
+const TITLE_MIN_Y = 750;
+const COL_SPLIT_X = 280;
 const TITLE_PATTERN = /^lista de la compra$/i;
 const OPTIONAL_MARK = /\(opcional\)$/i;
 const AMOUNT_PATTERN = /^(\d+(?:[.,]\d+)?)\s*(g|ml)?$/i;
@@ -53,7 +46,7 @@ type ParseContext = {
 /**
  * Parses positioned text across all pages of a shopping list PDF into structured items.
  */
-export function parseShoppingListPage(pages: PositionedText[][]): ParsedShoppingList {
+export function parseShoppingListPage(pages: PositionedText[][]): SourceShoppingList {
   const context: ParseContext = {
     currentCategory: null,
     pendingItemLine: null,
@@ -191,10 +184,13 @@ function markLastItemOptional(items: ShoppingItem[]): void {
 }
 
 function extractLines(pages: PositionedText[][]): string[] {
+  return pages.flatMap(extractPageLines);
+}
+
+function extractPageLines(page: PositionedText[]): string[] {
   const lines: string[] = [];
-  for (const page of pages) {
-    const orderedItems = readingOrder(page);
-    for (const lineItems of toLines(orderedItems)) {
+  for (const columnItems of extractPageColumns(page)) {
+    for (const lineItems of toLines(columnItems)) {
       const text = collapse(lineItems.map((item) => item.text).join(' '));
       if (text) lines.push(text);
     }
@@ -202,12 +198,17 @@ function extractLines(pages: PositionedText[][]): string[] {
   return lines;
 }
 
-function readingOrder(items: PositionedText[]): PositionedText[] {
-  return items
+function extractPageColumns(items: PositionedText[]): PositionedText[][] {
+  const body = items
     .filter((item) => item.y > FOOTER_MAX_Y)
     .map((item) => ({ ...item, text: item.text.trim() }))
-    .filter((item) => item.text)
-    .sort((a, b) => b.y - a.y);
+    .filter((item) => item.text);
+
+  const title = body.filter((item) => item.y > TITLE_MIN_Y).sort((a, b) => b.y - a.y);
+  const left = body.filter((item) => item.y <= TITLE_MIN_Y && item.x < COL_SPLIT_X).sort((a, b) => b.y - a.y);
+  const right = body.filter((item) => item.y <= TITLE_MIN_Y && item.x >= COL_SPLIT_X).sort((a, b) => b.y - a.y);
+
+  return [title, left, right].filter((col) => col.length > 0);
 }
 
 function toLines(items: PositionedText[]): PositionedText[][] {
