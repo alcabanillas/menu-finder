@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import type { CliCommands, SearchOptions } from '@/cli/run-cli';
 import { runCli } from '@/cli/run-cli';
 
+const USAGE_HEADER = 'Usage: pnpm ingest <migrate|recipes|menu|embed|account|search>';
+const NO_RUNS = { built: 0, menuRuns: 0, recipesRuns: 0, migrateRuns: 0, embedRuns: 0, accountRuns: [], searches: [] };
+
 const setup = () => {
   const lines: string[] = [];
   let built = 0;
@@ -9,6 +12,7 @@ const setup = () => {
   let recipesRuns = 0;
   let migrateRuns = 0;
   let embedRuns = 0;
+  const accountRuns: string[][] = [];
   const searches: SearchOptions[] = [];
   const createCommands = (): CliCommands => {
     built += 1;
@@ -29,6 +33,10 @@ const setup = () => {
         embedRuns += 1;
         return 1;
       },
+      account: async (args) => {
+        accountRuns.push(args);
+        return 0;
+      },
       search: async (options) => {
         searches.push(options);
         return 0;
@@ -37,9 +45,8 @@ const setup = () => {
   };
   return {
     lines,
-    searches,
     run: (args: string[]) => runCli(args, { createCommands, print: (line) => lines.push(line) }),
-    counts: () => ({ built, menuRuns, recipesRuns, migrateRuns, embedRuns, searchRuns: searches.length }),
+    counts: () => ({ built, menuRuns, recipesRuns, migrateRuns, embedRuns, accountRuns, searches }),
   };
 };
 
@@ -48,42 +55,52 @@ describe('runCli', () => {
     const { run, counts } = setup();
 
     expect(await run(['menu'])).toBe(0);
-    expect(counts()).toEqual({ built: 1, menuRuns: 1, recipesRuns: 0, migrateRuns: 0, embedRuns: 0, searchRuns: 0 });
+    expect(counts()).toEqual({ ...NO_RUNS, built: 1, menuRuns: 1 });
   });
 
   it('runs the recipes command and returns its exit code', async () => {
     const { run, counts } = setup();
 
     expect(await run(['recipes'])).toBe(1);
-    expect(counts()).toEqual({ built: 1, menuRuns: 0, recipesRuns: 1, migrateRuns: 0, embedRuns: 0, searchRuns: 0 });
+    expect(counts()).toEqual({ ...NO_RUNS, built: 1, recipesRuns: 1 });
   });
 
   it('runs the migrate command and returns its exit code', async () => {
     const { run, counts } = setup();
 
     expect(await run(['migrate'])).toBe(0);
-    expect(counts()).toEqual({ built: 1, menuRuns: 0, recipesRuns: 0, migrateRuns: 1, embedRuns: 0, searchRuns: 0 });
+    expect(counts()).toEqual({ ...NO_RUNS, built: 1, migrateRuns: 1 });
   });
 
   it('runs the embed command and returns its exit code', async () => {
     const { run, counts } = setup();
 
     expect(await run(['embed'])).toBe(1);
-    expect(counts()).toEqual({ built: 1, menuRuns: 0, recipesRuns: 0, migrateRuns: 0, embedRuns: 1, searchRuns: 0 });
+    expect(counts()).toEqual({ ...NO_RUNS, built: 1, embedRuns: 1 });
+  });
+
+  it.each([
+    [['account', 'ana@example.test'], ['ana@example.test']],
+    [['account', 'ana@example.test', 'Ana G.'], ['ana@example.test', 'Ana G.']],
+  ])('runs the account command with its arguments for %j', async (args, expected) => {
+    const { run, counts } = setup();
+
+    expect(await run(args)).toBe(0);
+    expect(counts()).toEqual({ ...NO_RUNS, built: 1, accountRuns: [expected] });
   });
 
   it('runs the search command with the hybrid strategy by default', async () => {
-    const { run, searches } = setup();
+    const { run, counts } = setup();
 
     expect(await run(['search', 'pollo.json'])).toBe(0);
-    expect(searches).toEqual([{ file: 'pollo.json', strategy: 'hybrid' }]);
+    expect(counts()).toEqual({ ...NO_RUNS, built: 1, searches: [{ file: 'pollo.json', strategy: 'hybrid' }] });
   });
 
   it.each(['lexical', 'semantic', 'hybrid'])('runs the search command with --strategy %s', async (strategy) => {
-    const { run, searches } = setup();
+    const { run, counts } = setup();
 
     expect(await run(['search', 'pollo.json', '--strategy', strategy])).toBe(0);
-    expect(searches).toEqual([{ file: 'pollo.json', strategy }]);
+    expect(counts()).toEqual({ ...NO_RUNS, built: 1, searches: [{ file: 'pollo.json', strategy }] });
   });
 
   it.each([
@@ -93,6 +110,8 @@ describe('runCli', () => {
     [['recipes', 'extra']],
     [['migrate', 'extra']],
     [['embed', '--force']],
+    [['account']],
+    [['account', 'ana@example.test', 'Ana', 'a-long-enough-pass']],
     [['search']],
     [['search', 'a.json', 'b.json']],
     [['search', 'a.json', '--strategy']],
@@ -103,8 +122,8 @@ describe('runCli', () => {
     const { run, counts, lines } = setup();
 
     expect(await run(args)).toBe(2);
-    expect(lines.join('\n')).toContain('Usage: pnpm ingest <migrate|recipes|menu|embed|search>');
-    expect(counts()).toEqual({ built: 0, menuRuns: 0, recipesRuns: 0, migrateRuns: 0, embedRuns: 0, searchRuns: 0 });
+    expect(lines.join('\n')).toContain(USAGE_HEADER);
+    expect(counts()).toEqual(NO_RUNS);
   });
 
   it('lists every command in the usage', async () => {
@@ -112,8 +131,8 @@ describe('runCli', () => {
 
     await run(['foo']);
 
-    for (const command of ['menu', 'recipes', 'migrate', 'embed', 'search']) {
-      expect(lines.some((line) => line.trim().startsWith(`${command} `))).toBe(true);
+    for (const usage of ['menu ', 'recipes ', 'migrate ', 'embed ', 'account <email> [name]', 'search <structure.json>']) {
+      expect(lines.some((line) => line.trim().startsWith(usage))).toBe(true);
     }
   });
 });

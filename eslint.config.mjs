@@ -167,6 +167,24 @@ const eslintConfig = defineConfig([
   },
   architecture,
   architectureTests,
+  // MF-20.1: la autenticación con el registro abierto solo existe para la CLI (SEG-sistema-cerrado).
+  // composition puede importarlo todo, así que la web se cierra aparte: app/ ya lo impide la regla de capas.
+  {
+    files: ['src/composition/web-container.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/infrastructure/auth/create-account', '@/infrastructure/auth/create-account'],
+              message: 'The web must not build the authentication with open sign-up: only the CLI creates accounts.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   // scripts/datos/ son los scripts CommonJS de generación local de datos (T0).
   // Se sustituyen por la CLI de ingesta (src/cli/); hasta entonces se permite require().
   {

@@ -24,7 +24,7 @@ Cada paso escribe además una QA en `data/qa/`, para revisión manual. La del me
 - Los PDF en `data/raw/Dieta/Menu 1` … `Menu 36`, cada carpeta con `menu.pdf`, `Lista_de_la_compra.pdf` y un PDF por receta. Los `valoracion-*.pdf` se ignoran.
 - Node y `pnpm install` (dependencias: `pdf-parse` para el menú y `pdfjs-dist` para las recetas; pnpm no deja usar una dependencia que no esté declarada en `package.json`).
 - Poppler (`pdftotext`), solo para el paso 1.
-- `.env.local` (gitignoreado) con `DATABASE_URL_UNPOOLED` (la conexión directa de Neon), para los pasos 2 y 3, y `GEMINI_API_KEY` (nivel de pago, IA-proveedor), para los embeddings. Opcional: `DATABASE_URL_TEST`, la conexión directa de una rama de Neon solo para pruebas (nunca `production`), con la que `pnpm test:run` ejecuta también los tests de integración de Postgres; sin ella se saltan. Vitest solo lee esa variable de `.env.local`.
+- `.env.local` (gitignoreado) con `DATABASE_URL_UNPOOLED` (la conexión directa de Neon), para los pasos 2 y 3, y `GEMINI_API_KEY` (nivel de pago, IA-proveedor), para los embeddings. Para la autenticación (MF-20): `BETTER_AUTH_SECRET` (aleatorio, de 32 caracteres como mínimo, distinto en cada entorno) y `BETTER_AUTH_URL`. Opcional: `DATABASE_URL_TEST`, la conexión directa de una rama de Neon solo para pruebas (nunca `production`), con la que `pnpm test:run` ejecuta también los tests de integración de Postgres; sin ella se saltan. Vitest solo lee esa variable de `.env.local`.
 - `data/marca.json`, creado a mano y nunca versionado, con los patrones del pie de la lista de la compra (eslogan y marca). Así el parser los descarta sin que el texto del nutricionista aparezca en el código (SEG-datos-nutricionista):
 
   ```json
@@ -81,6 +81,34 @@ pnpm datos:lista    # → data/qa/lista-compra-items.csv
 ```
 
 Todos son idempotentes: se pueden relanzar. Los JSON se sobrescriben enteros; en la BD, cada receta o menú recibido sustituye a su versión anterior y no se borra lo que no llega (ING-cli-local). Las garantías esperadas de cada uno (recuentos, anomalías) están en T2 §2.5 y §4.4.
+
+### Cuentas de la app
+
+El comando que crea las cuentas (MF-20.2, SEG-sistema-cerrado) no es parte de la ingesta, pero comparte la CLI. Necesita `DATABASE_URL_UNPOOLED` y `BETTER_AUTH_SECRET` en `.env.local`:
+
+```bash
+pnpm ingest account <email> [nombre]   # pide la contraseña sin eco; sin nombre, usa lo que hay antes de la @
+```
+
+La contraseña nunca se pasa como argumento ni como variable de entorno. Sin terminal (una tubería) se lee la primera línea de stdin, por ejemplo desde un fichero o un gestor de contraseñas: `Get-Content ruta-secreta.txt | pnpm ingest account <email>`. No uses `echo`, que la deja en el historial de la shell. Ejecuta el comando en PowerShell o Windows Terminal, no en Git Bash (mintty) sin `winpty`: ahí Node no ve una terminal, así que no sale el aviso `Password:` y lo que escribes se ve en pantalla. Si el email ya tiene cuenta, el comando falla y no cambia nada: cambiar una contraseña es otra operación (MF-45 de `context/roadmap.md`).
+
+### Qué cadena de conexión usa cada cosa
+
+| Variable | La usan | Debe apuntar a |
+|---|---|---|
+| `DATABASE_URL_TEST` | Solo los tests de Vitest (cada fichero crea y borra su propio esquema) | La rama `test` de Neon, nunca `production` |
+| `DATABASE_URL_UNPOOLED` | Los comandos `pnpm ingest …` | `production` por defecto |
+
+Método para saber a qué rama apunta una URL y para usar otra sin tocar el fichero:
+
+1. **Mira solo el host**, nunca la contraseña: `(Select-String -Path .env.local -Pattern '^DATABASE_URL_TEST=').Line -replace '.*@([^/?]+).*','$1'`.
+2. **Cruza el host con la rama**: en la consola de Neon, rama → Connect, o `list_postgres_endpoints` por el MCP de Neon; el endpoint (`ep-…`) dice de qué rama es. Ninguna variable `NEON_BRANCH` interviene.
+3. **La URL de la CLI es la directa**: el host sin `-pooler` (migraciones y escrituras necesitan transacciones).
+4. **Para probar un comando contra otra rama**, sobrescribe la variable solo en tu shell: `$env:DATABASE_URL_UNPOOLED = Read-Host "URL directa de la rama"`. Las variables de la shell ganan sobre `.env.local`, y no queda nada escrito en disco.
+5. **Las contraseñas son de cada rama**: una rama copia el rol de su padre al crearse y desde entonces cambian por separado. Si rotas la de `production`, las ramas ya creadas siguen con la vieja.
+6. **No ejecutes la CLI contra `production`** salvo que sea lo que quieres: `account`, `migrate` y las ingestas escriben ahí.
+
+La cuenta de demo del tutor se crea con este mismo comando. Su email y su contraseña se entregan solo en el formulario de entrega del máster, nunca en el repo, las diapositivas ni el vídeo (SEG-sistema-cerrado).
 
 ## 5. Regenerar desde cero
 

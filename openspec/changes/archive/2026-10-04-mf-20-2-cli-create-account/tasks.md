@@ -1,0 +1,47 @@
+## 1. Checks before coding
+
+- [x] 1.1 The author confirms D2 to D5 of `design.md` (port, use case, wiring with a fixed base URL, arguments); verify: the answer is in the chat and `design.md` says "decided" for each
+- [x] 1.2 Check that `knip` and the ESLint boundary rules accept a port, a use case and a command that nothing imports yet (the container and `index.ts` import them only in section 4); verify: the order of sections 2 to 4 keeps `pnpm lint` and `pnpm knip` green at each commit, or the exception is written here
+
+## 2. Port and use case (tests first)
+
+- [x] 2.1 Write the use-case tests with a fake `AccountCreator`: the name defaults to the part of the email before the `@` (`ana@example.test` gives `ana`), a given name is kept, and each `AccountError` of the port comes back unchanged; verify: they fail because the use case does not exist
+- [x] 2.2 Create `src/application/ports/account-creator.ts` (with `NewAccount` and `AccountError` moved from the infrastructure file) and `src/application/use-cases/create-account.ts`, and make `infrastructure/auth/create-account.ts` implement the port importing those types; verify: the tests of 2.1 pass, the tests of `create-account.test.ts` of MF-20.1 still pass, and `pnpm typecheck` is clean
+
+## 3. The command (tests first)
+
+- [x] 3.1 Write the `runCreateAccount` tests with fakes for the use case, `readPassword` and `print`: success prints `Created account <email>`, exits 0 and no line contains the password; `email-taken`, `invalid-input` (names the field) and `failed` exit 1 with one line each and no password in any line; an empty password prints that a password is required, exits 1 and creates nothing; missing variables are named and exit 1 (reuse `missing-variables.ts`); verify: they fail because the command does not exist
+- [x] 3.2 Write the `runCli` tests: `account <email>` and `account <email> <name>` reach the command, `account` alone, `account a b c` and `account a b <password>`-shaped third and fourth arguments print the usage and exit 2 without reading a password, and `migrate extra` is still a usage error; verify: they fail
+- [x] 3.3 Implement `src/cli/commands/create-account.ts` and the arguments handling of `src/cli/run-cli.ts` (each command declares how many arguments it takes) with the minimum code for 3.1 and 3.2, the password read only after the arguments and variables are valid, and every printed error line through `redactSecrets`; verify: the tests of 3.1 and 3.2 pass and the existing `run-cli` and command tests still pass
+
+## 4. Wiring and the real password reading (tests first)
+
+- [x] 4.1 Write the container test: `createAccount` with a missing `DATABASE_URL_UNPOOLED` or `BETTER_AUTH_SECRET` returns `missing-variables` naming each one, without connecting (pattern of `cli-container.test.ts`); verify: it fails
+- [x] 4.2 Add `createAccount` to `createCliContainer` (variables checked first, `withPool`, `AuthAccountCreator` with the secret and the fixed base URL of D4, a named constant with the comment that D4 explains), and wire the command and `readPassword` in `src/cli/index.ts`: no-echo prompt with `readline` when `process.stdin.isTTY`, one line of stdin otherwise; verify: the test of 4.1 passes, `account-creation-boundary.test.ts` still passes (only `cli-container.ts` imports the open setup) and `pnpm lint` shows no boundary error
+- [x] 4.3 Write the integration test (skipped without `DATABASE_URL_TEST`, as in MF-20.1): through the container, create an account, then sign in with the closed setup of `createAuth` and get a session; a second creation with the same email fails and the first password still signs in; hostile email and name values (`' OR 1=1; --`, emoji, 10 000 characters, null byte) end in a result, not a throw, with no other row changed; verify: it fails before 4.2 is wired and passes after, against the Neon development branch
+
+## 5. Run it for real and close
+
+- [x] 5.1 Update the usage lines of `run-cli.ts`, `context/tareas/T0-extraccion-previa.md` (the command in the local runbook, and whether the demo account needs a line: the open question of `design.md`) and `context/roadmap.md` (MF-20.2 ✅ with the archive link; new item "change a password from the CLI", with the author's agreement); verify: `grep` of the codes and a read of the changed lines
+- [x] 5.2 On the development branch, run `pnpm ingest account <test-email>` by hand in the Windows terminal (prompt with no echo), then `echo <password> | pnpm ingest account <other-email>`, then a repeated email, then with a variable unset; verify: the password is never visible on screen or in the shell history, the repeated email and the unset variable give their messages and exit codes, and a sign-in with the first account works (the **Result** of the roadmap item)
+- [x] 5.3 Run `pnpm lint`, `pnpm typecheck`, `pnpm test:coverage` and `pnpm knip`; verify: all pass
+- [x] 5.4 Update `context/decisiones.md` §1.8 (SEG-auth or SEG-sistema-cerrado: the CLI creates accounts with `pnpm ingest account`, the password comes from a prompt or stdin, an existing email is an error), only after the author confirms the wording; verify: a read of the changed lines
+- [x] 5.5 Go through the checklist of `context/safety-first.md` §4 before archiving and record the answers at the end of this file, with the CI deviation (MF-44) and the sign-in log (MF-20.3) stated; verify: every item has an answer and a reason where it is "not applicable"
+
+## 6. Display-name limit (added after `verify`, test first)
+
+- [x] 6.1 Write the tests: the adapter refuses a name of 31 and of 10 000 characters, with a null byte or a line break, naming the field `name` and adding no row, and accepts one of exactly 30; the use case cuts the default name at 30; the command prints `Invalid name`; the CLI container refuses hostile names and names an account after a long email; verify: 10 of them fail before the code exists
+- [x] 6.2 Add `MAX_NAME_LENGTH` and the `name` field to the port, validate the name in the adapter after the email, and cut the default name in the use case; verify: `pnpm vitest run` (414 tests), `pnpm lint` and `pnpm typecheck` pass
+## Safety checklist (`context/safety-first.md` §4), answered on 2026-10-04
+
+1. **Business and security decisions in the backend?** Yes. Email and password limits, the repeated-email rule and the secret check are in the server code (`infrastructure/auth/`, the use case); the command only reads arguments and the password and prints the result. No client code.
+2. **Each new endpoint validates auth, permissions and input shape?** Not applicable: no endpoint. The command checks the number of arguments (usage error, exit 2, before the container is built), the email and the password limits, and it runs only with the owner connection and the secret of the author's own environment.
+3. **User and permissions from the session, not from client parameters?** Not applicable: no session is involved; creating an account is an administrator action by whoever can run the CLI with the owner connection string.
+4. **Negative authorization tests for each new endpoint, running in CI?** The negative scenarios exist (repeated email, invalid email and password, hostile values, no password, wrong number of arguments, missing variables). The ones that need Postgres (`cli-container-account.test.ts`) are skipped in CI because `DATABASE_URL_TEST` is not set there. **Deviation, already tracked as MF-44** (same as MF-20.1); the use-case, command, argument and password-reading tests run in CI.
+5. **Minimum data returned?** Yes. Success prints only `Created account <email>`; no password, hash or user id. Errors name the field or the cause, never the password (tested), and failure text goes through `redactSecrets`.
+6. **No secret hardcoded or in the diff?** Yes. `BETTER_AUTH_SECRET` is only in the git-ignored `.env.local`; the fixed base URL `http://localhost:3000` is not a secret. Test passwords and secrets are test values, marked as such. **Incident outside the repo:** while preparing the manual run, a Neon connection string of a development branch was shown in the assistant conversation (never written to a file or the diff); the author reset the role password.
+7. **Each new dependency exists, is the intended one, is maintained and is justified (§2.5)?** Yes: none added. The no-echo prompt uses Node's `readline` and the terminal's raw mode.
+8. **Queries parameterised?** Yes. The library builds its own parameterised queries; the only interpolated names in the tests come from a closed union of table names.
+9. **Tests with unexpected values?** Yes: SQL metacharacters, emoji, null byte and 10 000 characters as the email, an empty password, a password that a failure reason repeats. No prompt-injection case: nothing here reaches an LLM.
+10. **Sensitive actions (login, denied access) logged with who, what and when?** **Not yet, and stated as a deviation.** The command is run by the author in a terminal and prints the email it created; there is no server log to write to. Logging of sign-ins and refused sign-ins stays with MF-20.3.
+11. **Deviations from a MUST rule justified and documented?** Yes: items 4 and 10 above.

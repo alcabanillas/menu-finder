@@ -5,6 +5,8 @@ import { runEmbed } from '@/cli/commands/embed';
 import { runIngestMenu } from '@/cli/commands/ingest-menu';
 import { runIngestRecipes } from '@/cli/commands/ingest-recipes';
 import { runMigrate } from '@/cli/commands/migrate';
+import { runCreateAccount } from '@/cli/commands/create-account';
+import { readPassword } from '@/cli/read-password';
 import { runSearch } from '@/cli/commands/search';
 import { runCli } from '@/cli/run-cli';
 
@@ -34,6 +36,15 @@ runCli(process.argv.slice(2), {
       recipes: () => runIngestRecipes({ ...container, ...output }),
       migrate: () => runMigrate({ migrate: container.migrate, print }),
       embed: () => runEmbed({ embedRecipes: container.embedRecipes, print }),
+      account: ([email, name]) =>
+        runCreateAccount({
+          email,
+          name,
+          // The prompt goes to stderr, so that stdout carries only the result.
+          readPassword: () => readPassword({ input: process.stdin, output: process.stderr }),
+          createAccount: container.createAccount,
+          print,
+        }),
       search: ({ file, strategy }) =>
         runSearch({
           file,

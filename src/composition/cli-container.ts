@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import pg from 'pg';
+import { createAccount } from '@/application/use-cases/create-account';
 import { ingestMenus } from '@/application/use-cases/ingest-menus';
 import { ingestRecipes } from '@/application/use-cases/ingest-recipes';
 import { embedRecipes } from '@/application/use-cases/embed-recipes';
@@ -10,6 +11,7 @@ import type { SearchStrategy } from '@/application/dto/search-result';
 import type { EmbeddingsPort } from '@/application/ports/embeddings-port';
 import { searchMenus } from '@/application/use-cases/search-menus';
 import { PostgresDishTextSearch } from '@/infrastructure/postgres/postgres-dish-text-search';
+import { createAccountCreator } from '@/infrastructure/auth/create-account';
 import { FanOutRepository } from '@/infrastructure/fan-out/fan-out-repository';
 import { createGenkitEmbeddings } from '@/infrastructure/genkit/genkit-embeddings';
 import { JsonFileMenuRepository, MENU_DATASET_FILE } from '@/infrastructure/json-file/json-file-menu-repository';
@@ -30,6 +32,15 @@ const REPO_ROOT = fileURLToPath(new URL('../..', import.meta.url));
 // The direct connection: migrations and saves need transactions (MF-41 design D2).
 const DATABASE_URL = 'DATABASE_URL_UNPOOLED';
 const GEMINI_API_KEY = 'GEMINI_API_KEY';
+const BETTER_AUTH_SECRET = 'BETTER_AUTH_SECRET';
+
+// The library asks for a base URL when it is built, but only uses it to write email-verification links, and this system
+// verifies no email (SEG-sistema-cerrado). The session cookie is signed with the secret, not with the URL, so an account
+// created here signs in on the deployed web. The CLI never serves a request, so this is a fixed value, not a variable.
+const ACCOUNT_BASE_URL = 'http://localhost:3000';
+
+/** What `ingest account` asks for. The password is read only after the environment is known to be complete. */
+export type AccountRequest = { email: string; name?: string; readPassword: () => Promise<string> };
 
 type Env = Record<string, string | undefined>;
 
@@ -58,6 +69,16 @@ export function createCliContainer(env: Env = {}) {
     ingestMenus: () => onDatabase((pool) => ingestMenus({ source, menus: menuRepository(pool) })),
     ingestRecipes: () => onDatabase((pool) => ingestRecipes({ source, recipes: recipeRepository(pool) })),
     migrate: () => onDatabase((pool) => migrate({ runner: new PostgresMigrationRunner(pool, MIGRATIONS_DIR) })),
+    createAccount: ({ email, name, readPassword }: AccountRequest) =>
+      requiring(env, [DATABASE_URL, BETTER_AUTH_SECRET], async ([url, secret]) => {
+        const password = await readPassword();
+        return withPool(url, (pool) =>
+          createAccount(
+            { accounts: createAccountCreator({ pool, secret, baseUrl: ACCOUNT_BASE_URL }) },
+            { email, name, password },
+          ),
+        );
+      }),
     embedRecipes: () =>
       requiring(env, [DATABASE_URL, GEMINI_API_KEY], ([url, apiKey]) =>
         withPool(url, (pool) =>

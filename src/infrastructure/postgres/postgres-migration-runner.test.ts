@@ -31,7 +31,7 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresMigrationRunner (Neon test branch)'
 
     expect(await runner.available()).toEqual({
       ok: true,
-      value: ['001-search-schema.sql', '003-dish-text-search.sql'],
+      value: ['001-search-schema.sql', '002-auth-schema.sql', '003-dish-text-search.sql'],
     });
     expect(await runner.applied()).toEqual({ ok: true, value: [] });
     expect(await runner.apply('001-search-schema.sql')).toEqual({ ok: true, value: undefined });
