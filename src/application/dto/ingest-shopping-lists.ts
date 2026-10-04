@@ -1,6 +1,8 @@
 import type { ShoppingListAnomaly, SourceError } from '@/application/ports/document-source';
 import type { RepositoryError } from '@/application/ports/repository-error';
 
+export type { ShoppingListAnomaly };
+
 export type ShoppingListFailure = { menu: number; error: SourceError | { kind: 'empty-list' } };
 
 export type ShoppingListAnomalyRow = { menu: number; anomaly: ShoppingListAnomaly };

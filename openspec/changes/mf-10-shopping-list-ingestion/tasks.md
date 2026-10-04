@@ -23,9 +23,23 @@
 
 ## 4. Phase 4 — CLI, cleanup and documents
 
-- [ ] 4.1 Write the failing tests of the command for "Pages in the report", "QA directory outside data", "Exit code with failures", "Extra argument" and "Missing database variables" (`ingest-shopping-list.test.ts`, `run-cli.test.ts`); add `src/cli/commands/ingest-shopping-list.ts`, wire `shopping-list` in `run-cli.ts`, `cli/index.ts` and `cli-container.ts`, and update the usage text with the order `migrate → recipes → menu → shopping-list → embed`; tests pass
-- [ ] 4.2 Run `pnpm ingest migrate` and `pnpm ingest shopping-list` on the development database: 36 lists, 17 with more than one page, 0 failures, 0 anomalies, `data/qa/qa-lista-compra.md` written; run it a second time and check with a count query that the rows are the same
-- [ ] 4.3 Remove `scripts/datos/parse-lista-compra.js` and the `datos:lista` script from `package.json`; check that no file still refers to them (`grep` in the repo) and that `pnpm test` and `pnpm lint` stay green
-- [ ] 4.4 Write T2 §3 in `context/tareas/T2-esquema-json-ingesta.md` (origin, shape, free-text categories, the two-page case, guarantees, limits) and update `context/tareas/T0-extraccion-previa.md` (new command, no TXT step for the list); check every cross-reference is fully qualified
-- [ ] 4.5 Update ING-lista-compra, ING-trazabilidad and ARQ-modelo-datos in `context/decisiones.md` (with `optional`, `position` and `menu_number`, and the decision that the free-text categories carry no quantity), and mark MF-10 done in `context/roadmap.md`; check that the codes cited exist
-- [ ] 4.6 Review the checklist of `context/safety-first.md` §4 and record the result in the change before archiving; run `pnpm test`, `pnpm lint`, `pnpm build` and `openspec validate mf-10-shopping-list-ingestion --strict`; commit the phase
+- [x] 4.1 Write the failing tests of the command for "Pages in the report", "QA directory outside data", "Exit code with failures", "Extra argument" and "Missing database variables" (`ingest-shopping-list.test.ts`, `run-cli.test.ts`); add `src/cli/commands/ingest-shopping-list.ts`, wire `shopping-list` in `run-cli.ts`, `cli/index.ts` and `cli-container.ts`, and update the usage text with the order `migrate → recipes → menu → shopping-list → embed`; tests pass
+- [x] 4.2 Run `pnpm ingest migrate` and `pnpm ingest shopping-list` on the development database: 36 lists, 17 with more than one page, 0 failures, 0 anomalies, `data/qa/qa-lista-compra.md` written; run it a second time and check with a count query that the rows are the same
+- [x] 4.3 Remove `scripts/datos/parse-lista-compra.js` and the `datos:lista` script from `package.json`; check that no file still refers to them (`grep` in the repo) and that `pnpm test` and `pnpm lint` stay green
+- [x] 4.4 Write T2 §3 in `context/tareas/T2-esquema-json-ingesta.md` (origin, shape, free-text categories, the two-page case, guarantees, limits) and update `context/tareas/T0-extraccion-previa.md` (new command, no TXT step for the list); check every cross-reference is fully qualified
+- [x] 4.5 Update ING-lista-compra, ING-trazabilidad and ARQ-modelo-datos in `context/decisiones.md` (with `optional`, `position` and `menu_number`, and the decision that the free-text categories carry no quantity), and mark MF-10 done in `context/roadmap.md`; check that the codes cited exist
+- [x] 4.6 Review the checklist of `context/safety-first.md` §4 and record the result in the change before archiving; run `pnpm test`, `pnpm lint`, `pnpm build` and `openspec validate mf-10-shopping-list-ingestion --strict`; commit the phase
+
+## Security checklist (`context/safety-first.md` §4), 2026-10-05
+
+- **Business and security decisions in the backend:** yes. Positional parsing in pure domain/infrastructure functions; persistence in Postgres adapter via parameterized queries; only entry point is the CLI run locally by the author.
+- **New endpoints (auth, permissions, negative tests):** not applicable. There is no web endpoint, only the `ingest shopping-list` CLI command; the UI arrives with MF-24.
+- **User from the session:** not applicable, local administrative CLI run.
+- **Minimum data returned:** yes. Summary counts and anomalies reported, no raw database dump.
+- **No secrets in the diff:** yes. Checked: DB connection strings come from environment variables (`DATABASE_URL_UNPOOLED` / `DATABASE_URL_TEST`), no secrets or credentials in code or tests.
+- **New dependencies:** none. Reused `pdfjs-dist` and `pg`.
+- **Parameterised queries:** yes. Handled in `PostgresShoppingListRepository` using single-transaction `DELETE ... WHERE menu_number = ANY($1::int[])` and parameterized insert via `jsonb_to_recordset($2::jsonb)`; no string concatenation.
+- **Tests with unexpected values:** yes. Tested SQL injection attempts and special characters ("Names are data, never SQL"), unreadable/corrupted PDFs, missing menus (FK constraint error translation), invalid QA directory path, and unexpected CLI arguments.
+- **Sensitive actions logged:** not applicable. Ingestion is run by the owner in local CLI.
+- **Deviations from a MUST rule:** none.
+

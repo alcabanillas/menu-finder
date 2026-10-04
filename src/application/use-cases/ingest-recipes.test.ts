@@ -38,6 +38,9 @@ const fakeSource = (menus: Record<number, Record<string, FakeFile>>) => {
       const entry = menus[number][file];
       return 'error' in entry ? err(entry.error) : ok(entry);
     },
+    readShoppingList: async () => {
+      throw new Error('not expected');
+    },
   };
   return { source, reads };
 };

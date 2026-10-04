@@ -33,7 +33,7 @@ describe('createCliContainer', () => {
     });
   });
 
-  it.each(['ingestMenus', 'ingestRecipes'] as const)(
+  it.each(['ingestMenus', 'ingestRecipes', 'ingestShoppingLists'] as const)(
     'names a missing connection string for %s before reading any PDF',
     async (command) => {
       expect(await createCliContainer({})[command]()).toEqual({

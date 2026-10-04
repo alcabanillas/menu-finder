@@ -2,8 +2,18 @@ import { describe, expect, it } from 'vitest';
 import type { CliCommands, SearchOptions } from '@/cli/run-cli';
 import { runCli } from '@/cli/run-cli';
 
-const USAGE_HEADER = 'Usage: pnpm ingest <migrate|recipes|menu|embed|account|search|evaluate-search>';
-const NO_RUNS = { built: 0, menuRuns: 0, recipesRuns: 0, migrateRuns: 0, embedRuns: 0, accountRuns: [], searches: [], evaluations: 0 };
+const USAGE_HEADER = 'Usage: pnpm ingest <migrate|recipes|menu|shopping-list|embed|account|search|evaluate-search>';
+const NO_RUNS = {
+  built: 0,
+  menuRuns: 0,
+  recipesRuns: 0,
+  migrateRuns: 0,
+  shoppingListRuns: 0,
+  embedRuns: 0,
+  accountRuns: [],
+  searches: [],
+  evaluations: 0,
+};
 
 const setup = () => {
   const lines: string[] = [];
@@ -11,6 +21,7 @@ const setup = () => {
   let menuRuns = 0;
   let recipesRuns = 0;
   let migrateRuns = 0;
+  let shoppingListRuns = 0;
   let embedRuns = 0;
   const accountRuns: string[][] = [];
   const searches: SearchOptions[] = [];
@@ -28,6 +39,10 @@ const setup = () => {
       },
       migrate: async () => {
         migrateRuns += 1;
+        return 0;
+      },
+      'shopping-list': async () => {
+        shoppingListRuns += 1;
         return 0;
       },
       embed: async () => {
@@ -51,7 +66,17 @@ const setup = () => {
   return {
     lines,
     run: (args: string[]) => runCli(args, { createCommands, print: (line) => lines.push(line) }),
-    counts: () => ({ built, menuRuns, recipesRuns, migrateRuns, embedRuns, accountRuns, searches, evaluations }),
+    counts: () => ({
+      built,
+      menuRuns,
+      recipesRuns,
+      migrateRuns,
+      shoppingListRuns,
+      embedRuns,
+      accountRuns,
+      searches,
+      evaluations,
+    }),
   };
 };
 
@@ -75,6 +100,13 @@ describe('runCli', () => {
 
     expect(await run(['migrate'])).toBe(0);
     expect(counts()).toEqual({ ...NO_RUNS, built: 1, migrateRuns: 1 });
+  });
+
+  it('runs the shopping-list command and returns its exit code', async () => {
+    const { run, counts } = setup();
+
+    expect(await run(['shopping-list'])).toBe(0);
+    expect(counts()).toEqual({ ...NO_RUNS, built: 1, shoppingListRuns: 1 });
   });
 
   it('runs the embed command and returns its exit code', async () => {
@@ -121,6 +153,7 @@ describe('runCli', () => {
     [['menu', 'extra']],
     [['recipes', 'extra']],
     [['migrate', 'extra']],
+    [['shopping-list', 'extra']],
     [['embed', '--force']],
     [['account']],
     [['account', 'ana@example.test', 'Ana', 'a-long-enough-pass']],
@@ -144,8 +177,35 @@ describe('runCli', () => {
 
     await run(['foo']);
 
-    for (const usage of ['menu ', 'recipes ', 'migrate ', 'embed ', 'account <email> [name]', 'search <structure.json>', 'evaluate-search ']) {
+    for (const usage of [
+      'menu ',
+      'recipes ',
+      'migrate ',
+      'shopping-list ',
+      'embed ',
+      'account <email> [name]',
+      'search <structure.json>',
+      'evaluate-search ',
+    ]) {
       expect(lines.some((line) => line.trim().startsWith(usage))).toBe(true);
     }
+  });
+
+  it('lists the ingestion commands in the required order', async () => {
+    const { run, lines } = setup();
+
+    await run(['foo']);
+
+    const fullText = lines.join('\n');
+    const migratePos = fullText.indexOf('migrate');
+    const recipesPos = fullText.indexOf('recipes');
+    const menuPos = fullText.indexOf('menu');
+    const shoppingPos = fullText.indexOf('shopping-list');
+    const embedPos = fullText.indexOf('embed');
+
+    expect(migratePos).toBeLessThan(recipesPos);
+    expect(recipesPos).toBeLessThan(menuPos);
+    expect(menuPos).toBeLessThan(shoppingPos);
+    expect(shoppingPos).toBeLessThan(embedPos);
   });
 });

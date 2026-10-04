@@ -8,6 +8,7 @@ export type CliCommands = {
   menu: () => Promise<number>;
   recipes: () => Promise<number>;
   migrate: () => Promise<number>;
+  'shopping-list': () => Promise<number>;
   embed: () => Promise<number>;
   account: (args: string[]) => Promise<number>;
   search: (options: SearchOptions) => Promise<number>;
@@ -27,17 +28,19 @@ const ARGUMENTS: Record<ArgsCommand, { min: number; max: number }> = {
   migrate: { min: 0, max: 0 },
   recipes: { min: 0, max: 0 },
   menu: { min: 0, max: 0 },
+  'shopping-list': { min: 0, max: 0 },
   embed: { min: 0, max: 0 },
   account: { min: 1, max: 2 },
   'evaluate-search': { min: 0, max: 0 },
 };
 
-// Listed in the order they are run (MF-41 design D9): a dish points to its recipe row.
+// Listed in the order they are run (MF-41 design D9, MF-10 design D3): migrate → recipes → menu → shopping-list → embed.
 const USAGE = [
-  'Usage: pnpm ingest <migrate|recipes|menu|embed|account|search|evaluate-search>',
+  'Usage: pnpm ingest <migrate|recipes|menu|shopping-list|embed|account|search|evaluate-search>',
   '  migrate                 Apply the pending SQL migrations of postgres/migrations to the database',
   '  recipes                 Ingest the recipes from data/raw/Dieta into data/recetas.json and the database',
   '  menu                    Ingest the weekly menus from data/raw/Dieta into data/menu-platos.json and the database',
+  '  shopping-list           Ingest the shopping lists from data/raw/Dieta into the database',
   '  embed                   Compute the missing or outdated recipe embeddings and store them in the database',
   '  account <email> [name]  Create an account; the password is asked at a prompt, or read from stdin',
   '  search <structure.json> Search the menus with a structure file [--strategy lexical|semantic|hybrid]',

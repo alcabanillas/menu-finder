@@ -23,6 +23,9 @@ const fakeSource = (menus: Record<number, FakeMenu>): DocumentSource => ({
   readRecipe: async () => {
     throw new Error('not expected');
   },
+  readShoppingList: async () => {
+    throw new Error('not expected');
+  },
 });
 
 const missingRawDirectory: DocumentSource = {
@@ -32,6 +35,9 @@ const missingRawDirectory: DocumentSource = {
   },
   listRecipeFiles: async () => [],
   readRecipe: async () => {
+    throw new Error('not expected');
+  },
+  readShoppingList: async () => {
     throw new Error('not expected');
   },
 };

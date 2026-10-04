@@ -4,6 +4,7 @@ import pg from 'pg';
 import { createAccount } from '@/application/use-cases/create-account';
 import { ingestMenus } from '@/application/use-cases/ingest-menus';
 import { ingestRecipes } from '@/application/use-cases/ingest-recipes';
+import { ingestShoppingLists } from '@/application/use-cases/ingest-shopping-lists';
 import { embedRecipes } from '@/application/use-cases/embed-recipes';
 import { evaluateSearch } from '@/application/use-cases/evaluate-search';
 import { migrate } from '@/application/use-cases/migrate';
@@ -23,6 +24,7 @@ import { MIGRATIONS_DIR, PostgresMigrationRunner } from '@/infrastructure/postgr
 import { PostgresMenuRepository } from '@/infrastructure/postgres/postgres-menu-repository';
 import { PostgresRecipeEmbeddingRepository } from '@/infrastructure/postgres/postgres-recipe-embedding-repository';
 import { PostgresRecipeRepository } from '@/infrastructure/postgres/postgres-recipe-repository';
+import { PostgresShoppingListRepository } from '@/infrastructure/postgres/postgres-shopping-list-repository';
 import { err, type Result } from '@/shared/result';
 
 /** Environment variables a command needs and that are not set. Checked before connecting to anything. */
@@ -79,6 +81,10 @@ export function createCliContainer(env: Env = {}) {
     searchReportPath: join(REPO_ROOT, 'evals', 'search', 'results.md'),
     ingestMenus: () => onDatabase((pool) => ingestMenus({ source, menus: menuRepository(pool) })),
     ingestRecipes: () => onDatabase((pool) => ingestRecipes({ source, recipes: recipeRepository(pool) })),
+    ingestShoppingLists: () =>
+      onDatabase((pool) =>
+        ingestShoppingLists({ source, shoppingLists: new PostgresShoppingListRepository(pool) }),
+      ),
     migrate: () => onDatabase((pool) => migrate({ runner: new PostgresMigrationRunner(pool, MIGRATIONS_DIR) })),
     createAccount: ({ email, name, readPassword }: AccountRequest) =>
       requiring(env, [DATABASE_URL, BETTER_AUTH_SECRET], async ([url, secret]) => {
