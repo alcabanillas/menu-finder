@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createCliContainer } from '@/composition/cli-container';
 
 // A host that does not exist: if the container tried to connect, the error would be a network error.
@@ -37,6 +37,39 @@ describe('createCliContainer', () => {
       });
     },
   );
+
+  describe('createAccount', () => {
+    const SECRET = 'x'.repeat(32);
+    const request = (readPassword: () => Promise<string>) => ({ email: 'ana@example.test', readPassword });
+
+    it('names every missing variable and does not ask for the password', async () => {
+      const readPassword = vi.fn(async () => 'a-long-enough-pass');
+
+      expect(await createCliContainer({}).createAccount(request(readPassword))).toEqual({
+        ok: false,
+        error: { kind: 'missing-variables', names: ['DATABASE_URL_UNPOOLED', 'BETTER_AUTH_SECRET'] },
+      });
+      expect(readPassword).not.toHaveBeenCalled();
+    });
+
+    it('names a missing secret', async () => {
+      const container = createCliContainer({ DATABASE_URL_UNPOOLED: UNREACHABLE });
+
+      expect(await container.createAccount(request(async () => 'a-long-enough-pass'))).toEqual({
+        ok: false,
+        error: { kind: 'missing-variables', names: ['BETTER_AUTH_SECRET'] },
+      });
+    });
+
+    it('asks for a password when it is empty, without connecting', async () => {
+      const container = createCliContainer({ DATABASE_URL_UNPOOLED: UNREACHABLE, BETTER_AUTH_SECRET: SECRET });
+
+      expect(await container.createAccount(request(async () => ''))).toEqual({
+        ok: false,
+        error: { kind: 'password-required' },
+      });
+    });
+  });
 
   it('treats an empty variable as missing', async () => {
     expect(await createCliContainer({ DATABASE_URL_UNPOOLED: '' }).migrate()).toEqual({

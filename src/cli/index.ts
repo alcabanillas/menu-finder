@@ -5,6 +5,8 @@ import { runEmbed } from '@/cli/commands/embed';
 import { runIngestMenu } from '@/cli/commands/ingest-menu';
 import { runIngestRecipes } from '@/cli/commands/ingest-recipes';
 import { runMigrate } from '@/cli/commands/migrate';
+import { runCreateAccount } from '@/cli/commands/create-account';
+import { readPassword } from '@/cli/read-password';
 import { runCli } from '@/cli/run-cli';
 
 // The only file that touches `process`. Secrets come from `.env.local` (git-ignored) or the environment.
@@ -33,6 +35,15 @@ runCli(process.argv.slice(2), {
       recipes: () => runIngestRecipes({ ...container, ...output }),
       migrate: () => runMigrate({ migrate: container.migrate, print }),
       embed: () => runEmbed({ embedRecipes: container.embedRecipes, print }),
+      account: ([email, name]) =>
+        runCreateAccount({
+          email,
+          name,
+          // The prompt goes to stderr, so that stdout carries only the result.
+          readPassword: () => readPassword({ input: process.stdin, output: process.stderr }),
+          createAccount: container.createAccount,
+          print,
+        }),
     };
   },
 })

@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import type { AccountCreator } from '@/application/ports/account-creator';
 import { createAccountCreator } from '@/infrastructure/auth/create-account';
 import {
-  type AccountCreator,
   clearTables,
   configFor,
   countRows,
@@ -25,10 +25,10 @@ const HOSTILE_VALUES = [
 
 describe.skipIf(!TEST_DATABASE_URL)('createAccountCreator (Neon test branch)', () => {
   let db: TestDatabase;
-  let createAccount: AccountCreator;
+  let accounts: AccountCreator;
   beforeAll(async () => {
     db = await createMigratedTestDatabase(TEST_DATABASE_URL!);
-    createAccount = createAccountCreator(configFor(db.pool));
+    accounts = createAccountCreator(configFor(db.pool));
   });
   afterAll(async () => {
     await db.drop();
@@ -37,7 +37,7 @@ describe.skipIf(!TEST_DATABASE_URL)('createAccountCreator (Neon test branch)', (
     await clearTables(db.pool);
   });
 
-  const create = (account: { email: string; password: string }) => createAccount({ ...account, name: 'Ana' });
+  const create = (account: { email: string; password: string }) => accounts.create({ ...account, name: 'Ana' });
 
   it('creates one user and one credential account, and stores a hash, not the password', async () => {
     const created = await create({ email: EMAIL, password: PASSWORD });
@@ -54,7 +54,7 @@ describe.skipIf(!TEST_DATABASE_URL)('createAccountCreator (Neon test branch)', (
   });
 
   it('refuses an email that already has an account and leaves the existing account unchanged', async () => {
-    await seedAccount(createAccount, EMAIL);
+    await seedAccount(accounts, EMAIL);
     const before = await passwordHashOf(EMAIL);
 
     const created = await create({ email: EMAIL, password: 'another-password-123' });
@@ -77,7 +77,7 @@ describe.skipIf(!TEST_DATABASE_URL)('createAccountCreator (Neon test branch)', (
   });
 
   it.each(HOSTILE_VALUES)('rejects the hostile email %# as invalid and touches no account', async (email) => {
-    await seedAccount(createAccount, EMAIL);
+    await seedAccount(accounts, EMAIL);
     const before = await passwordHashOf(EMAIL);
 
     const created = await create({ email, password: PASSWORD });

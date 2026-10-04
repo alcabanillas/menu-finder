@@ -1,13 +1,7 @@
 import { betterAuth } from 'better-auth';
+import type { AccountCreator, AccountError, NewAccount } from '@/application/ports/account-creator';
 import { authOptions, type AuthConfig } from '@/infrastructure/auth/auth-options';
 import { err, ok, type Result } from '@/shared/result';
-
-export type NewAccount = { email: string; password: string; name: string };
-
-export type AccountError =
-  | { kind: 'invalid-input'; field: 'email' | 'password' }
-  | { kind: 'email-taken' }
-  | { kind: 'failed'; reason: string };
 
 type OpenAuth = ReturnType<typeof openAuth>;
 
@@ -19,9 +13,9 @@ const CONTROL_CHARACTERS = /[\u0000-\u001f\u007f]/;
  * Creates accounts with trusted server code. It builds the setup whose sign-up is open (MF-20.1 design D1, option c),
  * so only the composition root of the CLI may call it, and no route may ever mount that setup.
  */
-export function createAccountCreator(config: AuthConfig) {
+export function createAccountCreator(config: AuthConfig): AccountCreator {
   const auth = openAuth(config);
-  return (account: NewAccount) => createAccount(auth, account);
+  return { create: (account) => createAccount(auth, account) };
 }
 
 function openAuth(config: AuthConfig) {

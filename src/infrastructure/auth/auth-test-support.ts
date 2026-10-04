@@ -1,5 +1,5 @@
 import type pg from 'pg';
-import type { createAccountCreator } from '@/infrastructure/auth/create-account';
+import type { AccountCreator } from '@/application/ports/account-creator';
 import type { AuthConfig } from '@/infrastructure/auth/create-auth';
 
 /** Shared by the authentication tests: the requests a browser would send, and the state they leave in the tables. */
@@ -45,11 +45,9 @@ export function setCookieOf(response: Response): string {
   return response.headers.getSetCookie()[0] ?? '';
 }
 
-export type AccountCreator = ReturnType<typeof createAccountCreator>;
-
 /** Creates an account the way the CLI will, so that tests start from a real one. Build the creator once per file. */
-export async function seedAccount(create: AccountCreator, email: string, password = PASSWORD): Promise<void> {
-  const created = await create({ email, password, name: 'Test User' });
+export async function seedAccount(accounts: AccountCreator, email: string, password = PASSWORD): Promise<void> {
+  const created = await accounts.create({ email, password, name: 'Test User' });
   if (!created.ok) throw new Error(`could not seed ${email}: ${JSON.stringify(created.error)}`);
 }
 
