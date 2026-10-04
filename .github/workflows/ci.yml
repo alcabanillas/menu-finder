@@ -33,6 +33,19 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test:coverage
+
+      # The web container needs these to start (MF-20.3). A throwaway secret per run, never a real one; the database URL
+      # points nowhere: the end-to-end tests that run here never reach the database (no cookie, or a forged one).
+      - name: Set throwaway authentication variables
+        run: |
+          secret="$(openssl rand -base64 32)"
+          echo "::add-mask::$secret"
+          {
+            echo "BETTER_AUTH_SECRET=$secret"
+            echo "BETTER_AUTH_URL=http://localhost:3000"
+            echo "DATABASE_URL=postgresql://ci:ci@unreachable.invalid:5432/none"
+          } >> "$GITHUB_ENV"
+
       - run: pnpm build
 
       - run: pnpm exec playwright install --with-deps chromium
