@@ -10,6 +10,8 @@ const PASSWORD = 'correct-horse-battery';
 const EMAIL = 'ana@example.test';
 const HOSTILE_EMAILS = ["' OR 1=1; --", 'ana😀@example.test', 'a\u0000b@example.test', `${'a'.repeat(10_000)}@example.test`];
 
+const HOSTILE_NAMES = ["' OR 1=1; --", 'Ana😀', 'a\u0000b', 'a'.repeat(10_000), '<script>alert(1)</script>'];
+
 describe.skipIf(!TEST_DATABASE_URL)('ingest account through the CLI container (Neon test branch)', () => {
   let db: TestDatabase;
   let create: (email: string, password?: string, name?: string) => ReturnType<ReturnType<typeof createCliContainer>['createAccount']>;
@@ -68,6 +70,13 @@ describe.skipIf(!TEST_DATABASE_URL)('ingest account through the CLI container (N
   it('refuses an empty password and adds no row', async () => {
     expect(await create(EMAIL, '')).toEqual({ ok: false, error: { kind: 'password-required' } });
     expect(await count('user')).toBe(0);
+  });
+
+  it.each(HOSTILE_NAMES)('answers a hostile name with a result, not an error, and keeps what it stores sane: %#', async (name) => {
+    const result = await create(EMAIL, PASSWORD, name);
+
+    expect(await count('user')).toBe(result.ok ? 1 : 0);
+    expect(JSON.stringify(result)).not.toMatch(/invalid byte|unterminated|syntax error|\bpg_|relation "/i);
   });
 
   it.each(HOSTILE_EMAILS)('answers a hostile email with a result, not an error, and changes nothing else: %#', async (email) => {
