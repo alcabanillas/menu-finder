@@ -55,4 +55,4 @@ next-env.d.ts
 .genkit/
 
 # Agent working checklist (global CLAUDE.md, Loops): local state, never committed
-TASKS.md
+/TASKS.md
