@@ -6,6 +6,11 @@ import { ingestMenus } from '@/application/use-cases/ingest-menus';
 import { ingestRecipes } from '@/application/use-cases/ingest-recipes';
 import { embedRecipes } from '@/application/use-cases/embed-recipes';
 import { migrate } from '@/application/use-cases/migrate';
+import type { SearchRequestDto } from '@/application/dto/search-request';
+import type { SearchStrategy } from '@/application/dto/search-result';
+import type { EmbeddingsPort } from '@/application/ports/embeddings-port';
+import { searchMenus } from '@/application/use-cases/search-menus';
+import { PostgresDishTextSearch } from '@/infrastructure/postgres/postgres-dish-text-search';
 import { createAccountCreator } from '@/infrastructure/auth/create-account';
 import { FanOutRepository } from '@/infrastructure/fan-out/fan-out-repository';
 import { createGenkitEmbeddings } from '@/infrastructure/genkit/genkit-embeddings';
@@ -80,8 +85,27 @@ export function createCliContainer(env: Env = {}) {
           embedRecipes({ store: new PostgresRecipeEmbeddingRepository(pool), embeddings: createGenkitEmbeddings(apiKey) }),
         ),
       ),
+    // Always the direct URL; the key only for the strategies that embed the terms (spec menu-search, R6).
+    searchMenus: (dto: SearchRequestDto, strategy: SearchStrategy) =>
+      requiring(env, strategy === 'lexical' ? [DATABASE_URL] : [DATABASE_URL, GEMINI_API_KEY], ([url, apiKey]) =>
+        withPool(url, (pool) =>
+          searchMenus(dto, strategy, {
+            menus: new PostgresMenuRepository(pool),
+            dishText: new PostgresDishTextSearch(pool),
+            recipeEmbeddings: new PostgresRecipeEmbeddingRepository(pool),
+            embeddings: apiKey === undefined ? NO_EMBEDDINGS : createGenkitEmbeddings(apiKey),
+          }),
+        ),
+      ),
   };
 }
+
+/** For the lexical strategy, which never embeds: a port that fails if it were ever called. */
+const NO_EMBEDDINGS: EmbeddingsPort = {
+  model: 'none',
+  embedDocuments: async () => err({ kind: 'embedding-failed', reason: 'no embedding service for this command' }),
+  embedQueries: async () => err({ kind: 'embedding-failed', reason: 'no embedding service for this command' }),
+};
 
 /** Runs `work` with the values of `names`, or names every unset or empty one and runs nothing. */
 async function requiring<T>(

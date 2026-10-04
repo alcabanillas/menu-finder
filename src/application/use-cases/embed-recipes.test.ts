@@ -33,6 +33,7 @@ const fakeStore = (rows: RecipeToEmbed[], saveFails = false) => {
       saved.push({ variant, embeddings });
       return ok(undefined);
     },
+    similarities: async () => ok([]),
   };
   return { store, saved };
 };
@@ -47,6 +48,7 @@ const fakeEmbeddings = (fails = false) => {
       if (fails) return err({ kind: 'embedding-failed', reason: '503 Service Unavailable' });
       return ok({ model: MODEL, dimensions: 3, vectors: documents.map((_, i) => [i, 0, 1]) });
     },
+    embedQueries: async () => ok([]),
   };
   return { embeddings, calls };
 };
@@ -126,6 +128,7 @@ describe('embedRecipes', () => {
     const short: EmbeddingsPort = {
       model: MODEL,
       embedDocuments: async () => ok({ model: MODEL, dimensions: 3, vectors: [[1, 2, 3]] }),
+      embedQueries: async () => ok([]),
     };
 
     const result = await embedRecipes({ store, embeddings: short });
@@ -138,6 +141,7 @@ describe('embedRecipes', () => {
     const store: RecipeEmbeddingRepository = {
       documents: async () => err({ kind: 'store-failed', reason: 'connection refused' }),
       saveAll: async () => ok(undefined),
+      similarities: async () => ok([]),
     };
     const { embeddings, calls } = fakeEmbeddings();
 

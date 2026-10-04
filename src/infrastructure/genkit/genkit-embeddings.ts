@@ -25,16 +25,9 @@ export class GenkitEmbeddings implements EmbeddingsPort {
   ) {}
 
   async embedDocuments(documents: EmbeddingDocument[]): Promise<Result<Embeddings, EmbeddingError>> {
-    const texts = documents.map(documentText);
-    const vectors: number[][] = [];
-    try {
-      for (let start = 0; start < texts.length; start += this.batchSize) {
-        vectors.push(...(await this.embedMany(texts.slice(start, start + this.batchSize))));
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      return err({ kind: 'embedding-failed', reason: redactSecrets(message, [this.apiKey]) });
-    }
+    const embedded = await this.embedTexts(documents.map(documentText));
+    if (!embedded.ok) return embedded;
+    const vectors = embedded.value;
 
     const dimensions = vectors[0]?.length ?? 0;
     const other = vectors.find((vector) => vector.length !== dimensions);
@@ -42,6 +35,23 @@ export class GenkitEmbeddings implements EmbeddingsPort {
       return err({ kind: 'embedding-failed', reason: `vectors of different sizes: ${dimensions} and ${other.length}` });
     }
     return ok({ model: this.model, dimensions, vectors });
+  }
+
+  async embedQueries(terms: string[]): Promise<Result<number[][], EmbeddingError>> {
+    return this.embedTexts(terms.map(queryText));
+  }
+
+  private async embedTexts(texts: string[]): Promise<Result<number[][], EmbeddingError>> {
+    const vectors: number[][] = [];
+    try {
+      for (let start = 0; start < texts.length; start += this.batchSize) {
+        vectors.push(...(await this.embedMany(texts.slice(start, start + this.batchSize))));
+      }
+      return ok(vectors);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      return err({ kind: 'embedding-failed', reason: redactSecrets(message, [this.apiKey]) });
+    }
   }
 }
 
@@ -58,4 +68,9 @@ export function createGenkitEmbeddings(apiKey: string): GenkitEmbeddings {
 // `gemini-embedding-2` has no `task_type` for text: the task goes in the text (Gemini API docs, D5).
 function documentText({ title, content }: EmbeddingDocument): string {
   return `title: ${title || 'none'} | text: ${content}`;
+}
+
+// A search term is a query: MF-41 design D5 fixes this prefix for `mf-42-menu-search`.
+function queryText(term: string): string {
+  return `task: search result | query: ${term}`;
 }

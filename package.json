@@ -19,6 +19,7 @@
     "datos:sorteo": "node scripts/datos/sorteo-ground-truth.js",
     "evals:literal-candidates": "node scripts/evaluacion/literal-candidates.js",
     "evals:golden-set": "node scripts/evaluacion/build-golden-set.js",
+    "evals:similarity-floor": "tsx scripts/evaluacion/similarity-floor.ts",
     "roadmap": "tsx scripts/roadmap/index.ts"
   },
   "dependencies": {

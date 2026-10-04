@@ -75,6 +75,29 @@ describe('GenkitEmbeddings', () => {
     expect(result).toEqual({ ok: false, error: { kind: 'embedding-failed', reason: 'vectors of different sizes: 3 and 2' } });
   });
 
+  it('embeds search terms with the query task prefix, in batches and in order', async () => {
+    const { embedMany, batches } = recording(2);
+
+    const result = await new GenkitEmbeddings(embedMany, KEY, 2).embedQueries(['pollo', 'sin gluten', 'arroz']);
+
+    expect(batches).toEqual([
+      ['task: search result | query: pollo', 'task: search result | query: sin gluten'],
+      ['task: search result | query: arroz'],
+    ]);
+    expect(result).toEqual({ ok: true, value: [[0, 0], [1, 1], [0, 0]] });
+  });
+
+  it('reports a service error on a query without the key', async () => {
+    const failing: EmbedMany = async () => {
+      throw new Error(`[400 Bad Request] API key not valid: ${KEY}`);
+    };
+
+    const result = await new GenkitEmbeddings(failing, KEY).embedQueries(['pollo']);
+
+    expect(!result.ok && result.error.reason).toContain('API key not valid');
+    expect(JSON.stringify(result)).not.toContain(KEY);
+  });
+
   it('reports a service error without the key', async () => {
     const failing: EmbedMany = async () => {
       throw new Error(`[400 Bad Request] API key not valid: ${KEY}`);

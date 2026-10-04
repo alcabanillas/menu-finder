@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { createCliContainer } from '@/composition/cli-container';
 import { runEmbed } from '@/cli/commands/embed';
@@ -7,6 +7,7 @@ import { runIngestRecipes } from '@/cli/commands/ingest-recipes';
 import { runMigrate } from '@/cli/commands/migrate';
 import { runCreateAccount } from '@/cli/commands/create-account';
 import { readPassword } from '@/cli/read-password';
+import { runSearch } from '@/cli/commands/search';
 import { runCli } from '@/cli/run-cli';
 
 // The only file that touches `process`. Secrets come from `.env.local` (git-ignored) or the environment.
@@ -42,6 +43,14 @@ runCli(process.argv.slice(2), {
           // The prompt goes to stderr, so that stdout carries only the result.
           readPassword: () => readPassword({ input: process.stdin, output: process.stderr }),
           createAccount: container.createAccount,
+          print,
+        }),
+      search: ({ file, strategy }) =>
+        runSearch({
+          file,
+          strategy,
+          readFile: (path) => readFile(path, 'utf8'),
+          searchMenus: container.searchMenus,
           print,
         }),
     };

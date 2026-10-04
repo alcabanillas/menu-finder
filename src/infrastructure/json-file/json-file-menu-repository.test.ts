@@ -56,6 +56,25 @@ describe('JsonFileMenuRepository', () => {
     expect((await readSaved()).map((menu: WeeklyMenu) => menu.number)).toEqual([3]);
   });
 
+  it('lists the menus it saved, by number', async () => {
+    const repository = new JsonFileMenuRepository(dataDir);
+    const first: WeeklyMenu = { ...MENU, number: 1 };
+    await repository.saveAll([MENU, first]);
+
+    expect(await repository.list()).toEqual(ok([first, MENU]));
+  });
+
+  it.each([
+    ['there is no file', null],
+    ['the file is not JSON', '{not json'],
+  ])('returns an error instead of throwing when %s', async (_case, content) => {
+    if (content !== null) await writeFile(join(dataDir, 'menu-platos.json'), content);
+
+    const result = await new JsonFileMenuRepository(dataDir).list();
+
+    expect(result).toMatchObject({ ok: false, error: { kind: 'read-failed' } });
+  });
+
   it('returns an error instead of throwing when the file cannot be written', async () => {
     const result = await new JsonFileMenuRepository(join(dataDir, 'missing', 'dir')).saveAll([MENU]);
 

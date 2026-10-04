@@ -110,6 +110,33 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresMenuRepository (Neon test branch)',
     expect(await menuNumbers()).toEqual([{ number: 1 }]);
   });
 
+  it('lists the menus it saved, by number, with the meals in week order and the dishes by position', async () => {
+    const second: WeeklyMenu = {
+      number: 2,
+      meals: [
+        { day: 'monday', type: 'lunch', dishes: [dish(1, 'Crema', 'Crema')] },
+        { day: 'monday', type: 'dinner', dishes: [] },
+        { day: 'sunday', type: 'lunch', dishes: [dish(1, 'Fruta', null)] },
+        { day: 'sunday', type: 'dinner', dishes: [dish(1, 'Tortilla de patata', 'Tortilla'), dish(2, 'Pan', null)] },
+      ],
+    };
+    const first = menu(1, [dish(1, 'Tortilla de patata', 'Tortilla'), dish(2, 'Fruta', null)], [dish(1, 'Crema', 'Crema')]);
+    await menus.saveAll([second, first]);
+
+    expect(await menus.list()).toEqual({ ok: true, value: [first, second] });
+  });
+
+  it('lists no menu on an empty database', async () => {
+    expect(await menus.list()).toEqual({ ok: true, value: [] });
+  });
+
+  it('returns the database error when it cannot list', async () => {
+    // Renamed, not dropped: with the table gone, the search path would find the one in `public`.
+    await db.pool.query('ALTER TABLE menu_dish RENAME COLUMN position TO place');
+
+    expect(await menus.list()).toMatchObject({ ok: false, error: { kind: 'read-failed' } });
+  });
+
   it('returns the database error and saves nothing when the save fails half-way', async () => {
     await db.pool.query('DROP TABLE menu_dish');
 

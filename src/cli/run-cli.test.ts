@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import type { CliCommands } from '@/cli/run-cli';
+import type { CliCommands, SearchOptions } from '@/cli/run-cli';
 import { runCli } from '@/cli/run-cli';
 
-const USAGE_HEADER = 'Usage: pnpm ingest <migrate|recipes|menu|embed|account>';
-const NO_RUNS = { built: 0, menuRuns: 0, recipesRuns: 0, migrateRuns: 0, embedRuns: 0, accountRuns: [] };
+const USAGE_HEADER = 'Usage: pnpm ingest <migrate|recipes|menu|embed|account|search>';
+const NO_RUNS = { built: 0, menuRuns: 0, recipesRuns: 0, migrateRuns: 0, embedRuns: 0, accountRuns: [], searches: [] };
 
 const setup = () => {
   const lines: string[] = [];
@@ -13,6 +13,7 @@ const setup = () => {
   let migrateRuns = 0;
   let embedRuns = 0;
   const accountRuns: string[][] = [];
+  const searches: SearchOptions[] = [];
   const createCommands = (): CliCommands => {
     built += 1;
     return {
@@ -36,12 +37,16 @@ const setup = () => {
         accountRuns.push(args);
         return 0;
       },
+      search: async (options) => {
+        searches.push(options);
+        return 0;
+      },
     };
   };
   return {
     lines,
     run: (args: string[]) => runCli(args, { createCommands, print: (line) => lines.push(line) }),
-    counts: () => ({ built, menuRuns, recipesRuns, migrateRuns, embedRuns, accountRuns }),
+    counts: () => ({ built, menuRuns, recipesRuns, migrateRuns, embedRuns, accountRuns, searches }),
   };
 };
 
@@ -84,6 +89,20 @@ describe('runCli', () => {
     expect(counts()).toEqual({ ...NO_RUNS, built: 1, accountRuns: [expected] });
   });
 
+  it('runs the search command with the hybrid strategy by default', async () => {
+    const { run, counts } = setup();
+
+    expect(await run(['search', 'pollo.json'])).toBe(0);
+    expect(counts()).toEqual({ ...NO_RUNS, built: 1, searches: [{ file: 'pollo.json', strategy: 'hybrid' }] });
+  });
+
+  it.each(['lexical', 'semantic', 'hybrid'])('runs the search command with --strategy %s', async (strategy) => {
+    const { run, counts } = setup();
+
+    expect(await run(['search', 'pollo.json', '--strategy', strategy])).toBe(0);
+    expect(counts()).toEqual({ ...NO_RUNS, built: 1, searches: [{ file: 'pollo.json', strategy }] });
+  });
+
   it.each([
     [[]],
     [['foo']],
@@ -93,6 +112,12 @@ describe('runCli', () => {
     [['embed', '--force']],
     [['account']],
     [['account', 'ana@example.test', 'Ana', 'a-long-enough-pass']],
+    [['search']],
+    [['search', 'a.json', 'b.json']],
+    [['search', 'a.json', '--strategy']],
+    [['search', 'a.json', '--strategy', 'fuzzy-magic']],
+    [['search', 'a.json', '--strategy', 'lexical', 'extra']],
+    [['search', '--strategy', 'lexical']],
   ])('prints the usage and exits with 2 without building the commands for %j', async (args) => {
     const { run, counts, lines } = setup();
 
@@ -106,10 +131,8 @@ describe('runCli', () => {
 
     await run(['foo']);
 
-    expect(lines.some((line) => line.trim().startsWith('menu '))).toBe(true);
-    expect(lines.some((line) => line.trim().startsWith('recipes '))).toBe(true);
-    expect(lines.some((line) => line.trim().startsWith('migrate '))).toBe(true);
-    expect(lines.some((line) => line.trim().startsWith('embed '))).toBe(true);
-    expect(lines.some((line) => line.trim().startsWith('account <email> [name]'))).toBe(true);
+    for (const usage of ['menu ', 'recipes ', 'migrate ', 'embed ', 'account <email> [name]', 'search <structure.json>']) {
+      expect(lines.some((line) => line.trim().startsWith(usage))).toBe(true);
+    }
   });
 });

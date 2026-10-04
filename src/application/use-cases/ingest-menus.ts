@@ -12,7 +12,8 @@ import type {
 import type { DocumentSource, MenuFolder } from '@/application/ports/document-source';
 import type { MenuRepository } from '@/application/ports/menu-repository';
 
-export type IngestMenusDeps = { source: DocumentSource; menus: MenuRepository };
+// Ingestion only saves: the CLI passes a fan-out to the JSON file and the database, which has no list.
+export type IngestMenusDeps = { source: DocumentSource; menus: Pick<MenuRepository, 'saveAll'> };
 
 type ReadMenus = { weeklyMenus: WeeklyMenu[]; failures: MenuFailure[]; qaRows: DishQaRow[]; totals: IngestMenusTotals };
 

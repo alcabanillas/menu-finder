@@ -1,4 +1,7 @@
 import type { Result } from '@/shared/result';
+import type { DishAddress } from '@/application/ports/dish-text-search';
+
+export type DishSimilarity = { dish: DishAddress; similarity: number };
 
 /** A recipe row to embed, with what its stored vector of the variant was computed from, if it has one. */
 export type RecipeToEmbed = {
@@ -19,4 +22,9 @@ export interface RecipeEmbeddingRepository {
   documents(variant: string): Promise<Result<RecipeToEmbed[], EmbeddingStoreError>>;
   /** Inserts or replaces the given embeddings, in one transaction. */
   saveAll(variant: string, embeddings: NewEmbedding[]): Promise<Result<void, EmbeddingStoreError>>;
+  /**
+   * The cosine similarity of the vector to the recipe row of every menu dish whose row has an embedding of the
+   * variant, addressed by dish. Empty when no embedding of the variant is stored.
+   */
+  similarities(variant: string, vector: number[]): Promise<Result<DishSimilarity[], EmbeddingStoreError>>;
 }
