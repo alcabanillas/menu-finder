@@ -117,6 +117,12 @@ describe('scoreMenu', () => {
     expect(score(request([exclude('cerdo')]), [dish('Lomo', { cerdo: 1 })]).units[0].evidence).toBeNull();
   });
 
+  it('gives no evidence for a unit whose best score is 0', () => {
+    const dishes = [dish('Lentejas', { pollo: 0 }), dish('Merluza', { pollo: 0 }, 'dinner')];
+
+    expect(score(request([include('pollo')]), dishes).units[0]).toEqual({ score: 0, evidence: null });
+  });
+
   it('scores 0 with no evidence a unit of a menu with no dish', () => {
     expect(score(request([include('pollo')]), []).units[0]).toEqual({ score: 0, evidence: null });
   });

@@ -32,12 +32,12 @@ function weekWideExclusionScore({ members: [exclusion] }: Unit, dishes: ScoredDi
   return 1 / (1 + breaking);
 }
 
-// The first dish wins a tie, so the evidence does not depend on anything but the menu order.
+// The first dish wins a tie, so the evidence depends only on the menu order. A dish that scores 0 explains nothing.
 function bestDish(unit: Unit, dishes: ScoredDish[]): UnitScore {
   let best: UnitScore = { score: 0, evidence: null };
   for (const dish of dishes) {
     const score = dishUnitScore(unit, dish);
-    if (best.evidence === null || score > best.score) best = { score, evidence: dish };
+    if (score > best.score) best = { score, evidence: dish };
   }
   return best;
 }

@@ -251,7 +251,7 @@ describe('searchMenus', () => {
     expect(calls).toEqual({ list: 0, matches: [], embedQueries: [], similarities: 0 });
   });
 
-  it('with lexical, matches each term in the database and ranks every menu with its evidence', async () => {
+  it('with lexical, matches each term in the database and ranks the menus that reach 0.6 with their evidence', async () => {
     const { result, calls } = search(request([constraint('c1', 'pollo')]), 'lexical');
 
     expect(await result).toEqual(
@@ -260,7 +260,6 @@ describe('searchMenus', () => {
         menus: [
           { menu: 1, score: 1, evidence: [{ constraints: ['c1'], dish: lunchDish('Pollo asado') }] },
           { menu: 3, score: 1, evidence: [{ constraints: ['c1'], dish: lunchDish('Arroz con pollo') }] },
-          { menu: 2, score: 0, evidence: [{ constraints: ['c1'], dish: lunchDish('Lentejas') }] },
         ],
         tiedWithFirst: 2,
         removedBy: [],
@@ -296,7 +295,6 @@ describe('searchMenus', () => {
     expect(ranking.ok && ranking.value.menus.map(({ menu, score }) => [menu, score])).toEqual([
       [1, 1],
       [3, 1],
-      [2, 0],
     ]);
     expect(calls).toMatchObject({ matches: ['pollo'], embedQueries: [['pollo']], similarities: 1 });
   });

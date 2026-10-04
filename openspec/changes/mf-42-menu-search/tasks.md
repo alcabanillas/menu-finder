@@ -34,10 +34,30 @@
 
 ## 6. Run it for real
 
-- [ ] 6.1 Run `pnpm ingest migrate`; verify: it applies `003` only
-- [ ] 6.2 Run `pnpm ingest search` with the structure of three golden requests (a literal one, a `sameDish` one and one with `hard: true` set by hand, because no golden request has a hard constraint) and `--strategy` each of the three; verify: the output is a top five, a tie count and the removed-menus counts, and a hostile term in the file does not change the database
+- [x] 6.1 Run `pnpm ingest migrate`; verify: it applies `003` only
+  - **Result (2026-10-04, branch `mf-42-menu-search`):** the output was `Applied 003-dish-text-search.sql` and nothing else.
+- [x] 6.2 Run `pnpm ingest search` with the structure of three golden requests (a literal one, a `sameDish` one and one with `hard: true` set by hand, because no golden request has a hard constraint) and `--strategy` each of the three; verify: the output is a top five, a tie count and the removed-menus counts, and a hostile term in the file does not change the database
+  - **Result (2026-10-04):** L01 (`garbanzos`), C04 (`salmón` + `verduras` in `sameDish`) and C05 (`arroz` + exclude `carne` in `sameDish`, with `c2` set to `hard: true`), each with the three strategies. All nine runs print a top five, the tie count and the removed-menus line.
+    - L01: 23 menus tie at 1 with `lexical`, 2 with `semantic` and `hybrid`.
+    - C04: menu 25 ("Pasta integral con verduras y tiras de salmón ahumado") comes first with all three strategies.
+    - C05: the hard group removes 1 menu with `lexical` and `hybrid` and 2 with `semantic`.
+  - The hostile term `x'); DROP TABLE menu_dish; -- & | !` exits 0 with `lexical` and `hybrid`. The row counts are the same before and after: 608 dishes, 504 meals, 448 recipes, 3451 ingredients and 448 embeddings.
 
 ## 7. Close
 
-- [ ] 7.1 Update `context/decisiones.md` (D4 and D6 once confirmed in 1.1; IA-criterio-agente if it changes), `context/roadmap.md` (MF-42 done, with the archive link) and `context/tareas/T0-extraccion-previa.md` (the `search` command); verify: `grep` of the task and decision codes and a read of the changed lines
-- [ ] 7.2 Go through the checklist in `context/safety-first.md` §4 before archiving and record the result; verify: the answers are written at the end of this file
+- [x] 7.1 Update `context/decisiones.md` (D4 and D6 once confirmed in 1.1; IA-criterio-agente if it changes), `context/roadmap.md` (MF-42 done, with the archive link) and `context/tareas/T0-extraccion-previa.md` (the `search` command); verify: `grep` of the task and decision codes and a read of the changed lines
+- [x] 7.2 Go through the checklist in `context/safety-first.md` §4 before archiving and record the result; verify: the answers are written at the end of this file
+- [ ] 7.3 Once everything else is done and before the archive: point `.env.local` of this worktree to the `production` branch and run `pnpm ingest migrate`; verify: it applies `003` only to `production`. Until then every run of this change goes to the `mf-42-menu-search` branch
+
+## Security checklist (`context/safety-first.md` §4), 2026-10-04
+
+- **Business and security decisions in the backend:** yes. The search runs in the use case; the only entry point is the CLI, run by the owner.
+- **New endpoints (auth, permissions, negative tests):** not applicable. There is no endpoint, only the `search` CLI command; the web arrives with MF-22.
+- **User from the session:** not applicable, for the same reason.
+- **Minimum data returned:** yes. The result has the menu number, the score and, per unit, the day, meal, position and name of the evidence dish; no recipe text or ingredients.
+- **No secrets in the diff:** yes. Checked with a `grep` for connection strings with a password and Gemini keys; the only match is the fictitious `postgres://nobody:secret@127.0.0.1:1/none` of a failure test. The CLI output passes through `redactSecrets`.
+- **New dependencies:** none. `package.json` only gains the `evals:similarity-floor` script.
+- **Parameterised queries:** yes. The three Postgres adapters pass the term and the vector as `$1` and `$2`; no SQL is built by concatenation.
+- **Tests with unexpected values:** yes. Zod limits (blank, 101 characters, unknown keys, 13 constraints), and a hostile term in `DishTextSearch` (`& | ! ' ; --`, emoji, combining accent, right-to-left mark, 90-character word), also run for real in task 6.2 with the row counts unchanged. No input reaches an LLM: the terms only go to the embedding model.
+- **Sensitive actions logged:** not applicable. A search is a read with no user.
+- **Deviations from a MUST rule:** none.

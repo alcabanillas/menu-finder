@@ -76,6 +76,7 @@ pnpm ingest migrate # → aplica las migraciones pendientes de postgres/migratio
 pnpm ingest recipes # → data/recetas.json y la BD (sale con 1 si alguna receta falla)
 pnpm ingest menu    # → data/menu-platos.json y la BD (sale con 1 si algún menú falla)
 pnpm ingest embed   # → embeddings de las recetas en la BD; solo calcula los nuevos o cambiados
+pnpm ingest search <estructura.json> [--strategy lexical|semantic|hybrid] # → top 5 de menús; lee la BD, no escribe (hybrid por defecto)
 pnpm datos:lista    # → data/qa/lista-compra-items.csv
 ```
 

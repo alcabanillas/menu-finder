@@ -76,6 +76,12 @@ describe('runSearch', () => {
     );
   });
 
+  it('says "menu" in the singular when a hard unit removes one menu', async () => {
+    const { text } = await search(JSON.stringify(STRUCTURE), ok({ ...RESULT, removedBy: [{ constraints: ['c1'], menusRemoved: 1 }] }));
+
+    expect(text).toContain('Hard constraint c1 removes 1 menu.');
+  });
+
   it('says so when no menu is left and there is no hard constraint', async () => {
     const { code, text } = await search(JSON.stringify(STRUCTURE), ok({ ...RESULT, menus: [], tiedWithFirst: 0, removedBy: [] }));
 

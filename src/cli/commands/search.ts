@@ -69,8 +69,12 @@ function resultLines({ strategy, menus, tiedWithFirst, removedBy }: SearchResult
     `Menus tied with the first: ${tiedWithFirst}`,
     ...(removedBy.length === 0
       ? ['No hard constraint.']
-      : removedBy.map(({ constraints, menusRemoved }) => `Hard constraint ${constraints.join('+')} removes ${menusRemoved} menus.`)),
+      : removedBy.map(({ constraints, menusRemoved }) => `Hard constraint ${constraints.join('+')} removes ${menuCount(menusRemoved)}.`)),
   ];
+}
+
+function menuCount(count: number): string {
+  return count === 1 ? '1 menu' : `${count} menus`;
 }
 
 function menuLines({ menu, score, evidence }: SearchResultDto['menus'][number], index: number): string[] {
