@@ -5,6 +5,7 @@ import boundaries from 'eslint-plugin-boundaries';
 import sonarjs from 'eslint-plugin-sonarjs';
 import stylistic from '@stylistic/eslint-plugin';
 import jsdoc from 'eslint-plugin-jsdoc';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
 
 // Reglas de dependencia de ADR-001 §3. Si una importación las rompe, el fallo está en el diseño.
 const layer = (type) => ({ to: { element: { type } } });
@@ -107,6 +108,12 @@ function dependencyRule(extraPolicies = []) {
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  // Accesibilidad: el set recomendado completo de jsx-a11y, como error. eslint-config-next ya registra el plugin y solo
+  // activa seis reglas como aviso; registrarlo otra vez falla («Cannot redefine plugin»), así que aquí solo van las reglas.
+  {
+    files: ['src/**/*.tsx'],
+    rules: jsxA11y.flatConfigs.recommended.rules,
+  },
   // Reglas de calidad de Sonar (bugs, code smells, complejidad) en el mismo lint (OPS-calidad).
   // Solo en src/: scripts/datos/ se sustituye por la CLI de ingesta y no se refactoriza.
   {
