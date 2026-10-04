@@ -67,20 +67,29 @@ describe('readPassword at a terminal', () => {
     expect(written()).toContain('Password');
   });
 
-  it('applies the backspace key', async () => {
+  it.each([
+    ['applies the backspace key', 's3cr\u007fet\r', 's3cet'],
+    ['reads a pasted password that arrives in one chunk with the Enter key', 'a-long-enough-pass\n', 'a-long-enough-pass'],
+    ['ignores the other control keys, such as Ctrl+D', 's3\u0004cr\u0001et\r', 's3cret'],
+  ])('%s', async (_, typed, password) => {
     const { input, result } = start();
 
-    input.write('s3cr\u007fet\r');
+    input.write(typed);
 
-    expect(await result).toBe('s3cet');
+    expect(await result).toBe(password);
   });
 
-  it('reads a pasted password that arrives in one chunk with the Enter key', async () => {
+  it('ignores the arrow, Home, End and Delete keys', async () => {
     const { input, result } = start();
 
-    input.write('a-long-enough-pass\n');
+    input.write('s3c');
+    input.write('\u001b[D');
+    input.write('\u001b[H');
+    input.write('\u001b[3~');
+    input.write('\u001bOF');
+    input.write('ret\r');
 
-    expect(await result).toBe('a-long-enough-pass');
+    expect(await result).toBe('s3cret');
   });
 
   it('turns the raw mode on while it reads and back off afterwards', async () => {

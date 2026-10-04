@@ -9,6 +9,10 @@ export type PasswordStreams = {
 const ENTER = new Set(['\r', '\n']);
 const BACKSPACE = new Set(['\u007f', '\b']);
 const CTRL_C = '\u0003';
+// Arrow, Home, End and Delete keys arrive as escape sequences (`ESC [ D`, `ESC [ 3 ~`, `ESC O F`): no part is typed.
+const ESCAPE = '\u001b';
+const ESCAPE_SEQUENCE = new RegExp(`${ESCAPE}(?:\\[[0-9;]*[~A-Za-z]|O[A-Za-z])?`, 'g');
+const CONTROL_CHARACTER = /[\u0000-\u001f\u007f]/;
 
 /**
  * Reads the password of `ingest account`: typed with no echo when stdin is a terminal, the first line of stdin
@@ -33,10 +37,11 @@ async function typeWithoutEcho(input: PasswordStreams['input'], output: Password
 async function typeUntilEnter(input: AsyncIterable<unknown>): Promise<string> {
   let typed = '';
   for await (const chunk of input) {
-    for (const key of String(chunk)) {
+    for (const key of String(chunk).replace(ESCAPE_SEQUENCE, '')) {
       if (ENTER.has(key)) return typed;
       if (key === CTRL_C) throw new Error('Cancelled');
-      typed = BACKSPACE.has(key) ? typed.slice(0, -1) : typed + key;
+      if (BACKSPACE.has(key)) typed = typed.slice(0, -1);
+      else if (!CONTROL_CHARACTER.test(key)) typed += key;
     }
   }
   return typed;

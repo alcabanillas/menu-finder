@@ -89,7 +89,7 @@ El comando que crea las cuentas (MF-20.2, SEG-sistema-cerrado) no es parte de la
 pnpm ingest account <email> [nombre]   # pide la contraseña sin eco; sin nombre, usa lo que hay antes de la @
 ```
 
-La contraseña nunca se pasa como argumento ni como variable de entorno. Sin terminal (una tubería) se lee la primera línea de stdin, por ejemplo desde un fichero o un gestor de contraseñas: `Get-Content ruta-secreta.txt | pnpm ingest account <email>`. No uses `echo`, que la deja en el historial de la shell. Si el email ya tiene cuenta, el comando falla y no cambia nada: cambiar una contraseña es otra operación (MF-45 de `context/roadmap.md`).
+La contraseña nunca se pasa como argumento ni como variable de entorno. Sin terminal (una tubería) se lee la primera línea de stdin, por ejemplo desde un fichero o un gestor de contraseñas: `Get-Content ruta-secreta.txt | pnpm ingest account <email>`. No uses `echo`, que la deja en el historial de la shell. Ejecuta el comando en PowerShell o Windows Terminal, no en Git Bash (mintty) sin `winpty`: ahí Node no ve una terminal, así que no sale el aviso `Password:` y lo que escribes se ve en pantalla. Si el email ya tiene cuenta, el comando falla y no cambia nada: cambiar una contraseña es otra operación (MF-45 de `context/roadmap.md`).
 
 ### Qué cadena de conexión usa cada cosa
 
