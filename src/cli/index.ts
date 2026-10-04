@@ -4,6 +4,7 @@ import { createCliContainer } from '@/composition/cli-container';
 import { runEmbed } from '@/cli/commands/embed';
 import { runIngestMenu } from '@/cli/commands/ingest-menu';
 import { runIngestRecipes } from '@/cli/commands/ingest-recipes';
+import { runIngestShoppingList } from '@/cli/commands/ingest-shopping-list';
 import { runMigrate } from '@/cli/commands/migrate';
 import { runCreateAccount } from '@/cli/commands/create-account';
 import { readPassword } from '@/cli/read-password';
@@ -36,6 +37,7 @@ runCli(process.argv.slice(2), {
       menu: () => runIngestMenu({ ...container, ...output }),
       recipes: () => runIngestRecipes({ ...container, ...output }),
       migrate: () => runMigrate({ migrate: container.migrate, print }),
+      'shopping-list': () => runIngestShoppingList({ ...container, ...output }),
       embed: () => runEmbed({ embedRecipes: container.embedRecipes, print }),
       account: ([email, name]) =>
         runCreateAccount({

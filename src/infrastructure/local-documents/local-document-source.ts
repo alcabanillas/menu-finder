@@ -1,21 +1,20 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { PDFParse } from 'pdf-parse';
-import type { DocumentSource, MenuFolder, SourceError, SourceRecipe } from '@/application/ports/document-source';
+import type { DocumentSource, MenuFolder, SourceError, SourceRecipe, SourceShoppingList } from '@/application/ports/document-source';
 import type { SourceMenu } from '@/domain/menu/source-menu';
 import { err, ok, type Result } from '@/shared/result';
 import { toSourceMenu } from '@/infrastructure/local-documents/pdf/menu-table';
-import { parseRecipePage, type PositionedText } from '@/infrastructure/local-documents/pdf/recipe-page';
+import { readPositionedText, type PositionedText } from '@/infrastructure/local-documents/pdf/positioned-text';
+import { parseRecipePage } from '@/infrastructure/local-documents/pdf/recipe-page';
+import { parseShoppingListPage } from '@/infrastructure/local-documents/pdf/shopping-list-page';
 
 const MENU_FOLDER = /^Menu (\d+)$/;
 const MENU_FILE = 'menu.pdf';
+const SHOPPING_LIST_FILE = 'Lista_de_la_compra.pdf';
 const RECIPE_EXTENSION = '.pdf';
 /** Documents in a menu folder that are not recipes. */
 const NON_RECIPE_FILES = /^(menu|lista_de_la_compra|valoracion.*)$/i;
-
-// PDF.js gives each text item a transform matrix [a, b, c, d, e, f]: e and f are its x and y on the page.
-const TRANSFORM_X = 4;
-const TRANSFORM_Y = 5;
 
 /** Reads the menus and recipe files from the local `data/raw/Dieta` folders. */
 export class LocalDocumentSource implements DocumentSource {
@@ -48,7 +47,7 @@ export class LocalDocumentSource implements DocumentSource {
     try {
       data = await readFile(join(this.rawDir, folder.name, MENU_FILE));
     } catch (error) {
-      if (isNotFound(error)) return err({ kind: 'missing-file', file: MENU_FILE });
+      if (isNotFound(error)) return missingFile(MENU_FILE);
       return unreadable(error);
     }
 
@@ -72,39 +71,49 @@ export class LocalDocumentSource implements DocumentSource {
     try {
       data = await readFile(join(this.rawDir, folder.name, fileName));
     } catch (error) {
-      if (isNotFound(error)) return err({ kind: 'missing-file', file: fileName });
+      if (isNotFound(error)) return missingFile(fileName);
       return unreadable(error);
     }
 
     let pages: PositionedText[][];
     try {
-      pages = await readPositionedText(data, 2);
+      pages = await readPositionedText(data, { maxPages: 2 });
     } catch (error) {
       return unreadable(error);
     }
     return parseRecipePage(pages[0] ?? [], pages[1] ?? null);
   }
+
+  async readShoppingList(folder: MenuFolder): Promise<Result<SourceShoppingList, SourceError>> {
+    let fileName = SHOPPING_LIST_FILE;
+    try {
+      const files = await readdir(join(this.rawDir, folder.name));
+      const found = files.find((f) => f.toLowerCase() === SHOPPING_LIST_FILE.toLowerCase());
+      if (found) fileName = found;
+    } catch {
+      // Missing directory or error reading folder handled by readFile below
+    }
+
+    let data: Buffer;
+    try {
+      data = await readFile(join(this.rawDir, folder.name, fileName));
+    } catch (error) {
+      if (isNotFound(error)) return missingFile(SHOPPING_LIST_FILE);
+      return unreadable(error);
+    }
+
+    let pages: PositionedText[][];
+    try {
+      pages = await readPositionedText(data);
+    } catch (error) {
+      return unreadable(error);
+    }
+    return ok(parseShoppingListPage(pages));
+  }
 }
 
-/** The text items of the first `maxPages` pages, with their position. */
-async function readPositionedText(data: Buffer, maxPages: number): Promise<PositionedText[][]> {
-  // pdfjs-dist is ESM-only and heavy: loaded only when a recipe is read.
-  const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs');
-  const document = await getDocument({ data: new Uint8Array(data), verbosity: 0 }).promise;
-  try {
-    const pages: PositionedText[][] = [];
-    for (let number = 1; number <= Math.min(document.numPages, maxPages); number += 1) {
-      const { items } = await (await document.getPage(number)).getTextContent();
-      pages.push(
-        items.flatMap((item) =>
-          'str' in item ? [{ x: item.transform[TRANSFORM_X] as number, y: item.transform[TRANSFORM_Y] as number, text: item.str }] : [],
-        ),
-      );
-    }
-    return pages;
-  } finally {
-    await document.destroy();
-  }
+function missingFile(file: string): Result<never, SourceError> {
+  return err({ kind: 'missing-file', file });
 }
 
 function isNotFound(error: unknown): boolean {

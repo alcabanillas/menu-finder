@@ -31,7 +31,7 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresMigrationRunner (Neon test branch)'
 
     expect(await runner.available()).toEqual({
       ok: true,
-      value: ['001-search-schema.sql', '002-auth-schema.sql', '003-dish-text-search.sql'],
+      value: ['001-search-schema.sql', '002-auth-schema.sql', '003-dish-text-search.sql', '004-shopping-list.sql'],
     });
     expect(await runner.applied()).toEqual({ ok: true, value: [] });
     expect(await runner.apply('001-search-schema.sql')).toEqual({ ok: true, value: undefined });
@@ -49,6 +49,49 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresMigrationRunner (Neon test branch)'
       "SELECT to_tsvector('spanish_unaccent', 'Salmón SALMON salmonete garbanzos')::text AS lexemes",
     );
     expect(rows[0].lexemes).toBe("'garbanz':4 'salmon':1,2 'salmonet':3");
+  });
+
+  it('applies 004 on top of 001: creates shopping_item with constraints and row-level security', async () => {
+    const runner = new PostgresMigrationRunner(db.pool, MIGRATIONS_DIR);
+    await runner.apply('001-search-schema.sql');
+
+    expect(await runner.apply('004-shopping-list.sql')).toEqual({ ok: true, value: undefined });
+
+    const { rows } = await db.pool.query<{ column_name: string; data_type: string; is_nullable: string }>(
+      `SELECT column_name, data_type, is_nullable
+         FROM information_schema.columns
+        WHERE table_schema = $1 AND table_name = 'shopping_item'
+        ORDER BY ordinal_position`,
+      [db.schema],
+    );
+    expect(rows.map((r) => [r.column_name, r.data_type, r.is_nullable])).toEqual([
+      ['menu_number', 'integer', 'NO'],
+      ['position', 'integer', 'NO'],
+      ['category', 'text', 'NO'],
+      ['name', 'text', 'NO'],
+      ['quantity', 'numeric', 'YES'],
+      ['unit', 'text', 'YES'],
+      ['optional', 'boolean', 'NO'],
+    ]);
+
+    const pk = await db.pool.query<{ column_name: string }>(
+      `SELECT kcu.column_name
+         FROM information_schema.table_constraints tc
+         JOIN information_schema.key_column_usage kcu
+           ON tc.constraint_name = kcu.constraint_name AND tc.table_schema = kcu.table_schema
+        WHERE tc.table_schema = $1 AND tc.table_name = 'shopping_item' AND tc.constraint_type = 'PRIMARY KEY'
+        ORDER BY kcu.ordinal_position`,
+      [db.schema],
+    );
+    expect(pk.rows.map((r) => r.column_name)).toEqual(['menu_number', 'position']);
+
+    const rls = await db.pool.query<{ rls: boolean }>(
+      `SELECT relrowsecurity AS rls
+         FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE n.nspname = $1 AND c.relname = 'shopping_item'`,
+      [db.schema],
+    );
+    expect(rls.rows[0]?.rls).toBe(true);
   });
 
   it('enables row-level security on every table it creates', async () => {

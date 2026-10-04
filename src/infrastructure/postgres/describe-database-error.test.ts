@@ -10,6 +10,15 @@ describe('describeDatabaseError', () => {
     expect(describeDatabaseError(error)).toBe('relation "menu" does not exist (run `pnpm ingest migrate` first)');
   });
 
+  it('says to run ingest menu first when a menu does not exist', () => {
+    const error = Object.assign(
+      new Error('insert or update on table "shopping_item" violates foreign key constraint'),
+      { code: '23503', detail: 'Key (menu_number)=(7) is not present in table "menu".' },
+    );
+
+    expect(describeDatabaseError(error)).toBe('Menu 7 is not in the database (run `pnpm ingest menu` first)');
+  });
+
   it('gives no migration hint for any other database error', () => {
     const error = driverError('duplicate key value violates unique constraint "menu_pkey"', '23505');
 

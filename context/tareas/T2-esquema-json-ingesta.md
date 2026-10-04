@@ -20,7 +20,7 @@ por parte del nutricionista, que hoy se ingestan con tres parsers distintos:
 | Pata | PDF origen | Parser | Estado |
 |---|---|---|---|
 | 1. Menú | `menu.pdf` | `pnpm ingest menu` (`src/`, MF-11) | ✅ Cerrado (este documento) |
-| 2. Lista de la compra | `Lista_de_la_compra.pdf` | `scripts/datos/parse-lista-compra.js` | ⏳ Pendiente de revisión/documentar |
+| 2. Lista de la compra | `Lista_de_la_compra.pdf` | `pnpm ingest shopping-list` (`src/`, MF-10) | ✅ Cerrado (§3) |
 | 3. Listado de recetas | un PDF por receta (639) | `pnpm ingest recipes` (`src/`, MF-38) | ✅ Cerrado (§4) |
 
 Las tres alimentan el mismo modelo de datos de BD (ARQ-modelo-datos), pero **cada JSON es independiente y se
@@ -154,8 +154,73 @@ plato contra un ground truth etiquetado a mano — eso sigue pendiente (EVAL-gro
 
 ## 3. Pata 2 — Lista de la compra
 
-*Pendiente. Existe `scripts/datos/parse-lista-compra.js` de la fase T1, sin
-documentar aquí todavía ni revisado contra el mismo criterio de calidad que la pata 1.*
+### 3.1 Origen
+
+`pnpm ingest shopping-list` (CLI de `src/`, MF-10) lee cada `data/raw/Dieta/Menu N/Lista_de_la_compra.pdf` directamente con `pdfjs-dist` y trabaja sobre el **texto con coordenadas**, sin paso intermedio por TXT ni Poppler. A diferencia del menú y las recetas, la lista de la compra **no genera fichero JSON**: se persiste directamente en la base de datos relacional (tabla `shopping_item`), cumpliendo ING-lista-compra como dato primario sobre el que operará la checklist (MF-24).
+
+La página del PDF tiene una disposición en dos columnas con cabecera y pie:
+
+| Zona | Posición (puntos, origen abajo-izquierda) | Tratamiento |
+|---|---|---|
+| Título `Lista de la compra` | `y > 750` | Descartado por texto |
+| Columna izquierda | `x < 280` | Categorías e ítems ordenados por `y` descendente |
+| Columna derecha | `x ≥ 280` | Categorías e ítems ordenados por `y` descendente |
+| Pie de página (eslogan, generador) | `y ≤ 40` (`FOOTER_MAX_Y`) | Descartado por posición (SEG-datos-nutricionista) |
+
+El descarte por posición por debajo de $y \le 40$ garantiza que el eslogan y la marca del nutricionista nunca se incorporen al dominio, a la base de datos ni a los reportes de calidad.
+
+### 3.2 Forma y modelo en base de datos (`shopping_item`)
+
+Cada ítem se persiste en la tabla relacional `shopping_item` con clave foránea a `menu(number) ON DELETE CASCADE`:
+
+```sql
+CREATE TABLE shopping_item (
+  menu_number integer NOT NULL REFERENCES menu (number) ON DELETE CASCADE,
+  position integer NOT NULL CHECK (position > 0),
+  category text NOT NULL,
+  name text NOT NULL,
+  quantity numeric,
+  unit text CHECK (unit IN ('g', 'ml')),
+  optional boolean NOT NULL,
+  PRIMARY KEY (menu_number, position)
+);
+```
+
+- **`menu_number`:** número del menú al que pertenece la lista.
+- **`position`:** entero correlativo ($1, 2, \dots$) que preserva estrictamente el orden de lectura original del PDF.
+- **`category`:** una de las 13 categorías reconocidas (p. ej. `Cárnicos y derivados`, `Verduras, hortalizas y derivados`).
+- **`name`:** nombre del ingrediente o ítem (si está partido en dos líneas consecutivas, se une con un espacio).
+- **`quantity`:** número decimal o entero (admite coma y punto en origen), o `null` en las categorías de texto libre (un recuento como `Huevo: 3` sí tiene cantidad).
+- **`unit`:** `'g'`, `'ml'` o `null` (para unidades por piezas/recuentos o texto libre).
+- **`optional`:** booleano `true` si incluye la marca `(opcional)` al final de la línea o en la línea inmediatamente siguiente.
+
+### 3.3 Categorías de texto libre (`Especias` y `Grasas y aceites`)
+
+En `Especias` y `Grasas y aceites`, el nutricionista no utiliza el formato `- nombre: cantidad` sino texto corrido separado por ` , ` (espacio antes de coma) que puede saltar de línea y contener ítems opcionales individuales (p. ej. `Ajo, en polvo (opcional) , Perejil`).
+
+El parser une las líneas continuas de la categoría y separa por ` , `, creando ítems individuales sin cantidad ni unidad (`quantity: null`, `unit: null`), respetando comas internas en nombres (`Laurel, hoja`).
+
+### 3.4 El caso de dos páginas
+
+De los 36 menús, exactamente 17 ocupan dos páginas (menús 4, 5, 6, 11, 15, 16, 17, 20, 22, 23, 26, 30, 31, 32, 34, 35, 36). La plantilla del PDF organiza las categorías en dos columnas fijas e independientes: la columna izquierda aloja las primeras categorías (`Bebidas`, `Cárnicos`... hasta `Pescados`) y la columna derecha aloja las restantes (`Frutas`, `Verduras`, `Especias` y `Grasas y aceites`). Cuando una columna desborda la página 1, continúa directamente en la misma columna de la página 2 sin repetir cabecera de documento (los ítems superiores de la página 2 pueden situarse en $y > 750$). El extractor procesa el flujo en orden de columna a través de las páginas (columna izquierda de todas las páginas, y después columna derecha de todas las páginas), preservando la pertenencia de cada ítem a su categoría (p. ej. en el menú 16, el `Rodaballo` que abre la columna izquierda de la página 2 se asigna correctamente a `Pescados`).
+
+### 3.5 Garantías y validación de aceptación
+
+La ejecución contra los 36 PDF reales del nutricionista produce:
+- **36 listas leídas:** 17 de dos páginas y 19 de una página.
+- **2.943 ítems** almacenados en base de datos.
+- **667 ítems opcionales** detectados, tantos como marcas `(opcional)` hay en los PDF.
+- **577 ítems sin cantidad**: todos de las categorías de texto libre (especias y aceites).
+- **0 fallos** y **0 anomalías**.
+- **Idempotencia transaccional:** reejecutar el comando realiza un `DELETE WHERE menu_number = ANY(...)` e `INSERT` en una sola transacción, manteniendo idénticos los 2.943 registros sin duplicados.
+
+### 3.6 Límites
+
+- **Dependencia de menú:** requiere que los menús correspondientes ya existan en la tabla `menu` (orden `migrate → recipes → menu → shopping-list → embed`). Si un menú no está cargado, el comando falla con código 1 y no guarda datos huérfanos.
+- **Sin normalización semántica:** los nombres se extraen literalmente del PDF sin asignar grupos de alimentos ni normalizar sinónimos (alcance de MF-16).
+- **Sin estado de checklist:** el estado marcado/comprado por usuario se gestiona en la capa de aplicación y UI de la checklist (MF-24).
+
+---
 
 ## 4. Pata 3 — Listado de recetas (`recetas.json`)
 

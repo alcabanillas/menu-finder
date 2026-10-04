@@ -10,77 +10,36 @@
 
 | Paso | Entrada | Herramienta | Salida |
 |---|---|---|---|
-| 1 | `Lista_de_la_compra.pdf` | `pdftotext -layout` (Poppler) | `Lista_de_la_compra.pdf.txt`, junto al PDF |
-| 2 | un PDF por receta | `pnpm ingest recipes` (CLI de `src/`) | `data/recetas.json` (T2 §4) y la BD |
-| 3 | `menu.pdf` | `pnpm ingest menu` (CLI de `src/`) | `data/menu-platos.json` (T2 §2) y la BD |
-| 4 | `Lista_de_la_compra.pdf.txt` | `parse-lista-compra.js` | CSV de ítems (T2 §3, pendiente de documentar) |
+| 1 | `postgres/migrations/` | `pnpm ingest migrate` (CLI de `src/`) | Esquema migrado en Neon |
+| 2 | un PDF por receta | `pnpm ingest recipes` (CLI de `src/`) | `data/recetas.json` ([T2](T2-esquema-json-ingesta.md) §4) y la BD |
+| 3 | `menu.pdf` | `pnpm ingest menu` (CLI de `src/`) | `data/menu-platos.json` ([T2](T2-esquema-json-ingesta.md) §2) y la BD |
+| 4 | `Lista_de_la_compra.pdf` | `pnpm ingest shopping-list` (CLI de `src/`) | Tabla `shopping_item` en la BD ([T2](T2-esquema-json-ingesta.md) §3) |
+| 5 | Recetas de la BD | `pnpm ingest embed` (CLI de `src/`) | Embeddings de recetas en la BD |
 
-Las recetas van **antes** que el menú, porque cada plato de la BD apunta a su receta (MF-41). Menú y recetas se leen **directamente del PDF**. Solo la lista de la compra pasa por TXT, y por eso es la única que necesita Poppler.
+El orden de ingesta (`migrate → recipes → menu → shopping-list → embed`) responde a las dependencias relacionales de la BD: las recetas van antes que el menú porque cada plato apunta a su receta (MF-41), y el menú va antes que la lista de la compra porque cada ítem referencia a su menú (MF-10).
 
-Cada paso escribe además una QA en `data/qa/`, para revisión manual. La del menú lista uno a uno, también en consola, los platos con `*` sin receta resuelta.
+Todo se lee **directamente del PDF** con `pdf-parse` (menú) y `pdfjs-dist` (recetas y lista de la compra). Ya no se requiere Poppler ni conversiones intermedias a TXT.
+
+Cada paso escribe además una QA en `data/qa/` para revisión manual.
 
 ## 2. Requisitos
 
 - Los PDF en `data/raw/Dieta/Menu 1` … `Menu 36`, cada carpeta con `menu.pdf`, `Lista_de_la_compra.pdf` y un PDF por receta. Los `valoracion-*.pdf` se ignoran.
-- Node y `pnpm install` (dependencias: `pdf-parse` para el menú y `pdfjs-dist` para las recetas; pnpm no deja usar una dependencia que no esté declarada en `package.json`).
-- Poppler (`pdftotext`), solo para el paso 1.
-- `.env.local` (gitignoreado) con `DATABASE_URL_UNPOOLED` (la conexión directa de Neon), para los pasos 2 y 3, y `GEMINI_API_KEY` (nivel de pago, IA-proveedor), para los embeddings. Para la autenticación (MF-20): `BETTER_AUTH_SECRET` (aleatorio, de 32 caracteres como mínimo, distinto en cada entorno) y `BETTER_AUTH_URL`. Opcional: `DATABASE_URL_TEST`, la conexión directa de una rama de Neon solo para pruebas (nunca `production`), con la que `pnpm test:run` ejecuta también los tests de integración de Postgres; sin ella se saltan. Vitest solo lee esa variable de `.env.local`.
-- `data/marca.json`, creado a mano y nunca versionado, con los patrones del pie de la lista de la compra (eslogan y marca). Así el parser los descarta sin que el texto del nutricionista aparezca en el código (SEG-datos-nutricionista):
+- Node y `pnpm install` (dependencias: `pdf-parse` para el menú y `pdfjs-dist` para las recetas y lista de la compra).
+- `.env.local` (gitignoreado) con `DATABASE_URL_UNPOOLED` (la conexión directa de Neon), para los comandos de ingesta, y `GEMINI_API_KEY` (nivel de pago, IA-proveedor), para los embeddings. Para la autenticación (MF-20): `BETTER_AUTH_SECRET` (aleatorio, de 32 caracteres como mínimo, distinto en cada entorno) y `BETTER_AUTH_URL`. Opcional: `DATABASE_URL_TEST`, la conexión directa de una rama de Neon solo para pruebas (nunca `production`), con la que `pnpm test:run` ejecuta también los tests de integración de Postgres; sin ella se saltan. Vitest solo lee esa variable de `.env.local`.
 
-  ```json
-  { "footerPatterns": ["^<inicio del eslogan>"] }
-  ```
-
-  Son expresiones regulares sin barras, que se aplican sin distinguir mayúsculas. Si falta el fichero, el pie no se filtra y aparece como aviso en la QA. Las recetas no lo necesitan, porque su pie se descarta por posición.
-
-### Poppler en Windows
-
-Con WSL (Ubuntu / Debian):
+## 3. Pasos de ingesta
 
 ```bash
-sudo apt update && sudo apt install -y poppler-utils
-pdftotext -v
-```
-
-O nativo en Windows: `winget install --id osdn.poppler` o `choco install poppler`.
-
-## 3. Paso 1 — Lista de la compra a TXT
-
-`-layout` es imprescindible: conserva los huecos entre columnas, que es lo que el parser usa para leer la lista (dos columnas, 13 categorías). Los scripts esperan la extensión concatenada **`.pdf.txt`**, no `.txt`.
-
-Desde la raíz del repo, en WSL o Linux:
-
-```bash
-find data/raw -name "Lista_de_la_compra.pdf" -exec pdftotext -layout {} {}.txt \;
-```
-
-Desde PowerShell con Poppler nativo:
-
-```powershell
-Get-ChildItem -Path "data/raw" -Filter "Lista_de_la_compra.pdf" -Recurse | ForEach-Object {
-    pdftotext -layout $_.FullName "$($_.FullName).txt"
-}
-```
-
-Comprobación: deben salir 36 ficheros.
-
-```bash
-find data/raw -name "Lista_de_la_compra.pdf.txt" | wc -l
-head -n 25 "data/raw/Dieta/Menu 1/Lista_de_la_compra.pdf.txt"
-```
-
-## 4. Pasos 2–4 — Parsers
-
-```bash
-pnpm ingest migrate # → aplica las migraciones pendientes de postgres/migrations a la BD
-pnpm ingest recipes # → data/recetas.json y la BD (sale con 1 si alguna receta falla)
-pnpm ingest menu    # → data/menu-platos.json y la BD (sale con 1 si algún menú falla)
-pnpm ingest embed   # → embeddings de las recetas en la BD; solo calcula los nuevos o cambiados
+pnpm ingest migrate        # → aplica las migraciones pendientes de postgres/migrations a la BD
+pnpm ingest recipes        # → data/recetas.json y la BD (sale con 1 si alguna receta falla)
+pnpm ingest menu           # → data/menu-platos.json y la BD (sale con 1 si algún menú falla)
+pnpm ingest shopping-list  # → tabla shopping_item en la BD y data/qa/qa-lista-compra.md
+pnpm ingest embed          # → embeddings de las recetas en la BD; solo calcula los nuevos o cambiados
 pnpm ingest search <estructura.json> [--strategy lexical|semantic|hybrid] # → top 5 de menús; lee la BD, no escribe (hybrid por defecto)
-pnpm datos:lista    # → data/qa/lista-compra-items.csv
 ```
 
-Todos son idempotentes: se pueden relanzar. Los JSON se sobrescriben enteros; en la BD, cada receta o menú recibido sustituye a su versión anterior y no se borra lo que no llega (ING-cli-local). Las garantías esperadas de cada uno (recuentos, anomalías) están en T2 §2.5 y §4.4.
+Todos son idempotentes: se pueden relanzar. Los JSON se sobrescriben enteros; en la BD, cada receta o menú recibido sustituye a su versión anterior y no se borra lo que no llega (ING-cli-local). Las garantías esperadas de cada uno (recuentos, anomalías) están en `context/tareas/T2-esquema-json-ingesta.md` §2.5, §3.5 y §4.4.
 
 ### Cuentas de la app
 
