@@ -6,7 +6,7 @@ import { expect, test, type Page } from '@playwright/test';
 // in CI the Neon `ci` branch. The account is created by the CLI, as every account is.
 test.skip(!!process.env.CI && !process.env.DATABASE_URL_TEST, 'needs the database of the app; CI has none without the DATABASE_URL_TEST secret');
 
-const WRONG_CREDENTIALS = 'El email o la contraseña no son correctos.';
+const WRONG_CREDENTIALS = 'El correo o la contraseña no coinciden.';
 const SESSION_COOKIE = 'better-auth.session_token';
 const HOSTILE_VALUES = ["' OR 1=1; --", '🍅@example.test', 'a'.repeat(10_000), 'ana\u0000@example.test'];
 
@@ -48,18 +48,16 @@ test.describe('sign-in', () => {
     await expect(page).toHaveURL('/planner');
   });
 
-  for (const value of HOSTILE_VALUES) {
-    test(`a hostile email (${value.slice(0, 20)}) gets the wrong-credentials message`, async ({ page }) => {
-      await page.goto('/login');
-      // The browser would block a malformed email before sending it; the server must hold on its own.
-      await page.locator('form').evaluate((form: HTMLFormElement) => {
-        form.noValidate = true;
-      });
-      await fillAndSubmit(page, value, password);
+  test('the same message twice in a row comes in a new alert, so it is announced again', async ({ page }) => {
+    await signIn(page, '/login', email, 'a-wrong-password');
+    await formAlert(page).evaluate((alert) => alert.setAttribute('data-first-answer', ''));
 
-      await expect(formAlert(page)).toHaveText(WRONG_CREDENTIALS);
-    });
-  }
+    await page.getByRole('button', { name: 'Entrar' }).click();
+    await page.waitForLoadState('networkidle');
+
+    await expect(formAlert(page)).toHaveText(WRONG_CREDENTIALS);
+    await expect(formAlert(page)).not.toHaveAttribute('data-first-answer');
+  });
 
   test('/ and /login send a signed-in user to /planner', async ({ page }) => {
     await signIn(page, '/login', email, password);
@@ -69,6 +67,20 @@ test.describe('sign-in', () => {
     await page.goto('/login');
     await expect(page).toHaveURL('/planner');
   });
+});
+
+// Without JavaScript the form's own checks do not run, so these values reach the server, which must hold on its own.
+// It also proves the form still posts without JavaScript (progressive enhancement, design D2 of MF-47.2).
+test.describe('sign-in without JavaScript', () => {
+  test.use({ javaScriptEnabled: false });
+
+  for (const value of HOSTILE_VALUES) {
+    test(`a hostile email (${value.slice(0, 20)}) gets the wrong-credentials message`, async ({ page }) => {
+      await signIn(page, '/login', value, password);
+
+      await expect(formAlert(page)).toHaveText(WRONG_CREDENTIALS);
+    });
+  }
 });
 
 test.describe('sign-out', () => {
@@ -96,7 +108,7 @@ async function signIn(page: Page, path: string, userEmail: string, userPassword:
 }
 
 async function fillAndSubmit(page: Page, userEmail: string, userPassword: string): Promise<void> {
-  await page.getByLabel('Email').fill(userEmail);
+  await page.getByLabel('Correo electrónico').fill(userEmail);
   await page.getByLabel('Contraseña').fill(userPassword);
   await page.getByRole('button', { name: 'Entrar' }).click();
   await page.waitForLoadState('networkidle');
