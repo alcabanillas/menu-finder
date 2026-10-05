@@ -1,1 +1,37 @@
 @import "tailwindcss";
+/* Colours, radii, shadows, spacing and type scale: generated from design-system/tokens.json by `pnpm ds:tokens`. */
+@import "./theme.css";
+
+/*
+ * Values the design system keeps outside tokens.json, copied by hand from its components/bundle.css
+ * (design system version 1791096508-606b). If they change there, change them here.
+ */
+@theme inline {
+  --font-sans: var(--font-archivo), "Helvetica Neue", system-ui, sans-serif;
+  --ease-out: cubic-bezier(.2, .7, .2, 1);
+  --ease-in-out: cubic-bezier(.45, 0, .25, 1);
+}
+
+:root {
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+  --press-scale: .98;
+  --tracking-ui: 0.01em;
+}
+
+@layer base {
+  html,
+  body {
+    background-color: var(--color-surface-page);
+    color: var(--color-text-body);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background-color: var(--color-aceite-100);
+    color: var(--color-ink);
+  }
+}

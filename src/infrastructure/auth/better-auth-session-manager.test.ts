@@ -85,8 +85,10 @@ describe.skipIf(!TEST_DATABASE_URL)('BetterAuthSessionManager (Neon test branch)
     it('returns null for a modified cookie', async () => {
       await sessions.signIn({ email: EMAIL, password: PASSWORD });
       const cookie = jar.cookies.get(SESSION_COOKIE)!;
-      jar.cookies.set(SESSION_COOKIE, { ...cookie, value: `x${cookie.value.slice(1)}` });
+      const forged = tamperFirstCharacter(cookie.value);
+      jar.cookies.set(SESSION_COOKIE, { ...cookie, value: forged });
 
+      expect(forged).not.toBe(cookie.value);
       await expect(sessions.current()).resolves.toBeNull();
     });
 
@@ -123,3 +125,9 @@ describe.skipIf(!TEST_DATABASE_URL)('BetterAuthSessionManager (Neon test branch)
     });
   });
 });
+
+// Always a different first character: replacing it with a fixed one did nothing when the random token already began
+// with it (about 1 run in 62), and the test then saw a valid session.
+function tamperFirstCharacter(value: string): string {
+  return `${value.startsWith('x') ? 'y' : 'x'}${value.slice(1)}`;
+}

@@ -33,7 +33,7 @@ test.describe('without a session', () => {
     test(`${path} shows the sign-in form, with no sign-up or recovery`, async ({ page }) => {
       await page.goto(path);
 
-      await expect(page.getByLabel('Email')).toBeVisible();
+      await expect(page.getByLabel('Correo electrónico')).toBeVisible();
       await expect(page.getByLabel('Contraseña')).toBeVisible();
       await expect(page.getByRole('button', { name: 'Entrar' })).toBeVisible();
       await expect(page.getByText(/registr|crear cuenta|olvid|recuperar/i)).toHaveCount(0);
