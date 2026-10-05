@@ -94,7 +94,7 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 - ⬜ **MF-22** (~8 h · A · tras MF-19, MF-40, MF-43) `/planner` como buscador con chips, top 5 y explicación, sobre el modelo de ARQ-modelo-datos (UI-planner-buscador, BUS-superficie-consulta (e)). Sustituye al `/planner` provisional de MF-43. Revisa las vulnerabilidades aceptadas de Genkit (`osv-scanner.toml`, proposal de MF-41)
 - ⬜ **MF-23** (~3,5 h · A) `/menu` con la card de receta (UI-card-receta)
 - ⬜ **MF-24** (~4,5 h · A · tras MF-10) `/shopping-list` como checklist contra la BD (ING-lista-compra, UI-flujo-semanal)
-- ⬜ **MF-25** (~2,5 h · A) `/` dashboard (UI-home-sin-login)
+- ⬜ **MF-25** (~2,5 h · A) `/` dashboard (UI-home-sin-login). Cambia dos requisitos de la spec `authentication`: `/` con sesión muestra el dashboard en vez de redirigir a `/planner`, y tras el login se va a `/` en vez de a `/planner`. El destino sigue siendo fijo: nunca se lee de la URL, del formulario ni de una cabecera (open redirect, OWASP A01), y el test que ignora `?next=…` se mantiene
 - ⬜ **MF-26** (~2,5 h · H→A) Despliegue en Vercel con CI test → build → deploy (OPS-vercel, OPS-ci-cd), revisando [safety-first §2.4](safety-first.md)
 - ⬜ **MF-27** (~5,5 h · H→A · tras MF-22, MF-23, MF-24) Tests: unit de parsers, integración, E2E del flujo semanal (OPS-calidad; qué se prueba en cada nivel, [decisiones.md §2](decisiones.md), punto 2)
 
