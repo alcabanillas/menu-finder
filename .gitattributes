@@ -4,3 +4,7 @@
 
 # Git hooks are shell scripts: CRLF breaks them and makes knip misread the binaries they call
 .husky/** text eol=lf
+
+# The coherence test compares the generated theme byte for byte with what the snapshot generates (MF-47.1)
+design-system/** text eol=lf
+src/app/theme.css text eol=lf

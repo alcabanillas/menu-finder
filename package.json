@@ -19,7 +19,8 @@
     "evals:literal-candidates": "node scripts/evaluacion/literal-candidates.js",
     "evals:golden-set": "node scripts/evaluacion/build-golden-set.js",
     "evals:similarity-floor": "tsx scripts/evaluacion/similarity-floor.ts",
-    "roadmap": "tsx scripts/roadmap/index.ts"
+    "roadmap": "tsx scripts/roadmap/index.ts",
+    "ds:tokens": "tsx scripts/design-system/index.ts"
   },
   "dependencies": {
     "@genkit-ai/google-genai": "1.42.0",
