@@ -38,4 +38,17 @@
 
 - [x] 6.1 Run the app and capture `/login` at 375 px and at 1160 px, with and without an error; compare with the mock's card and note any difference here. Done on the production build: 375 px empty, 375 px with both field messages, 1160 px with the server message. No difference from the card; the email and password stay filled after a refused sign-in, as in the mock
 - [x] 6.2 `pnpm test:run`, `pnpm lint`, `pnpm typecheck`, `pnpm build` and `pnpm test:e2e` all pass; coverage of `src/features/**` stays at 80 % or more
-- [ ] 6.3 Tick MF-47.2 and MF-47 in `context/roadmap.md` with the link to the archived change
+- [x] 6.3 Tick MF-47.2 and MF-47 in `context/roadmap.md` with the link to the archived change
+
+## Security checklist (`context/safety-first.md` §4), 2026-10-05
+
+- **Business and security decisions in the backend:** yes. The field checks of the form only help the user; `signInAction` keeps the server validation of MF-20.3 unchanged, and the hostile-values end-to-end test sends the form with JavaScript off so it reaches the server without them.
+- **New endpoints (auth, permissions, negative tests):** not applicable. No new endpoint or action; `signInAction` only adds an attempt counter to the state it returns.
+- **User from the session:** yes, unchanged. The sign-in takes nothing about the user from the client but the typed email and password.
+- **Minimum data returned:** yes. The action returns the message and the attempt number; one message for every wrong-credentials case.
+- **No secrets in the diff:** yes. Checked the branch diff: no secret, key, connection string or `.env` file.
+- **New dependencies:** none. The alert glyph is an inline SVG (Lucide, ISC) instead of an icon library.
+- **Parameterised queries:** not applicable. No new database access.
+- **Tests with unexpected values:** yes. Field checks with an email of spaces, without `@`, with a space, without a domain dot, with a leading `@`, a trailing dot and a dot right after `@`; the server with `' OR 1=1; --`, an emoji, a 10 000-character value and a null byte, sent with JavaScript off.
+- **Sensitive actions logged:** yes, unchanged. Sign-ins and sign-outs keep the logging of MF-20.3.
+- **Deviations from a MUST rule:** none.
