@@ -49,18 +49,8 @@ jobs:
           echo "::add-mask::$secret"
           {
             echo "BETTER_AUTH_SECRET=$secret"
-            echo "BETTER_AUTH_URL=http://localhost:3000"
-            echo "DATABASE_URL=${DATABASE_URL_TEST:-postgresql://ci:ci@unreachable.invalid:5432/none}"
-            echo "DATABASE_URL_UNPOOLED=${DATABASE_URL_TEST:-postgresql://ci:ci@unreachable.invalid:5432/none}"
             echo "DATABASE_URL_TEST=$DATABASE_URL_TEST"
           } >> "$GITHUB_ENV"
-
-      # The sign-in end-to-end tests use the real schema of the `ci` branch; the migrations are idempotent.
-      - name: Migrate the CI database
-        if: env.DATABASE_URL_TEST != ''
-        run: pnpm ingest migrate
-
-      - run: pnpm build
 
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e

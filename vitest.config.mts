@@ -10,6 +10,8 @@ export default defineConfig({
   resolve: { tsconfigPaths: true },
   test: {
     env: { DATABASE_URL_TEST: process.env.DATABASE_URL_TEST ?? testDatabaseUrl() ?? '' },
+    // Drops the test schemas left by runs that were cut short (MF-49).
+    globalSetup: ['./src/infrastructure/postgres/drop-stale-test-schemas.setup.ts'],
     // Umbrales por tipo de código (OPS-calidad). La infraestructura no tiene umbral.
     coverage: {
       thresholds: {
@@ -45,7 +47,8 @@ export default defineConfig({
           name: 'unit',
           environment: 'node',
           // evals/: validación de los golden sets versionados (MF-13). scripts/: tooling del proyecto (MF-39).
-          include: ['src/**/*.test.ts', 'evals/**/*.test.ts', 'scripts/**/*.test.ts'],
+          // e2e/support/: pure helpers of the Playwright run (MF-49); the .spec.ts files stay with Playwright.
+          include: ['src/**/*.test.ts', 'evals/**/*.test.ts', 'scripts/**/*.test.ts', 'e2e/**/*.test.ts'],
           // Transformed, not loaded as is, so that a test's mock of `next/headers` also reaches the import inside
           // better-auth's `nextCookies` plugin (MF-20.3).
           server: { deps: { inline: ['better-auth'] } },
