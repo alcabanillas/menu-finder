@@ -24,7 +24,8 @@ if (!TEST_DATABASE_URL) {
   process.stderr.write('DATABASE_URL_TEST is not set: the Postgres integration tests are skipped.\n');
 }
 
-export type TestDatabase = { pool: pg.Pool; schema: string; drop: () => Promise<void> };
+/** `truncate` empties every table of the schema but the record of applied migrations; `drop` removes the schema. */
+export type TestDatabase = { pool: pg.Pool; schema: string; truncate: () => Promise<void>; drop: () => Promise<void> };
 
 /** A test database with every migration of `directory` (default `postgres/migrations/`) applied; on failure it drops its schema. */
 export async function createMigratedTestDatabase(url: string, directory = MIGRATIONS_DIR): Promise<TestDatabase> {
@@ -62,6 +63,7 @@ export async function createTestDatabase(url: string): Promise<TestDatabase> {
   return {
     pool,
     schema,
+    truncate: () => truncateTables(pool, schema),
     drop: async () => {
       await pool.end();
       const cleanup = new pg.Client({ connectionString: url });
@@ -71,6 +73,17 @@ export async function createTestDatabase(url: string): Promise<TestDatabase> {
       await cleanup.end();
     },
   };
+}
+
+/** One `TRUNCATE` over the tables the catalogue lists for `schema`, which the code generated and no input chose. */
+async function truncateTables(pool: pg.Pool, schema: string): Promise<void> {
+  const { rows } = await pool.query<{ tablename: string }>(
+    "SELECT tablename FROM pg_tables WHERE schemaname = $1 AND tablename <> 'schema_migration'",
+    [schema],
+  );
+  if (rows.length === 0) return;
+  const tables = rows.map(({ tablename }) => `${schema}.${pg.escapeIdentifier(tablename)}`).join(', ');
+  await pool.query(`TRUNCATE ${tables} RESTART IDENTITY CASCADE`);
 }
 
 function newSchemaName(now: Date): string {

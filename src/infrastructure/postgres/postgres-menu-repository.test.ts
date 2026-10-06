@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { MenuDish, WeeklyMenu } from '@/domain/menu/weekly-menu';
 import type { Recipe } from '@/domain/recipe/recipe';
 import { PostgresMenuRepository } from '@/infrastructure/postgres/postgres-menu-repository';
@@ -33,15 +33,23 @@ const menu = (number: number, lunch: MenuDish[], dinner: MenuDish[] = []): Weekl
   ],
 });
 
+// Creating and migrating a database of its own is network to Neon, slower than the default 5 s on the CI runner (MF-49).
+const OWN_DATABASE_TIMEOUT_MS = 30_000;
+
 describe.skipIf(!TEST_DATABASE_URL)('PostgresMenuRepository (Neon test branch)', () => {
   let db: TestDatabase;
   let menus: PostgresMenuRepository;
-  beforeEach(async () => {
+  // One database for the file. A test that alters its schema needs a database of its own (`brokenDatabase`), or the
+  // tests after it would find a table missing.
+  beforeAll(async () => {
     db = await createMigratedTestDatabase(TEST_DATABASE_URL!);
-    await new PostgresRecipeRepository(db.pool).saveAll([recipe('Tortilla'), recipe('Crema')]);
     menus = new PostgresMenuRepository(db.pool);
   });
-  afterEach(async () => {
+  beforeEach(async () => {
+    await db.truncate();
+    await new PostgresRecipeRepository(db.pool).saveAll([recipe('Tortilla'), recipe('Crema')]);
+  });
+  afterAll(async () => {
     await db.drop();
   });
 
@@ -53,6 +61,17 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresMenuRepository (Neon test branch)',
       )
     ).rows;
   const menuNumbers = async () => (await db.pool.query('SELECT number FROM menu ORDER BY number')).rows;
+
+  async function brokenDatabase(): Promise<TestDatabase> {
+    const own = await createMigratedTestDatabase(TEST_DATABASE_URL!);
+    try {
+      await new PostgresRecipeRepository(own.pool).saveAll([recipe('Tortilla'), recipe('Crema')]);
+    } catch (error) {
+      await own.drop();
+      throw error;
+    }
+    return own;
+  }
 
   it('stores each menu with its meals and its dishes in their positions', async () => {
     const result = await menus.saveAll([
@@ -131,19 +150,34 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresMenuRepository (Neon test branch)',
   });
 
   it('returns the database error when it cannot list', async () => {
-    // Renamed, not dropped: with the table gone, the search path would find the one in `public`.
-    await db.pool.query('ALTER TABLE menu_dish RENAME COLUMN position TO place');
+    const own = await brokenDatabase();
+    try {
+      // Renamed, not dropped: with the table gone, the search path would find the one in `public`.
+      await own.pool.query('ALTER TABLE menu_dish RENAME COLUMN position TO place');
 
-    expect(await menus.list()).toMatchObject({ ok: false, error: { kind: 'read-failed' } });
-  });
+      expect(await new PostgresMenuRepository(own.pool).list()).toMatchObject({
+        ok: false,
+        error: { kind: 'read-failed' },
+      });
+    } finally {
+      await own.drop();
+    }
+  }, OWN_DATABASE_TIMEOUT_MS);
 
   it('returns the database error and saves nothing when the save fails half-way', async () => {
-    await db.pool.query('DROP TABLE menu_dish');
+    const own = await brokenDatabase();
+    try {
+      await own.pool.query('DROP TABLE menu_dish');
 
-    const result = await menus.saveAll([menu(1, [dish(1, 'Tortilla de patata', 'Tortilla')])]);
+      const result = await new PostgresMenuRepository(own.pool).saveAll([
+        menu(1, [dish(1, 'Tortilla de patata', 'Tortilla')]),
+      ]);
 
-    expect(result.ok).toBe(false);
-    expect(!result.ok && result.error.reason).toContain('menu_dish');
-    expect(await menuNumbers()).toEqual([]);
-  });
+      expect(result.ok).toBe(false);
+      expect(!result.ok && result.error.reason).toContain('menu_dish');
+      expect((await own.pool.query('SELECT number FROM menu')).rows).toEqual([]);
+    } finally {
+      await own.drop();
+    }
+  }, OWN_DATABASE_TIMEOUT_MS);
 });
