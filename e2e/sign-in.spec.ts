@@ -1,10 +1,12 @@
 import { execSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
+import pg from 'pg';
 import { expect, test, type Page } from '@playwright/test';
+import { currentE2eEnvironment, readEnvFile, testDatabaseUrl } from './support/e2e-environment';
 
-// Spec authentication, MF-20.3, against the database the app uses: locally `.env.local` (the Neon development branch),
-// in CI the Neon `ci` branch. The account is created by the CLI, as every account is.
-test.skip(!!process.env.CI && !process.env.DATABASE_URL_TEST, 'needs the database of the app; CI has none without the DATABASE_URL_TEST secret');
+// Spec authentication, MF-20.3, against the test database only (MF-49): the Neon `test` branch locally, `ci` in CI. The
+// server gets it from playwright.config.ts; the CLI that creates the account, as every account is, gets the same.
+test.skip(!testDatabaseUrl(process.env, readEnvFile()), 'needs the test database; DATABASE_URL_TEST is not set');
 
 const WRONG_CREDENTIALS = 'El correo o la contraseña no coinciden.';
 const SESSION_COOKIE = 'better-auth.session_token';
@@ -14,7 +16,25 @@ const email = `e2e-${Date.now()}@example.test`;
 const password = randomUUID();
 
 test.beforeAll(() => {
-  execSync(`pnpm ingest account ${email} E2E`, { input: `${password}\n`, stdio: ['pipe', 'ignore', 'inherit'] });
+  execSync(`pnpm ingest account ${email} E2E`, {
+    input: `${password}\n`,
+    stdio: ['pipe', 'ignore', 'inherit'],
+    env: { ...process.env, ...currentE2eEnvironment() },
+  });
+});
+
+// The account goes with its sessions (ON DELETE CASCADE). Exactly one row: the one this run created (MF-49 design D4).
+test.afterAll(async () => {
+  const client = new pg.Client({ connectionString: currentE2eEnvironment().DATABASE_URL_UNPOOLED });
+  await client.connect();
+  try {
+    const deleted = await client.query('DELETE FROM "user" WHERE email = $1', [email]);
+    expect(deleted.rowCount).toBe(1);
+    const left = await client.query('SELECT 1 FROM "user" WHERE email = $1', [email]);
+    expect(left.rowCount).toBe(0);
+  } finally {
+    await client.end();
+  }
 });
 
 test.describe('sign-in', () => {
