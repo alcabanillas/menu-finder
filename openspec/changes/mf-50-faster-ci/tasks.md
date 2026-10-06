@@ -18,7 +18,7 @@
 ## 4. Verification and cleanup
 
 - [x] 4.1 `pnpm lint` and `pnpm typecheck` clean
-- [ ] 4.2 Manual, by the author, only if branch protection requires the `ci` check: replace it with `checks` and `e2e` in the repository settings
+- [ ] 4.2 Manual, by the author, before merging: in the ruleset of `main` (Settings → Rules) replace the required check `ci` with `checks` and `e2e`, once the first run of the PR has published them; keep `scan-pr / osv-scan`
 - [x] 4.3 Go through `context/safety-first.md` §4 and record the result before archiving
 
   Result of `context/safety-first.md` §4 (2026-10-06): the change touches test tooling and the CI workflow, no product code, so the endpoint, session, response, LLM and logging items do not apply. Applicable items, all yes: no secret in the diff (the workflow only reads `secrets.DATABASE_URL_TEST`, as before; `permissions: contents: read` kept); no new dependency; the one new query takes table names from `pg_tables` for the schema the code generated, quoted with `pg.escapeIdentifier`, and the schema name never comes from input; the "Other schemas untouched" test is the negative scenario for the destructive operation. No deviation from a MUST rule.

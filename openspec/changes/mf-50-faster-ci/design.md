@@ -45,7 +45,7 @@ Both jobs use the `ci` Neon branch at once: Vitest in its own `test_…` schemas
 
 *Alternative:* an aggregate job named `ci` with `needs: [checks, e2e]`, so the required check keeps its name. Rejected by the author on 2026-10-06: a job whose dependency fails is skipped, and GitHub counts a skipped required check as passed, so it would need `if: always()` and a check of each result; changing the required checks by hand once is simpler.
 
-The required status check of the branch, if one is configured on GitHub, is named after the job: the author updates it from `ci` to `checks` and `e2e` in the repository settings (Migration Plan).
+The ruleset of `main` requires a status check named after the job, `ci`: the author updates it to `checks` and `e2e` before merging (Migration Plan).
 
 ## Risks / Trade-offs
 
@@ -56,6 +56,6 @@ The required status check of the branch, if one is configured on GitHub, is name
 
 ## Migration Plan
 
-1. Merge; the PR's own CI already runs with two jobs.
-2. Manual, by the author, only if branch protection requires the `ci` check: replace it with `checks` and `e2e` in the repository settings.
-3. Rollback: revert the commit.
+1. The PR's own CI already runs with two jobs, which publishes the `checks` and `e2e` checks.
+2. Manual, by the author, before merging: the ruleset of `main` requires the `ci` check, which this change stops producing, so the PR would wait for it forever. Replace `ci` with `checks` and `e2e` in the ruleset (Settings → Rules), choosing them from the list once the first run has published them. Keep `scan-pr / osv-scan`.
+3. Rollback: revert the commit, and put `ci` back in the ruleset.
