@@ -1,5 +1,5 @@
 import pg from 'pg';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { MenuDish } from '@/domain/menu/weekly-menu';
 import type { Recipe } from '@/domain/recipe/recipe';
 import { PostgresDishTextSearch } from '@/infrastructure/postgres/postgres-dish-text-search';
@@ -53,8 +53,12 @@ function at(meal: 'lunch' | 'dinner', position: number) {
 describe.skipIf(!TEST_DATABASE_URL)('PostgresDishTextSearch (Neon test branch)', () => {
   let db: TestDatabase;
   let search: PostgresDishTextSearch;
-  beforeEach(async () => {
+  beforeAll(async () => {
     db = await createMigratedTestDatabase(TEST_DATABASE_URL!);
+    search = new PostgresDishTextSearch(db.pool);
+  });
+  beforeEach(async () => {
+    await db.truncate();
     await new PostgresRecipeRepository(db.pool).saveAll(RECIPES);
     await new PostgresMenuRepository(db.pool).saveAll([
       {
@@ -65,9 +69,8 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresDishTextSearch (Neon test branch)',
         ],
       },
     ]);
-    search = new PostgresDishTextSearch(db.pool);
   });
-  afterEach(async () => {
+  afterAll(async () => {
     await db.drop();
   });
 

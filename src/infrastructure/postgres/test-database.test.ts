@@ -5,6 +5,7 @@ import pg from 'pg';
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
 import {
   createMigratedTestDatabase,
+  type TestDatabase,
   dropStaleTestSchemas,
   TEST_DATABASE_URL,
 } from '@/infrastructure/postgres/test-database';
@@ -87,6 +88,71 @@ describe.skipIf(!TEST_DATABASE_URL)('createMigratedTestDatabase (Neon test branc
     expect(await schemasStartingWith(`test_${FAILING_RUN_SECONDS}_`)).toEqual([]);
   });
 });
+
+describe.skipIf(!TEST_DATABASE_URL)('TestDatabase.truncate (Neon test branch)', { timeout: NETWORK_TIMEOUT_MS }, () => {
+  const databases: TestDatabase[] = [];
+
+  afterEach(async () => {
+    for (const db of databases.splice(0)) await db.drop();
+  });
+
+  it('empties every table of its schema except the record of applied migrations', async () => {
+    const db = await migratedDatabase();
+    await writeMenuAndShoppingItem(db);
+    const migrationsBefore = await rowsOf(db, 'schema_migration');
+
+    await db.truncate();
+
+    expect(await rowsOf(db, 'menu')).toEqual([]);
+    expect(await rowsOf(db, 'shopping_item')).toEqual([]);
+    expect(await rowsOf(db, 'schema_migration')).toEqual(migrationsBefore);
+  });
+
+  it('leaves the tables usable, without applying the migrations again', async () => {
+    const db = await migratedDatabase();
+    await writeMenuAndShoppingItem(db);
+
+    await db.truncate();
+    await db.pool.query('INSERT INTO menu (number) VALUES (1)');
+
+    expect(await rowsOf(db, 'menu')).toEqual([{ number: 1 }]);
+  });
+
+  it('keeps the rows of public and of another test schema', async () => {
+    const db = await migratedDatabase();
+    const other = await migratedDatabase();
+    await other.pool.query('INSERT INTO menu (number) VALUES (7)');
+    const publicMigrationsBefore = await publicMigrationCount();
+
+    await db.truncate();
+
+    expect(await rowsOf(other, 'menu')).toEqual([{ number: 7 }]);
+    expect(await publicMigrationCount()).toBe(publicMigrationsBefore);
+  });
+
+  async function migratedDatabase(): Promise<TestDatabase> {
+    const db = await createMigratedTestDatabase(TEST_DATABASE_URL!);
+    databases.push(db);
+    return db;
+  }
+});
+
+async function writeMenuAndShoppingItem(db: TestDatabase): Promise<void> {
+  await db.pool.query('INSERT INTO menu (number) VALUES (1)');
+  await db.pool.query(
+    "INSERT INTO shopping_item (menu_number, position, category, name, optional) VALUES (1, 1, 'fruit', 'apple', false)",
+  );
+}
+
+async function rowsOf(db: TestDatabase, table: string): Promise<pg.QueryResultRow[]> {
+  // The table names are literals of this file.
+  return (await db.pool.query(`SELECT * FROM ${table}`)).rows;
+}
+
+async function publicMigrationCount(): Promise<number> {
+  const { rows } = await run('SELECT count(*)::int AS count FROM public.schema_migration');
+  return rows[0].count;
+}
 
 async function schemasStartingWith(prefix: string): Promise<string[]> {
   const { rows } = await run('SELECT nspname FROM pg_namespace WHERE nspname LIKE $1', [`${prefix}%`]);

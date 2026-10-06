@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { NewEmbedding } from '@/application/ports/recipe-embedding-repository';
 import type { Recipe } from '@/domain/recipe/recipe';
 import { PostgresMenuRepository } from '@/infrastructure/postgres/postgres-menu-repository';
@@ -36,8 +36,12 @@ const embedding = (recipeKey: string, source: string, seed = 1): NewEmbedding =>
 describe.skipIf(!TEST_DATABASE_URL)('PostgresRecipeEmbeddingRepository (Neon test branch)', () => {
   let db: TestDatabase;
   let store: PostgresRecipeEmbeddingRepository;
-  beforeEach(async () => {
+  beforeAll(async () => {
     db = await createMigratedTestDatabase(TEST_DATABASE_URL!);
+    store = new PostgresRecipeEmbeddingRepository(db.pool);
+  });
+  beforeEach(async () => {
+    await db.truncate();
     await new PostgresRecipeRepository(db.pool).saveAll([tortilla]);
     await new PostgresMenuRepository(db.pool).saveAll([
       {
@@ -54,9 +58,8 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresRecipeEmbeddingRepository (Neon tes
         ],
       },
     ]);
-    store = new PostgresRecipeEmbeddingRepository(db.pool);
   });
-  afterEach(async () => {
+  afterAll(async () => {
     await db.drop();
   });
 

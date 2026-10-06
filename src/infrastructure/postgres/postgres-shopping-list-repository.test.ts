@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { ShoppingList } from '@/domain/shopping/shopping-list';
 import { PostgresShoppingListRepository } from '@/infrastructure/postgres/postgres-shopping-list-repository';
 import {
@@ -44,13 +44,17 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresShoppingListRepository (Neon test b
   let db: TestDatabase;
   let repository: PostgresShoppingListRepository;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     db = await createMigratedTestDatabase(TEST_DATABASE_URL!);
     repository = new PostgresShoppingListRepository(db.pool);
+  });
+
+  beforeEach(async () => {
+    await db.truncate();
     await db.pool.query('INSERT INTO menu (number) VALUES (4), (5)');
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await db.drop();
   });
 

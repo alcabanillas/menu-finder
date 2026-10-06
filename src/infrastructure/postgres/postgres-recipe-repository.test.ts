@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { Recipe } from '@/domain/recipe/recipe';
 import { PostgresRecipeRepository } from '@/infrastructure/postgres/postgres-recipe-repository';
 import {
@@ -20,14 +20,22 @@ const tortilla: Recipe = {
 };
 const crema: Recipe = { ...tortilla, file: 'Crema', title: 'Crema de calabaza', ingredients: [tortilla.ingredients[0]] };
 
+// Creating and migrating a database of its own is network to Neon, slower than the default 5 s on the CI runner (MF-49).
+const OWN_DATABASE_TIMEOUT_MS = 30_000;
+
 describe.skipIf(!TEST_DATABASE_URL)('PostgresRecipeRepository (Neon test branch)', () => {
   let db: TestDatabase;
   let recipes: PostgresRecipeRepository;
-  beforeEach(async () => {
+  // One database for the file. A test that alters its schema needs a database of its own (see the last test), or the
+  // tests after it would find a table missing.
+  beforeAll(async () => {
     db = await createMigratedTestDatabase(TEST_DATABASE_URL!);
     recipes = new PostgresRecipeRepository(db.pool);
   });
-  afterEach(async () => {
+  beforeEach(async () => {
+    await db.truncate();
+  });
+  afterAll(async () => {
     await db.drop();
   });
 
@@ -84,12 +92,17 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresRecipeRepository (Neon test branch)
   });
 
   it('returns the database error and leaves no recipe when the save fails half-way', async () => {
-    await db.pool.query('DROP TABLE recipe_ingredient');
+    const own = await createMigratedTestDatabase(TEST_DATABASE_URL!);
+    try {
+      await own.pool.query('DROP TABLE recipe_ingredient');
 
-    const result = await recipes.saveAll([tortilla]);
+      const result = await new PostgresRecipeRepository(own.pool).saveAll([tortilla]);
 
-    expect(result.ok).toBe(false);
-    expect(!result.ok && result.error.reason).toContain('recipe_ingredient');
-    expect((await db.pool.query('SELECT key FROM recipe')).rows).toEqual([]);
-  });
+      expect(result.ok).toBe(false);
+      expect(!result.ok && result.error.reason).toContain('recipe_ingredient');
+      expect((await own.pool.query('SELECT key FROM recipe')).rows).toEqual([]);
+    } finally {
+      await own.drop();
+    }
+  }, OWN_DATABASE_TIMEOUT_MS);
 });

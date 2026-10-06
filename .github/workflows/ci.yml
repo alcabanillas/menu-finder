@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  ci:
+  checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -37,6 +37,21 @@ jobs:
       - run: pnpm test:coverage
         env:
           DATABASE_URL_TEST: ${{ secrets.DATABASE_URL_TEST }}
+
+  # In parallel with `checks`: it does not depend on it, so the run lasts as long as the slower of the two (MF-50).
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
 
       # The web container and the CLI need these (MF-20.3). A throwaway secret per run, never a real one. The database is
       # the Neon `ci` branch; where the secret is missing (forks) the URL points nowhere and the sign-in end-to-end
