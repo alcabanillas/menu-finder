@@ -2,7 +2,7 @@ import { mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import pg from 'pg';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
 import {
   createMigratedTestDatabase,
   dropStaleTestSchemas,
@@ -22,6 +22,12 @@ const NOT_TEST_SCHEMAS = ['test_notes', `test_${BASE_SECONDS}_aaaaaaaaaaaaa`, 't
 
 // Another fixed past instant: only the failing-migration test creates schemas named after it.
 const FAILING_RUN_SECONDS = 1_100_000_000;
+
+let connection: Promise<pg.Client> | undefined;
+
+afterAll(async () => {
+  await (await connection)?.end();
+});
 
 describe.skipIf(!TEST_DATABASE_URL)('dropStaleTestSchemas (Neon test branch)', () => {
   const created: string[] = [];
@@ -88,12 +94,14 @@ async function schemaExists(schema: string): Promise<boolean> {
   return rowCount === 1;
 }
 
+// One connection for the whole file: a new TLS connection to Neon per query made a test pass 5 s on the CI runner.
 async function run(sql: string, params: string[] = []): Promise<pg.QueryResult> {
+  connection ??= connect();
+  return (await connection).query(sql, params);
+}
+
+async function connect(): Promise<pg.Client> {
   const client = new pg.Client({ connectionString: TEST_DATABASE_URL });
   await client.connect();
-  try {
-    return await client.query(sql, params);
-  } finally {
-    await client.end();
-  }
+  return client;
 }
