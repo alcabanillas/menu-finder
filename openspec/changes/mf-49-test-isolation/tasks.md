@@ -16,7 +16,7 @@
 
 - [x] 3.1 RED: unit test for the global setup's decision: with `DATABASE_URL_TEST` it runs `pnpm ingest migrate` with the 2.2 environment; without it, it runs nothing. See it fail
 - [x] 3.2 GREEN: `e2e/support/global-setup.ts`, wired as Playwright `globalSetup` (design D3); the 3.1 test passes, and a local `pnpm test:e2e` leaves the `test` branch with all four migrations in `public.schema_migration`
-- [ ] 3.3 Remove the "Migrate the CI database" and `pnpm build` steps from `.github/workflows/ci.yml` (the web server command builds, design D2); verify the PR's CI log shows the global setup applying or finding no pending migrations, and the sign-in tests running, not skipped
+- [x] 3.3 Remove the "Migrate the CI database" and `pnpm build` steps from `.github/workflows/ci.yml` (the web server command builds, design D2); verify the PR's CI log shows the global setup applying or finding no pending migrations, and the sign-in tests running, not skipped
 
 ## 4. End-to-end account (spec: The end-to-end account is deleted)
 

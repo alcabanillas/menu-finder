@@ -23,13 +23,17 @@ const NOT_TEST_SCHEMAS = ['test_notes', `test_${BASE_SECONDS}_aaaaaaaaaaaaa`, 't
 // Another fixed past instant: only the failing-migration test creates schemas named after it.
 const FAILING_RUN_SECONDS = 1_100_000_000;
 
+// Every test here is network to Neon (create schemas, connect, migrate, drop), with no slow logic of its own: on the CI
+// runner they took up to 3.7 s against the default 5 s (MF-49).
+const NETWORK_TIMEOUT_MS = 30_000;
+
 let connection: Promise<pg.Client> | undefined;
 
 afterAll(async () => {
   await (await connection)?.end();
 });
 
-describe.skipIf(!TEST_DATABASE_URL)('dropStaleTestSchemas (Neon test branch)', () => {
+describe.skipIf(!TEST_DATABASE_URL)('dropStaleTestSchemas (Neon test branch)', { timeout: NETWORK_TIMEOUT_MS }, () => {
   const created: string[] = [];
 
   afterEach(async () => {
@@ -67,7 +71,7 @@ describe.skipIf(!TEST_DATABASE_URL)('dropStaleTestSchemas (Neon test branch)', (
   }
 });
 
-describe.skipIf(!TEST_DATABASE_URL)('createMigratedTestDatabase (Neon test branch)', () => {
+describe.skipIf(!TEST_DATABASE_URL)('createMigratedTestDatabase (Neon test branch)', { timeout: NETWORK_TIMEOUT_MS }, () => {
   afterEach(() => {
     vi.useRealTimers();
   });
