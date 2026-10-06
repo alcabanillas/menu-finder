@@ -13,12 +13,14 @@
 ## 3. Two CI jobs (design D3)
 
 - [x] 3.1 Split `.github/workflows/ci.yml` into `checks` (install, lint, typecheck, `pnpm test:coverage`) and `e2e` (install, the authentication and database variables step, `playwright install`, `pnpm test:e2e`), with no `needs` between them; keep the workflow-level `permissions` and `concurrency`
-- [ ] 3.2 On the PR, both jobs pass, they run at the same time, and the e2e log shows the sign-in tests running, not skipped. Record the run's total time and the `pnpm test:coverage` step time and check the **Result** of proposal.md (less than 290 s and less than 187 s)
+- [x] 3.2 On the PR, both jobs pass, they run at the same time, and the e2e log shows the sign-in tests running, not skipped. Record the run's total time and the `pnpm test:coverage` step time and check the **Result** of proposal.md (less than 290 s and less than 187 s)
 
 ## 4. Verification and cleanup
 
 - [x] 4.1 `pnpm lint` and `pnpm typecheck` clean
-- [ ] 4.2 Manual, by the author, before merging: in the ruleset of `main` (Settings → Rules) replace the required check `ci` with `checks` and `e2e`, once the first run of the PR has published them; keep `scan-pr / osv-scan`
+- [x] 4.2 Manual, by the author, before merging: in the ruleset of `main` (Settings → Rules) replace the required check `ci` with `checks` and `e2e`, once the first run of the PR has published them; keep `scan-pr / osv-scan`
 - [x] 4.3 Go through `context/safety-first.md` §4 and record the result before archiving
 
   Result of `context/safety-first.md` §4 (2026-10-06): the change touches test tooling and the CI workflow, no product code, so the endpoint, session, response, LLM and logging items do not apply. Applicable items, all yes: no secret in the diff (the workflow only reads `secrets.DATABASE_URL_TEST`, as before; `permissions: contents: read` kept); no new dependency; the one new query takes table names from `pg_tables` for the schema the code generated, quoted with `pg.escapeIdentifier`, and the schema name never comes from input; the "Other schemas untouched" test is the negative scenario for the destructive operation. No deviation from a MUST rule.
+
+  Result of 3.2 (run 37454341831, 2026-10-06): `checks` and `e2e` started within a second of each other. The run took 163 s (was 290 s) and the `pnpm test:coverage` step 123 s (was 187 s), both under the targets. The e2e log shows 20 passed and none skipped; Vitest, 84 files and 787 tests passed. The ruleset of `main` now requires `checks`, `e2e` and `scan-pr / osv-scan` (4.2).
