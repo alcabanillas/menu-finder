@@ -41,6 +41,37 @@ describe('createWebContainer', () => {
 
     expect(poolSpy).toHaveBeenCalledTimes(1);
   });
+
+  it('refuses an invalid menu number before reaching the database', async () => {
+    const container = createWebContainer(COMPLETE_ENV, noCookies);
+
+    await expect(container.selectMenu({ userId: 'user-1', menuNumber: '12abc' })).resolves.toEqual({
+      ok: false,
+      error: { kind: 'invalid-menu' },
+    });
+  });
+
+  it('reads the selections on the same pool as the sessions, and reports an unreachable database as failed', async () => {
+    const poolSpy = vi.spyOn(pg, 'Pool');
+    const container = createWebContainer(COMPLETE_ENV, noCookies);
+
+    await container.currentUser();
+    const result = await container.currentSelections({ userId: 'user-1' });
+
+    expect(result).toEqual({ ok: false, error: { kind: 'failed' } });
+    expect(poolSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('reads the menus for a random choice on the same pool, and reports an unreachable database as failed', async () => {
+    const poolSpy = vi.spyOn(pg, 'Pool');
+    const container = createWebContainer(COMPLETE_ENV, noCookies);
+
+    await container.currentUser();
+    const result = await container.selectRandomMenu({ userId: 'user-1' });
+
+    expect(result).toEqual({ ok: false, error: { kind: 'failed' } });
+    expect(poolSpy).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('webContainer', () => {
