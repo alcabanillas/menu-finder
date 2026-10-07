@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { chooseRandomMenuAction } from '@/app/(app)/planner/actions';
+import { chooseRandomMenuAction } from '@/app/(signed-in)/planner/actions';
 
 const mocks = vi.hoisted(() => ({
   requireUser: vi.fn(),

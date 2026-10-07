@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import PlannerPage from '@/app/(app)/planner/page';
+import PlannerPage from '@/app/(signed-in)/planner/page';
 
 const mocks = vi.hoisted(() => ({ currentSelections: vi.fn() }));
 
@@ -8,7 +8,7 @@ vi.mock('@/app/_session/require-user', () => ({
   requireUser: async () => ({ userId: 'user-1', name: 'Ana', email: 'ana@example.test' }),
 }));
 vi.mock('@/composition/web-container', () => ({ webContainer: () => ({ currentSelections: mocks.currentSelections }) }));
-vi.mock('@/app/(app)/planner/actions', () => ({ chooseRandomMenuAction: vi.fn() }));
+vi.mock('@/app/(signed-in)/planner/actions', () => ({ chooseRandomMenuAction: vi.fn() }));
 
 const NOTHING_CHOSEN = { ok: true, value: { activeMenu: null, shoppingList: null } };
 

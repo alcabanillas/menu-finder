@@ -1,13 +1,13 @@
 import { render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import ShoppingListPage from '@/app/(app)/shopping-list/page';
+import ShoppingListPage from '@/app/(signed-in)/shopping-list/page';
 import type { ShoppingChecklistDto } from '@/application/dto/shopping-checklist';
 
 const mocks = vi.hoisted(() => ({ requireUser: vi.fn(), shoppingChecklist: vi.fn() }));
 
 vi.mock('@/app/_session/require-user', () => ({ requireUser: mocks.requireUser }));
 vi.mock('@/composition/web-container', () => ({ webContainer: () => ({ shoppingChecklist: mocks.shoppingChecklist }) }));
-vi.mock('@/app/(app)/shopping-list/actions', () => ({ checkItemsAction: vi.fn() }));
+vi.mock('@/app/(signed-in)/shopping-list/actions', () => ({ checkItemsAction: vi.fn() }));
 
 const CHECKLIST: ShoppingChecklistDto = {
   menuNumber: 9101,

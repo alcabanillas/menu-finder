@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { WeeklyMenuDto } from '@/application/dto/weekly-menu';
-import MenuPage from '@/app/(app)/menu/page';
+import MenuPage from '@/app/(signed-in)/menu/page';
 
 const mocks = vi.hoisted(() => ({ requireUser: vi.fn(), activeMenu: vi.fn() }));
 

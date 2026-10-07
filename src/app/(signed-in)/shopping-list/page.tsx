@@ -1,4 +1,4 @@
-import { checkItemsAction } from '@/app/(app)/shopping-list/actions';
+import { checkItemsAction } from '@/app/(signed-in)/shopping-list/actions';
 import { requireUser } from '@/app/_session/require-user';
 import { webContainer } from '@/composition/web-container';
 import { ChecklistMessage } from '@/features/shopping-list/components/checklist-message';

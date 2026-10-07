@@ -31,7 +31,7 @@ function protectedPages(): string[] {
 }
 
 function protectedActions(): string[] {
-  return filesUnder(APP_DIR, 'actions.ts').filter((path) => path.startsWith(`(app)${sep}`));
+  return filesUnder(APP_DIR, 'actions.ts').filter((path) => path.startsWith(`(signed-in)${sep}`));
 }
 
 function filesUnder(dir: string, name: string): string[] {

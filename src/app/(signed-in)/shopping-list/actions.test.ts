@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { checkItemsAction } from '@/app/(app)/shopping-list/actions';
+import { checkItemsAction } from '@/app/(signed-in)/shopping-list/actions';
 
 const mocks = vi.hoisted(() => ({
   requireUser: vi.fn(),

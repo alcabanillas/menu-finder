@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SignedInUser } from '@/application/dto/signed-in-user';
-import AppLayout from '@/app/(app)/layout';
+import AppLayout from '@/app/(signed-in)/layout';
 
 const session = vi.hoisted(() => ({ sessionUser: vi.fn<() => Promise<SignedInUser | null>>() }));
 vi.mock('@/app/_session/session-user', () => session);
