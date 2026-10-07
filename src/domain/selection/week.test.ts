@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Selection } from '@/domain/selection/selection';
-import { currentOf, startsOnFor } from '@/domain/selection/week';
+import { currentOf, startsOnFor, weekDates } from '@/domain/selection/week';
 
 const MENU_3: Selection = { id: 'sel-3', menuNumber: 3, startsOn: '2026-10-05' };
 const MENU_12: Selection = { id: 'sel-12', menuNumber: 12, startsOn: '2026-10-12' };
@@ -46,5 +46,36 @@ describe('currentOf', () => {
 
   it('gives nothing to a user who never chose', () => {
     expect(currentOf([], '2026-10-07')).toEqual({ activeMenu: null, shoppingList: null });
+  });
+});
+
+describe('weekDates', () => {
+  it('gives the seven dates of the week, from its Monday', () => {
+    expect(weekDates('2026-10-05')).toEqual([
+      '2026-10-05',
+      '2026-10-06',
+      '2026-10-07',
+      '2026-10-08',
+      '2026-10-09',
+      '2026-10-10',
+      '2026-10-11',
+    ]);
+  });
+
+  it('keeps the dates consecutive across the daylight-saving change at the end of October', () => {
+    expect(weekDates('2026-10-19').slice(5)).toEqual(['2026-10-24', '2026-10-25']);
+    expect(weekDates('2026-10-26')).toEqual([
+      '2026-10-26',
+      '2026-10-27',
+      '2026-10-28',
+      '2026-10-29',
+      '2026-10-30',
+      '2026-10-31',
+      '2026-11-01',
+    ]);
+  });
+
+  it('crosses the end of the year', () => {
+    expect(weekDates('2026-12-28').slice(3)).toEqual(['2026-12-31', '2027-01-01', '2027-01-02', '2027-01-03']);
   });
 });

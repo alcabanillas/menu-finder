@@ -196,7 +196,6 @@ function fakePorts({ fail, noEmbeddings = false, shortVectors = false }: FakeOpt
   const failure = { reason: 'connection lost' };
   const deps: SearchMenusDeps = {
     menus: {
-      saveAll: async () => ok(undefined),
       list: async () => {
         calls.list += 1;
         return fail === 'list' ? err({ kind: 'read-failed', ...failure }) : ok(CATALOG);

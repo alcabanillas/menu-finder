@@ -12,7 +12,7 @@ export type SelectRandomMenuInput = { userId: string };
 export type SelectRandomMenuFailure = { kind: 'no-menus' } | { kind: 'failed' };
 
 /** `random` returns a number in [0, 1), like `Math.random`; tests fix it. */
-type Deps = { menus: MenuRepository; selections: SelectionRepository; clock: Clock; random: () => number };
+type Deps = { menus: Pick<MenuRepository, 'list'>; selections: SelectionRepository; clock: Clock; random: () => number };
 
 /** Picks one of the stored menus at random on the server and chooses it for the user with `selectMenu`'s rules. */
 export async function selectRandomMenu(

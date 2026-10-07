@@ -21,7 +21,7 @@ import { hybridScore, rescaleSimilarities } from '@/domain/search/term-score';
 import { err, ok, type Result } from '@/shared/result';
 
 export type SearchMenusDeps = {
-  menus: MenuRepository;
+  menus: Pick<MenuRepository, 'list'>;
   dishText: DishTextSearch;
   recipeEmbeddings: RecipeEmbeddingRepository;
   embeddings: EmbeddingsPort;

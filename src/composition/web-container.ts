@@ -1,9 +1,11 @@
 import { headers } from 'next/headers';
 import pg from 'pg';
+import type { ActiveMenuInput } from '@/application/use-cases/active-menu';
 import type { CurrentSelectionsInput } from '@/application/use-cases/current-selections';
 import type { SelectMenuInput } from '@/application/use-cases/select-menu';
 import type { SelectRandomMenuInput } from '@/application/use-cases/select-random-menu';
 import type { SignInInput } from '@/application/use-cases/sign-in';
+import { activeMenu } from '@/application/use-cases/active-menu';
 import { currentSelections } from '@/application/use-cases/current-selections';
 import { currentUser } from '@/application/use-cases/current-user';
 import { selectMenu } from '@/application/use-cases/select-menu';
@@ -15,6 +17,7 @@ import { createAuth } from '@/infrastructure/auth/create-auth';
 import { SystemClock } from '@/infrastructure/clock/system-clock';
 import { StdoutAuditLog } from '@/infrastructure/logging/stdout-audit-log';
 import { PostgresMenuRepository } from '@/infrastructure/postgres/postgres-menu-repository';
+import { PostgresRecipeRepository } from '@/infrastructure/postgres/postgres-recipe-repository';
 import { PostgresSelectionRepository } from '@/infrastructure/postgres/postgres-selection-repository';
 
 type Env = Record<string, string | undefined>;
@@ -53,6 +56,7 @@ export function createWebContainer(env: Env, requestHeaders: RequestHeaders) {
     selectMenu: async (input: SelectMenuInput) => selectMenu(lazyDeps(), input),
     currentSelections: async (input: CurrentSelectionsInput) => currentSelections(lazyDeps(), input),
     selectRandomMenu: async (input: SelectRandomMenuInput) => selectRandomMenu(lazyDeps(), input),
+    activeMenu: async (input: ActiveMenuInput) => activeMenu(lazyDeps(), input),
   };
 }
 
@@ -65,6 +69,7 @@ function buildDeps(env: Env, requestHeaders: RequestHeaders) {
     selections: new PostgresSelectionRepository(pool),
     clock: new SystemClock(),
     menus: new PostgresMenuRepository(pool),
+    recipes: new PostgresRecipeRepository(pool),
     random: Math.random,
   };
 }

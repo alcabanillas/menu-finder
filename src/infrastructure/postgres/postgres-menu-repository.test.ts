@@ -145,6 +145,20 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresMenuRepository (Neon test branch)',
     expect(await menus.list()).toEqual({ ok: true, value: [first, second] });
   });
 
+  it('finds one menu by number, with its meals in week order and its dishes by position', async () => {
+    const first = menu(1, [dish(1, 'Tortilla de patata', 'Tortilla'), dish(2, 'Fruta', null)], [dish(1, 'Crema', 'Crema')]);
+    const second = menu(2, [dish(1, 'Crema', 'Crema')]);
+    await menus.saveAll([first, second]);
+
+    expect(await menus.find(1)).toEqual({ ok: true, value: first });
+  });
+
+  it('finds no menu for a number not stored', async () => {
+    await menus.saveAll([menu(1, [dish(1, 'Crema', 'Crema')])]);
+
+    expect(await menus.find(7)).toEqual({ ok: true, value: null });
+  });
+
   it('lists no menu on an empty database', async () => {
     expect(await menus.list()).toEqual({ ok: true, value: [] });
   });

@@ -64,6 +64,14 @@ describe('JsonFileMenuRepository', () => {
     expect(await repository.list()).toEqual(ok([first, MENU]));
   });
 
+  it('finds one menu by number, and none for a number not stored', async () => {
+    const repository = new JsonFileMenuRepository(dataDir);
+    await repository.saveAll([MENU, { ...MENU, number: 1 }]);
+
+    expect(await repository.find(3)).toEqual(ok(MENU));
+    expect(await repository.find(7)).toEqual(ok(null));
+  });
+
   it.each([
     ['there is no file', null],
     ['the file is not JSON', '{not json'],

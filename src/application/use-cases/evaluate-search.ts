@@ -49,7 +49,7 @@ export async function evaluateSearch(deps: EvaluateSearchDeps): Promise<Result<E
   const graded = checkGrades(inputs.value, catalog.value);
   if (!graded.ok) return graded;
   const embeddings = memoizeQueries(deps.embeddings);
-  const runs = await runSearches(inputs.value, { ...deps, menus: fixedCatalog(deps, catalog.value), embeddings });
+  const runs = await runSearches(inputs.value, { ...deps, menus: fixedCatalog(catalog.value), embeddings });
   if (!runs.ok) return runs;
   return ok({ report: buildReport(runs.value, embeddings), details: runs.value.map(toDetail) });
 }
@@ -112,8 +112,8 @@ function memoizeQueries(inner: EmbeddingsPort): MemoizedEmbeddings {
 }
 
 // The catalog is read once for the whole run, not once per search.
-function fixedCatalog({ menus }: EvaluateSearchDeps, catalog: WeeklyMenu[]): SearchMenusDeps['menus'] {
-  return { saveAll: menus.saveAll.bind(menus), list: async () => ok(catalog) };
+function fixedCatalog(catalog: WeeklyMenu[]): SearchMenusDeps['menus'] {
+  return { list: async () => ok(catalog) };
 }
 
 async function runSearches(inputs: Input[], deps: SearchMenusDeps): Promise<Result<Run[], EvaluateSearchError>> {

@@ -64,7 +64,8 @@ test.describe('with a session', () => {
       await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: tab }).click();
 
       await expect(page).toHaveURL(path);
-      await expect(page.getByRole('main').getByRole('heading', { name: tab })).toBeVisible();
+      // `/menu` heads with its menu number when there is one ("Menú 3"), so the heading starts with the tab's name.
+      await expect(page.getByRole('main').getByRole('heading', { level: 1, name: new RegExp(`^${tab}`) })).toBeVisible();
       await expect(page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: tab })).toHaveAttribute(
         'aria-current',
         'page',

@@ -72,6 +72,17 @@ describe('createWebContainer', () => {
     expect(result).toEqual({ ok: false, error: { kind: 'failed' } });
     expect(poolSpy).toHaveBeenCalledTimes(1);
   });
+
+  it('reads the active menu on the same pool, and reports an unreachable database as failed', async () => {
+    const poolSpy = vi.spyOn(pg, 'Pool');
+    const container = createWebContainer(COMPLETE_ENV, noCookies);
+
+    await container.currentUser();
+    const result = await container.activeMenu({ userId: 'user-1' });
+
+    expect(result).toEqual({ ok: false, error: { kind: 'failed' } });
+    expect(poolSpy).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('webContainer', () => {

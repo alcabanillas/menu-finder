@@ -91,6 +91,33 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresRecipeRepository (Neon test branch)
     expect(recipeRows.map((row) => row.key)).toEqual(['Crema', 'Tortilla']);
   });
 
+  it('finds only the recipes of the files asked for, whole, and leaves out a file not stored', async () => {
+    await recipes.saveAll([tortilla, crema]);
+
+    expect(await recipes.findByFiles(['Tortilla', 'Missing'])).toEqual({ ok: true, value: [tortilla] });
+  });
+
+  it('finds no recipe for an empty list of files', async () => {
+    await recipes.saveAll([tortilla]);
+
+    expect(await recipes.findByFiles([])).toEqual({ ok: true, value: [] });
+  });
+
+  it('returns the database error when it cannot find', async () => {
+    const own = await createMigratedTestDatabase(TEST_DATABASE_URL!);
+    try {
+      // Renamed, not dropped: with the table gone, the search path would find the one in `public`.
+      await own.pool.query('ALTER TABLE recipe_ingredient RENAME COLUMN position TO place');
+
+      expect(await new PostgresRecipeRepository(own.pool).findByFiles(['Tortilla'])).toMatchObject({
+        ok: false,
+        error: { kind: 'read-failed' },
+      });
+    } finally {
+      await own.drop();
+    }
+  }, OWN_DATABASE_TIMEOUT_MS);
+
   it('returns the database error and leaves no recipe when the save fails half-way', async () => {
     const own = await createMigratedTestDatabase(TEST_DATABASE_URL!);
     try {

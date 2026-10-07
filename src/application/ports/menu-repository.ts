@@ -7,4 +7,6 @@ export interface MenuRepository {
   saveAll(menus: WeeklyMenu[]): Promise<Result<void, RepositoryError>>;
   /** Every stored menu, ordered by number. */
   list(): Promise<Result<WeeklyMenu[], RepositoryReadError>>;
+  /** The stored menu with that number, or `null` when there is none. */
+  find(number: number): Promise<Result<WeeklyMenu | null, RepositoryReadError>>;
 }

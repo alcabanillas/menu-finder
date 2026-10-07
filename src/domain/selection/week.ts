@@ -16,6 +16,11 @@ export function currentOf(selectionsFromThisMonday: Selection[], today: LocalDat
   return { activeMenu, shoppingList };
 }
 
+/** The seven dates of the week that starts on `monday`, Monday to Sunday. */
+export function weekDates(monday: LocalDate): LocalDate[] {
+  return Array.from({ length: DAYS_PER_WEEK }, (_, offset) => addDays(monday, offset));
+}
+
 function startingOn(selections: Selection[], monday: LocalDate): Selection | null {
   return selections.find((selection) => selection.startsOn === monday) ?? null;
 }
