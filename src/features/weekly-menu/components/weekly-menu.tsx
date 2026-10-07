@@ -4,17 +4,20 @@ import { useCallback, useId, useRef, useState } from 'react';
 import type { WeekDayDto, WeekDishDto, WeeklyMenuDto } from '@/application/dto/weekly-menu';
 import { DayTabs, tabIdOf } from '@/features/weekly-menu/components/day-tabs';
 import { RecipeCard } from '@/features/weekly-menu/components/recipe-card';
-import { RecipePanel } from '@/features/weekly-menu/components/recipe-panel';
-import { WeekTable, type DishRef } from '@/features/weekly-menu/components/week-table';
-import { columnsOf } from '@/features/weekly-menu/columns';
+import { RecipePanel, type PanelSide } from '@/features/weekly-menu/components/recipe-panel';
+import { WeekCards, type DishRef } from '@/features/weekly-menu/components/week-cards';
 import { formatDayDate, formatShortDate, formatWeekday } from '@/features/weekly-menu/format-date';
 
 type WeeklyMenuProps = { menu: WeeklyMenuDto };
 
+/** The open dish and the side of the page its panel lies on. */
+type OpenDish = DishRef & { side: PanelSide };
+
 // After the design system's `ui_kits/app/MenuScreen.jsx`, mobile view (version 1791384225-1eab). Its `TopBar` and
 // `SectionHeader` are a few lines of markup each, written here rather than ported (design D5). From an 800 px
-// container, the week table and the recipe panel of version 1791390572-4ab7 instead (design D1 of MF-23.2).
-const PAGE = 'mx-auto w-full max-w-[var(--spacing-content-max)] @min-[800px]:max-w-[1200px]';
+// container, the day cards and the recipe panel of version 1791414282-6467 instead (design D1 of MF-56), in the
+// mock's 1440 px `.mf-page--wide` box (design D3 of MF-56).
+const PAGE = 'mx-auto w-full max-w-[var(--spacing-content-max)] @min-[800px]:max-w-[1440px]';
 const EYEBROW = 'text-eyebrow font-semibold uppercase tracking-[var(--text-eyebrow--letter-spacing)]';
 const MEALS = [
   ['lunch', 'Comida'],
@@ -29,14 +32,14 @@ const MEAL_LABELS = Object.fromEntries(MEALS);
 export function WeeklyMenu({ menu }: WeeklyMenuProps) {
   const todays = menu.days.find(({ date }) => date === menu.today) ?? menu.days[0];
   const [selected, setSelected] = useState(todays.day);
-  const [open, setOpen] = useState<DishRef | null>(null);
+  const [open, setOpen] = useState<OpenDish | null>(null);
   const trigger = useRef<HTMLButtonElement | null>(null);
   const panelId = useId();
   const day = menu.days.find((candidate) => candidate.day === selected) ?? todays;
 
   const openDish = (ref: DishRef, button: HTMLButtonElement) => {
     trigger.current = button;
-    setOpen(ref);
+    setOpen({ ...ref, side: sideAwayFrom(button) });
   };
   const close = useCallback(() => {
     setOpen(null);
@@ -56,7 +59,7 @@ export function WeeklyMenu({ menu }: WeeklyMenuProps) {
         <DayPanel id={panelId} labelledBy={tabIdOf(panelId, selected)} day={day} />
       </div>
       <div className="hidden px-8 pb-14 pt-2 @min-[800px]:block">
-        <WeekTable days={menu.days} today={menu.today} open={open} onOpen={openDish} />
+        <WeekCards days={menu.days} today={menu.today} open={open} onOpen={openDish} />
       </div>
       {open && <OpenRecipe menu={menu} open={open} onClose={close} />}
     </div>
@@ -99,20 +102,24 @@ function Meal({ label, dishes }: { label: string; dishes: WeekDishDto[] }) {
   );
 }
 
-// The panel lies over the half of the table away from the dish's column.
-function OpenRecipe({ menu, open, onClose }: { menu: WeeklyMenuDto; open: DishRef; onClose: () => void }) {
-  const columns = columnsOf(menu.days);
-  const column = columns.findIndex(({ day }) => day === open.day);
-  const { date, meals } = columns[column];
-  const dish = meals[open.meal][open.index];
-  if (!dish?.recipe) return null;
+function OpenRecipe({ menu, open, onClose }: { menu: WeeklyMenuDto; open: OpenDish; onClose: () => void }) {
+  const day = menu.days.find(({ day: candidate }) => candidate === open.day);
+  const dish = day?.meals[open.meal][open.index];
+  if (!day || !dish?.recipe) return null;
   return (
     <RecipePanel
       name={dish.name}
-      eyebrow={`${formatWeekday(date)} · ${MEAL_LABELS[open.meal]}`}
+      eyebrow={`${formatWeekday(day.date)} · ${MEAL_LABELS[open.meal]}`}
       recipe={dish.recipe}
-      side={column < columns.length / 2 ? 'right' : 'left'}
+      side={open.side}
       onClose={onClose}
     />
   );
+}
+
+// With two or three cards a row, a day has no fixed column: the dish's place on the screen decides (design D2 of
+// MF-56). The page box is centred, so the viewport's centre is the page's.
+function sideAwayFrom(button: HTMLButtonElement): PanelSide {
+  const { left, width } = button.getBoundingClientRect();
+  return left + width / 2 > document.documentElement.clientWidth / 2 ? 'left' : 'right';
 }

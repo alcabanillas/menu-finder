@@ -130,7 +130,7 @@ test.describe('without JavaScript', () => {
   });
 });
 
-// From an 800 px container, the week table and the recipe panel (MF-23.2).
+// From an 800 px container, the day cards and the recipe panel (MF-23.2, MF-56).
 test.describe('on a desktop screen', () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
@@ -139,16 +139,18 @@ test.describe('on a desktop screen', () => {
     await page.goto('/menu');
   });
 
-  test('shows the whole week as a table, with today marked, and no day tabs', async ({ page }) => {
-    const table = page.getByRole('table', { name: 'Menú de la semana' });
+  test('shows the whole week as day cards, with today saying "Hoy", and no day tabs', async ({ page }) => {
+    const cards = page.getByRole('region');
 
-    await expect(table.getByRole('columnheader')).toHaveCount(DAYS.length + 1);
-    await expect(table.getByRole('columnheader').nth(todayIndex() + 1)).toContainText('hoy');
+    await expect(cards).toHaveCount(DAYS.length);
+    await expect(cards.nth(todayIndex())).toContainText('Hoy');
+    // In the page, not the shell, whose first tab is also "Hoy".
+    await expect(page.getByRole('main').getByText('Hoy', { exact: true })).toHaveCount(1);
     await expect(page.getByRole('tab')).toHaveCount(0);
   });
 
   test('opens a recipe in a dialog and closes it with Escape, giving the focus back to the dish', async ({ page }) => {
-    const dish = page.getByRole('table').getByRole('button', { name: 'Lentejas ficticias' }).nth(todayIndex());
+    const dish = page.getByRole('button', { name: 'Lentejas ficticias', exact: true }).nth(todayIndex());
 
     await dish.click();
 
@@ -169,7 +171,8 @@ test.describe('on a desktop screen', () => {
     test.use({ javaScriptEnabled: false });
 
     test("still shows every day's dishes", async ({ page }) => {
-      await expect(page.getByRole('table').getByRole('button', { name: 'Lentejas ficticias' })).toHaveCount(DAYS.length);
+      await expect(page.getByRole('region')).toHaveCount(DAYS.length);
+      await expect(page.getByRole('button', { name: 'Lentejas ficticias', exact: true })).toHaveCount(DAYS.length);
     });
   });
 });

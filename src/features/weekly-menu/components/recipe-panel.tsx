@@ -5,22 +5,25 @@ import type { RecipeDto } from '@/application/dto/weekly-menu';
 import { MenuIcon } from '@/features/weekly-menu/components/menu-icon';
 import { RecipeBody } from '@/features/weekly-menu/components/recipe-body';
 
+/** The side of the page the panel lies on: away from the dish. */
+export type PanelSide = 'left' | 'right';
+
 type RecipePanelProps = {
   name: string;
   /** The day and meal of the dish, "Miércoles · Comida". */
   eyebrow: string;
   recipe: RecipeDto;
-  /** The side of the page it lies on: away from the dish's column. */
-  side: 'left' | 'right';
+  side: PanelSide;
   onClose: () => void;
 };
 
-// After `RecipePanel` in the design system's `ui_kits/app/MenuScreen.jsx` (version 1791390572-4ab7): a non-modal
-// dialog, so the table stays usable, below the shell header and over the side of the table away from the dish. Its
-// outer edge follows the 1200 px box of the page (design D3 of MF-23.2). The body is the card's (design D4).
-const SIDES: Record<RecipePanelProps['side'], string> = {
-  right: 'right-[max(0px,calc((100vw-1200px)/2))] border-l',
-  left: 'left-[max(0px,calc((100vw-1200px)/2))] border-r',
+// After `RecipePanel` in the design system's `ui_kits/app/MenuScreen.jsx` (version 1791414282-6467): a non-modal
+// dialog, so the day cards stay usable, below the shell header and on the side of the page away from the dish. Its
+// outer edge follows the mock's 1440 px `.mf-page--wide` box (design D3 of MF-56). The body is the card's (design D4
+// of MF-23.2).
+const SIDES: Record<PanelSide, string> = {
+  right: 'right-[max(0px,calc((100vw-1440px)/2))] border-l',
+  left: 'left-[max(0px,calc((100vw-1440px)/2))] border-r',
 };
 const PANEL =
   'fixed top-16 bottom-0 z-10 hidden w-[360px] flex-col overflow-y-auto border-border-hairline bg-surface-card ' +

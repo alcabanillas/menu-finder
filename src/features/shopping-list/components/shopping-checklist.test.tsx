@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { ShoppingChecklistDto } from '@/application/dto/shopping-checklist';
 import type { CheckItemsState } from '@/features/shopping-list/check-items-state';
@@ -42,6 +42,10 @@ const show = (ticked: number[] = [], view: 'all' | 'pending' = 'all', action = a
   render(<ShoppingChecklist checklist={checklist(ticked)} view={view} action={action} />);
 
 const progress = () => screen.getByRole('progressbar');
+const index = () => screen.getByRole('navigation', { name: 'Categorías' });
+// A category of the list (not of the index): its section, named by its heading.
+const category = (name: string) => screen.getByRole('region', { name });
+const inList = () => screen.getAllByRole('region').flatMap((region) => within(region).getAllByRole('checkbox'));
 
 describe('ShoppingChecklist', () => {
   it('shows the menu, its Monday, and the categories and items in order', () => {
@@ -51,7 +55,7 @@ describe('ShoppingChecklist', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Lista de la compra' })).toBeInTheDocument();
     expect(screen.getByText('Desde el lunes 5 de octubre')).toBeInTheDocument();
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['Legumbres', 'Lácteos', 'Especias']);
-    const rows = screen.getAllByRole('checkbox').map((box) => box.getAttribute('aria-label'));
+    const rows = inList().map((box) => box.getAttribute('aria-label'));
     expect(rows).toEqual([
       'Marcar todos: Legumbres',
       'Garbanzos cocidos 400 g',
@@ -73,24 +77,62 @@ describe('ShoppingChecklist', () => {
   it('gives each category a toggle with done/total and true, false or mixed', () => {
     show([1, 3]);
 
-    const legumbres = screen.getByRole('checkbox', { name: 'Marcar todos: Legumbres' });
-    expect(legumbres).toHaveAttribute('aria-checked', 'mixed');
-    expect(legumbres).toHaveTextContent('1/2');
-    expect(screen.getByRole('checkbox', { name: 'Marcar todos: Lácteos' })).toHaveAttribute('aria-checked', 'true');
-    expect(screen.getByRole('checkbox', { name: 'Marcar todos: Especias' })).toHaveAttribute('aria-checked', 'false');
+    const toggle = (name: string) => within(category(name)).getByRole('checkbox', { name: `Marcar todos: ${name}` });
+    expect(toggle('Legumbres')).toHaveAttribute('aria-checked', 'mixed');
+    expect(toggle('Legumbres')).toHaveTextContent('1/2');
+    expect(toggle('Lácteos')).toHaveAttribute('aria-checked', 'true');
+    expect(toggle('Especias')).toHaveAttribute('aria-checked', 'false');
   });
 
   it('posts every position of the category: ticks all when not all are ticked, unticks all when they are', () => {
     const { rerender } = show([1]);
-    const formOf = (name: string) => screen.getByRole('checkbox', { name }).closest('form') as HTMLFormElement;
+    const formOf = (name: string) =>
+      within(category(name)).getByRole('checkbox', { name: `Marcar todos: ${name}` }).closest('form') as HTMLFormElement;
 
-    const ticking = new FormData(formOf('Marcar todos: Legumbres'));
+    const ticking = new FormData(formOf('Legumbres'));
     expect(ticking.getAll('position')).toEqual(['1', '2']);
     expect(ticking.get('menuNumber')).toBe('9101');
     expect(ticking.get('checked')).toBe('true');
 
     rerender(<ShoppingChecklist checklist={checklist([1, 2])} view="all" action={answering(null)} />);
-    expect(new FormData(formOf('Marcar todos: Legumbres')).get('checked')).toBe('false');
+    expect(new FormData(formOf('Legumbres')).get('checked')).toBe('false');
+  });
+
+  it('lists the categories in an index, each linked to its section, and heads each section with its count', () => {
+    show([1]);
+
+    const links = within(index()).getAllByRole('link');
+    expect(links.map((link) => link.textContent)).toEqual(['Legumbres', 'Lácteos', 'Especias']);
+    for (const link of links) {
+      const target = document.getElementById(link.getAttribute('href')!.slice(1));
+      expect(target).toBe(category(link.textContent!));
+    }
+    expect(category('Legumbres')).toHaveTextContent(/^Legumbres1\/2/);
+  });
+
+  it('ticks a whole category from the index at once, and no other category changes', async () => {
+    const action = answering(null);
+    show([1], 'all', action);
+
+    fireEvent.click(within(index()).getByRole('checkbox', { name: 'Marcar todos: Legumbres' }));
+
+    await vi.waitFor(() =>
+      expect(within(index()).getByRole('checkbox', { name: 'Marcar todos: Legumbres' })).toHaveAttribute('aria-checked', 'true'),
+    );
+    expect(within(index()).getByText('2/2')).toBeInTheDocument();
+    expect(within(category('Lácteos')).getByRole('checkbox', { name: /Leche/ })).toHaveAttribute('aria-checked', 'false');
+    await vi.waitFor(() => expect(action).toHaveBeenCalledTimes(1));
+    expect(action.mock.calls[0]![1].getAll('position')).toEqual(['1', '2']);
+  });
+
+  it('keeps the index to the categories of the view: one fully ticked leaves it in "Por comprar"', () => {
+    show([3], 'pending');
+
+    expect(within(index()).getAllByRole('link').map((link) => link.textContent)).toEqual(['Legumbres', 'Especias']);
+    expect(within(index()).getAllByRole('link').map((link) => link.getAttribute('href'))).toEqual([
+      '#categoria-1',
+      '#categoria-3',
+    ]);
   });
 
   it('offers the two views as links and marks the active one', () => {
@@ -120,7 +162,7 @@ describe('ShoppingChecklist', () => {
 
     await vi.waitFor(() => expect(screen.getByRole('checkbox', { name: /Garbanzos/ })).toHaveAttribute('aria-checked', 'true'));
     expect(progress()).toHaveAttribute('aria-valuetext', '1 de 4');
-    expect(screen.getByRole('checkbox', { name: 'Marcar todos: Legumbres' })).toHaveTextContent('1/2');
+    expect(within(category('Legumbres')).getByRole('checkbox', { name: 'Marcar todos: Legumbres' })).toHaveTextContent('1/2');
     await vi.waitFor(() => expect(action).toHaveBeenCalledTimes(1));
     const form = action.mock.calls[0]![1];
     expect([form.get('menuNumber'), form.getAll('position'), form.get('checked')]).toEqual(['9101', ['1'], 'true']);

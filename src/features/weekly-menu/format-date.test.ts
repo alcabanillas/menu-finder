@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatColumnDate, formatDayDate, formatShortDate, formatWeekday } from '@/features/weekly-menu/format-date';
+import { formatDayDate, formatShortDate, formatWeekday } from '@/features/weekly-menu/format-date';
 
 describe('formatShortDate', () => {
   it('writes the day and the month in Spanish', () => {
@@ -19,12 +19,5 @@ describe('formatWeekday', () => {
   it('writes the weekday alone, capitalised', () => {
     expect(formatWeekday('2026-10-07')).toBe('Miércoles');
     expect(formatWeekday('2026-10-11')).toBe('Domingo');
-  });
-});
-
-describe('formatColumnDate', () => {
-  it('writes the day and the short month, without a period', () => {
-    expect(formatColumnDate('2026-10-07')).toBe('7 oct');
-    expect(formatColumnDate('2026-09-30')).toBe('30 sept');
   });
 });

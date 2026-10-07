@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { DayDto, WeeklyMenuDto, WeekDishDto } from '@/application/dto/weekly-menu';
 import { WeeklyMenu } from '@/features/weekly-menu/components/weekly-menu';
 
@@ -75,20 +75,25 @@ describe('WeeklyMenu', () => {
     expect(within(panel()).queryByRole('region')).not.toBeInTheDocument();
   });
 
-  it('renders the day view for narrow screens and the week table for wide ones, each hidden at the other width', () => {
+  it('renders the day view for narrow screens and the day cards for wide ones, each hidden at the other width', () => {
     render(<WeeklyMenu menu={MENU} />);
 
     expect(panel().parentElement).toHaveClass('@min-[800px]:hidden');
-    expect(screen.getByRole('table', { name: 'Menú de la semana' }).parentElement).toHaveClass(
-      'hidden',
-      '@min-[800px]:block',
-    );
+    expect(screen.getByRole('region', { name: /^Lunes/ }).closest('.hidden')).toHaveClass('@min-[800px]:block');
   });
 });
 
 describe('WeeklyMenu, the recipe panel', () => {
-  const table = () => screen.getByRole('table', { name: 'Menú de la semana' });
-  const dish = (name: string) => within(table()).getByRole('button', { name });
+  // The day cards' dishes: the dish names alone, while the mobile view's cards carry the time and "Receta" too.
+  const dish = (name: string) => screen.getByRole('button', { name });
+  // Puts the dish's button at `left` px of the viewport.
+  const placeAt = (name: string, left: number) => {
+    vi.spyOn(dish(name), 'getBoundingClientRect').mockReturnValue(
+      DOMRect.fromRect({ x: left, y: 0, width: 160, height: 20 }),
+    );
+  };
+
+  afterEach(() => vi.restoreAllMocks());
 
   it('opens a dish in a dialog that takes the focus, and announces the dish as expanded', () => {
     render(<WeeklyMenu menu={MENU} />);
@@ -133,13 +138,16 @@ describe('WeeklyMenu, the recipe panel', () => {
     expect(dish('Crema de calabacín')).toHaveAttribute('aria-expanded', 'false');
   });
 
-  it("lies on the side away from the dish's column", () => {
+  it('lies on the side of the page away from the dish', () => {
     render(<WeeklyMenu menu={MENU} />);
+    vi.spyOn(document.documentElement, 'clientWidth', 'get').mockReturnValue(1280);
+    placeAt('Crema de calabacín', 900);
+    placeAt('Arroz con verduras', 100);
 
     fireEvent.click(dish('Crema de calabacín'));
-    expect(screen.getByRole('dialog')).toHaveAttribute('data-side', 'right');
+    expect(screen.getByRole('dialog')).toHaveAttribute('data-side', 'left');
 
     fireEvent.click(dish('Arroz con verduras'));
-    expect(screen.getByRole('dialog')).toHaveAttribute('data-side', 'left');
+    expect(screen.getByRole('dialog')).toHaveAttribute('data-side', 'right');
   });
 });

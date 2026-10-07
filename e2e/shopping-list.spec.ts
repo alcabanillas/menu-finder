@@ -120,6 +120,48 @@ test.describe('with a session', () => {
   });
 });
 
+// From an 800 px container, the category index beside the list (MF-56). The project's viewport is 1280 px wide.
+test.describe('the category index', () => {
+  test.beforeEach(async ({ page }) => {
+    await signInAs(page, account);
+    await page.goto('/shopping-list');
+  });
+
+  test('lists every category with its count, and is the only tick-every-item control', async ({ page }) => {
+    await tick(page, row(page, 'Garbanzos cocidos'));
+
+    await expect(index(page).getByRole('link')).toHaveText(['Legumbres', 'Lácteos', 'Especias']);
+    await expect(index(page).getByRole('listitem').first()).toContainText('1/2');
+    await expect(page.getByRole('checkbox', { name: /^Marcar todos/ })).toHaveCount(3);
+    await expect(index(page).getByRole('checkbox', { name: /^Marcar todos/ })).toHaveCount(3);
+  });
+
+  test('ticks a whole category, and no other', async ({ page }) => {
+    await tick(page, index(page).getByRole('checkbox', { name: 'Marcar todos: Legumbres' }));
+
+    await page.reload();
+    await expect(index(page).getByRole('checkbox', { name: 'Marcar todos: Legumbres' })).toHaveAttribute('aria-checked', 'true');
+    await expect(index(page).getByRole('listitem').first()).toContainText('2/2');
+    await expect(row(page, 'Leche')).toHaveAttribute('aria-checked', 'false');
+  });
+
+  test('a link goes to its category', async ({ page }) => {
+    await index(page).getByRole('link', { name: 'Especias' }).click();
+
+    await expect(page).toHaveURL(/#categoria-3$/);
+    await expect(page.getByRole('region', { name: 'Especias' })).toBeInViewport();
+  });
+});
+
+test('on a narrow screen there is no index, and each category has its own "Marcar todos"', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await signInAs(page, account);
+  await page.goto('/shopping-list');
+
+  await expect(index(page)).toBeHidden();
+  await expect(page.getByRole('region', { name: 'Legumbres' }).getByRole('checkbox', { name: 'Marcar todos: Legumbres' })).toBeVisible();
+});
+
 test.describe('without JavaScript', () => {
   test.use({ javaScriptEnabled: false });
 
@@ -132,6 +174,16 @@ test.describe('without JavaScript', () => {
     await expect(row(page, 'Leche')).toHaveAttribute('aria-checked', 'true');
     await page.goto('/shopping-list');
     await expect(row(page, 'Leche')).toHaveAttribute('aria-checked', 'true');
+  });
+
+  test('ticking a category from the index still works', async ({ page }) => {
+    await signInAs(page, account);
+    await page.goto('/shopping-list');
+
+    await index(page).getByRole('checkbox', { name: 'Marcar todos: Lácteos' }).click();
+
+    await expect(row(page, 'Leche')).toHaveAttribute('aria-checked', 'true');
+    await expect(index(page).getByRole('listitem').nth(1)).toContainText('1/1');
   });
 });
 
@@ -150,6 +202,10 @@ async function tick(page: Page, checkbox: Locator): Promise<void> {
   const answered = page.waitForResponse((response) => response.request().method() === 'POST');
   await checkbox.click();
   await answered;
+}
+
+function index(page: Page) {
+  return page.getByRole('navigation', { name: 'Categorías' });
 }
 
 function progress(page: Page) {

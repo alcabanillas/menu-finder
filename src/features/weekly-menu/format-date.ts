@@ -8,8 +8,6 @@ const WITH_WEEKDAY = new Intl.DateTimeFormat('es-ES', {
   timeZone: 'UTC',
 });
 const WEEKDAY = new Intl.DateTimeFormat('es-ES', { weekday: 'long', timeZone: 'UTC' });
-const COLUMN = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' });
-
 /** A `YYYY-MM-DD` date as "5 de octubre". */
 export function formatShortDate(date: string): string {
   return SHORT.format(toUtc(date));
@@ -26,11 +24,6 @@ export function formatDayDate(date: string): string {
 /** A `YYYY-MM-DD` date as its weekday alone, "Miércoles". */
 export function formatWeekday(date: string): string {
   return capitalise(WEEKDAY.format(toUtc(date)));
-}
-
-/** A `YYYY-MM-DD` date as "7 oct", for a column header: without the period some engines add to the short month. */
-export function formatColumnDate(date: string): string {
-  return COLUMN.format(toUtc(date)).replace('.', '');
 }
 
 function capitalise(text: string): string {
