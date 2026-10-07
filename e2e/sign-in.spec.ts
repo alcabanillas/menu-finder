@@ -1,8 +1,6 @@
-import { execSync } from 'node:child_process';
-import { randomUUID } from 'node:crypto';
-import pg from 'pg';
 import { expect, test, type Page } from '@playwright/test';
-import { currentE2eEnvironment, readEnvFile, testDatabaseUrl } from './support/e2e-environment';
+import { readEnvFile, testDatabaseUrl } from './support/e2e-environment';
+import { registerTestAccount } from './support/test-account';
 
 // Spec authentication, MF-20.3, against the test database only (MF-49): the Neon `test` branch locally, `ci` in CI. The
 // server gets it from playwright.config.ts; the CLI that creates the account, as every account is, gets the same.
@@ -12,30 +10,7 @@ const WRONG_CREDENTIALS = 'El correo o la contraseña no coinciden.';
 const SESSION_COOKIE = 'better-auth.session_token';
 const HOSTILE_VALUES = ["' OR 1=1; --", '🍅@example.test', 'a'.repeat(10_000), 'ana\u0000@example.test'];
 
-const email = `e2e-${Date.now()}@example.test`;
-const password = randomUUID();
-
-test.beforeAll(() => {
-  execSync(`pnpm ingest account ${email} E2E`, {
-    input: `${password}\n`,
-    stdio: ['pipe', 'ignore', 'inherit'],
-    env: { ...process.env, ...currentE2eEnvironment() },
-  });
-});
-
-// The account goes with its sessions (ON DELETE CASCADE). Exactly one row: the one this run created (MF-49 design D4).
-test.afterAll(async () => {
-  const client = new pg.Client({ connectionString: currentE2eEnvironment().DATABASE_URL_UNPOOLED });
-  await client.connect();
-  try {
-    const deleted = await client.query('DELETE FROM "user" WHERE email = $1', [email]);
-    expect(deleted.rowCount).toBe(1);
-    const left = await client.query('SELECT 1 FROM "user" WHERE email = $1', [email]);
-    expect(left.rowCount).toBe(0);
-  } finally {
-    await client.end();
-  }
-});
+const { email, password } = registerTestAccount();
 
 test.describe('sign-in', () => {
   for (const path of ['/login', '/']) {
@@ -79,13 +54,14 @@ test.describe('sign-in', () => {
     await expect(formAlert(page)).not.toHaveAttribute('data-first-answer');
   });
 
-  test('/ and /login send a signed-in user to /planner', async ({ page }) => {
+  test('/login sends a signed-in user to /planner, and / shows them the page "Hoy"', async ({ page }) => {
     await signIn(page, '/login', email, password);
 
-    await page.goto('/');
-    await expect(page).toHaveURL('/planner');
     await page.goto('/login');
     await expect(page).toHaveURL('/planner');
+    await page.goto('/');
+    await expect(page).toHaveURL('/');
+    await expect(page.getByRole('main').getByRole('heading', { name: 'Hoy' })).toBeVisible();
   });
 });
 

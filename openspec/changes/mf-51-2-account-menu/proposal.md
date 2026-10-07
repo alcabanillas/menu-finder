@@ -11,7 +11,7 @@ The visual reference is the same as in MF-51.1: the design system's shell (`proj
 - **Account menu**: a button "Cuenta" in the header that opens a small panel with the signed-in user's email and the control "Cerrar sesión". It closes with Escape (focus goes back to the button) and with a click outside.
 - **The signed-in user gains its email**: `SignedInUser` carries it, the layout reads the user only to show it in the menu, and the read is shared with each page's own check so there is one session lookup per request.
 - **`/planner` loses its sign-out button**: the account menu replaces it, and `SignOutButton` is deleted with its test.
-- **Left out**: the "por comprar" badge (MF-24) and the signed-out variant with "Acceder" (MF-25, UI-home-sin-login).
+- **Left out**: the "por comprar" badge (MF-24) and the route that mounts the signed-out variant with "Acceder", which MF-51.1 builds (MF-25, UI-home-sin-login).
 
 ## Capabilities
 

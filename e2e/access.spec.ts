@@ -29,6 +29,27 @@ test.describe('without a session', () => {
     expect(await response.text()).not.toContain('Hola,');
   });
 
+  test('a forged cookie gets the same redirect, without the body of the page', async ({ request }) => {
+    const response = await request.get('/planner', {
+      maxRedirects: 0,
+      headers: { cookie: `${SESSION_COOKIE}=forged.value` },
+    });
+
+    expect(response.status()).toBe(307);
+    expect(response.headers().location).toBe('/login');
+    expect(await response.text()).not.toContain('Hola,');
+  });
+
+  // Spec app-shell, "The new pages need a session": the placeholders are protected like any page.
+  for (const path of ['/menu', '/shopping-list']) {
+    test(`${path} answers a redirect to /login`, async ({ request }) => {
+      const response = await request.get(path, { maxRedirects: 0 });
+
+      expect(response.status()).toBe(307);
+      expect(response.headers().location).toBe('/login');
+    });
+  }
+
   for (const path of ['/', '/login']) {
     test(`${path} shows the sign-in form, with no sign-up or recovery`, async ({ page }) => {
       await page.goto(path);

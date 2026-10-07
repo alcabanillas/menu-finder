@@ -13,7 +13,7 @@ The shell of the mock also has an account button with a menu. That is `mf-51-2-a
 - MF-43, MF-23, MF-24 and MF-25 can mount their screen in the shell by adding a page inside the route group, with nothing to change in the shell.
 
 **Non-Goals:**
-- The account button and menu (MF-51.2), the "por comprar" badge (MF-24), the signed-out variant with "Acceder" (MF-25, UI-home-sin-login).
+- The account button and menu (MF-51.2), the "por comprar" badge (MF-24), and the route that mounts the signed-out variant with "Acceder" (MF-25, UI-home-sin-login); the variant itself is built here (D10).
 - The width of the page (`mf-page` and its `wide` variant in the mock): each screen sets its own, because only the screen knows if it is a column or a grid.
 - Moving anything to `src/shared/ui/`: only `features/app-shell` uses these components (ADR-001 §2).
 - An icon library: four inline SVGs.
@@ -51,19 +51,35 @@ The mock fixes the shell to the height of its frame and scrolls only `main`. In 
 ### D6. The current tab comes from the path
 `usePathname()`; a tab is current if the path equals its `href`, or starts with it followed by `/` (so `/menu/anything` marks Menú), except `/`, which only matches exactly. Server rendering gives the same answer as the client, so it also holds without JavaScript.
 
-### D7. The four tabs are always shown
-Hoy, Buscar, Menú and Compra are in the tab list from the start, as in the mock and in the roadmap's description of MF-51, although `/menu` and `/shopping-list` do not exist until MF-23 and MF-24, and `/` sends a signed-in user to `/planner` until MF-25 (so Hoy is never marked as current for now). The assumption is that nothing is deployed before MF-26, and the items of the sprint come right after this one. Alternative: list only the tabs whose route exists and let each change add its own. Safer against a 404 in between, but then the shell would not show what the author mocked and each later change would touch the shell. The author can choose it before `apply`.
+### D7. The four tabs are always shown, and each leads to a page
+Hoy, Buscar, Menú and Compra are in the tab list from the start, as in the mock and in the roadmap's description of MF-51. `/` has a minimal page for a signed-in user (D11). `/menu` and `/shopping-list` do not have their screens until MF-23 and MF-24, so this change adds a placeholder page for each (`src/app/(app)/menu/page.tsx`, `src/app/(app)/shopping-list/page.tsx`): a heading and a line, calling `requireUser()` first like every protected page. MF-23 and MF-24 replace their contents.
+
+Why: with the tabs pointing to missing routes, Next prefetches them and gets a 404 on every render; the network never goes quiet (it broke `waitForLoadState('networkidle')` in the sign-in e2e) and a click lands on a 404. Alternative: list only the tabs whose route exists and let each change add its own. Rejected: the shell would not show what the author mocked and each later change would touch the shell.
 
 ### D8. `/planner` keeps its sign-out button for now
 `/planner` swaps its `<main>` for a plain container (the shell's `<main>` is the page's only one) and keeps the heading "Hola, {name}" and the `SignOutButton`, so the user can still sign out while the account menu does not exist. MF-51.2 removes it.
 
 ### D9. End-to-end tests
-- `e2e/access.spec.ts`: the existing test that `/planner` answers 307 without the body of the page also asserts that the body has none of "Saltar al contenido" or "Principal"; the same with a forged cookie.
+- `e2e/access.spec.ts`: the existing test that `/planner` answers 307 without the body of the page (no "Hola,") keeps that assertion, and the same with a forged cookie. It does not assert that the shell is absent from the body: the layout runs before the page, so Next sends the empty frame inside the data that accompanies the redirect, which the browser never draws. What matters is the 307 and that no content or user data goes with it. `/menu` and `/shopping-list` without a session also answer 307 to `/login`.
 - A new `e2e/app-shell.spec.ts` (signed in): the shell on `/planner`, the tabs and the current one at 1024 px and at 375 px (one navigation exposed in each), the skip link, the tabs with JavaScript off, and no shell on `/` and `/login`. The creation and deletion of the test account in `sign-in.spec.ts` moves to `e2e/support/test-account.ts` so both files use it, keeping MF-49's check that exactly one row is deleted.
+
+### D10. The variant for no session is a prop of `AppShell`
+`AppShell` takes `session?: 'in' | 'out'`, `'in'` by default, as the mock's `AppShell` does. With `'out'` the header shows the wordmark and a link "Acceder" (`next/link` to `/login`, styled as the design system's primary `sm` button: 36 px high, 14 px of padding, 14 px of text, pill), and the two navigations are not rendered. The link is a link, not the mock's button with `onSignIn`, so it works without JavaScript. The state comes from the caller, not from the shell, which still reads no session (D1).
+
+Nothing mounts it in this change: `(app)/layout.tsx` uses the default, and `/` and `/login` stay outside the shell, as the mock says of the login screen. MF-25 builds the informative home and mounts it there (UI-home-sin-login). It is built now because the author asked for the shell to have both states; it is covered by unit tests only, since no route shows it.
+
+Alternative: leave it to MF-25. Rejected by the author. Alternative: a separate `PublicShell` component. Rejected: the two states share the skip link, the header and the main landmark, and the mock keeps them in one component.
+
+### D11. `/` has a minimal page for a signed-in user, and mounts the shell itself
+Until now `/` sent a signed-in user to `/planner` (MF-20.3), so the tab "Hoy" would have been a second link to "Buscar". The author chose a minimal page: `/` with a session renders a heading "Hoy" and a line saying what will be there, as `/menu` and `/shopping-list` do (D7). MF-25 replaces it with the dashboard.
+
+`/` is not in the route group `(app)`: it also serves the visitor with the sign-in form, outside the shell. So its page reads the session (`webContainer().currentUser()`) and wraps the minimal page in `<AppShell>` itself, which is what the `session` prop is for (D10): MF-25 will wrap the informative home in `<AppShell session="out">` in the same place. This is the one page that mounts the shell by hand; D1's alternative (every page wraps itself) was rejected for protected pages, and `/` is not one. `protected-pages.test.ts` does not list it (it is public by path), and it does not need to: the page decides by the session it reads.
+
+This changes the requirement "The home shows the sign-in until the dashboard exists" of `authentication` (delta in this change), the "Por ahora" sentence of UI-home-sin-login in `context/decisiones.md`, and the description of MF-25 in the roadmap. After a sign-in the destination stays `/planner` (a fixed one, MF-20.3); MF-25 decides whether it moves to `/`. `/login` still sends a signed-in user to `/planner`.
 
 ## Risks / Trade-offs
 
-- [A `loading.tsx` or a `<Suspense>` around the pages would flush the shell before the page redirects, and the answer for a request with no session would become a 200 with a redirect meta tag] → the layout has none; the e2e test of D9 (status 307 and no shell text) fails if one appears.
-- [Four tabs, two of them dead links until MF-23 and MF-24] → D7; closed by the next items of the sprint.
+- [A `loading.tsx` or a `<Suspense>` around the pages would flush the shell before the page redirects, and the answer for a request with no session would become a 200 with a redirect meta tag] → the layout has none; the e2e test of D9 (status 307) fails if one appears.
+- [Two placeholder pages that MF-23 and MF-24 throw away] → D7; each is a heading and a line, with its test.
 - [The mock and the code can drift] → the version is in each component's doc comment and in this design; the verify step compares a capture with the mock (UI-design-system).
 - [Two navigations in the DOM] → D4; covered at both widths in the e2e.
