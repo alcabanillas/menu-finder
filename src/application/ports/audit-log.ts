@@ -1,4 +1,4 @@
-export type SignInRefusal = 'wrong-credentials' | 'invalid-input';
+export type SignInRefusal = 'wrong-credentials' | 'invalid-input' | 'rate-limited';
 
 /**
  * A sensitive action, written so that it can be traced later (safety-first P7). There is no field for an email, a
