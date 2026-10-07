@@ -148,7 +148,10 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresSelectionRepository (Neon test bran
   it('reports read-failed and write-failed when the table is missing', async () => {
     const own = await createMigratedTestDatabase(TEST_DATABASE_URL!);
     try {
+      // The search path ends in `public`, which may hold a migrated `selection` (the e2e run migrates it): a table
+      // without the columns, in the own schema, keeps the queries from falling through to it.
       await own.pool.query('DROP TABLE selection');
+      await own.pool.query('CREATE TABLE selection (id uuid)');
       const broken = new PostgresSelectionRepository(own.pool);
 
       const read = await broken.listFrom(USER, MONDAY);

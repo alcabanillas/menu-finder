@@ -17,14 +17,25 @@ describe('protected pages', () => {
 
     expect(source).toMatch(/await requireUser\(\)/);
   });
+
+  // A server action is a public POST endpoint: the page's check does not protect it (spec menu-planner).
+  it.each(protectedActions())('%s checks the session with requireUser', (actions) => {
+    const source = readFileSync(join(APP_DIR, actions), 'utf8');
+
+    expect(source).toMatch(/await requireUser\(\)/);
+  });
 });
 
 function protectedPages(): string[] {
-  return pagesUnder(APP_DIR).filter((page) => !PUBLIC_PAGES.includes(page));
+  return filesUnder(APP_DIR, 'page.tsx').filter((page) => !PUBLIC_PAGES.includes(page));
 }
 
-function pagesUnder(dir: string): string[] {
+function protectedActions(): string[] {
+  return filesUnder(APP_DIR, 'actions.ts').filter((path) => path.startsWith(`(app)${sep}`));
+}
+
+function filesUnder(dir: string, name: string): string[] {
   return readdirSync(dir, { recursive: true, encoding: 'utf8' })
-    .filter((path) => path.split(sep).at(-1) === 'page.tsx')
+    .filter((path) => path.split(sep).at(-1) === name)
     .map((path) => relative(APP_DIR, join(dir, path)));
 }

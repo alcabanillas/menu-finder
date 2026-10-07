@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState, useState, type FormEvent } from 'react';
-import { Button } from '@/features/auth/components/button';
+import { Button } from '@/shared/ui/button';
 import { FormAlert } from '@/features/auth/components/form-alert';
 import { PasswordField } from '@/features/auth/components/password-field';
 import { TextField } from '@/features/auth/components/text-field';

@@ -2,16 +2,19 @@ import { headers } from 'next/headers';
 import pg from 'pg';
 import type { CurrentSelectionsInput } from '@/application/use-cases/current-selections';
 import type { SelectMenuInput } from '@/application/use-cases/select-menu';
+import type { SelectRandomMenuInput } from '@/application/use-cases/select-random-menu';
 import type { SignInInput } from '@/application/use-cases/sign-in';
 import { currentSelections } from '@/application/use-cases/current-selections';
 import { currentUser } from '@/application/use-cases/current-user';
 import { selectMenu } from '@/application/use-cases/select-menu';
+import { selectRandomMenu } from '@/application/use-cases/select-random-menu';
 import { signIn } from '@/application/use-cases/sign-in';
 import { signOut } from '@/application/use-cases/sign-out';
 import { BetterAuthSessionManager } from '@/infrastructure/auth/better-auth-session-manager';
 import { createAuth } from '@/infrastructure/auth/create-auth';
 import { SystemClock } from '@/infrastructure/clock/system-clock';
 import { StdoutAuditLog } from '@/infrastructure/logging/stdout-audit-log';
+import { PostgresMenuRepository } from '@/infrastructure/postgres/postgres-menu-repository';
 import { PostgresSelectionRepository } from '@/infrastructure/postgres/postgres-selection-repository';
 
 type Env = Record<string, string | undefined>;
@@ -49,6 +52,7 @@ export function createWebContainer(env: Env, requestHeaders: RequestHeaders) {
     currentUser: async () => currentUser(lazyDeps()),
     selectMenu: async (input: SelectMenuInput) => selectMenu(lazyDeps(), input),
     currentSelections: async (input: CurrentSelectionsInput) => currentSelections(lazyDeps(), input),
+    selectRandomMenu: async (input: SelectRandomMenuInput) => selectRandomMenu(lazyDeps(), input),
   };
 }
 
@@ -60,6 +64,8 @@ function buildDeps(env: Env, requestHeaders: RequestHeaders) {
     auditLog: new StdoutAuditLog(),
     selections: new PostgresSelectionRepository(pool),
     clock: new SystemClock(),
+    menus: new PostgresMenuRepository(pool),
+    random: Math.random,
   };
 }
 

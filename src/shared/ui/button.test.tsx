@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { Button } from '@/features/auth/components/button';
+import { Button } from '@/shared/ui/button';
 
 describe('Button', () => {
   it('renders its label as a plain button by default', () => {
