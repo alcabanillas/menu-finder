@@ -80,14 +80,23 @@ test.describe('sign-in without JavaScript', () => {
 });
 
 test.describe('sign-out', () => {
-  test('ends on /, and the old cookie no longer opens /planner', async ({ page, context }) => {
+  // Spec app-shell, "Signing out from the menu" and "A request with no valid session gets no email" (MF-51.2).
+  test('from the account menu ends on /, and the old cookie no longer opens /planner nor shows the email', async ({
+    page,
+    context,
+  }) => {
     await signIn(page, '/login', email, password);
     const oldCookies = await context.cookies();
 
+    await page.getByRole('button', { name: 'Cuenta' }).click();
     await page.getByRole('button', { name: 'Cerrar sesión' }).click();
     await expect(page).toHaveURL('/');
 
     await context.addCookies(oldCookies);
+    const refused = await page.request.get('/planner', { maxRedirects: 0 });
+    expect(refused.status()).toBe(307);
+    expect(refused.headers().location).toContain('/login');
+    expect(await refused.text()).not.toContain(email);
     await page.goto('/planner');
     await expect(page).toHaveURL('/login');
   });

@@ -1,5 +1,6 @@
 import { SignInScreen } from '@/app/_session/sign-in-screen';
-import { webContainer } from '@/composition/web-container';
+import { signOutAction } from '@/app/_session/actions';
+import { sessionUser } from '@/app/_session/session-user';
 import { AppShell } from '@/features/app-shell/components/app-shell';
 
 /**
@@ -8,13 +9,14 @@ import { AppShell } from '@/features/app-shell/components/app-shell';
  * itself (design D11 of MF-51.1).
  */
 export default async function Home() {
-  if (await webContainer().currentUser()) return <TodayPage />;
+  const user = await sessionUser();
+  if (user) return <TodayPage email={user.email} />;
   return <SignInScreen />;
 }
 
-function TodayPage() {
+function TodayPage({ email }: { email: string }) {
   return (
-    <AppShell>
+    <AppShell account={{ email, signOutAction }}>
       <div className="flex flex-col items-center justify-center gap-6 px-5 py-16">
         <h1 className="text-2xl font-extrabold">Hoy</h1>
         <p>Aquí verás qué toca hoy.</p>

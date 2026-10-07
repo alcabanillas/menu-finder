@@ -43,5 +43,5 @@ Not in `e2e/access.spec.ts`: it runs in CI without a database, and MF-51.1 found
 ## Risks / Trade-offs
 
 - [Someone takes the layout's read of the user for the access check] → the comment in the layout, and `protected-pages.test.ts`, which fails for any page without `requireUser`. It only reads `page.tsx` files and looks for the call by text, so it does not cover a future route handler or server action; those do not exist yet.
-- [The email reaches the client] → only the user's own, only inside the open menu (safety-first §2.1); the log lines keep the user id and never the email, checked by the existing audit-log tests.
+- [The email reaches the client] → only the user's own; it travels in the page's data as a prop and is drawn only in the open menu (safety-first §2.1); the log lines keep the user id and never the email, checked by the existing audit-log tests.
 - [The menu does not open without JavaScript] → D2; accepted.

@@ -45,8 +45,8 @@ export class BetterAuthSessionManager implements SessionManager {
   }
 }
 
-function toSignedInUser(user: { id: string; name: string }): SignedInUser {
-  return { userId: user.id, name: user.name };
+function toSignedInUser(user: { id: string; name: string; email: string }): SignedInUser {
+  return { userId: user.id, name: user.name, email: user.email };
 }
 
 // Every refusal of the request (wrong password, unknown email, a value the library rejects) is one answer, so the

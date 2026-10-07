@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { AccountMenu, type Account } from '@/features/app-shell/components/account-menu';
 import { NavList } from '@/features/app-shell/components/nav-list';
 
-type AppShellProps = { children: ReactNode; session?: 'in' | 'out' };
+type AppShellProps = { children: ReactNode; session?: 'in' | 'out'; account?: Account };
 
 const MAIN_ID = 'contenido';
 
@@ -26,9 +27,10 @@ const SIGN_IN_LINK =
 /**
  * The frame of every page with a session: skip link, header with the wordmark and the main navigation, the content
  * area and, on a phone, the navigation as a bar at the bottom. With `session="out"` it is the frame of a visitor: the
- * wordmark and a link to sign in, no navigation (design D10). It reads no session (design D1): the caller says which.
+ * wordmark and a link to sign in, no navigation (design D10). It reads no session (design D1): the caller says which,
+ * and gives the `account` (the email and the sign-out action) for the menu of the header (design D1 of MF-51.2).
  */
-export function AppShell({ children, session = 'in' }: AppShellProps) {
+export function AppShell({ children, session = 'in', account }: AppShellProps) {
   const signedIn = session === 'in';
   return (
     <div className="flex min-h-dvh flex-col bg-surface-page text-text-body">
@@ -48,6 +50,11 @@ export function AppShell({ children, session = 'in' }: AppShellProps) {
             <Link href="/login" className={SIGN_IN_LINK}>
               Acceder
             </Link>
+          )}
+          {signedIn && account && (
+            <div className="ml-auto">
+              <AccountMenu {...account} />
+            </div>
           )}
         </div>
       </header>

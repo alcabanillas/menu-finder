@@ -1,8 +1,8 @@
-export type NavIconName = 'sun' | 'search' | 'calendar-days' | 'shopping-basket';
+export type NavIconName = 'sun' | 'search' | 'calendar-days' | 'shopping-basket' | 'user-round';
 
 type NavIconProps = { name: NavIconName; size: number; strokeWidth: number };
 
-// Lucide icons (ISC licence), inline so that the app needs no icon library for four glyphs. The design system loads the
+// Lucide icons (ISC licence), inline so that the app needs no icon library for five glyphs. The design system loads the
 // same glyphs through its `Icon` component (version 1791272018-0feb).
 const GLYPHS: Record<NavIconName, string[]> = {
   sun: [
@@ -36,6 +36,7 @@ const GLYPHS: Record<NavIconName, string[]> = {
     'm5 11 4-7',
     'm9 11 1 9',
   ],
+  'user-round': ['M18 20a6 6 0 0 0-12 0'],
 };
 
 /** A decorative 24-unit stroke icon: the link next to it carries the accessible name. */
@@ -55,6 +56,7 @@ export function NavIcon({ name, size, strokeWidth }: NavIconProps) {
     >
       {name === 'sun' && <circle cx="12" cy="12" r="4" />}
       {name === 'search' && <circle cx="11" cy="11" r="8" />}
+      {name === 'user-round' && <circle cx="12" cy="8" r="5" />}
       {name === 'calendar-days' && <rect width="18" height="18" x="3" y="4" rx="2" />}
       {GLYPHS[name].map((d) => (
         <path key={d} d={d} />

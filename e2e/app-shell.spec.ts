@@ -72,6 +72,56 @@ test.describe('with a session', () => {
     });
   }
 
+  // Spec app-shell, the account menu (MF-51.2). "Signing out from the menu" is in sign-in.spec.ts, with the sign-out flow.
+  test('the account menu is closed by default', async ({ page }) => {
+    await expect(accountButton(page)).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.getByRole('button', { name: 'Cerrar sesión' })).toHaveCount(0);
+  });
+
+  test('the home of a signed-in user has the menu too, and opening it shows the email and the sign-out control', async ({ page }) => {
+    await page.goto('/');
+
+    await expect(accountButton(page)).toHaveAttribute('aria-expanded', 'false');
+    await accountButton(page).click();
+    await expect(page.getByText(account.email)).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Cerrar sesión' })).toBeVisible();
+  });
+
+  test('opening the menu shows the email and the sign-out control, and no user id', async ({ page }) => {
+    await accountButton(page).click();
+
+    await expect(accountButton(page)).toHaveAttribute('aria-expanded', 'true');
+    const panel = page.locator(`#${await accountButton(page).getAttribute('aria-controls')}`);
+    await expect(panel).toHaveText(`${account.email}Cerrar sesión`);
+  });
+
+  test('Escape closes the panel and returns the focus to the button', async ({ page }) => {
+    await accountButton(page).click();
+    await page.getByRole('button', { name: 'Cerrar sesión' }).focus();
+
+    await page.keyboard.press('Escape');
+
+    await expect(page.getByRole('button', { name: 'Cerrar sesión' })).toHaveCount(0);
+    await expect(accountButton(page)).toBeFocused();
+  });
+
+  test('a click outside closes the panel', async ({ page }) => {
+    await accountButton(page).click();
+
+    await page.getByRole('heading', { name: 'Hola, E2E' }).click();
+
+    await expect(page.getByRole('button', { name: 'Cerrar sesión' })).toHaveCount(0);
+  });
+
+  test('on a narrow screen the account button is in the header and the panel fits in the viewport', async ({ page }) => {
+    await page.setViewportSize(NARROW);
+    await accountButton(page).click();
+
+    const panel = await page.getByRole('button', { name: 'Cerrar sesión' }).locator('xpath=../..').boundingBox();
+    expect(panel!.x).toBeGreaterThanOrEqual(0);
+    expect(panel!.x + panel!.width).toBeLessThanOrEqual(NARROW.width);
+  });
+
   test('the skip link is the first stop of the keyboard and moves the focus to the content', async ({ page }) => {
     await page.keyboard.press('Tab');
     await expect(page.getByRole('link', { name: 'Saltar al contenido' })).toBeFocused();
@@ -100,6 +150,10 @@ test.describe('without a session', () => {
     });
   }
 });
+
+function accountButton(page: Page) {
+  return page.getByRole('banner').getByRole('button', { name: 'Cuenta' });
+}
 
 async function expectTabs(page: Page): Promise<void> {
   const links = page.getByRole('navigation', { name: 'Principal' }).getByRole('link');

@@ -24,7 +24,7 @@ export async function signInAction(previous: LoginFormState, form: FormData): Pr
   redirect('/planner');
 }
 
-/** The sign-out button's action: revokes the session and goes back to the home. */
+/** The account menu's sign-out action: revokes the session and goes back to the home. */
 export async function signOutAction(): Promise<void> {
   await webContainer().signOut();
   redirect('/');

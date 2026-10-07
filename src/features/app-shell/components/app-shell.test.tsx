@@ -1,12 +1,14 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { AppShell } from '@/features/app-shell/components/app-shell';
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/planner' }));
 
+const ACCOUNT = { email: 'ana@example.test', signOutAction: async () => {} };
+
 function renderShell() {
   return render(
-    <AppShell>
+    <AppShell account={ACCOUNT}>
       <h1>Contenido de la página</h1>
     </AppShell>,
   );
@@ -43,6 +45,26 @@ describe('AppShell', () => {
     expect(within(main).getByRole('heading', { name: 'Contenido de la página' })).toBeInTheDocument();
   });
 
+  it('has the account button in the header, and the panel opens with the email it received', () => {
+    renderShell();
+
+    const button = within(screen.getByRole('banner')).getByRole('button', { name: 'Cuenta' });
+    fireEvent.click(button);
+
+    expect(screen.getByText('ana@example.test')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cerrar sesión' })).toBeInTheDocument();
+  });
+
+  it('has no account button when it is given no account', () => {
+    render(
+      <AppShell>
+        <h1>Contenido de la página</h1>
+      </AppShell>,
+    );
+
+    expect(screen.queryByRole('button', { name: 'Cuenta' })).not.toBeInTheDocument();
+  });
+
   it('has no sign-in link when it is not told that there is no session', () => {
     renderShell();
 
@@ -66,6 +88,12 @@ describe('AppShell', () => {
       expect(within(header).getByRole('link', { name: 'Acceder' })).toHaveAttribute('href', '/login');
       expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
       expect(screen.queryByRole('link', { name: 'Buscar' })).not.toBeInTheDocument();
+    });
+
+    it('has no account button', () => {
+      renderSignedOutShell();
+
+      expect(screen.queryByRole('button', { name: 'Cuenta' })).not.toBeInTheDocument();
     });
 
     it('keeps the skip link first and the one main landmark with the content', () => {
