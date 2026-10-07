@@ -18,9 +18,9 @@ describe('requireUser', () => {
   });
 
   it('returns the user of a valid session', async () => {
-    container.currentUser.mockResolvedValue({ userId: 'user-1', name: 'Ana' });
+    container.currentUser.mockResolvedValue({ userId: 'user-1', name: 'Ana', email: 'ana@example.test' });
 
-    await expect(requireUser()).resolves.toEqual({ userId: 'user-1', name: 'Ana' });
+    await expect(requireUser()).resolves.toEqual({ userId: 'user-1', name: 'Ana', email: 'ana@example.test' });
     expect(navigation.redirect).not.toHaveBeenCalled();
   });
 

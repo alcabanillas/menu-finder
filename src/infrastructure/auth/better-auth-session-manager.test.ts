@@ -53,7 +53,7 @@ describe.skipIf(!TEST_DATABASE_URL)('BetterAuthSessionManager (Neon test branch)
     it('starts a session, sets an HttpOnly session cookie and returns the user', async () => {
       const result = await sessions.signIn({ email: EMAIL, password: PASSWORD });
 
-      expect(result).toEqual({ ok: true, value: { userId: expect.any(String), name: 'Test User' } });
+      expect(result).toEqual({ ok: true, value: { userId: expect.any(String), name: 'Test User', email: EMAIL } });
       expect(jar.cookies.get(SESSION_COOKIE)?.httpOnly).toBe(true);
       expect(await countRows(db.pool, 'session')).toBe(1);
     });
@@ -75,7 +75,11 @@ describe.skipIf(!TEST_DATABASE_URL)('BetterAuthSessionManager (Neon test branch)
     it('returns the user of a valid session', async () => {
       await sessions.signIn({ email: EMAIL, password: PASSWORD });
 
-      await expect(sessions.current()).resolves.toEqual({ userId: expect.any(String), name: 'Test User' });
+      await expect(sessions.current()).resolves.toEqual({
+        userId: expect.any(String),
+        name: 'Test User',
+        email: EMAIL,
+      });
     });
 
     it('returns null without a cookie', async () => {

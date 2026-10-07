@@ -4,17 +4,16 @@ import { currentUser } from '@/application/use-cases/current-user';
 import { ok } from '@/shared/result';
 
 const sessionsWith = (user: SignedInUser | null): SessionManager => ({
-  signIn: async () => ok({ userId: 'unused', name: 'unused' }),
+  signIn: async () => ok({ userId: 'unused', name: 'unused', email: 'unused@example.test' }),
   signOut: async () => ({ userId: null }),
   current: async () => user,
 });
 
 describe('currentUser', () => {
   it('returns the user of a valid session', async () => {
-    await expect(currentUser({ sessions: sessionsWith({ userId: 'user-1', name: 'Ana' }) })).resolves.toEqual({
-      userId: 'user-1',
-      name: 'Ana',
-    });
+    const ana = { userId: 'user-1', name: 'Ana', email: 'ana@example.test' };
+
+    await expect(currentUser({ sessions: sessionsWith(ana) })).resolves.toEqual(ana);
   });
 
   it('returns null when there is no valid session', async () => {

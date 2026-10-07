@@ -7,7 +7,7 @@ import { ok } from '@/shared/result';
 const fakes = (userId: string | null) => {
   const events: AuditEvent[] = [];
   const sessions: SessionManager = {
-    signIn: async () => ok({ userId: 'unused', name: 'unused' }),
+    signIn: async () => ok({ userId: 'unused', name: 'unused', email: 'unused@example.test' }),
     signOut: async () => ({ userId }),
     current: async () => null,
   };

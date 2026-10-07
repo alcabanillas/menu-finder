@@ -5,7 +5,7 @@ import { signIn } from '@/application/use-cases/sign-in';
 import { err, ok, type Result } from '@/shared/result';
 
 const PASSWORD = 'a-long-enough-pass';
-const ANA: SignedInUser = { userId: 'user-1', name: 'Ana' };
+const ANA: SignedInUser = { userId: 'user-1', name: 'Ana', email: 'ana@example.test' };
 
 const fakes = (answer: Result<SignedInUser, SignInError> = ok(ANA)) => {
   const sent: Credentials[] = [];
