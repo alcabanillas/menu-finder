@@ -1,5 +1,5 @@
 import type pg from 'pg';
-import type { RepositoryReadError } from '@/application/ports/repository-error';
+import type { RepositoryError, RepositoryReadError } from '@/application/ports/repository-error';
 import type {
   MenuChoice,
   SelectionRepository,
@@ -28,6 +28,24 @@ const INSERT_SELECTION = `
   VALUES ($1, $2, $3::date)
   RETURNING id, menu_number, starts_on::text AS starts_on`;
 
+// The join on `selection.user_id` is what keeps one user from reading or writing the ticks of another's selection.
+// A selection id that is not a uuid makes Postgres throw, so it comes back as read-failed / write-failed.
+const CHECKED_POSITIONS = `
+  SELECT u.position
+  FROM user_shopping_item u
+  JOIN selection s ON s.id = u.selection_id
+  WHERE s.user_id = $1 AND s.id = $2::uuid AND u.checked
+  ORDER BY u.position`;
+
+// `GROUP BY` collapses repeated positions because ON CONFLICT DO UPDATE refuses to touch the same row twice in one statement.
+const SET_CHECKED = `
+  INSERT INTO user_shopping_item (selection_id, position, checked)
+  SELECT s.id, p, $4::boolean
+  FROM selection s, unnest($3::int[]) AS p
+  WHERE s.id = $2::uuid AND s.user_id = $1
+  GROUP BY s.id, p
+  ON CONFLICT (selection_id, position) DO UPDATE SET checked = EXCLUDED.checked`;
+
 type SelectionRow = { id: string; menu_number: number; starts_on: string };
 
 /** The users' menu selections in Postgres. Every query filters by the user, since there are no RLS policies yet. */
@@ -51,6 +69,31 @@ export class PostgresSelectionRepository implements SelectionRepository {
       return ok(toSelection(row));
     } catch (error) {
       return err(toWriteError(error));
+    }
+  }
+
+  /** The positions ticked in the user's selection; empty when none, or when the selection is not the user's. */
+  async checkedPositions(userId: string, selectionId: string): Promise<Result<number[], RepositoryReadError>> {
+    try {
+      const { rows } = await this.pool.query<{ position: number }>(CHECKED_POSITIONS, [userId, selectionId]);
+      return ok(rows.map((row) => row.position));
+    } catch (error) {
+      return err({ kind: 'read-failed', reason: describeDatabaseError(error) });
+    }
+  }
+
+  /** Sets the tick of those positions in the user's selection; does nothing when the selection is not the user's. */
+  async setChecked(
+    userId: string,
+    selectionId: string,
+    positions: number[],
+    checked: boolean,
+  ): Promise<Result<void, RepositoryError>> {
+    try {
+      await this.pool.query(SET_CHECKED, [userId, selectionId, positions, checked]);
+      return ok(undefined);
+    } catch (error) {
+      return err({ kind: 'write-failed', reason: describeDatabaseError(error) });
     }
   }
 }

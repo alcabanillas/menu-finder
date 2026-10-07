@@ -37,6 +37,7 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresMigrationRunner (Neon test branch)'
         '003-dish-text-search.sql',
         '004-shopping-list.sql',
         '005-selection.sql',
+        '006-user-shopping-item.sql',
       ],
     });
     expect(await runner.applied()).toEqual({ ok: true, value: [] });

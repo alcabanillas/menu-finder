@@ -151,6 +151,41 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresShoppingListRepository (Neon test b
     expect(rows).toEqual([]);
   });
 
+  it('find returns the items of the menu ordered by position, with quantity as a number', async () => {
+    await repository.saveAll([list4, list5]);
+
+    const result = await repository.find(4);
+
+    expect(result).toEqual({
+      ok: true,
+      value: [
+        { position: 1, category: 'Cárnicos y derivados', name: 'Pollo (pechuga)', quantity: 240, unit: 'g', optional: false },
+        { position: 2, category: 'Especias', name: 'Curry', quantity: null, unit: null, optional: false },
+      ],
+    });
+  });
+
+  it('find gives an empty list for a menu without a stored list', async () => {
+    await repository.saveAll([list5]);
+
+    expect(await repository.find(4)).toEqual({ ok: true, value: [] });
+  });
+
+  it('find reports read-failed when the table is missing', async () => {
+    const own = await createMigratedTestDatabase(TEST_DATABASE_URL!);
+    try {
+      // A table without the columns in the own schema keeps the query from falling through to `public`.
+      await own.pool.query('DROP TABLE shopping_item');
+      await own.pool.query('CREATE TABLE shopping_item (id uuid)');
+
+      const result = await new PostgresShoppingListRepository(own.pool).find(4);
+
+      expect(!result.ok && result.error.kind).toBe('read-failed');
+    } finally {
+      await own.drop();
+    }
+  }, 30_000);
+
   it('Names are data, never SQL', async () => {
     const maliciousList: ShoppingList = {
       menuNumber: 4,

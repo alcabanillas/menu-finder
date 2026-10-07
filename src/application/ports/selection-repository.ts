@@ -15,4 +15,13 @@ export interface SelectionRepository {
   listFrom(userId: string, from: LocalDate): Promise<Result<Selection[], RepositoryReadError>>;
   /** Stores the choice, replacing the user's selection of the same start date with a new one. */
   replace(userId: string, choice: MenuChoice): Promise<Result<Selection, SelectionWriteError>>;
+  /** The positions ticked in the user's selection; empty when none, or when the selection is not the user's. */
+  checkedPositions(userId: string, selectionId: string): Promise<Result<number[], RepositoryReadError>>;
+  /** Sets the tick of those positions in the user's selection; does nothing when the selection is not the user's. */
+  setChecked(
+    userId: string,
+    selectionId: string,
+    positions: number[],
+    checked: boolean,
+  ): Promise<Result<void, RepositoryError>>;
 }

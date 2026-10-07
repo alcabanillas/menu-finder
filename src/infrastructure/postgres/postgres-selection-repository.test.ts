@@ -1,7 +1,9 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { Day, Meal, WeeklyMenu } from '@/domain/menu/weekly-menu';
+import type { LocalDate } from '@/domain/selection/local-date';
 import { PostgresMenuRepository } from '@/infrastructure/postgres/postgres-menu-repository';
 import { PostgresSelectionRepository } from '@/infrastructure/postgres/postgres-selection-repository';
+import { PostgresShoppingListRepository } from '@/infrastructure/postgres/postgres-shopping-list-repository';
 import {
   createMigratedTestDatabase,
   TEST_DATABASE_URL,
@@ -145,12 +147,114 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresSelectionRepository (Neon test bran
     expect(await storedRows()).toEqual([{ user_id: OTHER_USER, menu_number: 12, starts_on: MONDAY }]);
   });
 
+  describe('ticks of the shopping list', () => {
+    const NO_SELECTION = '00000000-0000-4000-8000-000000000000';
+
+    const choose = async (userId: string, menuNumber: number, startsOn: LocalDate) => {
+      const result = await selections.replace(userId, { menuNumber, startsOn });
+      if (!result.ok) throw new Error('could not choose the menu');
+      return result.value.id;
+    };
+    const tickRows = async () =>
+      (
+        await db.pool.query<{ selection_id: string; position: number; checked: boolean }>(
+          'SELECT selection_id, position, checked FROM user_shopping_item ORDER BY selection_id, position',
+        )
+      ).rows;
+
+    it('ticked positions are read back in order', async () => {
+      const id = await choose(USER, 3, MONDAY);
+
+      const written = await selections.setChecked(USER, id, [5, 2], true);
+
+      expect(written).toEqual({ ok: true, value: undefined });
+      expect(await selections.checkedPositions(USER, id)).toEqual({ ok: true, value: [2, 5] });
+    });
+
+    it('unticking removes the position from the checked ones and stores checked = false', async () => {
+      const id = await choose(USER, 3, MONDAY);
+      await selections.setChecked(USER, id, [1, 2], true);
+
+      await selections.setChecked(USER, id, [1], false);
+
+      expect(await selections.checkedPositions(USER, id)).toEqual({ ok: true, value: [2] });
+      expect((await tickRows()).find((row) => row.position === 1)?.checked).toBe(false);
+    });
+
+    it('the same position twice stores one row', async () => {
+      const id = await choose(USER, 3, MONDAY);
+
+      await selections.setChecked(USER, id, [4, 4], true);
+      await selections.setChecked(USER, id, [4], true);
+
+      expect(await tickRows()).toEqual([{ selection_id: id, position: 4, checked: true }]);
+    });
+
+    it('another user’s selection id reads nothing and writes nothing', async () => {
+      const id = await choose(USER, 3, MONDAY);
+      await selections.setChecked(USER, id, [1], true);
+
+      const written = await selections.setChecked(OTHER_USER, id, [2], true);
+      const read = await selections.checkedPositions(OTHER_USER, id);
+
+      expect(written).toEqual({ ok: true, value: undefined });
+      expect(read).toEqual({ ok: true, value: [] });
+      expect(await tickRows()).toEqual([{ selection_id: id, position: 1, checked: true }]);
+    });
+
+    it('a selection that does not exist reads nothing and writes nothing', async () => {
+      expect(await selections.setChecked(USER, NO_SELECTION, [1], true)).toEqual({ ok: true, value: undefined });
+      expect(await selections.checkedPositions(USER, NO_SELECTION)).toEqual({ ok: true, value: [] });
+      expect(await tickRows()).toEqual([]);
+    });
+
+    it('an id that is not a uuid is a failure, not a crash', async () => {
+      const written = await selections.setChecked(USER, 'not-a-uuid', [1], true);
+      const read = await selections.checkedPositions(USER, 'not-a-uuid');
+
+      expect(!written.ok && written.error.kind).toBe('write-failed');
+      expect(!read.ok && read.error.kind).toBe('read-failed');
+    });
+
+    it('replacing the selection of that week drops the ticks', async () => {
+      const oldId = await choose(USER, 3, MONDAY);
+      await selections.setChecked(USER, oldId, [1, 2], true);
+
+      const newId = await choose(USER, 12, MONDAY);
+
+      expect(await tickRows()).toEqual([]);
+      expect(await selections.checkedPositions(USER, oldId)).toEqual({ ok: true, value: [] });
+      expect(await selections.checkedPositions(USER, newId)).toEqual({ ok: true, value: [] });
+    });
+
+    it('saving the same shopping list again keeps the ticks', async () => {
+      const id = await choose(USER, 3, MONDAY);
+      const list = { menuNumber: 3, items: [{ category: 'Especias', name: 'Curry', quantity: null, unit: null, optional: false }] };
+      const lists = new PostgresShoppingListRepository(db.pool);
+      await lists.saveAll([list]);
+      await selections.setChecked(USER, id, [1], true);
+
+      await lists.saveAll([list]);
+
+      expect(await selections.checkedPositions(USER, id)).toEqual({ ok: true, value: [1] });
+    });
+
+    it('the database refuses position 0', async () => {
+      const id = await choose(USER, 3, MONDAY);
+
+      const written = await selections.setChecked(USER, id, [0], true);
+
+      expect(!written.ok && written.error.kind).toBe('write-failed');
+      expect(await tickRows()).toEqual([]);
+    });
+  });
+
   it('reports read-failed and write-failed when the table is missing', async () => {
     const own = await createMigratedTestDatabase(TEST_DATABASE_URL!);
     try {
       // The search path ends in `public`, which may hold a migrated `selection` (the e2e run migrates it): a table
       // without the columns, in the own schema, keeps the queries from falling through to it.
-      await own.pool.query('DROP TABLE selection');
+      await own.pool.query('DROP TABLE selection CASCADE');
       await own.pool.query('CREATE TABLE selection (id uuid)');
       const broken = new PostgresSelectionRepository(own.pool);
 

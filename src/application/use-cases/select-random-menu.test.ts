@@ -31,6 +31,8 @@ const fakeSelections = (failure: 'none' | 'read' | 'unknown-menu' = 'none') => {
       stored.push({ userId, ...selection });
       return ok(selection);
     },
+    checkedPositions: async () => err({ kind: 'read-failed', reason: 'not used' }),
+    setChecked: async () => err({ kind: 'write-failed', reason: 'not used' }),
   };
   return { selections, stored };
 };
