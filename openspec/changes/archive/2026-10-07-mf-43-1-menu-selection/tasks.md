@@ -28,5 +28,13 @@
 
 ## 5. Close
 
-- [ ] 5.1 Before `archive`: go through the checklist of `context/safety-first.md` §4 and record the result here
-- [ ] 5.2 At archive: update `context/decisiones.md` ARQ-modelo-datos (`Selection` gains `id` and `startsOn`; active menu by date, current shopping list by next Monday) and mark MF-43.1 done in `context/roadmap.md`
+- [x] 5.1 Before `archive`: go through the checklist of `context/safety-first.md` §4 and record the result here
+  - Business rules in the backend: yes, the start date is computed by `startsOnFor` in the domain, never sent by the client
+  - New endpoints: none in this change; `selectMenu` takes `userId` as an argument and MF-43.2's server action must take it from the session (its spec has the negative scenarios)
+  - Minimum data: `Selection` exposes only `id`, `menuNumber` and `startsOn`; `user_id` and `selected_at` are not read
+  - No secrets in the diff; no new dependencies
+  - Parameterised queries: yes, every query in `postgres-selection-repository.ts` uses `$n`
+  - Unexpected values: `"12abc"`, `0`, `-3`, `1.5`, `"1.5"`, `undefined` and an unknown menu are rejected in tests
+  - Logs: choosing a menu is not a sensitive action; nothing logged
+  - Deviations from a MUST rule: none
+- [x] 5.2 At archive: update `context/decisiones.md` ARQ-modelo-datos (`Selection` gains `id` and `startsOn`; active menu by date, current shopping list by next Monday) and mark MF-43.1 done in `context/roadmap.md`
