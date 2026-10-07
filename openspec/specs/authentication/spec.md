@@ -295,7 +295,7 @@ Every route other than `/` and `/login` SHALL be protected. A protected route SH
 
 #### Scenario: A valid session
 - **WHEN** a request for `/planner` carries the cookie of a valid session
-- **THEN** the page renders and shows the name of the signed-in user and the sign-out control
+- **THEN** the page renders inside the app shell and shows the name of the signed-in user, and the sign-out control is in the account menu of the shell
 
 ### Requirement: The home shows the sign-in until the dashboard exists
 
