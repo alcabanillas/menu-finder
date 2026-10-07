@@ -1,9 +1,9 @@
--- MF-43.1 (openspec/changes/mf-43-1-menu-selection): the menus each user chooses and the Monday each one starts on.
+-- MF-43.1 (openspec/changes/archive/2026-10-07-mf-43-1-menu-selection): the menus each user chooses and the Monday each one starts on.
 -- The dates are the only state: no "current" flag, no history table (design D1). A surrogate id changes when the
 -- user replaces the menu of a week, so whatever hangs from a selection does not survive onto another menu.
--- The key to menu is DEFERRABLE INITIALLY DEFERRED (design D3): `pnpm ingest menu` deletes and reinserts the menus in
--- one transaction, so the key is checked at commit, when every menu number exists again. CASCADE would wipe every
--- user's selections on each load, and RESTRICT would make the load fail once anyone has chosen a menu.
+-- The key to menu is DEFERRABLE INITIALLY DEFERRED (design D3), chosen when `pnpm ingest menu` deleted and reinserted
+-- the menus. Since MF-52 the load keeps each menu row and replaces only its meals, so a plain key would also work; the
+-- deferred one stays because changing it needs a migration.
 -- Row-level security is enabled without policies: only the owner role reads and writes (policies in MF-48).
 
 CREATE TABLE selection (
