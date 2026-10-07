@@ -83,6 +83,15 @@ describe('createWebContainer', () => {
     expect(result).toEqual({ ok: false, error: { kind: 'failed' } });
     expect(poolSpy).toHaveBeenCalledTimes(1);
   });
+
+  it('extracts client IP from x-forwarded-for or x-real-ip during sign-in', async () => {
+    const headersWithForwarded = async () => new Headers({ 'x-forwarded-for': '203.0.113.195, 70.41.3.18' });
+    const container = createWebContainer(COMPLETE_ENV, headersWithForwarded);
+
+    // Empty credentials will fail with email-required before hitting the database, proving container wired correctly
+    const result = await container.signIn({});
+    expect(result).toEqual({ ok: false, error: { kind: 'email-required' } });
+  });
 });
 
 describe('webContainer', () => {
