@@ -1,6 +1,6 @@
 ## Context
 
-The visual reference is `ShellAccount` in `project/ui_kits/app/AppShell.jsx` (design system, artifact version `1791357207-74cb`), the same card as MF-51.1 in a later version of the design system. This change mounts it in the shell that `mf-51-1-app-shell-navigation` builds, so it comes after that change in the same branch; its spec adds a requirement to the `app-shell` spec that MF-51.1 creates, so MF-51.1 is archived first.
+The visual reference is `ShellAccount` in `project/ui_kits/app/AppShell.jsx` (design system, artifact version `1791357207-74cb`), the same card as MF-51.1 in a later version of the design system. Its `project/tokens.json` is identical to `design-system/tokens.json` (checked on 2026-10-07), so the copy of the tokens is not refreshed. This change mounts it in the shell that `mf-51-1-app-shell-navigation` builds, so it comes after that change in the same branch; its spec adds a requirement to the `app-shell` spec that MF-51.1 creates, so MF-51.1 is archived first.
 
 Today `SignedInUser` is `{ userId, name }` (`src/application/dto/signed-in-user.ts`); `toSignedInUser` in `BetterAuthSessionManager` copies those two fields from the library's user, which also has the email. `requireUser()` (`src/app/_session/require-user.ts`) reads the user in each page through `webContainer().currentUser()`, and `/planner` shows a `SignOutButton` that posts `signOutAction` (`src/app/_session/actions.ts`).
 
