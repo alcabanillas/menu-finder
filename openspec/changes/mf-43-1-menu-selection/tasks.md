@@ -24,7 +24,7 @@
 
 - [x] 4.1 Merge the two tracks; `selectMenu` and `currentSelections` in `web-container.ts` with `PostgresSelectionRepository` on the existing pool and `SystemClock`; extend `web-container.test.ts` so both are exposed and no variable is read before the first call
 - [x] 4.2 `pnpm typecheck`, `pnpm lint` (architecture rules, knip) and `pnpm test:run` pass; `pnpm test:coverage` meets the thresholds
-- [ ] 4.3 Apply `005-selection.sql` to the `dev` branch with `pnpm ingest migrate` (`context/decisiones.md` OPS-ramas-bd); not to `production`
+- [x] 4.3 Apply `005-selection.sql` to the `dev` branch with `pnpm ingest migrate` (`context/decisiones.md` OPS-ramas-bd); not to `production`
 
 ## 5. Close
 
