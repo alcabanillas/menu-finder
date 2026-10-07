@@ -5,7 +5,7 @@ import { requireUser } from '@/app/_session/require-user';
 import type { SelectRandomMenuFailure } from '@/application/use-cases/select-random-menu';
 import { webContainer } from '@/composition/web-container';
 import type { RandomMenuState } from '@/features/menu-planner/components/random-menu-form';
-import { formatMonday } from '@/features/menu-planner/format-monday';
+import { formatMonday } from '@/shared/format-monday';
 
 const MESSAGES: Record<SelectRandomMenuFailure['kind'], string> = {
   'no-menus': 'No hay menús para elegir.',

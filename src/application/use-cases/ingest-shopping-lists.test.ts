@@ -62,6 +62,7 @@ const fakeRepository = (result: Result<void, RepositoryError> = ok(undefined)) =
       saved.push(lists);
       return result;
     },
+    find: async () => err({ kind: 'read-failed', reason: 'not used' }),
   };
   return { repository, saved };
 };

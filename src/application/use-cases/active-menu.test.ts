@@ -56,6 +56,8 @@ const fakes = (rows: Row[], failure: Failure = 'none') => {
               .map(({ id, menuNumber, startsOn }) => ({ id, menuNumber, startsOn })),
           ),
     replace: async () => err({ kind: 'write-failed', reason: 'not used' }),
+    checkedPositions: async () => err({ kind: 'read-failed', reason: 'not used' }),
+    setChecked: async () => err({ kind: 'write-failed', reason: 'not used' }),
   };
   const menus: Pick<MenuRepository, 'find'> = {
     find: async (number) => {

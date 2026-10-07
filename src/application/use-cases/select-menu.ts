@@ -17,7 +17,7 @@ type Deps = { selections: SelectionRepository; clock: Clock };
 const positiveSafeInteger = z.number().int().positive().max(Number.MAX_SAFE_INTEGER);
 
 // A form sends strings: only digits are accepted, so "12abc" and "1.5" are refused instead of half-parsed.
-const menuNumberSchema = z.union([
+export const positiveIntegerInput = z.union([
   positiveSafeInteger,
   z
     .string()
@@ -34,7 +34,7 @@ export async function selectMenu(
   { selections, clock }: Deps,
   { userId, menuNumber }: SelectMenuInput,
 ): Promise<Result<Selection, SelectMenuFailure>> {
-  const parsed = menuNumberSchema.safeParse(menuNumber);
+  const parsed = positiveIntegerInput.safeParse(menuNumber);
   if (!parsed.success) return err({ kind: 'invalid-menu' });
 
   const today = clock.today();

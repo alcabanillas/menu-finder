@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatMonday } from '@/features/menu-planner/format-monday';
+import { formatMonday } from '@/shared/format-monday';
 
 describe('formatMonday', () => {
   it.each([

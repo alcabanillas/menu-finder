@@ -8,6 +8,9 @@ export type ShoppingItem = {
   optional: boolean;
 };
 
+/** An item as stored: its position, from 1, is its order in the PDF and stays the same when the same PDF is loaded again. */
+export type StoredShoppingItem = ShoppingItem & { position: number };
+
 export type ShoppingList = {
   menuNumber: number;
   items: ShoppingItem[];

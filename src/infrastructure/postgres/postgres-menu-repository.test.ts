@@ -3,6 +3,7 @@ import type { MenuDish, WeeklyMenu } from '@/domain/menu/weekly-menu';
 import type { Recipe } from '@/domain/recipe/recipe';
 import { PostgresMenuRepository } from '@/infrastructure/postgres/postgres-menu-repository';
 import { PostgresRecipeRepository } from '@/infrastructure/postgres/postgres-recipe-repository';
+import { PostgresShoppingListRepository } from '@/infrastructure/postgres/postgres-shopping-list-repository';
 import {
   createMigratedTestDatabase,
   TEST_DATABASE_URL,
@@ -61,6 +62,9 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresMenuRepository (Neon test branch)',
       )
     ).rows;
   const menuNumbers = async () => (await db.pool.query('SELECT number FROM menu ORDER BY number')).rows;
+  // Read with SQL: `ShoppingListRepository` has no read method yet, and none is added for a test (design D2).
+  const shoppingItems = async () =>
+    (await db.pool.query('SELECT * FROM shopping_item ORDER BY menu_number, position')).rows;
 
   async function brokenDatabase(): Promise<TestDatabase> {
     const own = await createMigratedTestDatabase(TEST_DATABASE_URL!);
@@ -106,6 +110,35 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresMenuRepository (Neon test branch)',
     expect((await dishes()).map(({ menu_number, recipe_key }) => [menu_number, recipe_key])).toEqual([
       [1, 'Tortilla'],
       [2, 'Tortilla'],
+    ]);
+  });
+
+  it('keeps the shopping list of a menu saved again', async () => {
+    await menus.saveAll([menu(4, [dish(1, 'Tortilla de patata', 'Tortilla')])]);
+    await new PostgresShoppingListRepository(db.pool).saveAll([
+      {
+        menuNumber: 4,
+        items: [
+          { category: 'Verduras', name: 'Patata', quantity: 500, unit: 'g', optional: false },
+          { category: 'Otros', name: 'Pan', quantity: null, unit: null, optional: true },
+        ],
+      },
+    ]);
+    const before = await shoppingItems();
+
+    await menus.saveAll([menu(4, [dish(1, 'Crema', 'Crema')])]);
+
+    expect(before).toHaveLength(2);
+    expect(await shoppingItems()).toEqual(before);
+  });
+
+  it('leaves only the new dishes of a menu saved again', async () => {
+    await menus.saveAll([menu(4, [dish(1, 'Tortilla de patata', 'Tortilla'), dish(2, 'Fruta', null)])]);
+
+    await menus.saveAll([menu(4, [dish(1, 'Crema', 'Crema')])]);
+
+    expect((await dishes()).map(({ menu_number, type, name }) => [menu_number, type, name])).toEqual([
+      [4, 'lunch', 'Crema'],
     ]);
   });
 
