@@ -27,4 +27,14 @@
 
 - [x] 5.1 Capture `/planner` at 375 px and 1160 px after choosing. Done on the production build against the `test` branch with a fictitious account (signing in on `dev` needs a real password); the message was left-aligned under the centred button on mobile, now centred; nothing else clashes
 - [x] 5.2 `pnpm typecheck`, `pnpm lint`, `pnpm test:run`, `pnpm test:coverage` and `pnpm build` pass
-- [ ] 5.3 Before `archive`: the checklist of `context/safety-first.md` §4, with the result recorded here; mark MF-43.2 and MF-43 done in `context/roadmap.md`
+- [x] 5.3 Before `archive`: the checklist of `context/safety-first.md` §4, with the result recorded here; mark MF-43.2 and MF-43 done in `context/roadmap.md`
+  - Business rules in the backend: yes, the menu is picked and its Monday computed on the server
+  - The new endpoint (`chooseRandomMenuAction`) checks the session first and reads no field of the request; `protected-pages.test.ts` fails for an action under `(app)/` without `requireUser()`
+  - User from the session: yes; "Fields in the request are ignored" is tested
+  - Negative authorization tests in CI: "Choosing without a session" in `actions.test.ts` and in `e2e/planner.spec.ts`
+  - Minimum data: the page gets only the menu number and Monday of each selection
+  - No secrets in the diff; no new dependencies
+  - Parameterised queries: no new production queries; the e2e queries use `$n`
+  - Unexpected values: the action takes no input; extra fields are ignored (tested)
+  - Logs: choosing a menu is not a sensitive action; nothing logged
+  - Deviations from a MUST rule: no mock of the screen (UI-design-system), chosen by the author on 2026-10-07 (design D1)
