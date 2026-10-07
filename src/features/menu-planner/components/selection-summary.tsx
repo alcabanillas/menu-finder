@@ -2,7 +2,7 @@ import type {
   CurrentSelectionsDto,
   SelectionSummaryDto,
 } from '@/application/dto/selection-summary';
-import { formatMonday } from '@/features/menu-planner/format-monday';
+import { formatMonday } from '@/shared/format-monday';
 
 type SelectionSummaryProps = { selections: CurrentSelectionsDto | null };
 

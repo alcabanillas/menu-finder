@@ -28,6 +28,8 @@ const fakeSelections = (rows: Row[]) => {
       );
     },
     replace: async () => err({ kind: 'write-failed', reason: 'not used' }),
+    checkedPositions: async () => err({ kind: 'read-failed', reason: 'not used' }),
+    setChecked: async () => err({ kind: 'write-failed', reason: 'not used' }),
   };
   return { selections, asked };
 };
@@ -62,6 +64,8 @@ describe('currentSelections', () => {
     const selections: SelectionRepository = {
       listFrom: async () => err({ kind: 'read-failed', reason: 'connection refused' }),
       replace: async () => err({ kind: 'write-failed', reason: 'not used' }),
+      checkedPositions: async () => err({ kind: 'read-failed', reason: 'not used' }),
+      setChecked: async () => err({ kind: 'write-failed', reason: 'not used' }),
     };
 
     const result = await currentSelections({ selections, clock: fixedClock('2026-10-07') }, { userId: ANA });

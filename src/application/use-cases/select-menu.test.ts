@@ -37,6 +37,8 @@ const fakeSelections = (initial: Row[] = [], failure: Failure = 'none') => {
       rows = [...rows.filter((r) => !(r.userId === userId && r.startsOn === choice.startsOn)), row];
       return ok({ id: row.id, menuNumber: row.menuNumber, startsOn: row.startsOn });
     },
+    checkedPositions: async () => err({ kind: 'read-failed', reason: 'not used' }),
+    setChecked: async () => err({ kind: 'write-failed', reason: 'not used' }),
   };
   return { selections, replaced, rowsOf: (userId: string) => rows.filter((row) => row.userId === userId) };
 };

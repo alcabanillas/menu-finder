@@ -1,12 +1,21 @@
+import { checkItemsAction } from '@/app/(app)/shopping-list/actions';
 import { requireUser } from '@/app/_session/require-user';
+import { webContainer } from '@/composition/web-container';
+import { ChecklistMessage } from '@/features/shopping-list/components/checklist-message';
+import { ShoppingChecklist } from '@/features/shopping-list/components/shopping-checklist';
 
-/** `/shopping-list`: protected, inside the app shell (MF-51.1). A placeholder until MF-24 shows the shopping list. */
-export default async function ShoppingListPage() {
-  await requireUser();
-  return (
-    <div className="flex flex-col items-center justify-center gap-6 px-5 py-16">
-      <h1 className="text-2xl font-extrabold">Compra</h1>
-      <p>Aquí verás la lista de la compra.</p>
-    </div>
-  );
+type ShoppingListPageProps = { searchParams: Promise<{ vista?: string | string[] }> };
+
+/**
+ * `/shopping-list`: protected, inside the app shell. The current selection's shopping list as a checklist (MF-24);
+ * `?vista=por-comprar` hides what is ticked, any other value shows everything.
+ */
+export default async function ShoppingListPage({ searchParams }: ShoppingListPageProps) {
+  const user = await requireUser();
+  const { vista } = await searchParams;
+  const result = await webContainer().shoppingChecklist({ userId: user.userId });
+  if (!result.ok) return <ChecklistMessage text="No se ha podido cargar la lista. Inténtalo de nuevo." />;
+  if (!result.value) return <ChecklistMessage text="Aún no has elegido menú." link={{ href: '/planner', label: 'Elegir menú' }} />;
+  if (result.value.total === 0) return <ChecklistMessage text="La lista de este menú no está disponible." />;
+  return <ShoppingChecklist checklist={result.value} view={vista === 'por-comprar' ? 'pending' : 'all'} action={checkItemsAction} />;
 }
