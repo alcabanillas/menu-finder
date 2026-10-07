@@ -2,7 +2,7 @@
 
 Roadmap item **MF-51.2**, the second and last subtask of MF-51 (after `mf-51-1-app-shell-navigation`, which builds the shell and its navigation). The shell of the mock has an account button that opens a panel with the signed-in user's email and "Cerrar sesión". Until now `/planner` has its own loose sign-out button, which cannot be on every screen of the shell.
 
-The visual reference is the same as in MF-51.1: the design system's shell (`project/ui_kits/app/AppShell.jsx`, component `ShellAccount`, artifact version `1791272018-0feb`), following `context/decisiones.md` UI-design-system.
+The visual reference is the same card as in MF-51.1, in a later version: the design system's shell (`project/ui_kits/app/AppShell.jsx`, component `ShellAccount`, artifact version `1791357207-74cb`), following `context/decisiones.md` UI-design-system.
 
 **Result:** the account button in the header opens a panel with the user's email and "Cerrar sesión", and `/planner` no longer has a sign-out button of its own.
 
