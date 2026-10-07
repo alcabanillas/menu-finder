@@ -18,7 +18,7 @@ import type {
 import type { DocumentSource, MenuFolder } from '@/application/ports/document-source';
 import type { RecipeRepository } from '@/application/ports/recipe-repository';
 
-export type IngestRecipesDeps = { source: DocumentSource; recipes: RecipeRepository };
+export type IngestRecipesDeps = { source: DocumentSource; recipes: Pick<RecipeRepository, 'saveAll'> };
 
 const NO_UNIT = 'none';
 

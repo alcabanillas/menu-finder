@@ -33,4 +33,9 @@ export class JsonFileMenuRepository implements MenuRepository {
       return err({ kind: 'read-failed', reason: error instanceof Error ? error.message : String(error) });
     }
   }
+
+  async find(number: number): Promise<Result<WeeklyMenu | null, RepositoryReadError>> {
+    const menus = await this.list();
+    return menus.ok ? ok(menus.value.find((menu) => menu.number === number) ?? null) : menus;
+  }
 }

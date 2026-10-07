@@ -52,6 +52,19 @@ describe('JsonFileRecipeRepository', () => {
     expect((await readSaved()).map((recipe: Recipe) => recipe.file)).toEqual(['Guiso-de-prueba']);
   });
 
+  it('finds only the recipes of the files asked for', async () => {
+    const repository = new JsonFileRecipeRepository(dataDir);
+    await repository.saveAll([RECIPE, { ...RECIPE, file: 'Otro' }]);
+
+    expect(await repository.findByFiles(['Guiso-de-prueba', 'Missing'])).toEqual(ok([RECIPE]));
+  });
+
+  it('returns an error instead of throwing when there is no file to read', async () => {
+    const result = await new JsonFileRecipeRepository(dataDir).findByFiles(['Guiso-de-prueba']);
+
+    expect(result).toMatchObject({ ok: false, error: { kind: 'read-failed' } });
+  });
+
   it('returns an error instead of throwing when the file cannot be written', async () => {
     const result = await new JsonFileRecipeRepository(join(dataDir, 'missing', 'dir')).saveAll([RECIPE]);
 

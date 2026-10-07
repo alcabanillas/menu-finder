@@ -26,12 +26,14 @@ const INSERT_DISHES = `
     AS r(menu_number int, day text, type text, position int, name text, has_recipe_mark boolean, recipe_key text)`;
 
 // Every meal, with its dishes if it has any, in the order of `WeeklyMenu`: week days, lunch before dinner, positions.
-const SELECT_MENUS = `
+const SELECT_MEALS = `
   SELECT m.menu_number, m.day, m.type, d.position, d.name, d.has_recipe_mark, r.file
   FROM meal m
   LEFT JOIN menu_dish d ON (d.menu_number, d.day, d.type) = (m.menu_number, m.day, m.type)
-  LEFT JOIN recipe r ON r.key = d.recipe_key
-  ORDER BY m.menu_number, array_position($1::text[], m.day), array_position($2::text[], m.type), d.position`;
+  LEFT JOIN recipe r ON r.key = d.recipe_key`;
+const ORDER_MEALS = 'ORDER BY m.menu_number, array_position($1::text[], m.day), array_position($2::text[], m.type), d.position';
+const SELECT_MENUS = `${SELECT_MEALS} ${ORDER_MEALS}`;
+const SELECT_MENU = `${SELECT_MEALS} WHERE m.menu_number = $3 ${ORDER_MEALS}`;
 
 const WEEK_DAYS: Day[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 const MEAL_TYPES: MealType[] = ['lunch', 'dinner'];
@@ -55,6 +57,15 @@ export class PostgresMenuRepository implements MenuRepository {
     try {
       const { rows } = await this.pool.query<MenuRow>(SELECT_MENUS, [WEEK_DAYS, MEAL_TYPES]);
       return ok(toWeeklyMenus(rows));
+    } catch (error) {
+      return err({ kind: 'read-failed', reason: describeDatabaseError(error) });
+    }
+  }
+
+  async find(number: number): Promise<Result<WeeklyMenu | null, RepositoryReadError>> {
+    try {
+      const { rows } = await this.pool.query<MenuRow>(SELECT_MENU, [WEEK_DAYS, MEAL_TYPES, number]);
+      return ok(toWeeklyMenus(rows)[0] ?? null);
     } catch (error) {
       return err({ kind: 'read-failed', reason: describeDatabaseError(error) });
     }

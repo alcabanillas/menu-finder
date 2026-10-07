@@ -1,6 +1,6 @@
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { RepositoryError } from '@/application/ports/repository-error';
+import type { RepositoryError, RepositoryReadError } from '@/application/ports/repository-error';
 import type { RecipeRepository } from '@/application/ports/recipe-repository';
 import type { Recipe } from '@/domain/recipe/recipe';
 import { err, ok, type Result } from '@/shared/result';
@@ -21,6 +21,17 @@ export class JsonFileRecipeRepository implements RecipeRepository {
       return ok(undefined);
     } catch (error) {
       return err({ kind: 'write-failed', reason: error instanceof Error ? error.message : String(error) });
+    }
+  }
+
+  /** The recipes of the files asked for. The file is the one `saveAll` writes, so its shape is trusted. */
+  async findByFiles(files: string[]): Promise<Result<Recipe[], RepositoryReadError>> {
+    try {
+      const recipes = JSON.parse(await readFile(join(this.dataDir, RECIPE_DATASET_FILE), 'utf8')) as Recipe[];
+      const wanted = new Set(files);
+      return ok(recipes.filter(({ file }) => wanted.has(file)));
+    } catch (error) {
+      return err({ kind: 'read-failed', reason: error instanceof Error ? error.message : String(error) });
     }
   }
 }

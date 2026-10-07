@@ -15,8 +15,7 @@ const LAST_RANDOM = 0.999_999;
 
 const fixedClock: Clock = { today: () => MONDAY };
 
-const fakeMenus = (numbers: number[], fails = false): MenuRepository => ({
-  saveAll: async () => ok(undefined),
+const fakeMenus = (numbers: number[], fails = false): Pick<MenuRepository, 'list'> => ({
   list: async () =>
     fails ? err({ kind: 'read-failed', reason: 'connection refused' }) : ok(numbers.map((number) => ({ number, meals: [] }))),
 });

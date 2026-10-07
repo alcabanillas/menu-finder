@@ -59,12 +59,16 @@ test.describe('with a session', () => {
   });
 
   // Spec app-shell, "The Menú and Compra tabs lead to a page".
-  for (const [tab, path] of [['Menú', '/menu'], ['Compra', '/shopping-list']]) {
+  // `/menu` heads with its menu number when there is one ("Menú 3"); `/shopping-list` with "Lista de la compra".
+  for (const [tab, path, heading] of [
+    ['Menú', '/menu', /^Menú/],
+    ['Compra', '/shopping-list', /^Lista de la compra$/],
+  ] as const) {
     test(`the ${tab} tab leads to a page inside the shell, marked as current`, async ({ page }) => {
       await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: tab }).click();
 
       await expect(page).toHaveURL(path);
-      await expect(page.getByRole('main').getByRole('heading', { name: tab })).toBeVisible();
+      await expect(page.getByRole('main').getByRole('heading', { level: 1, name: heading })).toBeVisible();
       await expect(page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: tab })).toHaveAttribute(
         'aria-current',
         'page',

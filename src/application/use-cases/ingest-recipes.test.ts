@@ -47,7 +47,7 @@ const fakeSource = (menus: Record<number, Record<string, FakeFile>>) => {
 
 const fakeRepository = (result: Result<void, RepositoryError> = ok(undefined)) => {
   const saved: Recipe[][] = [];
-  const repository: RecipeRepository = {
+  const repository: Pick<RecipeRepository, 'saveAll'> = {
     saveAll: async (recipes) => {
       saved.push(recipes);
       return result;
