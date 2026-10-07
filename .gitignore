@@ -56,4 +56,4 @@ next-env.d.ts
 
 # Agent working checklist (global CLAUDE.md, Loops): local state, never committed.
 # Anchored to the root: git on Windows ignores case, and a bare TASKS.md also hid openspec/changes/*/tasks.md.
-/TASKS.md
+.claude/launch.json
