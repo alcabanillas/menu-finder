@@ -74,7 +74,7 @@ function normalizeEmail(email: unknown): unknown {
 
 function rateLimitKey(clientIp = 'unknown', email: unknown): string {
   const account = typeof email === 'string' && email.trim() !== ''
-    ? email.normalize('NFC').trim().toLowerCase()
+    ? email.normalize('NFC').trim().toLowerCase().replaceAll('\u0000', '\\0')
     : 'anonymous';
   return `login:failed:${clientIp}:${account}`;
 }

@@ -11,11 +11,12 @@ export class PostgresRateLimiter implements RateLimiter {
 
   /** Checks whether the given key is currently blocked without recording an attempt. */
   async check(key: string, limit: number): Promise<RateLimitStatus> {
+    const safeKey = sanitizeKey(key);
     const { rows } = await this.pool.query<BucketRow>(
       `SELECT count, expires_at
        FROM rate_limit_bucket
        WHERE key = $1 AND expires_at >= NOW()`,
-      [key],
+      [safeKey],
     );
 
     if (rows.length === 0) {
@@ -32,6 +33,7 @@ export class PostgresRateLimiter implements RateLimiter {
   async hit(key: string, { limit, windowSeconds }: RateLimitOptions): Promise<RateLimitStatus> {
     await this.purgeStaleRecords();
 
+    const safeKey = sanitizeKey(key);
     const { rows } = await this.pool.query<BucketRow>(
       `INSERT INTO rate_limit_bucket (key, count, expires_at, updated_at)
        VALUES ($1, 1, NOW() + ($2 || ' seconds')::interval, NOW())
@@ -46,7 +48,7 @@ export class PostgresRateLimiter implements RateLimiter {
            END,
            updated_at = NOW()
        RETURNING count, expires_at`,
-      [key, windowSeconds],
+      [safeKey, windowSeconds],
     );
 
     const { count, expires_at: resetAt } = rows[0];
@@ -57,10 +59,16 @@ export class PostgresRateLimiter implements RateLimiter {
 
   /** Resets or clears the bucket for a key (e.g. after a successful sign-in). */
   async reset(key: string): Promise<void> {
-    await this.pool.query('DELETE FROM rate_limit_bucket WHERE key = $1', [key]);
+    const safeKey = sanitizeKey(key);
+    await this.pool.query('DELETE FROM rate_limit_bucket WHERE key = $1', [safeKey]);
   }
 
   private async purgeStaleRecords(): Promise<void> {
     await this.pool.query("DELETE FROM rate_limit_bucket WHERE expires_at < NOW() - INTERVAL '1 day'");
   }
+}
+
+/** PostgreSQL rejects null bytes (\0) in UTF-8 text strings; sanitize keys before database queries. */
+function sanitizeKey(key: string): string {
+  return key.replaceAll('\u0000', '\\0');
 }

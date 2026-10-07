@@ -75,7 +75,7 @@ describe('signIn', () => {
     expect(result).toEqual(err({ kind: 'wrong-credentials' }));
     expect(sent).toEqual([]);
     expect(events).toEqual([{ type: 'sign-in-refused', reason: 'invalid-input', at: expect.any(Date) }]);
-    expect(rateLimitHits).toEqual(['login:failed:192.168.1.50:ana\u0000@example.test']);
+    expect(rateLimitHits).toEqual(['login:failed:192.168.1.50:ana\\0@example.test']);
   });
 
   it('blocks sign-in when the IP and account combination has reached the rate limit', async () => {

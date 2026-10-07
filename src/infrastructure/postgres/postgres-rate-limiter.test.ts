@@ -121,4 +121,21 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresRateLimiter (Neon test branch)', ()
     const { rows: recentRows } = await db.pool.query('SELECT key FROM rate_limit_bucket WHERE key = $1', [recentKey]);
     expect(recentRows).toHaveLength(1);
   });
+
+  it('safely handles keys with null characters without PostgreSQL encoding errors', async () => {
+    const keyWithNull = 'login:failed:192.168.1.10:ana\u0000@example.test';
+
+    const check = await limiter.check(keyWithNull, LIMIT);
+    expect(check.allowed).toBe(true);
+
+    const hit = await limiter.hit(keyWithNull, { limit: LIMIT, windowSeconds: WINDOW_SECONDS });
+    expect(hit.allowed).toBe(true);
+    expect(hit.remaining).toBe(LIMIT - 1);
+
+    await limiter.reset(keyWithNull);
+    const afterReset = await limiter.check(keyWithNull, LIMIT);
+    expect(afterReset.allowed).toBe(true);
+    expect(afterReset.remaining).toBe(LIMIT);
+  });
 });
+
