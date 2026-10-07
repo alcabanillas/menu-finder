@@ -11,6 +11,7 @@ The visual reference is the same as in MF-51.1: the design system's shell (`proj
 - **Account menu**, on `/` and on every protected page: a button "Cuenta" in the header that opens a small panel with the signed-in user's email and the control "Cerrar sesión". It closes with Escape (focus goes back to the button) and with a click outside.
 - **The signed-in user gains its email**: `SignedInUser` carries it, the layout reads the user only to show it in the menu, and the read is shared with each page's own check so there is one session lookup per request.
 - **`/planner` loses its sign-out button**: the account menu replaces it, and `SignOutButton` is deleted with its test.
+- **The shell takes its variant from the account**: `AppShell` loses the prop `session` that MF-51.1 added; with an account it is the variant with a session, without one the variant with no session, so the two cannot disagree.
 - **Left out**: the "por comprar" badge (MF-24) and the route that mounts the signed-out variant with "Acceder", which MF-51.1 builds (MF-25, UI-home-sin-login).
 
 ## Capabilities
@@ -19,7 +20,7 @@ The visual reference is the same as in MF-51.1: the design system's shell (`proj
 - None.
 
 ### Modified Capabilities
-- `app-shell` (created by MF-51.1): one new requirement, the account menu.
+- `app-shell` (created by MF-51.1): one new requirement, the account menu; and "The shell has a variant for no session" is replaced by "The shell takes its variant from the account": the variant with a session is no longer the default when nothing is said.
 - `authentication`: one scenario of "Protected routes require a session checked on the server". With a valid session, `/planner` now shows the name of the user and the sign-out control is in the account menu of the shell, not on the page. The requirement itself does not change.
 
 ## Impact

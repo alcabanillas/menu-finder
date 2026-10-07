@@ -14,6 +14,9 @@
 - [x] 3.2 GREEN: `app-shell.tsx` takes `email` and `signOutAction` and mounts the menu; `(app)/layout.tsx` reads the user for the email and passes both, and so does `src/app/page.tsx` for `/` with a session (design D1); `planner/page.tsx` loses `SignOutButton`, which is deleted with its test (design D3); the tests pass, and `protected-pages.test.ts` passes without changes
 - [x] 3.3 Verify `pnpm typecheck`, `pnpm lint` (including the architecture rules and knip) and `pnpm test:run`
 
+- [x] 3.4 RED: in `app-shell.test.tsx`, the shell without an account has "Acceder", no navigation "Principal" and no button "Cuenta"; with an account it has the navigation and "Cuenta" and no "Acceder"; the tests that pass `session` are rewritten without it; see the one without an account fail (today it draws the navigation)
+- [x] 3.5 GREEN: `AppShell` loses `session` and is signed in when it has an `account` (design D5); the comments of `app-shell.tsx` and `(app)/layout.tsx` say so; `pnpm typecheck`, `pnpm lint` and `pnpm test:run` pass, and `pnpm test:e2e` still passes (the access tests assert the 307 and no user data, not the frame)
+
 ## 4. End-to-end (design D4)
 
 - [x] 4.1 RED: in `e2e/app-shell.spec.ts`, the menu scenarios ("Closed by default", "The home of a signed-in user has the menu too", "Open", "Escape closes the panel and returns the focus", "The menu shows the email and no other user data", "Signing out from the menu"); in `e2e/sign-in.spec.ts`, the sign-out test opens the menu first; see them fail before 3.2

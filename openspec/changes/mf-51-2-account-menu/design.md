@@ -17,7 +17,7 @@ Today `SignedInUser` is `{ userId, name }` (`src/application/dto/signed-in-user.
 ## Decisions
 
 ### D1. The layout reads the user only to show it; one session read per request
-`SignedInUser` gains `email`, set in `toSignedInUser`. `src/app/(app)/layout.tsx` calls `currentUser()` and passes the email, with `signOutAction`, to the shell. It does not call `requireUser()` or redirect: authorization stays in each page (MF-20.3 D6), and the comment MF-51.1 left in the layout now says that the read is for the email only. Without a session the layout shows no email and the page redirects as always.
+`SignedInUser` gains `email`, set in `toSignedInUser`. `src/app/(app)/layout.tsx` calls `currentUser()` and passes the email, with `signOutAction`, to the shell. It does not call `requireUser()` or redirect: authorization stays in each page (MF-20.3 D6), and the comment MF-51.1 left in the layout now says that the read is for the email only. Without a session the layout gives the shell no account, so the shell is in its variant with no session (D5), and the page redirects as always before the browser draws anything.
 
 To avoid two lookups per request, `src/app/_session/` wraps the read in React's `cache()` (the pattern of Next's authentication guide, `01-app/02-guides/authentication.md`), and `requireUser()` and the layout share it. The layout does not run again on client navigation, so its email is the one of the first render: the user does not change during a session, and a revoked session is caught by the next page, which does run its own check.
 
@@ -34,6 +34,13 @@ It needs JavaScript to open: without it "Cerrar sesión" cannot be reached, whic
 
 ### D3. `/planner` loses its sign-out button
 `SignOutButton` and its test are deleted (knip would report them unused). The heading "Hola, {name}" stays: the sign-in end-to-end test looks for it.
+
+### D5. The shell takes its variant from the account, not from a `session` prop
+MF-51.1 D10 gave `AppShell` a prop `session?: 'in' | 'out'`, `'in'` by default. With `account` added, the two props say the same thing twice and allow states that make no sense: `session="in"` without an account draws a shell with no way to sign out, and `session="out"` with an account ignores it, and the types accept both. So `session` goes: `AppShell` takes `account?: Account`, and it is signed in exactly when there is an account. This replaces the requirement "The shell has a variant for no session" of `app-shell` with "The shell takes its variant from the account" (delta in this change): the variant with a session is no longer the default when nothing is said.
+
+Without a session, the `(app)` layout now renders the variant with no session ("Acceder") instead of the navigation without an account. The page redirects first (307), so the browser never draws it; the frame only travels in the redirect's data, as MF-51.1 D9 found. MF-25 will mount the variant with no session on `/` by rendering `<AppShell>` without an account.
+
+Alternative: a boolean `signedIn`, `true` by default. Rejected: it keeps two sources of truth, and a boolean prop that is `true` when omitted goes against the React convention (`disabled`, `hidden` are `false` when omitted). Alternative: a discriminated union `{ session: 'in'; account } | { session: 'out' }`. Rejected: it makes the impossible states unrepresentable too, but with one more prop than needed.
 
 ### D4. End-to-end tests
 `e2e/sign-in.spec.ts`: the sign-out test opens the menu "Cuenta" first, and after signing out it also checks that the redirect for `/planner` with the old cookie has no email in its body (the account exists, so a leak would show; the test needs the database). `e2e/app-shell.spec.ts` gains the menu scenarios: closed by default, open with the email of the test account on `/planner` and on `/`, Escape returns the focus, and sign-out ends on `/` with the old cookie sent to `/login`.

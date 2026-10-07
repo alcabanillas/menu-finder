@@ -55,26 +55,16 @@ describe('AppShell', () => {
     expect(screen.getByRole('button', { name: 'Cerrar sesión' })).toBeInTheDocument();
   });
 
-  it('has no account button when it is given no account', () => {
-    render(
-      <AppShell>
-        <h1>Contenido de la página</h1>
-      </AppShell>,
-    );
-
-    expect(screen.queryByRole('button', { name: 'Cuenta' })).not.toBeInTheDocument();
-  });
-
-  it('has no sign-in link when it is not told that there is no session', () => {
+  it('has no sign-in link when it is given an account', () => {
     renderShell();
 
     expect(screen.queryByRole('link', { name: 'Acceder' })).not.toBeInTheDocument();
   });
 
-  describe('for a visitor with no session', () => {
+  describe('without an account, for a visitor with no session', () => {
     function renderSignedOutShell() {
       return render(
-        <AppShell session="out">
+        <AppShell>
           <h1>Contenido de la página</h1>
         </AppShell>,
       );

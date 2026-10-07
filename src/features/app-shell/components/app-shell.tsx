@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { AccountMenu, type Account } from '@/features/app-shell/components/account-menu';
 import { NavList } from '@/features/app-shell/components/nav-list';
 
-type AppShellProps = { children: ReactNode; session?: 'in' | 'out'; account?: Account };
+type AppShellProps = { children: ReactNode; account?: Account };
 
 const MAIN_ID = 'contenido';
 
@@ -26,12 +26,11 @@ const SIGN_IN_LINK =
 
 /**
  * The frame of every page with a session: skip link, header with the wordmark and the main navigation, the content
- * area and, on a phone, the navigation as a bar at the bottom. With `session="out"` it is the frame of a visitor: the
- * wordmark and a link to sign in, no navigation (design D10). It reads no session (design D1): the caller says which,
- * and gives the `account` (the email and the sign-out action) for the menu of the header (design D1 of MF-51.2).
+ * area and, on a phone, the navigation as a bar at the bottom. It reads no session (design D1): the caller gives the
+ * `account` (the email and the sign-out action) for the menu of the header. Without one it is the frame of a visitor:
+ * the wordmark and a link to sign in, no navigation (design D5 of MF-51.2).
  */
-export function AppShell({ children, session = 'in', account }: AppShellProps) {
-  const signedIn = session === 'in';
+export function AppShell({ children, account }: AppShellProps) {
   return (
     <div className="flex min-h-dvh flex-col bg-surface-page text-text-body">
       <a href={`#${MAIN_ID}`} className={SKIP_LINK}>
@@ -42,26 +41,26 @@ export function AppShell({ children, session = 'in', account }: AppShellProps) {
           <Link href="/" className={WORDMARK}>
             Menu <i className="text-olive-600">Finder</i>
           </Link>
-          {signedIn ? (
-            <nav aria-label="Principal" className="hidden h-full flex-1 sm:block">
-              <NavList placement="header" />
-            </nav>
+          {account ? (
+            <>
+              <nav aria-label="Principal" className="hidden h-full flex-1 sm:block">
+                <NavList placement="header" />
+              </nav>
+              <div className="ml-auto">
+                <AccountMenu {...account} />
+              </div>
+            </>
           ) : (
             <Link href="/login" className={SIGN_IN_LINK}>
               Acceder
             </Link>
-          )}
-          {signedIn && account && (
-            <div className="ml-auto">
-              <AccountMenu {...account} />
-            </div>
           )}
         </div>
       </header>
       <main id={MAIN_ID} tabIndex={-1} className="@container flex-1 focus:outline-none">
         {children}
       </main>
-      {signedIn && (
+      {account && (
         <nav
           aria-label="Principal"
           className="sticky bottom-0 z-10 border-t border-border-hairline bg-surface-card pb-[env(safe-area-inset-bottom)] sm:hidden"
