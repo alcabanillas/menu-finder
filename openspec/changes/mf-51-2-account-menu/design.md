@@ -21,6 +21,8 @@ Today `SignedInUser` is `{ userId, name }` (`src/application/dto/signed-in-user.
 
 To avoid two lookups per request, `src/app/_session/` wraps the read in React's `cache()` (the pattern of Next's authentication guide, `01-app/02-guides/authentication.md`), and `requireUser()` and the layout share it. The layout does not run again on client navigation, so its email is the one of the first render: the user does not change during a session, and a revoked session is caught by the next page, which does run its own check.
 
+`/` is the other place that mounts the shell (MF-51.1 D11: it is outside the route group, because it also serves the visitor). It already reads the user to decide what to show, so with the email in `SignedInUser` it passes `email` and `signOutAction` to its own `<AppShell>` from that same read, through the shared read of `_session` (one lookup per request). Two places wire the same two props; when MF-25 adds a third state it can extract a small server component, not before.
+
 Alternative: each page passes the user to the shell. Rejected: every new screen would have to remember to, which is what MF-51.1 D1 avoided. Alternative: a React context. Rejected: it needs a client provider and nothing but one component reads it; the email goes by props (`layout` → `AppShell` → `AccountMenu`).
 
 ADR-001: the layout is in `app/` and uses the web container's use case; the feature gets the data by props and the DTO type from `application/dto`; the adapter in `infrastructure` only carries one more field. No rule is broken.
@@ -34,7 +36,9 @@ It needs JavaScript to open: without it "Cerrar sesión" cannot be reached, whic
 `SignOutButton` and its test are deleted (knip would report them unused). The heading "Hola, {name}" stays: the sign-in end-to-end test looks for it.
 
 ### D4. End-to-end tests
-`e2e/sign-in.spec.ts`: the sign-out test opens the menu "Cuenta" first. `e2e/app-shell.spec.ts` gains the menu scenarios: closed by default, open with the email of the test account, Escape returns the focus, and sign-out ends on `/` with the old cookie sent to `/login`. `e2e/access.spec.ts`: the redirect tests also assert that the body has no "Cuenta".
+`e2e/sign-in.spec.ts`: the sign-out test opens the menu "Cuenta" first, and after signing out it also checks that the redirect for `/planner` with the old cookie has no email in its body (the account exists, so a leak would show; the test needs the database). `e2e/app-shell.spec.ts` gains the menu scenarios: closed by default, open with the email of the test account on `/planner` and on `/`, Escape returns the focus, and sign-out ends on `/` with the old cookie sent to `/login`.
+
+Not in `e2e/access.spec.ts`: it runs in CI without a database, and MF-51.1 found that the layout's frame travels in the redirect's data, so "the body has no button Cuenta" would fail and mean nothing. What must not travel is the email, and with no valid session there is no email to read.
 
 ## Risks / Trade-offs
 

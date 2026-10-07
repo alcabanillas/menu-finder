@@ -1,7 +1,7 @@
 ## 1. The user's email (TDD)
 
 - [ ] 1.1 RED: in `better-auth-session-manager.test.ts`, `current()` and `signIn()` return the user's email besides id and name; and a test that `requireUser()` and a second read in the same request hit the session only once; see them fail
-- [ ] 1.2 GREEN: `email` in `SignedInUser` and in `toSignedInUser`; a `cache()`-wrapped read in `src/app/_session/` shared by `requireUser()` and the layout (design D1); the tests pass, and the log lines still carry no email (the existing audit-log tests)
+- [ ] 1.2 GREEN: `email` in `SignedInUser` and in `toSignedInUser`; a `cache()`-wrapped read in `src/app/_session/` shared by `requireUser()`, `redirectIfSignedIn()`, the layout and `/` (design D1); the tests pass, and the log lines still carry no email (the existing audit-log tests)
 
 ## 2. Account menu (TDD)
 
@@ -10,14 +10,14 @@
 
 ## 3. Mount it and remove the old button
 
-- [ ] 3.1 RED: `app-shell.test.tsx` gains the account button in the header, with the email and the action it receives; `src/app/(app)/planner/page.test.tsx` now asserts that the page has no sign-out control; see them fail
-- [ ] 3.2 GREEN: `app-shell.tsx` takes `email` and `signOutAction` and mounts the menu; `(app)/layout.tsx` reads the user for the email and passes both (design D1); `planner/page.tsx` loses `SignOutButton`, which is deleted with its test (design D3); the tests pass, and `protected-pages.test.ts` passes without changes
+- [ ] 3.1 RED: `app-shell.test.tsx` gains the account button in the header, with the email and the action it receives, and none in the variant `session="out"`; `src/app/page.test.tsx`: `/` with a session has the button "Cuenta"; `src/app/(app)/planner/page.test.tsx` now asserts that the page has no sign-out control; see them fail
+- [ ] 3.2 GREEN: `app-shell.tsx` takes `email` and `signOutAction` and mounts the menu; `(app)/layout.tsx` reads the user for the email and passes both, and so does `src/app/page.tsx` for `/` with a session (design D1); `planner/page.tsx` loses `SignOutButton`, which is deleted with its test (design D3); the tests pass, and `protected-pages.test.ts` passes without changes
 - [ ] 3.3 Verify `pnpm typecheck`, `pnpm lint` (including the architecture rules and knip) and `pnpm test:run`
 
 ## 4. End-to-end (design D4)
 
-- [ ] 4.1 RED: in `e2e/app-shell.spec.ts`, the menu scenarios ("Closed by default", "Open", "Escape closes the panel and returns the focus", "The menu shows the email and no other user data", "Signing out from the menu"); in `e2e/sign-in.spec.ts`, the sign-out test opens the menu first; see them fail before 3.2
-- [ ] 4.2 In `e2e/access.spec.ts`, the redirect tests also assert that the body has no "Cuenta" ("No session shows no email")
+- [ ] 4.1 RED: in `e2e/app-shell.spec.ts`, the menu scenarios ("Closed by default", "The home of a signed-in user has the menu too", "Open", "Escape closes the panel and returns the focus", "The menu shows the email and no other user data", "Signing out from the menu"); in `e2e/sign-in.spec.ts`, the sign-out test opens the menu first; see them fail before 3.2
+- [ ] 4.2 In `e2e/sign-in.spec.ts`, the sign-out test also asserts that the redirect for `/planner` with the old cookie has no email in its body ("A request with no valid session gets no email"). Not in `e2e/access.spec.ts` (design D4)
 - [ ] 4.3 GREEN: `pnpm test:e2e` passes
 
 ## 5. Visual check and close
