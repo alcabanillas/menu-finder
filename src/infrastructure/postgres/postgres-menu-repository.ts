@@ -11,7 +11,10 @@ const INSERT_NAME_ONLY_RECIPES = `
   INSERT INTO recipe (key, title) SELECT key, title FROM jsonb_to_recordset($1::jsonb) AS r(key text, title text)
   ON CONFLICT (key) DO NOTHING`;
 
-const INSERT_MENUS = 'INSERT INTO menu (number) SELECT number FROM jsonb_to_recordset($1::jsonb) AS r(number int)';
+// A stored menu keeps its row, so the rows that point to it (its shopping list) survive a reload (MF-52 design D1).
+const INSERT_MENUS = `
+  INSERT INTO menu (number) SELECT number FROM jsonb_to_recordset($1::jsonb) AS r(number int)
+  ON CONFLICT (number) DO NOTHING`;
 
 const INSERT_MEALS = `
   INSERT INTO meal (menu_number, day, type)
@@ -104,9 +107,9 @@ export class PostgresMenuRepository implements MenuRepository {
     );
 
     await client.query(INSERT_NAME_ONLY_RECIPES, [asJson([...nameOnly].map(([key, title]) => ({ key, title })))]);
-    // Meals and dishes go with their menu (`ON DELETE CASCADE`).
-    await client.query('DELETE FROM menu WHERE number = ANY($1::int[])', [menus.map(({ number }) => number)]);
+    // The menu row stays; dishes go with their meals (`ON DELETE CASCADE`).
     await client.query(INSERT_MENUS, [asJson(menus.map(({ number }) => ({ number })))]);
+    await client.query('DELETE FROM meal WHERE menu_number = ANY($1::int[])', [menus.map(({ number }) => number)]);
     await client.query(INSERT_MEALS, [asJson(meals.map(({ menu_number, day, type }) => ({ menu_number, day, type })))]);
     await client.query(INSERT_DISHES, [asJson(dishes)]);
   }
