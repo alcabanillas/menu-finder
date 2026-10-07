@@ -105,7 +105,8 @@ function MealDishes({ dishes, at, open, onOpen }: MealDishesProps) {
     const ref = { ...at, index };
     const isOpen = open?.day === at.day && open.meal === at.meal && open.index === index;
     return (
-      <div key={index} className={index === 0 ? 'font-semibold' : 'text-text-muted'}>
+      // Every dish reads the same: the mock greys all but the first, which reads as a lesser or optional dish.
+      <div key={index} className="font-semibold">
         {dish.recipe ? (
           <button
             type="button"

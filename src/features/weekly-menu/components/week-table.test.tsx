@@ -63,6 +63,13 @@ describe('WeekTable', () => {
     expect(columnHeaders()).not.toContain('Domingo11 oct');
   });
 
+  it('gives every dish of a meal the same weight: the second is no less a dish than the first', () => {
+    render(<WeekTable days={week()} today="2026-10-07" open={null} onOpen={() => {}} />);
+
+    const [first, second] = Array.from(cell('Comida', 2).children);
+    expect(second.className).toBe(first.className);
+  });
+
   it('shows a dash for a meal with no dishes', () => {
     render(<WeekTable days={week()} today="2026-10-07" open={null} onOpen={() => {}} />);
 
