@@ -36,4 +36,4 @@
 
 - [x] 6.1 `pnpm typecheck`, `pnpm lint`, `pnpm test` and `pnpm e2e` green
 - [x] 6.2 Compare screenshots of `/menu` and `/shopping-list` at 1280 and 1900 px with the mock (UI-design-system step 4)
-- [ ] 6.3 Update MF-56 in `context/roadmap.md` (scope: `/menu` and `/shopping-list`, estimate ~4.5 h) and go through `context/safety-first.md` §4 before the archive
+- [x] 6.3 Update MF-56 in `context/roadmap.md` (scope: `/menu` and `/shopping-list`, estimate ~4.5 h) and go through `context/safety-first.md` §4 before the archive
