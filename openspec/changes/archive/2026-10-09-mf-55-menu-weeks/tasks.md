@@ -30,4 +30,4 @@
 
 - [x] 4.1 `tsc --noEmit`, `eslint src`, `knip` and `vitest run` are green (128 files, 1157 tests). Used `npx` equivalents of `pnpm lint` and `pnpm test`
 - [x] 4.2 Walked the checklist in `context/safety-first.md` §4. Session user only; validation in backend; negative tests for other users and no session; minimal data (one week); no new dependency; no SQL concatenation; unexpected inputs tested (empty, oversized, arrays, injection text, impossible dates)
-- [ ] 4.3 Update the MF-55 entry in `context/roadmap.md` to ✅ with its date when archiving
+- [x] 4.3 Update the MF-55 entry in `context/roadmap.md` to ✅ with its date when archiving
