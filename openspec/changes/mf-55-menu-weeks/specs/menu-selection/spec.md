@@ -17,7 +17,7 @@ The system SHALL allow reading the signed-in user's selections whose start date 
 
 #### Scenario: Read without a user id
 - **WHEN** the read is requested with an empty user id
-- **THEN** no selection is returned and the read fails without exposing data
+- **THEN** no selection is returned, because no row belongs to that user
 
 ### Requirement: The menu of one week is read by its number
 When the page shows a week, the system SHALL read only the menu of that week's selection, by its menu number. It SHALL NOT read the full list of menus to display one week.

@@ -3,8 +3,8 @@ import type { MenuRepository } from '@/application/ports/menu-repository';
 import type { RecipeRepository } from '@/application/ports/recipe-repository';
 import type { SelectionRepository } from '@/application/ports/selection-repository';
 import { currentSelections } from '@/application/use-cases/current-selections';
-import { menuWeek, type MenuWeek } from '@/domain/menu/menu-week';
-import type { WeeklyMenu } from '@/domain/menu/weekly-menu';
+import { selectedWeek } from '@/application/use-cases/selected-week';
+import type { MenuWeek } from '@/domain/menu/menu-week';
 import { err, ok, type Result } from '@/shared/result';
 
 /** Whose menu is asked for: the user id comes from the session. */
@@ -32,15 +32,6 @@ export async function activeMenu(
   const { activeMenu: selection } = selections.value;
   if (!selection) return ok(null);
 
-  const menu = await deps.menus.find(selection.menuNumber);
-  // The selection's menu is always stored (foreign key); a missing one is a fault, not "no menu".
-  if (!menu.ok || !menu.value) return err(FAILED);
-  const recipes = await deps.recipes.findByFiles(recipeFilesOf(menu.value));
-  if (!recipes.ok) return err(FAILED);
-  return ok(menuWeek(menu.value, recipes.value, selection.startsOn, deps.clock.today()));
-}
-
-function recipeFilesOf({ meals }: WeeklyMenu): string[] {
-  const files = meals.flatMap(({ dishes }) => dishes.map(({ recipeFile }) => recipeFile));
-  return [...new Set(files.filter((file) => file !== null))];
+  const week = await selectedWeek(deps, selection);
+  return week.ok ? ok(week.value) : err(FAILED);
 }

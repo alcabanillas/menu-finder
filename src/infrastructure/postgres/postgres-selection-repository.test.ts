@@ -69,6 +69,27 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresSelectionRepository (Neon test bran
     expect(await storedRows()).toEqual([{ user_id: USER, menu_number: 12, starts_on: MONDAY }]);
   });
 
+  it('reads the ten-week window: selections from seventy days back on, none older, none of another user', async () => {
+    const SEVENTY_DAYS_BACK = '2026-07-27';
+    const ELEVEN_WEEKS_BACK = '2026-07-20';
+    await selections.replace(USER, { menuNumber: 3, startsOn: ELEVEN_WEEKS_BACK });
+    await selections.replace(USER, { menuNumber: 12, startsOn: SEVENTY_DAYS_BACK });
+    await selections.replace(OTHER_USER, { menuNumber: 20, startsOn: SEVENTY_DAYS_BACK });
+
+    const result = await selections.listFrom(USER, SEVENTY_DAYS_BACK);
+
+    expect(result).toEqual({
+      ok: true,
+      value: [{ id: expect.any(String), menuNumber: 12, startsOn: SEVENTY_DAYS_BACK }],
+    });
+  });
+
+  it('returns no selection for an empty user id, since no row belongs to it', async () => {
+    await selections.replace(USER, { menuNumber: 3, startsOn: MONDAY });
+
+    expect(await selections.listFrom('', MONDAY)).toEqual({ ok: true, value: [] });
+  });
+
   it('lists only the given user’s selections from the date on, ordered by start date', async () => {
     await selections.replace(USER, { menuNumber: 20, startsOn: MONDAY_AFTER });
     await selections.replace(USER, { menuNumber: 3, startsOn: MONDAY });

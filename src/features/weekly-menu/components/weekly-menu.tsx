@@ -1,14 +1,15 @@
 'use client';
 
-import { useCallback, useId, useRef, useState } from 'react';
+import { useCallback, useId, useRef, useState, type ReactNode } from 'react';
 import type { WeekDayDto, WeekDishDto, WeeklyMenuDto } from '@/application/dto/weekly-menu';
 import { DayTabs, tabIdOf } from '@/features/weekly-menu/components/day-tabs';
 import { RecipeCard } from '@/features/weekly-menu/components/recipe-card';
 import { RecipePanel, type PanelSide } from '@/features/weekly-menu/components/recipe-panel';
 import { WeekCards, type DishRef } from '@/features/weekly-menu/components/week-cards';
+import { WeekHeader } from '@/features/weekly-menu/components/week-header';
 import { formatDayDate, formatShortDate, formatWeekday } from '@/features/weekly-menu/format-date';
 
-type WeeklyMenuProps = { menu: WeeklyMenuDto };
+type WeeklyMenuProps = { menu: WeeklyMenuDto; nav?: ReactNode };
 
 /** The open dish and the side of the page its panel lies on. */
 type OpenDish = DishRef & { side: PanelSide };
@@ -29,7 +30,7 @@ const MEAL_LABELS = Object.fromEntries(MEALS);
  * The menu of the week, one day at a time: a heading, seven day tabs and the selected day's dishes. It opens on today,
  * so the page rendered on the server, before any script runs, already shows today's dishes.
  */
-export function WeeklyMenu({ menu }: WeeklyMenuProps) {
+export function WeeklyMenu({ menu, nav }: WeeklyMenuProps) {
   const todays = menu.days.find(({ date }) => date === menu.today) ?? menu.days[0];
   const [selected, setSelected] = useState(todays.day);
   const [open, setOpen] = useState<OpenDish | null>(null);
@@ -48,10 +49,11 @@ export function WeeklyMenu({ menu }: WeeklyMenuProps) {
 
   return (
     <div className={PAGE}>
-      <header className="flex min-h-[88px] flex-col justify-end px-gutter-mobile py-3 @min-[800px]:px-8">
-        <p className={`${EYEBROW} mb-1 text-olive-600`}>Semana del {formatShortDate(menu.startsOn)}</p>
-        <h1 className="text-h1 font-extrabold">Menú {menu.menuNumber}</h1>
-      </header>
+      <WeekHeader
+        eyebrow={`Semana del ${formatShortDate(menu.startsOn)}`}
+        title={`Menú ${menu.menuNumber}`}
+        nav={nav}
+      />
       <div className="@min-[800px]:hidden">
         <div className="sticky top-0 z-[2] bg-surface-page px-3 pb-2">
           <DayTabs days={menu.days} selected={selected} today={menu.today} panelId={panelId} onSelect={setSelected} />
