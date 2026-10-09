@@ -46,6 +46,9 @@ export default defineConfig({
         test: {
           name: 'unit',
           environment: 'node',
+          // Creating and migrating a test database is network to Neon: slower than Vitest's defaults (5 s test, 10 s hook).
+          hookTimeout: 30_000,
+          testTimeout: 30_000,
           // evals/: validación de los golden sets versionados (MF-13). scripts/: tooling del proyecto (MF-39).
           // e2e/support/: pure helpers of the Playwright run (MF-49); the .spec.ts files stay with Playwright.
           include: ['src/**/*.test.ts', 'evals/**/*.test.ts', 'scripts/**/*.test.ts', 'e2e/**/*.test.ts'],
