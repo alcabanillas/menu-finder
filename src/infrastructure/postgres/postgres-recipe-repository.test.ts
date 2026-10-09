@@ -20,9 +20,6 @@ const tortilla: Recipe = {
 };
 const crema: Recipe = { ...tortilla, file: 'Crema', title: 'Crema de calabaza', ingredients: [tortilla.ingredients[0]] };
 
-// Creating and migrating a database of its own is network to Neon, slower than the default 5 s on the CI runner (MF-49).
-const OWN_DATABASE_TIMEOUT_MS = 30_000;
-
 describe.skipIf(!TEST_DATABASE_URL)('PostgresRecipeRepository (Neon test branch)', () => {
   let db: TestDatabase;
   let recipes: PostgresRecipeRepository;
@@ -116,7 +113,7 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresRecipeRepository (Neon test branch)
     } finally {
       await own.drop();
     }
-  }, OWN_DATABASE_TIMEOUT_MS);
+  });
 
   it('returns the database error and leaves no recipe when the save fails half-way', async () => {
     const own = await createMigratedTestDatabase(TEST_DATABASE_URL!);
@@ -131,5 +128,5 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresRecipeRepository (Neon test branch)
     } finally {
       await own.drop();
     }
-  }, OWN_DATABASE_TIMEOUT_MS);
+  });
 });

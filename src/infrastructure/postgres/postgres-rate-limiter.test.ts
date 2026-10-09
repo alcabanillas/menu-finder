@@ -6,7 +6,6 @@ import {
   type TestDatabase,
 } from '@/infrastructure/postgres/test-database';
 
-const OWN_DATABASE_TIMEOUT_MS = 30_000;
 const TEST_KEY = 'login:failed:192.168.1.10:ana@example.test';
 const OTHER_KEY = 'login:failed:192.168.1.10:bruno@example.test';
 const LIMIT = 5;
@@ -19,7 +18,7 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresRateLimiter (Neon test branch)', ()
   beforeAll(async () => {
     db = await createMigratedTestDatabase(TEST_DATABASE_URL!);
     limiter = new PostgresRateLimiter(db.pool);
-  }, OWN_DATABASE_TIMEOUT_MS);
+  });
 
   beforeEach(async () => {
     await db.truncate();

@@ -34,18 +34,19 @@ describe('RecipeCard', () => {
     expect(toggle()).toHaveAttribute('aria-expanded', 'true');
     const recipe = document.getElementById(toggle().getAttribute('aria-controls')!)!;
     const times = within(recipe).getByRole('list', { name: 'Tiempos' });
-    expect(within(times).getAllByRole('listitem').map((item) => item.textContent)).toEqual([
-      'Total45 min',
-      'Preparación10 min',
-      'Cocción35 min',
-    ]);
+    expect(
+      within(times)
+        .getAllByRole('listitem')
+        .map((item) => item.textContent),
+    ).toEqual(['Total45 min', 'Preparación10 min', 'Cocción35 min']);
     const ingredients = within(recipe).getByRole('list', { name: 'Ingredientes' });
     expect(within(ingredients).getAllByRole('listitem')[0]).toHaveTextContent('Lentejas240 g');
     const steps = within(recipe).getByRole('list', { name: 'Preparación' });
-    expect(within(steps).getAllByRole('listitem').map((item) => item.textContent)).toEqual([
-      '1Sofríe las verduras.',
-      '2Añade las lentejas y cuece.',
-    ]);
+    expect(
+      within(steps)
+        .getAllByRole('listitem')
+        .map((item) => item.textContent),
+    ).toEqual(['1Sofríe las verduras.', '2Añade las lentejas y cuece.']);
   });
 
   it('folds the recipe again', () => {
@@ -60,10 +61,7 @@ describe('RecipeCard', () => {
 
   it('joins a household measure and a quantity, marks an optional ingredient and dashes an unknown time', () => {
     render(
-      <RecipeCard
-        name="Lentejas estofadas"
-        recipe={{ ...lentejas, times: { ...lentejas.times, cooking: null } }}
-      />,
+      <RecipeCard name="Lentejas estofadas" recipe={{ ...lentejas, times: { ...lentejas.times, cooking: null } }} />,
     );
 
     fireEvent.click(toggle());

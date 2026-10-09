@@ -12,7 +12,13 @@ const RECIPE: RecipeDto = {
 
 function renderPanel(onClose = () => {}, side: 'left' | 'right' = 'right') {
   return render(
-    <RecipePanel name="Lentejas estofadas" eyebrow="Miércoles · Comida" recipe={RECIPE} side={side} onClose={onClose} />,
+    <RecipePanel
+      name="Lentejas estofadas"
+      eyebrow="Miércoles · Comida"
+      recipe={RECIPE}
+      side={side}
+      onClose={onClose}
+    />,
   );
 }
 

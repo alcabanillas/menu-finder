@@ -26,6 +26,25 @@ export function formatWeekday(date: string): string {
   return capitalise(WEEKDAY.format(toUtc(date)));
 }
 
+const DAY_NUMBER = new Intl.DateTimeFormat('es-ES', { day: 'numeric', timeZone: 'UTC' });
+const MONTH_SHORT = new Intl.DateTimeFormat('es-ES', { month: 'short', timeZone: 'UTC' });
+
+/** Two `YYYY-MM-DD` dates as a week's range: "5 – 11 oct", or "29 sep – 5 oct" across two months. */
+export function formatWeekRange(first: string, last: string): string {
+  const firstMonth = sameMonth(first, last) ? '' : ` ${monthShort(first)}`;
+  return `${DAY_NUMBER.format(toUtc(first))}${firstMonth} – ${DAY_NUMBER.format(toUtc(last))} ${monthShort(last)}`;
+}
+
+const YEAR_MONTH_LENGTH = 7;
+
+function sameMonth(first: string, last: string): boolean {
+  return first.slice(0, YEAR_MONTH_LENGTH) === last.slice(0, YEAR_MONTH_LENGTH);
+}
+
+function monthShort(date: string): string {
+  return MONTH_SHORT.format(toUtc(date)).replace('.', '');
+}
+
 function capitalise(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }

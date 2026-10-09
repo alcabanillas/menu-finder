@@ -34,9 +34,6 @@ const menu = (number: number, lunch: MenuDish[], dinner: MenuDish[] = []): Weekl
   ],
 });
 
-// Creating and migrating a database of its own is network to Neon, slower than the default 5 s on the CI runner (MF-49).
-const OWN_DATABASE_TIMEOUT_MS = 30_000;
-
 describe.skipIf(!TEST_DATABASE_URL)('PostgresMenuRepository (Neon test branch)', () => {
   let db: TestDatabase;
   let menus: PostgresMenuRepository;
@@ -209,7 +206,7 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresMenuRepository (Neon test branch)',
     } finally {
       await own.drop();
     }
-  }, OWN_DATABASE_TIMEOUT_MS);
+  });
 
   it('returns the database error and saves nothing when the save fails half-way', async () => {
     const own = await brokenDatabase();
@@ -226,5 +223,5 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresMenuRepository (Neon test branch)',
     } finally {
       await own.drop();
     }
-  }, OWN_DATABASE_TIMEOUT_MS);
+  });
 });

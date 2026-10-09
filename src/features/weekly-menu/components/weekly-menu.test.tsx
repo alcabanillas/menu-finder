@@ -8,7 +8,12 @@ const DAYS: DayDto[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 
 const plain = (name: string): WeekDishDto => ({ name, recipe: null });
 const cooked = (name: string): WeekDishDto => ({
   name,
-  recipe: { title: name, times: { total: 30, preparation: 10, cooking: 20, resting: null }, ingredients: [], preparation: [] },
+  recipe: {
+    title: name,
+    times: { total: 30, preparation: 10, cooking: 20, resting: null },
+    ingredients: [],
+    preparation: [],
+  },
 });
 
 const MENU: WeeklyMenuDto = {

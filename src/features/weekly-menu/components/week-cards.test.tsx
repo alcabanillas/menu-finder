@@ -100,7 +100,12 @@ describe('WeekCards', () => {
 
   it('announces the open dish as expanded', () => {
     render(
-      <WeekCards days={week()} today="2026-10-07" open={{ day: 'wednesday', meal: 'lunch', index: 0 }} onOpen={() => {}} />,
+      <WeekCards
+        days={week()}
+        today="2026-10-07"
+        open={{ day: 'wednesday', meal: 'lunch', index: 0 }}
+        onOpen={() => {}}
+      />,
     );
 
     expect(screen.getByRole('button', { name: 'Lentejas estofadas' })).toHaveAttribute('aria-expanded', 'true');
