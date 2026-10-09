@@ -35,3 +35,20 @@ reason = "instrumentation-* (pg, mysql, knex...) put the database user in the db
 [[IgnoredVulns]]
 id = "GHSA-vfj7-8cjw-p6xm"
 reason = "braces stack exhaustion on deeply nested brace patterns. Only development tools use it (ESLint plugins, through micromatch), and the patterns they expand come from the project's own lint configuration, never from user input. Nothing in the production build uses it."
+
+# Accepted 2026-10-09. handlebars has 3 vulnerabilities in 4.7.9. It comes only through
+# eslint-plugin-boundaries@7.2.0 (dev tool, internal error formatting) and genkit@1.42.0 via dotprompt@1.1.2.
+# The project uses genkit only for embeddings (gemini-embedding-2) and does not compile prompt templates
+# with dotprompt. Neither source exposes Handlebars template compilation to user input in production.
+[[IgnoredVulns]]
+id = "GHSA-8r5x-fm3f-whwj"
+reason = "Prototype pollution via helper resolution in handlebars. Only pulled by dev tools (eslint-plugin-boundaries) and genkit's dotprompt. The project does not compile untrusted templates or use dotprompt."
+
+[[IgnoredVulns]]
+id = "GHSA-p8wg-vrv2-v86f"
+reason = "Arbitrary code execution via lookup helper in handlebars. Same as GHSA-8r5x-fm3f-whwj: never exposed to untrusted templates in production."
+
+[[IgnoredVulns]]
+id = "GHSA-xw65-4hp5-5hc7"
+reason = "JavaScript injection via inline precompiled templates in handlebars. Same as GHSA-8r5x-fm3f-whwj: the project does not compile or embed precompiled templates from untrusted input."
+
