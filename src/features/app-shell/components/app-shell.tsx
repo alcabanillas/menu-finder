@@ -37,7 +37,8 @@ export function AppShell({ children, account }: AppShellProps) {
         Saltar al contenido
       </a>
       <header className="sticky top-0 z-10 border-b border-border-hairline bg-surface-card">
-        <div className="mx-auto flex h-14 max-w-[1200px] items-center gap-6 px-gutter-mobile sm:h-16 sm:px-8">
+        {/* The mock's `.mf-top__in` (version 1791414282-6467): the same 1440 px box as the pages (design D3 of MF-56). */}
+        <div className="mx-auto flex h-14 max-w-[1440px] items-center gap-6 px-gutter-mobile sm:h-16 sm:px-8">
           <Link href="/" className={WORDMARK}>
             Menu <i className="text-olive-600">Finder</i>
           </Link>

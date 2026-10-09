@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { DayDto, WeekDayDto } from '@/application/dto/weekly-menu';
-import { columnsOf } from '@/features/weekly-menu/columns';
+import { daysShown } from '@/features/weekly-menu/days-shown';
 
 const DAYS: DayDto[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
@@ -12,14 +12,14 @@ function week(sunday: WeekDayDto['meals']): WeekDayDto[] {
   }));
 }
 
-describe('columnsOf', () => {
+describe('daysShown', () => {
   it('keeps Sunday when it has a dish', () => {
     const days = week({ lunch: [], dinner: [{ name: 'Cena ficticia', recipe: null }] });
 
-    expect(columnsOf(days).map(({ day }) => day)).toEqual(DAYS);
+    expect(daysShown(days).map(({ day }) => day)).toEqual(DAYS);
   });
 
   it('leaves Sunday out when it has no dishes', () => {
-    expect(columnsOf(week({ lunch: [], dinner: [] })).map(({ day }) => day)).toEqual(DAYS.slice(0, 6));
+    expect(daysShown(week({ lunch: [], dinner: [] })).map(({ day }) => day)).toEqual(DAYS.slice(0, 6));
   });
 });

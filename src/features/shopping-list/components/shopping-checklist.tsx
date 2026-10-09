@@ -1,8 +1,13 @@
 'use client';
 
-import { startTransition, useActionState, useOptimistic, type FormEvent } from 'react';
-import type { ShoppingChecklistCategoryDto, ShoppingChecklistDto } from '@/application/dto/shopping-checklist';
+import { startTransition, useActionState, useId, useOptimistic, type FormEvent } from 'react';
+import type {
+  ShoppingChecklistCategoryDto,
+  ShoppingChecklistDto,
+  ShoppingChecklistItemDto,
+} from '@/application/dto/shopping-checklist';
 import type { CheckItemsState } from '@/features/shopping-list/check-items-state';
+import { CategoryIndex, type IndexEntry } from '@/features/shopping-list/components/category-index';
 import { CategoryToggle } from '@/features/shopping-list/components/category-toggle';
 import { ChecklistRow, type TickForm } from '@/features/shopping-list/components/checklist-row';
 import { ProgressBar } from '@/features/shopping-list/components/progress-bar';
@@ -20,14 +25,20 @@ type Tick = { positions: number[]; checked: boolean };
 
 const INITIAL_STATE: CheckItemsState = { message: null, attempt: 0 };
 
+// After `.mf-shop` in the design system's `ui_kits/app/ShoppingScreen.jsx` (version 1791414282-6467): from 800 px a
+// sticky category index beside the list (design D4 and D5 of MF-56), in the mock's 1440 px `.mf-page--wide` box (D3).
+const PAGE = 'mx-auto flex w-full max-w-[1440px] flex-col gap-6 px-gutter-mobile pb-10 pt-1 @min-[640px]:px-8';
+// Below the 64 px shell header; its own scroll keeps the 13 categories of a list reachable on a short screen.
+const INDEX = 'hidden @min-[800px]:sticky @min-[800px]:top-20 @min-[800px]:block @min-[800px]:max-h-[calc(100dvh-6rem)] @min-[800px]:overflow-y-auto';
+
 /** The list as a form per row, ticks shown at once; a failure of the server is announced in one alert. */
 export function ShoppingChecklist({ checklist, view, action }: ShoppingChecklistProps) {
   const [state, formAction] = useActionState(action, INITIAL_STATE);
   const [shown, addTick] = useOptimistic(checklist, applyTick);
   const form = tickForm(formAction, addTick);
-  const categories = view === 'pending' ? withPendingItems(shown.categories) : shown.categories;
+  const entries = indexEntries(shown.categories, view);
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-5 pb-10 pt-1">
+    <div className={PAGE}>
       <header className="flex flex-col gap-1">
         <p className="text-eyebrow font-semibold uppercase tracking-[var(--text-eyebrow--letter-spacing)] text-text-muted">
           Menú {shown.menuNumber}
@@ -35,7 +46,7 @@ export function ShoppingChecklist({ checklist, view, action }: ShoppingChecklist
         <h1 className="text-h2 font-extrabold text-text-strong">Lista de la compra</h1>
         <p className="text-small text-text-muted">Desde el {formatMonday(shown.startsOn)}</p>
       </header>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-12">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-12 @min-[800px]:border-b @min-[800px]:border-border-hairline @min-[800px]:pb-4">
         <div className="min-w-0 flex-1">
           <ProgressBar value={shown.checkedCount} max={shown.total} label="Marcados" />
         </div>
@@ -47,20 +58,27 @@ export function ShoppingChecklist({ checklist, view, action }: ShoppingChecklist
           {state.message}
         </p>
       )}
-      <div className="gap-12 md:columns-2 xl:columns-3">
-        {categories.map((category) => (
-          <section key={category.name} className="mb-7 break-inside-avoid">
-            <SectionHeader eyebrow={category.name} />
-            <CategoryToggle menuNumber={shown.menuNumber} category={category} form={form} />
-            {visibleItems(category, view).map((item) => (
-              <ChecklistRow key={item.position} menuNumber={shown.menuNumber} item={item} form={form} />
-            ))}
-          </section>
-        ))}
+      <div className="@min-[800px]:grid @min-[800px]:grid-cols-[260px_minmax(0,1fr)] @min-[800px]:items-start @min-[800px]:gap-12">
+        <div className={INDEX}>
+          <CategoryIndex menuNumber={shown.menuNumber} entries={entries} form={form} />
+        </div>
+        <div className="flex min-w-0 flex-col gap-6 @min-[800px]:gap-8">
+          {entries.map(({ category, anchor }) => (
+            <CategorySection
+              key={anchor}
+              anchor={anchor}
+              menuNumber={shown.menuNumber}
+              category={category}
+              items={visibleItems(category, view)}
+              form={form}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
 }
+
 
 /**
  * The form posts to the server action by itself (that is what works without JavaScript); with JavaScript the submit is
@@ -89,8 +107,47 @@ function applyTick(current: ShoppingChecklistDto, tick: Tick): ShoppingChecklist
   return { ...current, categories, checkedCount };
 }
 
-function withPendingItems(categories: ShoppingChecklistCategoryDto[]): ShoppingChecklistCategoryDto[] {
-  return categories.filter((category) => category.checkedCount < category.items.length);
+type CategorySectionProps = {
+  anchor: string;
+  menuNumber: number;
+  category: ShoppingChecklistCategoryDto;
+  items: ShoppingChecklistItemDto[];
+  form: TickForm;
+};
+
+// The "Marcar todos" row is the narrow screen's: from 800 px the index holds it (design D5 of MF-56).
+function CategorySection({ anchor, menuNumber, category, items, form }: CategorySectionProps) {
+  const headingId = useId();
+  return (
+    <section id={anchor} aria-labelledby={headingId} className="scroll-mt-20">
+      <SectionHeader
+        id={headingId}
+        eyebrow={category.name}
+        count={`${category.checkedCount}/${category.items.length}`}
+      />
+      <div className="@min-[800px]:hidden">
+        <CategoryToggle menuNumber={menuNumber} category={category} form={form} />
+      </div>
+      <div className="@min-[1100px]:grid @min-[1100px]:grid-cols-2 @min-[1100px]:gap-x-10">
+        {items.map((item) => (
+          <ChecklistRow key={item.position} menuNumber={menuNumber} item={item} form={form} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/**
+ * The categories of the view, each with the anchor of its section. The anchor counts the category in the whole list,
+ * so it does not change with the view and carries none of the category's text (design D4 of MF-56).
+ */
+function indexEntries(categories: ShoppingChecklistCategoryDto[], view: ChecklistView): IndexEntry[] {
+  const entries = categories.map((category, index) => ({ category, anchor: `categoria-${index + 1}` }));
+  return view === 'pending' ? entries.filter(({ category }) => hasPendingItems(category)) : entries;
+}
+
+function hasPendingItems(category: ShoppingChecklistCategoryDto): boolean {
+  return category.checkedCount < category.items.length;
 }
 
 function visibleItems(category: ShoppingChecklistCategoryDto, view: ChecklistView) {
