@@ -10,6 +10,7 @@ const MESSAGES: Record<SignInFailure['kind'], string> = {
   'email-required': 'Escribe tu correo.',
   'password-required': 'Escribe tu contraseña.',
   'wrong-credentials': 'El correo o la contraseña no coinciden.',
+  'rate-limited': 'Demasiados intentos. Espera unos minutos.',
   failed: 'No se ha podido iniciar sesión. Inténtalo de nuevo.',
 };
 

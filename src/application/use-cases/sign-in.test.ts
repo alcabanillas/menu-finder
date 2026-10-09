@@ -1,15 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import type { AuditEvent, AuditLog } from '@/application/ports/audit-log';
+import type { RateLimiter } from '@/application/ports/rate-limiter';
 import type { Credentials, SessionManager, SignedInUser, SignInError } from '@/application/ports/session-manager';
 import { signIn } from '@/application/use-cases/sign-in';
 import { err, ok, type Result } from '@/shared/result';
 
 const PASSWORD = 'a-long-enough-pass';
 const ANA: SignedInUser = { userId: 'user-1', name: 'Ana', email: 'ana@example.test' };
+// eslint-disable-next-line sonarjs/no-hardcoded-ip
+const CLIENT_IP = '192.168.1.50';
 
 const fakes = (answer: Result<SignedInUser, SignInError> = ok(ANA)) => {
   const sent: Credentials[] = [];
   const events: AuditEvent[] = [];
+  const rateLimitHits: string[] = [];
+  const rateLimitResets: string[] = [];
+  const blockedKeys = new Set<string>();
+
   const sessions: SessionManager = {
     signIn: async (credentials) => {
       sent.push(credentials);
@@ -19,35 +26,88 @@ const fakes = (answer: Result<SignedInUser, SignInError> = ok(ANA)) => {
     current: async () => null,
   };
   const auditLog: AuditLog = { record: (event) => events.push(event) };
-  return { deps: { sessions, auditLog }, sent, events };
+  const rateLimiter: RateLimiter = {
+    check: async (key, limit) => {
+      const isBlocked = blockedKeys.has(key);
+      return { allowed: !isBlocked, remaining: isBlocked ? 0 : limit, resetAt: new Date() };
+    },
+    hit: async (key, { limit }) => {
+      rateLimitHits.push(key);
+      const count = rateLimitHits.filter((k) => k === key).length;
+      if (count >= limit) blockedKeys.add(key);
+      return { allowed: count <= limit, remaining: Math.max(0, limit - count), resetAt: new Date() };
+    },
+    reset: async (key) => {
+      rateLimitResets.push(key);
+      blockedKeys.delete(key);
+    },
+  };
+
+  return { deps: { sessions, auditLog, rateLimiter }, sent, events, rateLimitHits, rateLimitResets, blockedKeys };
 };
 
 describe('signIn', () => {
-  it('returns the user and logs the sign-in with the user id', async () => {
-    const { deps, events } = fakes();
+  it('returns the user, resets the rate limit bucket and logs the sign-in with the user id', async () => {
+    const { deps, events, rateLimitResets } = fakes();
 
-    const result = await signIn(deps, { email: 'ana@example.test', password: PASSWORD });
+    const result = await signIn(deps, { email: 'ana@example.test', password: PASSWORD, clientIp: CLIENT_IP });
 
     expect(result).toEqual(ok(ANA));
     expect(events).toEqual([{ type: 'sign-in', userId: 'user-1', at: expect.any(Date) }]);
+    expect(rateLimitResets).toEqual(['login:failed:192.168.1.50:ana@example.test']);
   });
 
-  it('returns wrong-credentials and logs the refusal when the port refuses them', async () => {
-    const { deps, events } = fakes(err({ kind: 'wrong-credentials' }));
+  it('records a rate limit hit, returns wrong-credentials and logs the refusal when credentials fail', async () => {
+    const { deps, events, rateLimitHits } = fakes(err({ kind: 'wrong-credentials' }));
 
-    const result = await signIn(deps, { email: 'ana@example.test', password: 'wrong-password' });
+    const result = await signIn(deps, { email: 'ana@example.test', password: 'wrong-password', clientIp: CLIENT_IP });
 
     expect(result).toEqual(err({ kind: 'wrong-credentials' }));
     expect(events).toEqual([{ type: 'sign-in-refused', reason: 'wrong-credentials', at: expect.any(Date) }]);
+    expect(rateLimitHits).toEqual(['login:failed:192.168.1.50:ana@example.test']);
   });
 
-  it('returns failed, without logging a refusal, when the port fails', async () => {
-    const { deps, events } = fakes(err({ kind: 'failed', reason: 'connection refused' }));
+  it('records a rate limit hit for invalid input and does not ask the port', async () => {
+    const { deps, sent, events, rateLimitHits } = fakes();
+
+    const result = await signIn(deps, { email: 'ana\u0000@example.test', password: PASSWORD, clientIp: CLIENT_IP });
+
+    expect(result).toEqual(err({ kind: 'wrong-credentials' }));
+    expect(sent).toEqual([]);
+    expect(events).toEqual([{ type: 'sign-in-refused', reason: 'invalid-input', at: expect.any(Date) }]);
+    expect(rateLimitHits).toEqual(['login:failed:192.168.1.50:ana\\0@example.test']);
+  });
+
+  it('blocks sign-in when the IP and account combination has reached the rate limit', async () => {
+    const { deps, sent, events, blockedKeys } = fakes();
+    const key = `login:failed:${CLIENT_IP}:ana@example.test`;
+    blockedKeys.add(key);
+
+    const result = await signIn(deps, { email: 'ana@example.test', password: PASSWORD, clientIp: CLIENT_IP });
+
+    expect(result).toEqual(err({ kind: 'rate-limited', resetAt: expect.any(Date) }));
+    expect(sent).toEqual([]);
+    expect(events).toEqual([{ type: 'sign-in-refused', reason: 'rate-limited', at: expect.any(Date) }]);
+  });
+
+  it('allows another account from the same client IP when one account is rate limited', async () => {
+    const { deps, sent, blockedKeys } = fakes();
+    blockedKeys.add(`login:failed:${CLIENT_IP}:ana@example.test`);
+
+    const result = await signIn(deps, { email: 'bruno@example.test', password: PASSWORD, clientIp: CLIENT_IP });
+
+    expect(result).toEqual(ok(ANA));
+    expect(sent).toEqual([{ email: 'bruno@example.test', password: PASSWORD }]);
+  });
+
+  it('returns failed, without logging a refusal or hitting rate limits, when the port fails', async () => {
+    const { deps, events, rateLimitHits } = fakes(err({ kind: 'failed', reason: 'connection refused' }));
 
     const result = await signIn(deps, { email: 'ana@example.test', password: PASSWORD });
 
     expect(result).toEqual(err({ kind: 'failed' }));
     expect(events).toEqual([]);
+    expect(rateLimitHits).toEqual([]);
   });
 
   it.each([

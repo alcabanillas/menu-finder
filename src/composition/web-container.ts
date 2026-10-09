@@ -21,6 +21,7 @@ import { createAuth } from '@/infrastructure/auth/create-auth';
 import { SystemClock } from '@/infrastructure/clock/system-clock';
 import { StdoutAuditLog } from '@/infrastructure/logging/stdout-audit-log';
 import { PostgresMenuRepository } from '@/infrastructure/postgres/postgres-menu-repository';
+import { PostgresRateLimiter } from '@/infrastructure/postgres/postgres-rate-limiter';
 import { PostgresRecipeRepository } from '@/infrastructure/postgres/postgres-recipe-repository';
 import { PostgresSelectionRepository } from '@/infrastructure/postgres/postgres-selection-repository';
 import { PostgresShoppingListRepository } from '@/infrastructure/postgres/postgres-shopping-list-repository';
@@ -55,7 +56,11 @@ export function createWebContainer(env: Env, requestHeaders: RequestHeaders) {
 
   // async, so that a missing variable is a rejected promise like any other failure of the call.
   return {
-    signIn: async (input: SignInInput) => signIn(lazyDeps(), input),
+    signIn: async (input: SignInInput) => {
+      const headers = await requestHeaders();
+      const clientIp = extractClientIp(headers);
+      return signIn(lazyDeps(), { ...input, clientIp });
+    },
     signOut: async () => signOut(lazyDeps()),
     currentUser: async () => currentUser(lazyDeps()),
     selectMenu: async (input: SelectMenuInput) => selectMenu(lazyDeps(), input),
@@ -67,12 +72,22 @@ export function createWebContainer(env: Env, requestHeaders: RequestHeaders) {
   };
 }
 
+function extractClientIp(headers: Headers): string {
+  const forwarded = headers.get('x-forwarded-for');
+  if (forwarded) {
+    const first = forwarded.split(',')[0].trim();
+    if (first) return first;
+  }
+  return headers.get('x-real-ip') ?? '127.0.0.1';
+}
+
 function buildDeps(env: Env, requestHeaders: RequestHeaders) {
   const [url, secret, baseUrl] = requireAll(env);
   const pool = new pg.Pool({ connectionString: url, max: POOL_SIZE });
   return {
     sessions: new BetterAuthSessionManager(createAuth({ pool, secret, baseUrl }), requestHeaders),
     auditLog: new StdoutAuditLog(),
+    rateLimiter: new PostgresRateLimiter(pool),
     selections: new PostgresSelectionRepository(pool),
     clock: new SystemClock(),
     menus: new PostgresMenuRepository(pool),

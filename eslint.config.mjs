@@ -207,6 +207,8 @@ const eslintConfig = defineConfig([
     'next-env.d.ts',
     // Informe de cobertura generado (pnpm test:coverage).
     'coverage/**',
+    // Worktrees y archivos temporales de Claude:
+    '.claude/**',
   ]),
 ]);
 
