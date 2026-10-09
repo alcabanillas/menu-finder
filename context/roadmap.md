@@ -72,7 +72,7 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 - ⬜ **MF-48** (tras MF-17, MF-24) RLS completo: quitar `BYPASSRLS` al rol de la app y escribir las políticas. Datos por usuario (`Selection`, `UserShoppingItem`) con política por `userId`, fijado en cada petición dentro de una transacción con `set_config`; tablas de auth (`user`, `session`, `account`, `verification`) con un tratamiento aparte, porque el login busca por email antes de conocer al usuario. Hay que decidirlo con `/opsx:explore` y dividirlo en subtasks de 2 h o menos. Mientras tanto, el filtro por `userId` en el código y un escenario negativo en cada spec son la única barrera entre usuarios
 
 **Evaluación de recuperación**
-- ⬜ **MF-19** (~1 h · H · tras MF-14) Decidir si el vector store entra o sale, a la vista de la tabla [`evals/search/results.md`](../evals/search/results.md) (ARQ-modelo-datos). Entra también en la decisión que la híbrida no ordena nada sin acierto léxico (BUS-superficie-consulta (d))
+- ✅ **MF-19** (~1 h · H · tras MF-14) El vector store se queda (ARQ-modelo-datos). La evaluación de MF-14 ([`evals/search/results.md`](../evals/search/results.md)) confirma que la semántica es imprescindible en intención difusa e hiperónimos (nDCG@5 0,68 frente a 0,04 de la léxica). La búsqueda resuelve cada restricción por su mecanismo específico (BUS-superficie-consulta (d)), evitando la penalización a cero de la híbrida sin coincidencia léxica
 
 ## Sprint 2 — Frontend y app
 
