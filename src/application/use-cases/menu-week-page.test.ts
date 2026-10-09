@@ -11,6 +11,7 @@ import { err, ok } from '@/shared/result';
 const TODAY = '2026-10-09';
 const THIS_MONDAY = '2026-10-05';
 const PAST_MONDAY = '2026-09-28';
+const NEXT_MONDAY = '2026-10-12';
 const MENU_3: WeeklyMenu = { number: 3, meals: [] };
 const WEEK_OF_THIS_MONDAY = [
   '2026-10-05',
@@ -65,6 +66,14 @@ describe('menuWeekPage', () => {
     expect(page.ok && page.value.navigation.status).toBe('past');
     expect(page.ok && page.value.navigation.shown).toBe(PAST_MONDAY);
     expect(page.ok && page.value.menu?.menuNumber).toBe(3);
+  });
+
+  it('shows next week without a menu, and says the week is future', async () => {
+    const page = await menuWeekPage(fakes(), { userId: 'user-a', startsOn: NEXT_MONDAY });
+
+    expect(page.ok && page.value.navigation.status).toBe('future');
+    expect(page.ok && page.value.navigation.shown).toBe(NEXT_MONDAY);
+    expect(page.ok && page.value.menu).toBeNull();
   });
 
   it('fails when the selections cannot be read', async () => {
