@@ -1,23 +1,23 @@
 ## 1. Setup
 
-- [ ] 1.1 Create the branch `feature/mf-40-1-rejected-requests` from an up-to-date `main`, and verify that `pnpm vitest run evals/decomposer` passes before any change
+- [x] 1.1 Create the branch `feature/mf-40-1-rejected-requests` from an up-to-date `main`, and verify that `pnpm vitest run evals/decomposer` passes before any change
 
 ## 2. Rejected request schema (`design.md` D1)
 
-- [ ] 2.1 Write failing tests in `evals/decomposer/golden-set.test.ts` for the scenarios of the requirement "Rejected requests": a valid rejected request, an unknown category, a rejected request without category, a rejected request with constraints, a search request with a rejection, and an empty search that is not a rejection (A12). Run them and see them fail (RED)
-- [ ] 2.2 Write a failing test for the scenario "Unknown origin" of the requirement "Requests" (request and field `origin`), and see it fail (RED)
-- [ ] 2.3 Turn the request schema of `golden-set-schema.ts` into a discriminated union on `origin`, keep both variants strict, and run the term, group and alternatives checks on search requests only. Verify the tests of 2.1 and 2.2 and every existing test pass (GREEN)
+- [x] 2.1 Write failing tests in `evals/decomposer/golden-set.test.ts` for the scenarios of the requirement "Rejected requests": a valid rejected request, an unknown category, a rejected request without category, a rejected request with constraints, a search request with a rejection, and an empty search that is not a rejection (A12). Run them and see them fail (RED)
+- [x] 2.2 Write a failing test for the scenario "Unknown origin" of the requirement "Requests" (request and field `origin`), and see it fail (RED)
+- [x] 2.3 Turn the request schema of `golden-set-schema.ts` into a discriminated union on `origin`, keep both variants strict, and run the term, group and alternatives checks on search requests only. Verify the tests of 2.1 and 2.2 and every existing test pass (GREEN)
 
 ## 3. Composition (`design.md` D3)
 
-- [ ] 3.1 Write a failing test for the scenario "Wrong number of rejected requests": 9 rejected requests give an issue whose message expects 10 (RED)
-- [ ] 3.2 Add `REJECTED_REQUESTS = 10` to `checkComposition`, and verify the test passes (GREEN)
-- [ ] 3.3 Refactor with the tests green (REFACTOR): the file keeps `validateGoldenSet` and its helpers in call order (AGENTS.md, short functions)
+- [x] 3.1 Write a failing test for the scenario "Wrong number of rejected requests": 9 rejected requests give an issue whose message expects 10 (RED)
+- [x] 3.2 Add `REJECTED_REQUESTS = 10` to `checkComposition`, and verify the test passes (GREEN)
+- [x] 3.3 Refactor with the tests green (REFACTOR): the file keeps `validateGoldenSet` and its helpers in call order (AGENTS.md, short functions)
 
 ## 4. Golden set data (`design.md` D2)
 
-- [ ] 4.1 Add `X01`–`X10` to `evals/decomposer/golden-set.json`, with texts and categories copied verbatim from `evals/decomposer/rejected-requests.md`, in its order. Verify the committed-file test passes (`pnpm vitest run evals/decomposer`)
-- [ ] 4.2 Add the ids `X01`–`X10` to the selection table of `rejected-requests.md`, so each candidate shows its id
+- [x] 4.1 Add `X01`–`X10` to `evals/decomposer/golden-set.json`, with texts and categories copied verbatim from `evals/decomposer/rejected-requests.md`, in its order. Verify the committed-file test passes (`pnpm vitest run evals/decomposer`)
+- [x] 4.2 Add the ids `X01`–`X10` to the selection table of `rejected-requests.md`, so each candidate shows its id
 
 ## 5. Other readers (`design.md` D4)
 
