@@ -1,6 +1,6 @@
 # Despliegue a producción
 
-Cómo se publica una versión de la app en `https://menu-finder-mbs.vercel.app`. La decisión está en `context/decisiones.md` (OPS-ci-cd) y su porqué, en `openspec/changes/mf-26-vercel-deployment/design.md` (D3 a D6).
+Cómo se publica una versión de la app en `https://menu-finder-mbs.vercel.app`. La decisión está en `context/decisiones.md` (OPS-ci-cd) y su porqué, en `openspec/changes/archive/2026-10-11-mf-26-vercel-deployment/design.md` (D3 a D7).
 
 ## Idea en una frase
 
