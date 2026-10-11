@@ -122,10 +122,9 @@ Las referencias del tipo "BUS-superficie-consulta (b)" apuntan a estos apartados
 
 Una sola lista, ordenada por lo que bloquea. Los identificadores `C` son históricos y se mantienen por compatibilidad con lo ya escrito. **No queda ninguna contradicción abierta**: C7 se cerró con la forma de ING-trazabilidad el 2026-09-21.
 
-1. **Testing.** Parsers de lista y recetas (unit, determinista), retrieval (golden sets, EVAL-golden-sets), E2E del flujo semanal.
-2. **Observabilidad.** Latencia y coste por llamada: qué se mide y dónde se muestra (OPS-observabilidad).
-3. **Guion de la presentación y criterios de éxito** medibles.
-4. **Página de historial de selecciones.** El autor la echa en falta en las pantallas previstas. Falta decidir qué muestra (solo las semanas anteriores, o también reactivar un menú o ver la compra marcada) y si entra en el MVP. El dato ya existe: `Selection` guarda todas las selecciones (ARQ-modelo-datos).
+1. **Observabilidad.** Latencia y coste por llamada: qué se mide y dónde se muestra (OPS-observabilidad).
+2. **Guion de la presentación y criterios de éxito** medibles.
+3. **Página de historial de selecciones.** El autor la echa en falta en las pantallas previstas. Falta decidir qué muestra (solo las semanas anteriores, o también reactivar un menú o ver la compra marcada) y si entra en el MVP. El dato ya existe: `Selection` guarda todas las selecciones (ARQ-modelo-datos).
 
 ### Oportunidades detectadas en T1 (no bloquean, sí aportan)
 
