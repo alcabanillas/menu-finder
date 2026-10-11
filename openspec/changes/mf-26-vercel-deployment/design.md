@@ -86,6 +86,14 @@ See `proposal.md` for motivation.
   - The tag as the only source, passed to the build as an environment variable. Rejected: `package.json` `version` would stay at `0.1.0` while the tags move on, a field that misleads whoever reads it.
   - An `X-App-Version` header on every response. Rejected: anyone, without an account, would see which commit of the public repository is deployed, and checking it needs DevTools or `curl`.
 
+### D7: `pnpm release` Publishes a Version
+- **Choice** (decided by the author on 2026-10-11): `pnpm release` (`scripts/release/index.ts`) publishes the last commit of `main`. It fetches the remote, reads the version from that commit's `package.json`, and refuses to go on if the tag `v<version>` exists, if `production` has commits that are not in `main`, or if `checks` or `e2e` have not passed on the commit (missing, still running or failed). If files under `postgres/migrations/` changed since the previous tag, it lists them and asks whether they are applied to the production branch of Neon. It asks once more before acting, then tags the commit, pushes the tag and moves `production`. The decisions live in `scripts/release/release-problems.ts`, a pure function with unit tests; `index.ts` only runs `git` and `gh`.
+- **Why:** The release is the only manual step of the pipeline, and the D4 risks come from doing it by hand: releasing a commit whose checks were cancelled, forgetting to bump the version, or forgetting a migration. The script checks them before anything is pushed.
+- **Alternatives considered:**
+  - A `workflow_dispatch` workflow that tags and moves `production`. Rejected: a push made with the `GITHUB_TOKEN` does not start other workflows, so `release.yml` would never run and Vercel would hold the deployment forever; avoiding it needs a token with write access stored in GitHub.
+  - Release Please or Changesets. Rejected: they add a release PR to every version, a team process for a single author.
+  - Applying the migrations from the script or from CI. Rejected: it needs the owner role of the production database, which `context/safety-first.md §2.4` keeps for the CLI in the author's hands.
+
 ## Risks / Trade-offs
 
 - **[Risk: CSP breaks Next.js client-side navigation or inline styles]** → Mitigation: Tested via local build, Vitest unit tests on `next.config.ts`, on `withContentSecurityPolicy` and on the proxy matcher, and the Playwright E2E suite, which runs against `pnpm build && pnpm start`, before pushing.

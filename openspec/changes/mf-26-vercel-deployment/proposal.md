@@ -16,6 +16,7 @@ With the human setup completed (Vercel project `menu-finder-mbs` connected to th
     - `Referrer-Policy: strict-origin-when-cross-origin`.
     - `Permissions-Policy` disabling unused browser APIs (camera, microphone, geolocation).
 - **Deployment from the `production` branch** (`design.md` D3, D4): Vercel for GitHub builds the Production Branch, `production`, and Deployment Checks hold each deployment until the jobs `checks`, `e2e` and `release` pass on its commit. `checks` and `e2e` run in `ci.yml` on every commit of `main`; a new workflow, `release.yml`, runs only on pushes to `production`, and its `release` job checks that the commit is in `main` and carries the tag `v<version>`. No Vercel CLI and no Vercel token in GitHub.
+- **`pnpm release`** (`design.md` D7): a local script that checks the last commit of `main` (new tag, `checks` and `e2e` green, `production` behind `main`, migrations applied), then tags it and moves `production`.
 - **Visible version** (`design.md` D6): `"version"` in `package.json` is the source. The `release` job fails if the commit's tag is not `v<version>`. The account menu shows "Versión v<version>" only to signed-in users. `X-Powered-By` is turned off.
 - **Vercel Git Build Governance** (`design.md` D5): `vercel.json` lets only `production` deploy (`git.deploymentEnabled`), and runs the functions in `fra1`, next to the database.
 
@@ -29,7 +30,7 @@ With the human setup completed (Vercel project `menu-finder-mbs` connected to th
 
 ## Impact
 
-- **Code:** `next.config.ts`, `src/proxy.ts` (new), `AccountMenu` and the layouts that mount the shell, `.github/workflows/ci.yml`, `.github/workflows/release.yml` (new), `vercel.json`, and automated tests for the headers in `next.config.ts` for the CSP and the proxy matcher, and an E2E test on real responses.
+- **Code:** `next.config.ts`, `src/proxy.ts` (new), `AccountMenu` and the layouts that mount the shell, `.github/workflows/ci.yml`, `.github/workflows/release.yml` (new), `scripts/release/` (new, `pnpm release`), `vercel.json`, and automated tests for the headers in `next.config.ts` for the CSP and the proxy matcher, and an E2E test on real responses.
 - **Systems:** Vercel deploys only the `production` branch, and only after the CI checks pass on its commit. The Production Branch and the Deployment Checks are set in the Vercel dashboard. The `VERCEL_TOKEN`, `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` repository secrets are no longer needed. No other branch deploys, so there are no preview deployments, so the rule of `context/safety-first.md §2.4` that previews be access-protected and use their own Neon branch is met by omission.
 - **Decisions relied on:** `OPS-vercel` (deployment on Vercel), `OPS-ci-cd` (test → build → deploy pipeline in GitHub Actions with minimal permissions), `context/safety-first.md §2.4` (platform and deployment requirements).
 - **Data:** No domain data or nutritionist data is touched (SEG-datos-nutricionista).

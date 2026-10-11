@@ -9,8 +9,8 @@ Hacer merge a `main` **no** despliega. Para publicar, el autor etiqueta un commi
 ```
 PR ──merge──▶ main ──(ci.yml: checks, e2e)──▶ commit verde
                                                   │
-                         git tag vX.Y.Z  ◀────────┘
-                         git push origin vX.Y.Z:production
+                         pnpm release  ◀──────────┘
+                         (tag vX.Y.Z y push a production)
                                                   │
               Vercel construye ◀──────────────────┤
                                                   ▼
@@ -24,6 +24,7 @@ PR ──merge──▶ main ──(ci.yml: checks, e2e)──▶ commit verde
 | Pieza | Dónde | Qué hace |
 |---|---|---|
 | `ci.yml` | GitHub Actions, en PR y en push a `main` | `checks` (lint, typecheck, tests con cobertura) y `e2e` (Playwright) |
+| `pnpm release` | Tu máquina | Comprueba el último commit de `main`, lo etiqueta y mueve `production` |
 | `release.yml` | GitHub Actions, solo en push a `production` | `release`: falla si el commit no está en `main` o si el tag `v<version de package.json>` no apunta a él |
 | Production Branch | Vercel → Settings → Environments → Production → Branch Tracking | `production`: la única rama que Vercel publica |
 | `vercel.json` | Repo | `"**": false, "production": true`: ninguna otra rama despliega, ni como preview. Funciones en `fra1` |
@@ -35,26 +36,19 @@ Vercel asocia los checks al commit y al nombre del job. Por eso cada check corre
 ## Publicar una versión
 
 1. **Sube la versión.** En una PR, cambia `"version"` en `package.json` (por ejemplo, de `0.1.0` a `0.2.0`) y haz merge.
-2. **Espera a que `main` esté en verde.** El CI de ese commit en `main` debe terminar con `checks` y `e2e` en verde:
+2. **Si la versión trae migraciones**, aplícalas antes en la rama `production` de Neon (`pnpm ingest migrate`; ver OPS-ramas-bd en `context/decisiones.md`).
+3. **Publica:**
    ```bash
-   gh run list --branch main --limit 3
+   pnpm release
    ```
-3. **Si la versión trae migraciones**, aplícalas antes en la rama `production` de Neon (`pnpm ingest migrate`; ver OPS-ramas-bd en `context/decisiones.md`).
-4. **Etiqueta el commit y mueve `production`** (sustituye la versión):
-   ```bash
-   git fetch origin
-   ```
-   ```bash
-   git tag v0.2.0 origin/main
-   ```
-   ```bash
-   git push origin v0.2.0
-   ```
-   ```bash
-   git push origin v0.2.0:refs/heads/production
-   ```
-5. **Comprueba en Vercel** que el deployment aparece como retenido hasta que `release` pasa, y que después se publica.
-6. **Comprueba la web:**
+   El script (`scripts/release/`) publica el último commit de `main`. Antes de tocar nada comprueba que:
+   - el tag `v<versión de package.json>` no existe, es decir, que subiste la versión;
+   - `checks` y `e2e` pasaron en ese commit: ni faltan ni siguen corriendo;
+   - `production` no tiene commits que no estén en `main`.
+
+   Si algo falla, lo dice y no publica. Si cambió algo en `postgres/migrations/` desde la versión anterior, te lo lista y pregunta si ya está aplicado. Después pide confirmación, crea el tag, lo sube y mueve `production`. Necesita `gh` con sesión iniciada.
+4. **Comprueba en Vercel** que el deployment aparece como retenido hasta que `release` pasa, y que después se publica.
+5. **Comprueba la web:**
    - Cabeceras: `curl -sI https://menu-finder-mbs.vercel.app/login` debe mostrar `Content-Security-Policy` con `nonce-…`, `X-Frame-Options: DENY` y `X-Content-Type-Options: nosniff`, y no `X-Powered-By`.
    - Versión: entra, **recarga** la página y abre el menú de cuenta: debe decir "Versión v0.2.0". Una pestaña abierta antes del despliegue sigue con el código anterior hasta que se recarga.
 
@@ -64,7 +58,8 @@ Vercel asocia los checks al commit y al nombre del job. Por eso cada check corre
 |---|---|---|
 | `release` falla con "The commit is not tagged" | El tag no existe, apunta a otro commit o no coincide con `package.json` | Crea el tag correcto sobre ese commit y vuelve a lanzar `release.yml` desde Actions |
 | `release` falla en "Check that the commit is in main" | Se movió `production` a un commit que no está en `main` | Mueve `production` a un commit de `main`. Nunca se hace commit directamente en `production` |
-| Vercel retiene el deployment para siempre | El CI de ese commit en `main` se canceló porque entró otro merge detrás (`cancel-in-progress`) | Publica el último commit de `main` o relanza el CI cancelado de ese commit |
+| `pnpm release` dice que `checks` o `e2e` no han corrido | El CI de ese commit en `main` se canceló porque entró otro merge detrás (`cancel-in-progress`) | Relanza el CI cancelado desde Actions, o espera al del merge siguiente |
+| `pnpm release` dice que el tag ya existe | No subiste la versión de `package.json` | Súbela en una PR y vuelve a lanzar `pnpm release` |
 | El build de Vercel falla | Error de build o de configuración del proyecto (Node.js 24) | Arréglalo en una PR. Lo publicado sigue sirviéndose |
 | La versión publicada tiene un fallo grave | — | Vercel → proyecto → **Instant Rollback** al deployment anterior. Después, Vercel deja de publicar los push a `production` hasta que pulses **Undo Rollback**. Arregla en una PR y publica una versión nueva |
 
