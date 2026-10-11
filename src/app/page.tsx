@@ -1,7 +1,7 @@
-import { SignInScreen } from '@/app/_session/sign-in-screen';
-import { signOutAction } from '@/app/_session/actions';
+import { signInAction, signOutAction } from '@/app/_session/actions';
 import { sessionUser } from '@/app/_session/session-user';
 import { AppShell } from '@/features/app-shell/components/app-shell';
+import { SignInScreen } from '@/features/auth/components/sign-in-screen';
 
 /**
  * `/`: the sign-in form for a visitor; for a user with a session, a minimal page inside the app shell until MF-25
@@ -11,7 +11,7 @@ import { AppShell } from '@/features/app-shell/components/app-shell';
 export default async function Home() {
   const user = await sessionUser();
   if (user) return <TodayPage email={user.email} />;
-  return <SignInScreen />;
+  return <SignInScreen action={signInAction} />;
 }
 
 function TodayPage({ email }: { email: string }) {
