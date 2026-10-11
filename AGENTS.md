@@ -48,7 +48,7 @@ This TFM is a part-time personal project. Estimate work in hours, not full-time 
 | Ingesta: PDFs, parsers, CLI | Ingesta | `context/datos.md`; `context/tareas/T2-esquema-json-ingesta.md`; runbook local en `context/tareas/T0-extraccion-previa.md` |
 | LLM: prompts, Genkit, agentes | IA transversal | `context/ConceptosRAG-y-agentes.md`; `context/safety-first.md` §2.6 |
 | Evaluación: golden sets, ground truth | Evaluación | `context/tareas/T4-evaluacion-extraccion.md` |
-| Tests, CI, despliegue, observabilidad | Despliegue y calidad | — |
+| Tests, CI, despliegue, observabilidad | Despliegue y calidad | Para publicar o tocar el despliegue, `context/despliegue.md` |
 | Seguridad: auth, roles, validación, límites | Seguridad | `context/safety-first.md`; `context/OWASP-Top10.md` por categoría |
 | Cambios con OpenSpec | Proceso | `openspec/config.yaml`, la spec afectada en `openspec/specs/` y el cambio activo en `openspec/changes/` |
 | Proponer algo nuevo o decidir | Lo abierto | — |
