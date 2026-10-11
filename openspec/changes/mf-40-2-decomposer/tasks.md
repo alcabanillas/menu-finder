@@ -59,12 +59,12 @@
 
 ## 7. Documentation
 
-- [ ] 7.1 `context/roadmap.md`: the MF-40 parent still says "61 peticiones" and "el golden set gana unas cuantas"; change them to the 71 requests, 10 of them rejected, of MF-40.1
-- [ ] 7.2 `context/decisiones.md` IA-proveedor: the decomposer uses `gemini-3.5-flash-lite`, not Flash, and MF-40.3 compares it with `gemini-3.8-flash` (design.md D9, decided by the author on 2026-10-11). `context/roadmap.md` MF-40.3: add that comparison
+- [x] 7.1 `context/roadmap.md`: the MF-40 parent still says "61 peticiones" and "el golden set gana unas cuantas"; change them to the 71 requests, 10 of them rejected, of MF-40.1
+- [x] 7.2 `context/decisiones.md` IA-proveedor: the decomposer uses `gemini-3.5-flash-lite`, not Flash, and MF-40.3 compares it with `gemini-3.8-flash` (design.md D9, decided by the author on 2026-10-11). `context/roadmap.md` MF-40.3: add that comparison
 - [x] 7.3 Commit `scripts/evaluacion/term-variants.ts` and its `evals:term-variants` script in `package.json`, the analysis behind design.md D4
-- [ ] 7.4 `context/decisiones.md` IA-proveedor: the Genkit Developer UI is an optional local tool, run with `pnpm dlx genkit-cli@<genkit version>`, never a dependency (design.md D10)
+- [x] 7.4 `context/decisiones.md` IA-proveedor: the Genkit Developer UI is an optional local tool, run with `pnpm dlx genkit-cli@<genkit version>`, never a dependency (design.md D10)
 
 ## 8. Verification
 
-- [ ] 8.1 Run `pnpm lint`, `pnpm typecheck` and `pnpm test:run`, and verify everything passes
-- [ ] 8.2 Run `openspec validate mf-40-2-decomposer --strict` and verify it passes
+- [x] 8.1 Run `pnpm lint`, `pnpm typecheck` and `pnpm test:run`, and verify everything passes
+- [x] 8.2 Run `openspec validate mf-40-2-decomposer --strict` and verify it passes
