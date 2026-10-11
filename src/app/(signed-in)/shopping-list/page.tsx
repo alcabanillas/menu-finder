@@ -1,5 +1,5 @@
 import { checkItemsAction } from '@/app/(signed-in)/shopping-list/actions';
-import { requireUser } from '@/app/_session/require-user';
+import { requireUser } from '@/app/_auth/require-user';
 import { webContainer } from '@/composition/web-container';
 import { ChecklistMessage } from '@/features/shopping-list/components/checklist-message';
 import { ShoppingChecklist } from '@/features/shopping-list/components/shopping-checklist';

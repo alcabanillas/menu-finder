@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SignedInUser } from '@/application/dto/signed-in-user';
-import { redirectIfSignedIn, requireUser } from '@/app/_session/require-user';
-import { sessionUser } from '@/app/_session/session-user';
+import { redirectIfSignedIn, requireUser } from '@/app/_auth/require-user';
+import { sessionUser } from '@/app/_auth/session-user';
 
 // React's `cache()` only remembers inside the render of one request. Here it is a memo that `newRequest()` empties, so
 // the test can tell whether every reader goes through the one cached function (design D1 of MF-51.2).

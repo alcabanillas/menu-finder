@@ -1,5 +1,5 @@
-import { signInAction, signOutAction } from '@/app/_session/actions';
-import { sessionUser } from '@/app/_session/session-user';
+import { signInAction, signOutAction } from '@/app/_auth/actions';
+import { sessionUser } from '@/app/_auth/session-user';
 import { APP_VERSION } from '@/app/app-version';
 import { AppShell } from '@/features/app-shell/components/app-shell';
 import { SignInScreen } from '@/features/auth/components/sign-in-screen';

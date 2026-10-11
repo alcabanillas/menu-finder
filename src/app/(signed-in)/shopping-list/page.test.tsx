@@ -5,7 +5,7 @@ import type { ShoppingChecklistDto } from '@/application/dto/shopping-checklist'
 
 const mocks = vi.hoisted(() => ({ requireUser: vi.fn(), shoppingChecklist: vi.fn() }));
 
-vi.mock('@/app/_session/require-user', () => ({ requireUser: mocks.requireUser }));
+vi.mock('@/app/_auth/require-user', () => ({ requireUser: mocks.requireUser }));
 vi.mock('@/composition/web-container', () => ({ webContainer: () => ({ shoppingChecklist: mocks.shoppingChecklist }) }));
 vi.mock('@/app/(signed-in)/shopping-list/actions', () => ({ checkItemsAction: vi.fn() }));
 

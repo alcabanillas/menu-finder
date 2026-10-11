@@ -1,5 +1,5 @@
 import { chooseRandomMenuAction } from '@/app/(signed-in)/planner/actions';
-import { requireUser } from '@/app/_session/require-user';
+import { requireUser } from '@/app/_auth/require-user';
 import { webContainer } from '@/composition/web-container';
 import { RandomMenuForm } from '@/features/menu-planner/components/random-menu-form';
 import { SelectionSummary } from '@/features/menu-planner/components/selection-summary';

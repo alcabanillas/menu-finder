@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
-import { signOutAction } from '@/app/_session/actions';
+import { signOutAction } from '@/app/_auth/actions';
 import { APP_VERSION } from '@/app/app-version';
-import { sessionUser } from '@/app/_session/session-user';
+import { sessionUser } from '@/app/_auth/session-user';
 import { AppShell } from '@/features/app-shell/components/app-shell';
 
 /**

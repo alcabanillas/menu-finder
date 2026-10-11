@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { signInAction } from '@/app/_session/actions';
+import { signInAction } from '@/app/_auth/actions';
 import { webContainer } from '@/composition/web-container';
 import { err, ok } from '@/shared/result';
 

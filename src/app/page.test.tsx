@@ -12,7 +12,7 @@ const navigation = vi.hoisted(() => ({
 const container = vi.hoisted(() => ({ currentUser: vi.fn<() => Promise<SignedInUser | null>>() }));
 vi.mock('next/navigation', () => navigation);
 vi.mock('@/composition/web-container', () => ({ webContainer: () => container }));
-vi.mock('@/app/_session/actions', () => ({ signInAction: vi.fn(), signOutAction: vi.fn() }));
+vi.mock('@/app/_auth/actions', () => ({ signInAction: vi.fn(), signOutAction: vi.fn() }));
 
 describe('Home', () => {
   it('shows the sign-in form without a session, with no sign-up or recovery and no shell', async () => {
