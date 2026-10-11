@@ -46,9 +46,11 @@ const GEMINI_API_KEY = 'GEMINI_API_KEY';
 const BETTER_AUTH_SECRET = 'BETTER_AUTH_SECRET';
 
 // The model of the decomposer, then the newest Flash it is compared with (MF-40.2 design D9, MF-40.3 design D4), each
-// with the least thinking it accepts: `gemini-3.8-flash` answers `MINIMAL` with HTTP 400 (task 6.1).
+// with the least thinking it accepts: `gemini-3.8-flash` answers `MINIMAL` with HTTP 400 (task 6.1). The model of the
+// decomposer also runs with `LOW`, the step MF-40.2 design D9 tries before changing the model (author, 2026-10-12).
 const EVALUATED_MODELS: { model: string; thinkingLevel: ThinkingLevel }[] = [
   { model: DECOMPOSER_MODEL, thinkingLevel: 'MINIMAL' },
+  { model: DECOMPOSER_MODEL, thinkingLevel: 'LOW' },
   { model: 'gemini-3.8-flash', thinkingLevel: 'LOW' },
 ];
 

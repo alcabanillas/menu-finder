@@ -44,6 +44,14 @@ describe('decomposerPrompt', () => {
     expect(instructions).toContain('"term":"primavera"');
   });
 
+  it('shows "o" with more than one example: two that make an anyOf group and one inside an exclusion that makes none', () => {
+    const answers = instructions.split('\n').filter((line) => line.startsWith('{"rejection":null'));
+    const withAnyOf = answers.filter((line) => !line.endsWith('"anyof":[]}'));
+
+    expect(withAnyOf).toHaveLength(2);
+    expect(instructions).toContain('"sin nueces o almendras"');
+  });
+
   it('makes no group only for "o" inside a dish with "con", as in rule 1', () => {
     expect(instructions).toContain('a dish with one thing or another');
   });

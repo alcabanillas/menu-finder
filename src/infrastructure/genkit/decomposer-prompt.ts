@@ -48,6 +48,12 @@ A search with no condition the four types can hold has \`rejection\` null and em
 "lentejas o alubias en las cenas"
 {"rejection":null,"constraints":[{"id":"c1","type":"literal","term":"lentejas","polarity":"include","hard":false,"slot":"dinner"},{"id":"c2","type":"literal","term":"alubias","polarity":"include","hard":false,"slot":"dinner"}],"sameDish":[],"anyOf":[["c1","c2"]]}
 
+"lubina o dorada, sin gluten"
+{"rejection":null,"constraints":[{"id":"c1","type":"literal","term":"lubina","polarity":"include","hard":false},{"id":"c2","type":"literal","term":"dorada","polarity":"include","hard":false},{"id":"c3","type":"exclusion","term":"gluten","polarity":"exclude","hard":false}],"sameDish":[],"anyOf":[["c1","c2"]]}
+
+"sin nueces o almendras"
+{"rejection":null,"constraints":[{"id":"c1","type":"exclusion","term":"nueces","polarity":"exclude","hard":false},{"id":"c2","type":"exclusion","term":"almendras","polarity":"exclude","hard":false}],"sameDish":[],"anyOf":[]}
+
 "muslos de pavo sí o sí, nada de lactosa"
 {"rejection":null,"constraints":[{"id":"c1","type":"literal","term":"muslos de pavo","polarity":"include","hard":true},{"id":"c2","type":"exclusion","term":"lactosa","polarity":"exclude","hard":false}],"sameDish":[],"anyOf":[]}
 
