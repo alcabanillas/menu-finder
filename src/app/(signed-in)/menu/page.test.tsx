@@ -6,7 +6,7 @@ import MenuPage from '@/app/(signed-in)/menu/page';
 
 const mocks = vi.hoisted(() => ({ requireUser: vi.fn(), menuWeekPage: vi.fn() }));
 
-vi.mock('@/app/_session/require-user', () => ({ requireUser: mocks.requireUser }));
+vi.mock('@/app/_auth/require-user', () => ({ requireUser: mocks.requireUser }));
 vi.mock('@/composition/web-container', () => ({ webContainer: () => ({ menuWeekPage: mocks.menuWeekPage }) }));
 
 const ANA = { userId: 'user-1', name: 'Ana', email: 'ana@example.test' };

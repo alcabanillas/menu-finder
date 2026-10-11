@@ -1,14 +1,16 @@
-import { signInAction } from '@/app/_session/actions';
-import { LoginForm } from '@/features/auth/components/login-form';
+import { LoginForm, type LoginFormState } from '@/features/auth/components/login-form';
 import { SignInHero } from '@/features/auth/components/sign-in-hero';
 import { Wordmark } from '@/features/auth/components/wordmark';
+
+type SignInScreenProps = { action: (previous: LoginFormState, form: FormData) => Promise<LoginFormState> };
 
 /**
  * The sign-in screen `/` and `/login` share until the home and the dashboard exist, as in the design system's Login
  * mock (version 1791192451-31e6). From 640 px of width it has two columns; the form comes first in the DOM, so
- * keyboard and screen readers start there, and the olive panel is moved to the left.
+ * keyboard and screen readers start there, and the olive panel is moved to the left. It gets the sign-in action by
+ * props, so it knows nothing of the server (ADR-001 §5).
  */
-export function SignInScreen() {
+export function SignInScreen({ action }: SignInScreenProps) {
   return (
     <div className="@container min-h-screen">
       <div className="flex min-h-screen flex-col @min-[640px]:grid @min-[640px]:grid-cols-2">
@@ -21,7 +23,7 @@ export function SignInScreen() {
               <p className="mt-2.5 text-text-muted">Con tu correo y tu contraseña.</p>
               <hr className="mt-[18px] border-0 border-t border-border-ink" />
             </header>
-            <LoginForm action={signInAction} />
+            <LoginForm action={action} />
           </div>
         </main>
         <SignInHero className="order-first hidden @min-[640px]:flex" />

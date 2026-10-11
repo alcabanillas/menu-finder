@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
   revalidatePath: vi.fn(),
 }));
 
-vi.mock('@/app/_session/require-user', () => ({ requireUser: mocks.requireUser }));
+vi.mock('@/app/_auth/require-user', () => ({ requireUser: mocks.requireUser }));
 vi.mock('@/composition/web-container', () => ({ webContainer: () => ({ checkShoppingItems: mocks.checkShoppingItems }) }));
 vi.mock('next/cache', () => ({ revalidatePath: mocks.revalidatePath }));
 

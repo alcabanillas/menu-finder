@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import type { SignedInUser } from '@/application/dto/signed-in-user';
-import { sessionUser } from '@/app/_session/session-user';
+import { sessionUser } from '@/app/_auth/session-user';
 
 /**
  * The first line of every protected page (design D6): the user of a valid session, or a redirect to `/login` before

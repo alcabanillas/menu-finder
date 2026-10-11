@@ -4,8 +4,8 @@ import type { SignedInUser } from '@/application/dto/signed-in-user';
 import AppLayout from '@/app/(signed-in)/layout';
 
 const session = vi.hoisted(() => ({ sessionUser: vi.fn<() => Promise<SignedInUser | null>>() }));
-vi.mock('@/app/_session/session-user', () => session);
-vi.mock('@/app/_session/actions', () => ({ signOutAction: vi.fn() }));
+vi.mock('@/app/_auth/session-user', () => session);
+vi.mock('@/app/_auth/actions', () => ({ signOutAction: vi.fn() }));
 vi.mock('next/navigation', () => ({
   redirect: vi.fn(() => {
     throw new Error('the layout must not redirect');

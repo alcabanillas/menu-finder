@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { requireUser } from '@/app/_session/require-user';
+import { requireUser } from '@/app/_auth/require-user';
 import type { CheckShoppingItemsFailure } from '@/application/use-cases/check-shopping-items';
 import { webContainer } from '@/composition/web-container';
 import type { CheckItemsState } from '@/features/shopping-list/check-items-state';

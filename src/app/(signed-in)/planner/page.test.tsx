@@ -4,7 +4,7 @@ import PlannerPage from '@/app/(signed-in)/planner/page';
 
 const mocks = vi.hoisted(() => ({ currentSelections: vi.fn() }));
 
-vi.mock('@/app/_session/require-user', () => ({
+vi.mock('@/app/_auth/require-user', () => ({
   requireUser: async () => ({ userId: 'user-1', name: 'Ana', email: 'ana@example.test' }),
 }));
 vi.mock('@/composition/web-container', () => ({ webContainer: () => ({ currentSelections: mocks.currentSelections }) }));

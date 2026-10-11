@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SignedInUser } from '@/application/dto/signed-in-user';
-import { requireUser } from '@/app/_session/require-user';
+import { requireUser } from '@/app/_auth/require-user';
 
 // `redirect` of Next.js throws to stop the page; the fake does the same so that nothing after it runs.
 const navigation = vi.hoisted(() => ({

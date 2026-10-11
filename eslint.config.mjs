@@ -31,6 +31,9 @@ const architecture = {
       { type: 'shared-ui', pattern: 'src/shared/ui', partialMatch: false },
       { type: 'shared', pattern: 'src/shared', partialMatch: false },
     ],
+    // Next.js requires the proxy next to app/, but it is an entry of the web adapter too (MF-26). Elements match
+    // folders, so the file gets a category and the same rules as app/.
+    'boundaries/files': [{ category: 'web-entry', pattern: 'src/proxy.ts' }],
   },
   rules: { 'boundaries/dependencies': dependencyRule() },
 };
@@ -45,6 +48,18 @@ const architectureTests = {
     ]),
   },
 };
+
+/** What the web adapter may import: app/ and its entries outside it (the proxy). */
+function webAdapter() {
+  return [
+    layer('app'),
+    container('web-container'),
+    applicationPart('dto', 'use-cases'),
+    layer('feature'),
+    layer('shared-ui'),
+    layer('shared'),
+  ];
+}
 
 function dependencyRule(extraPolicies = []) {
   return [
@@ -70,17 +85,8 @@ function dependencyRule(extraPolicies = []) {
           allow: [layer('infrastructure'), applicationPart('ports', 'dto'), layer('domain'), layer('shared')],
         },
         { from: { element: { type: 'composition' } }, allow: { to: { element: { type: '*' } } } },
-        {
-          from: { element: { type: 'app' } },
-          allow: [
-            layer('app'),
-            container('web-container'),
-            applicationPart('dto', 'use-cases'),
-            layer('feature'),
-            layer('shared-ui'),
-            layer('shared'),
-          ],
-        },
+        { from: { element: { type: 'app' } }, allow: webAdapter() },
+        { from: { file: { categories: 'web-entry' } }, allow: [...webAdapter(), { to: { module: { origin: '{external,core}' } } }] },
         {
           from: { element: { type: 'cli' } },
           allow: [layer('cli'), container('cli-container'), applicationPart('dto', 'use-cases'), layer('shared')],

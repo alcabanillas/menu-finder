@@ -1,7 +1,8 @@
-import { SignInScreen } from '@/app/_session/sign-in-screen';
-import { signOutAction } from '@/app/_session/actions';
-import { sessionUser } from '@/app/_session/session-user';
+import { signInAction, signOutAction } from '@/app/_auth/actions';
+import { sessionUser } from '@/app/_auth/session-user';
+import { APP_VERSION } from '@/app/app-version';
 import { AppShell } from '@/features/app-shell/components/app-shell';
+import { SignInScreen } from '@/features/auth/components/sign-in-screen';
 
 /**
  * `/`: the sign-in form for a visitor; for a user with a session, a minimal page inside the app shell until MF-25
@@ -11,12 +12,12 @@ import { AppShell } from '@/features/app-shell/components/app-shell';
 export default async function Home() {
   const user = await sessionUser();
   if (user) return <TodayPage email={user.email} />;
-  return <SignInScreen />;
+  return <SignInScreen action={signInAction} />;
 }
 
 function TodayPage({ email }: { email: string }) {
   return (
-    <AppShell account={{ email, signOutAction }}>
+    <AppShell account={{ email, version: APP_VERSION, signOutAction }}>
       <div className="flex flex-col items-center justify-center gap-6 px-5 py-16">
         <h1 className="text-2xl font-extrabold">Hoy</h1>
         <p>Aquí verás qué toca hoy.</p>

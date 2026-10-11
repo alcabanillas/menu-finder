@@ -1,6 +1,6 @@
 # ADR-001 — Arquitectura interna: hexagonal sobre Next.js
 
-- **Estado:** aceptada (2026-09-19); **enmendada 2026-09-27**: la CLI pasa a ser un segundo adaptador primario, con su propio composition root (§2, §3, §5); la §2 solo fija lo decidido y la §4 incluye `RateLimiter`. **Segunda enmienda 2026-09-27**: la UI se organiza con la Scope Rule (`features/` y `shared/ui/`) y `app/` queda como capa de entrada (§2, §3, §5). **Tercera enmienda 2026-09-27**: el parseo que depende de la maquetación del documento de origen va en su adaptador, no en el dominio; el ejemplo de la §4 pasa a ser el parser del menú (MF-11). **Cuarta enmienda 2026-09-27**: la §4 añade `RecipeRepository`, que faltaba: `MenuDish` apunta a `recipeId`, así que las recetas se persisten igual que el menú y la lista. **Quinta enmienda 2026-10-01**: la §2 precisa que "capacidad" es un concepto del dominio, y dos reglas para agentes (reutilizar un puerto antes de crear otro; nombrar por concepto del dominio) pasan a `AGENTS.md`, tras el rediseño de MF-41
+- **Estado:** aceptada (2026-09-19); **enmendada 2026-09-27**: la CLI pasa a ser un segundo adaptador primario, con su propio composition root (§2, §3, §5); la §2 solo fija lo decidido y la §4 incluye `RateLimiter`. **Segunda enmienda 2026-09-27**: la UI se organiza con la Scope Rule (`features/` y `shared/ui/`) y `app/` queda como capa de entrada (§2, §3, §5). **Tercera enmienda 2026-09-27**: el parseo que depende de la maquetación del documento de origen va en su adaptador, no en el dominio; el ejemplo de la §4 pasa a ser el parser del menú (MF-11). **Cuarta enmienda 2026-09-27**: la §4 añade `RecipeRepository`, que faltaba: `MenuDish` apunta a `recipeId`, así que las recetas se persisten igual que el menú y la lista. **Quinta enmienda 2026-10-01**: la §2 precisa que "capacidad" es un concepto del dominio, y dos reglas para agentes (reutilizar un puerto antes de crear otro; nombrar por concepto del dominio) pasan a `AGENTS.md`, tras el rediseño de MF-41. **Sexta enmienda 2026-10-11**: la §2 añade `src/proxy.ts`, que Next.js exige junto a `app/`, como entrada del adaptador web con las mismas reglas que `app/`; ESLint lo clasifica con una categoría de fichero (MF-26)
 - **Decisión en [decisiones.md](../decisiones.md):** ARQ-hexagonal
 - **Audiencia:** este documento es **entrada directa de los agentes** que generen código (SDD). Las reglas de la §3 son normativas y verificables en CI.
 - **Punto único:** la estructura de `src/` y sus reglas solo se describen aquí, salvo dos reglas obligatorias para agentes que viven en `AGENTS.md`: reutilizar un puerto antes de crear otro y nombrar por concepto del dominio. `AGENTS.md` remite a este documento para lo demás; no lo copia.
@@ -31,6 +31,7 @@ src/
     <ruta>/page.tsx  # pide datos al caso de uso y los pasa por props
     <ruta>/actions.ts  # server actions de esa ruta
     api/**/route.ts
+  proxy.ts           # Proxy de Next.js (antes middleware): entrada del adaptador web, donde Next.js la exige; la lógica, en app/content-security-policy.ts (MF-26)
   features/          # UI organizada con la Scope Rule: UI pura, sin backend
     <feature>/
       components/

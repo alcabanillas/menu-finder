@@ -1,4 +1,4 @@
-import { requireUser } from '@/app/_session/require-user';
+import { requireUser } from '@/app/_auth/require-user';
 import { webContainer } from '@/composition/web-container';
 import { EmptyMenu } from '@/features/weekly-menu/components/empty-menu';
 import { WeekNav } from '@/features/weekly-menu/components/week-nav';
