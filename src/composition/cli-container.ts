@@ -2,6 +2,7 @@ import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import pg from 'pg';
 import { createAccount } from '@/application/use-cases/create-account';
+import { decomposeRequest } from '@/application/use-cases/decompose-request';
 import { ingestMenus } from '@/application/use-cases/ingest-menus';
 import { ingestRecipes } from '@/application/use-cases/ingest-recipes';
 import { ingestShoppingLists } from '@/application/use-cases/ingest-shopping-lists';
@@ -17,6 +18,7 @@ import { createAccountCreator } from '@/infrastructure/auth/create-account';
 import { FanOutRepository } from '@/infrastructure/fan-out/fan-out-repository';
 import { FileGoldenSetSource } from '@/infrastructure/golden-sets/file-golden-set-source';
 import { createGenkitEmbeddings } from '@/infrastructure/genkit/genkit-embeddings';
+import { createGenkitRequestDecomposer } from '@/infrastructure/genkit/genkit-request-decomposer';
 import { JsonFileMenuRepository, MENU_DATASET_FILE } from '@/infrastructure/json-file/json-file-menu-repository';
 import { JsonFileRecipeRepository, RECIPE_DATASET_FILE } from '@/infrastructure/json-file/json-file-recipe-repository';
 import { LocalDocumentSource } from '@/infrastructure/local-documents/local-document-source';
@@ -108,6 +110,11 @@ export function createCliContainer(env: Env = {}) {
         withPool(url, (pool) =>
           searchMenus(dto, strategy, searchPorts(pool, apiKey === undefined ? NO_EMBEDDINGS : createGenkitEmbeddings(apiKey))),
         ),
+      ),
+    // The key only, no database (spec request-decomposer). No daily LLM limit: it is applied in the web adapter (SEG-rate-limit).
+    decomposeRequest: (request: string) =>
+      requiring(env, [GEMINI_API_KEY], ([apiKey]) =>
+        decomposeRequest(request, { decomposer: createGenkitRequestDecomposer(apiKey) }),
       ),
     // Read only: the three strategies, so the key is always needed (spec search-evaluation).
     evaluateSearch: () =>

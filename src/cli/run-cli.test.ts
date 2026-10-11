@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { CliCommands, SearchOptions } from '@/cli/run-cli';
 import { runCli } from '@/cli/run-cli';
 
-const USAGE_HEADER = 'Usage: pnpm ingest <migrate|recipes|menu|shopping-list|embed|account|search|evaluate-search>';
+const USAGE_HEADER = 'Usage: pnpm ingest <migrate|recipes|menu|shopping-list|embed|account|search|evaluate-search|decompose>';
 const NO_RUNS = {
   built: 0,
   menuRuns: 0,
@@ -13,6 +13,7 @@ const NO_RUNS = {
   accountRuns: [],
   searches: [],
   evaluations: 0,
+  decompositions: [],
 };
 
 const setup = () => {
@@ -26,6 +27,7 @@ const setup = () => {
   const accountRuns: string[][] = [];
   const searches: SearchOptions[] = [];
   let evaluations = 0;
+  const decompositions: string[][] = [];
   const createCommands = (): CliCommands => {
     built += 1;
     return {
@@ -61,6 +63,10 @@ const setup = () => {
         evaluations += 1;
         return 0;
       },
+      decompose: async (args) => {
+        decompositions.push(args);
+        return 3;
+      },
     };
   };
   return {
@@ -76,6 +82,7 @@ const setup = () => {
       accountRuns,
       searches,
       evaluations,
+      decompositions,
     }),
   };
 };
@@ -125,6 +132,24 @@ describe('runCli', () => {
     expect(await run(args)).toBe(0);
     expect(counts()).toEqual({ ...NO_RUNS, built: 1, accountRuns: [expected] });
   });
+
+  it('runs the decompose command with its request and returns its exit code', async () => {
+    const { run, counts } = setup();
+
+    expect(await run(['decompose', 'cenas rápidas sin cerdo'])).toBe(3);
+    expect(counts()).toEqual({ ...NO_RUNS, built: 1, decompositions: [['cenas rápidas sin cerdo']] });
+  });
+
+  it.each([[['decompose']], [['decompose', 'cenas rápidas', 'sin cerdo']]])(
+    'prints the usage for decompose with %j and builds nothing',
+    async (args) => {
+      const { run, lines, counts } = setup();
+
+      expect(await run(args)).toBe(2);
+      expect(lines.join('\n')).toContain(USAGE_HEADER);
+      expect(counts()).toEqual(NO_RUNS);
+    },
+  );
 
   it('runs the evaluate-search command', async () => {
     const { run, counts } = setup();
@@ -186,6 +211,7 @@ describe('runCli', () => {
       'account <email> [name]',
       'search <structure.json>',
       'evaluate-search ',
+      'decompose <request>',
     ]) {
       expect(lines.some((line) => line.trim().startsWith(usage))).toBe(true);
     }

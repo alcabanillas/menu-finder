@@ -10,6 +10,7 @@ import { runCreateAccount } from '@/cli/commands/create-account';
 import { readPassword } from '@/cli/read-password';
 import { runSearch } from '@/cli/commands/search';
 import { runEvaluateSearch } from '@/cli/commands/evaluate-search';
+import { runDecompose } from '@/cli/commands/decompose';
 import { runCli } from '@/cli/run-cli';
 
 // The only file that touches `process`. Secrets come from `.env.local` (git-ignored) or the environment.
@@ -63,6 +64,7 @@ runCli(process.argv.slice(2), {
           writeFile: output.writeFile,
           print,
         }),
+      decompose: ([request]) => runDecompose({ request, decomposeRequest: container.decomposeRequest, print }),
     };
   },
 })

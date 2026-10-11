@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import type { DecomposeError, RejectionCategory } from '@/application/dto/decomposition';
 import type { SearchRequestDto, SearchRequestIssue } from '@/application/dto/search-request';
-import type { RequestDecomposer } from '@/application/ports/request-decomposer';
-import { constraintSchema, parseSearchRequest } from '@/application/use-cases/search-menus';
+import { decompositionSchema, type RequestDecomposer } from '@/application/ports/request-decomposer';
+import { parseSearchRequest } from '@/application/use-cases/search-menus';
 import { termsNotInRequest } from '@/domain/search/request-terms';
 import { err, ok, type Result } from '@/shared/result';
 
@@ -10,19 +10,6 @@ export type DecomposeRequestDeps = { decomposer: RequestDecomposer };
 
 /** About 2.5 times the longest request of the decomposer golden set, 115 characters (MF-40.2 design D5). */
 export const MAX_REQUEST_LENGTH = 300;
-
-const REJECTION_CATEGORIES = ['gibberish', 'off-topic', 'instruction', 'not-a-search'] as const satisfies RejectionCategory[];
-
-/**
- * What the model must answer: a structure, or a rejection with no constraints or groups (design D2). The adapter
- * sends it as the structured-output schema; here it validates the answer, which is never trusted.
- */
-const decompositionSchema = z.strictObject({
-  rejection: z.enum(REJECTION_CATEGORIES).nullable(),
-  constraints: z.array(constraintSchema),
-  sameDish: z.array(z.array(z.string())),
-  anyOf: z.array(z.array(z.string())),
-});
 
 type Decomposition = z.output<typeof decompositionSchema>;
 

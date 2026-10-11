@@ -44,8 +44,8 @@ None covers text generation, which is a new external boundary.
 
 The model answers one object whose `rejection` is a category or `null`.
 
-- **The schema lives in the use case**, `decomposeRequest`. It is a strict Zod schema built from the constraint schema of `searchMenus` plus `rejection`.
-- **The adapter imports it** (infrastructure → application is allowed by ADR-001) and passes it to Genkit as the structured-output schema.
+- **The schema lives in the port**, `ports/request-decomposer.ts`, as the contract of that boundary. It is a strict Zod schema built from the constraint schema of `searchMenus` plus `rejection`. It is not in the use case because ADR-001 §3 lets infrastructure import ports and DTOs only (decided by the author on 2026-10-11, when ESLint refused the first version). The constraint schema moves from `searchMenus` to `dto/search-request.ts`, next to the type it describes, so that no port imports a use case. It holds the shape only (fields, types, limits); the rules across constraints and groups stay in `searchMenus`.
+- **The adapter imports it from the port**, converts it to a draft-7 JSON Schema and sends it to Gemini as `responseJsonSchema` in the model config, with `output: { format: 'json', constrained: false }`. It does not pass it as Genkit's `output.jsonSchema`: Genkit then validates the answer itself and throws `ValidationError`, which would turn an invalid answer into a model failure (task 4.1). The adapter parses the answer text and hands the result to the use case.
 - **The use case validates the answer** with the steps below. The rules apply in this order:
 
 | Answer | Result |

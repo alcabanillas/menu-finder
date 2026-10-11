@@ -26,6 +26,15 @@ describe('createCliContainer', () => {
     });
   });
 
+  it('names a missing key for decompose and does not call the model', async () => {
+    const container = createCliContainer({ DATABASE_URL_UNPOOLED: UNREACHABLE });
+
+    expect(await container.decomposeRequest('cenas rápidas sin cerdo')).toEqual({
+      ok: false,
+      error: { kind: 'missing-variables', names: ['GEMINI_API_KEY'] },
+    });
+  });
+
   it('names a missing connection string for migrate', async () => {
     expect(await createCliContainer({ GEMINI_API_KEY: 'key' }).migrate()).toEqual({
       ok: false,
