@@ -38,6 +38,7 @@ export class GenkitRequestDecomposer implements RequestDecomposer {
   constructor(
     private readonly generate: Generate,
     private readonly apiKey: string,
+    readonly model: string = DECOMPOSER_MODEL,
   ) {}
 
   async decompose(request: string): Promise<Result<unknown, DecomposerFailure>> {
@@ -52,10 +53,13 @@ export class GenkitRequestDecomposer implements RequestDecomposer {
   }
 }
 
-/** Gemini through Genkit; the key is passed in, never read by the plugin. */
-export function createGenkitRequestDecomposer(apiKey: string): GenkitRequestDecomposer {
+/**
+ * Gemini through Genkit; the key is passed in, never read by the plugin. Another model only for the evaluation of
+ * MF-40.3, which compares two (MF-40.3 design D4).
+ */
+export function createGenkitRequestDecomposer(apiKey: string, model = DECOMPOSER_MODEL): GenkitRequestDecomposer {
   const ai = genkit({ plugins: [googleAI({ apiKey })] });
-  return new GenkitRequestDecomposer(genkitGenerate(ai, googleAI.model(DECOMPOSER_MODEL)), apiKey);
+  return new GenkitRequestDecomposer(genkitGenerate(ai, googleAI.model(model)), apiKey, model);
 }
 
 /**

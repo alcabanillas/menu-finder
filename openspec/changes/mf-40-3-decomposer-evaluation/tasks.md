@@ -1,32 +1,32 @@
 ## 1. Setup
 
-- [ ] 1.1 Keep working on the MF-40 branch (one PR for all of MF-40), and verify that `pnpm test:run` passes before any change
+- [x] 1.1 Keep working on the MF-40 branch (one PR for all of MF-40), and verify that `pnpm test:run` passes before any change
 
 ## 2. Golden set port (design D1)
 
-- [ ] 2.1 Write failing tests in `src/infrastructure/golden-sets/file-golden-set-source.test.ts`: `requests` holds every request with its id and text; a search request has the expected structure without `id`, `text` and `origin`; a rejected request has its category; a request without text is a `golden-set-invalid` error (RED)
-- [ ] 2.2 Add `DecomposerRequest` and `requests` to `src/application/ports/golden-set-source.ts`, and read them in `FileGoldenSetSource` (GREEN). Update the fakes of `GoldenSetSource` in the tests of `evaluate-search`
+- [x] 2.1 Write failing tests in `src/infrastructure/golden-sets/file-golden-set-source.test.ts`: `requests` holds every request with its id and text; a search request has the expected structure without `id`, `text` and `origin`; a rejected request has its category; a request without text is a `golden-set-invalid` error (RED)
+- [x] 2.2 Add `DecomposerRequest` and `requests` to `src/application/ports/golden-set-source.ts`, and read them in `FileGoldenSetSource` (GREEN). Update the fakes of `GoldenSetSource` in the tests of `evaluate-search`
 
 ## 3. Scoring rules (design D2; spec "Constraint hits", "Groups")
 
-- [ ] 3.1 Write failing tests in `src/domain/search/decomposition-score.test.ts` for `matchConstraints`: a hit with another case and spaces in the term; same term with another type; "cuchara" against "de cuchara"; one to one, with a term answered twice (RED)
-- [ ] 3.2 Implement `matchConstraints` (GREEN)
-- [ ] 3.3 Write failing tests for `groupHits`: a group hit; a group with an unpaired member; a group with an extra member; an expected group counted once (RED)
-- [ ] 3.4 Implement `groupHits` (GREEN)
+- [x] 3.1 Write failing tests in `src/domain/search/decomposition-score.test.ts` for `matchConstraints`: a hit with another case and spaces in the term; same term with another type; "cuchara" against "de cuchara"; one to one, with a term answered twice (RED)
+- [x] 3.2 Implement `matchConstraints` (GREEN)
+- [x] 3.3 Write failing tests for `groupHits`: a group hit; a group with an unpaired member; a group with an extra member; an expected group counted once (RED)
+- [x] 3.4 Implement `groupHits` (GREEN)
 
 ## 4. Use case (design D3, D6; spec "Inputs", "Constraint hits", "Hard and slot", "Groups", "Rejections", "Failed answers", "Latency")
 
-- [ ] 4.1 Write the DTO `src/application/dto/decomposer-evaluation.ts` (design D5)
-- [ ] 4.2 Write failing tests in `src/application/use-cases/evaluate-decomposer.test.ts`, with fake decomposers that count their calls and a fake clock, for: every request once per model; an unreadable golden set stops before any call; precision and recall per type with their counts; a missing slot counts as a hit and a slot mismatch; group rows; a rejection hit and another category; a search request rejected by mistake; an invalid answer and a failed call listed and scored as no constraints, without stopping the run; mean and maximum latency; the details of a request with a miss (RED)
-- [ ] 4.3 Implement `src/application/use-cases/evaluate-decomposer.ts` (GREEN), then refactor with the tests green: exported function first, helpers below in call order (AGENTS.md)
+- [x] 4.1 Write the DTO `src/application/dto/decomposer-evaluation.ts` (design D5)
+- [x] 4.2 Write failing tests in `src/application/use-cases/evaluate-decomposer.test.ts`, with fake decomposers that count their calls and a fake clock, for: every request once per model; an unreadable golden set stops before any call; precision and recall per type with their counts; a missing slot counts as a hit and a slot mismatch; group rows; a rejection hit and another category; a search request rejected by mistake; an invalid answer and a failed call listed and scored as no constraints, without stopping the run; mean and maximum latency; the details of a request with a miss (RED)
+- [x] 4.3 Implement `src/application/use-cases/evaluate-decomposer.ts` (GREEN), then refactor with the tests green: exported function first, helpers below in call order (AGENTS.md)
 
 ## 5. Adapter and command (design D4, D5; spec "Report")
 
-- [ ] 5.1 Write a failing test in `src/infrastructure/genkit/genkit-request-decomposer.test.ts`: the factory takes the model and defaults to `gemini-3.5-flash-lite` (RED), then add the parameter (GREEN)
-- [ ] 5.2 Write failing tests in `src/cli/run-cli.test.ts`: `evaluate-decomposer` runs with no argument, and one argument prints the usage with exit code 2 (RED), then add it to `CliCommands`, `ARGUMENTS` and `USAGE` (GREEN)
-- [ ] 5.3 Write failing tests in `src/cli/commands/evaluate-decomposer.test.ts`: the report is written with one column per model and holds no term of the golden set; the misses are printed at the console with their terms; a missing variable and an unreadable golden set exit with 1 and write nothing; a line with a secret comes out redacted (RED)
-- [ ] 5.4 Implement `src/cli/commands/evaluate-decomposer.ts` (GREEN)
-- [ ] 5.5 Write a failing test in `src/composition/cli-container.test.ts`: without `GEMINI_API_KEY` the evaluation names the variable and calls nothing (RED). Then wire `evaluateDecomposer` with the two models and `FileGoldenSetSource`, the report path `evals/decomposer/results.md`, and the command in `src/cli/index.ts` (GREEN)
+- [x] 5.1 Write a failing test in `src/infrastructure/genkit/genkit-request-decomposer.test.ts`: the factory takes the model and defaults to `gemini-3.5-flash-lite` (RED), then add the parameter (GREEN)
+- [x] 5.2 Write failing tests in `src/cli/run-cli.test.ts`: `evaluate-decomposer` runs with no argument, and one argument prints the usage with exit code 2 (RED), then add it to `CliCommands`, `ARGUMENTS` and `USAGE` (GREEN)
+- [x] 5.3 Write failing tests in `src/cli/commands/evaluate-decomposer.test.ts`: the report is written with one column per model and holds no term of the golden set; the misses are printed at the console with their terms; a missing variable and an unreadable golden set exit with 1 and write nothing; a line with a secret comes out redacted (RED)
+- [x] 5.4 Implement `src/cli/commands/evaluate-decomposer.ts` (GREEN)
+- [x] 5.5 Write a failing test in `src/composition/cli-container.test.ts`: without `GEMINI_API_KEY` the evaluation names the variable and calls nothing (RED). Then wire `evaluateDecomposer` with the two models and `FileGoldenSetSource`, the report path `evals/decomposer/results.md`, and the command in `src/cli/index.ts` (GREEN)
 
 ## 6. Real run
 

@@ -1,6 +1,7 @@
 import { genkit } from 'genkit';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  createGenkitRequestDecomposer,
   DECOMPOSER_MODEL,
   genkitGenerate,
   GenkitRequestDecomposer,
@@ -25,6 +26,13 @@ const recording = (text = JSON.stringify(ANSWER)) => {
 
 afterEach(() => {
   vi.useRealTimers();
+});
+
+describe('createGenkitRequestDecomposer', () => {
+  it('uses gemini-3.5-flash-lite unless another model is given', () => {
+    expect(createGenkitRequestDecomposer(KEY).model).toBe('gemini-3.5-flash-lite');
+    expect(createGenkitRequestDecomposer(KEY, 'gemini-3.8-flash').model).toBe('gemini-3.8-flash');
+  });
 });
 
 describe('GenkitRequestDecomposer', () => {

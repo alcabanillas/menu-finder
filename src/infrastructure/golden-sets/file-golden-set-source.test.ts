@@ -48,7 +48,35 @@ describe('FileGoldenSetSource', () => {
           { id: 'E01', type: 'exclusion', status: 'withdrawn', grades: new Map([[1, 0], [2, 1]]) },
         ],
         structures: [{ id: 'L01', structure: { constraints: [CONSTRAINT], sameDish: [], anyOf: [] } }],
+        requests: [
+          {
+            id: 'L01',
+            text: 'q1',
+            expected: { kind: 'search', structure: { constraints: [CONSTRAINT], sameDish: [], anyOf: [] } },
+          },
+        ],
       }),
+    );
+  });
+
+  it('reads a rejected request with its text and its category', async () => {
+    const rejected = { id: 'X01', text: 'asdfgh', origin: 'llm-blind-rejected', rejection: 'gibberish' };
+    await write(RETRIEVAL, [...DECOMPOSER, rejected]);
+
+    const result = await new FileGoldenSetSource(evalsDir).read();
+
+    expect(result.ok && result.value.requests[1]).toEqual({
+      id: 'X01',
+      text: 'asdfgh',
+      expected: { kind: 'rejection', category: 'gibberish' },
+    });
+  });
+
+  it('names a decomposer request without text', async () => {
+    await write(RETRIEVAL, [{ ...DECOMPOSER[0], text: undefined }]);
+
+    expect(await new FileGoldenSetSource(evalsDir).read()).toEqual(
+      err({ kind: 'golden-set-invalid', file: 'evals/decomposer/golden-set.json', reason: expect.stringContaining('0.text') }),
     );
   });
 

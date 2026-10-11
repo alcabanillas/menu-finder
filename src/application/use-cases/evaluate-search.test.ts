@@ -51,6 +51,7 @@ const GOLDEN_SETS: GoldenSets = {
     query('X01', 'combined', [2, 2, 2], 'withdrawn'),
   ],
   structures: [structure('L01', 'pollo'), structure('L02', 'merluza'), structure('A01', 'pollo', 'crema')],
+  requests: [],
 };
 
 type FakeOptions = {
@@ -197,6 +198,7 @@ describe('evaluateSearch', () => {
     const goldenSets: GoldenSets = {
       queries: [query('L09', 'literal', [2, 0, 0])],
       structures: [structure('L09', 'garbanzo')],
+      requests: [],
     };
 
     const { queries } = await report({ goldenSets });
@@ -313,7 +315,7 @@ describe('evaluateSearch', () => {
   });
 
   it('gives an empty report with no vector size when no query is kept', async () => {
-    const goldenSets = { queries: [query('X01', 'combined', [2, 2, 2], 'withdrawn')], structures: [] };
+    const goldenSets = { queries: [query('X01', 'combined', [2, 2, 2], 'withdrawn')], structures: [], requests: [] };
 
     const { parameters, queries } = await report({ goldenSets });
 

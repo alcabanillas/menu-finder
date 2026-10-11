@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import pg from 'pg';
 import { createAccount } from '@/application/use-cases/create-account';
 import { decomposeRequest } from '@/application/use-cases/decompose-request';
+import { evaluateDecomposer } from '@/application/use-cases/evaluate-decomposer';
 import { ingestMenus } from '@/application/use-cases/ingest-menus';
 import { ingestRecipes } from '@/application/use-cases/ingest-recipes';
 import { ingestShoppingLists } from '@/application/use-cases/ingest-shopping-lists';
@@ -18,7 +19,7 @@ import { createAccountCreator } from '@/infrastructure/auth/create-account';
 import { FanOutRepository } from '@/infrastructure/fan-out/fan-out-repository';
 import { FileGoldenSetSource } from '@/infrastructure/golden-sets/file-golden-set-source';
 import { createGenkitEmbeddings } from '@/infrastructure/genkit/genkit-embeddings';
-import { createGenkitRequestDecomposer } from '@/infrastructure/genkit/genkit-request-decomposer';
+import { createGenkitRequestDecomposer, DECOMPOSER_MODEL } from '@/infrastructure/genkit/genkit-request-decomposer';
 import { JsonFileMenuRepository, MENU_DATASET_FILE } from '@/infrastructure/json-file/json-file-menu-repository';
 import { JsonFileRecipeRepository, RECIPE_DATASET_FILE } from '@/infrastructure/json-file/json-file-recipe-repository';
 import { LocalDocumentSource } from '@/infrastructure/local-documents/local-document-source';
@@ -39,6 +40,9 @@ const REPO_ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const DATABASE_URL = 'DATABASE_URL_UNPOOLED';
 const GEMINI_API_KEY = 'GEMINI_API_KEY';
 const BETTER_AUTH_SECRET = 'BETTER_AUTH_SECRET';
+
+// The model of the decomposer, then the newest Flash it is compared with (MF-40.2 design D9, MF-40.3 design D4).
+const EVALUATED_MODELS = [DECOMPOSER_MODEL, 'gemini-3.8-flash'];
 
 // The library asks for a base URL when it is built, but only uses it to write email-verification links, and this system
 // verifies no email (SEG-sistema-cerrado). The session cookie is signed with the secret, not with the URL, so an account
@@ -81,6 +85,7 @@ export function createCliContainer(env: Env = {}) {
     dataDir,
     qaDir: join(dataDir, 'qa'),
     searchReportPath: join(REPO_ROOT, 'evals', 'search', 'results.md'),
+    decomposerReportPath: join(REPO_ROOT, 'evals', 'decomposer', 'results.md'),
     ingestMenus: () => onDatabase((pool) => ingestMenus({ source, menus: menuRepository(pool) })),
     ingestRecipes: () => onDatabase((pool) => ingestRecipes({ source, recipes: recipeRepository(pool) })),
     ingestShoppingLists: () =>
@@ -115,6 +120,15 @@ export function createCliContainer(env: Env = {}) {
     decomposeRequest: (request: string) =>
       requiring(env, [GEMINI_API_KEY], ([apiKey]) =>
         decomposeRequest(request, { decomposer: createGenkitRequestDecomposer(apiKey) }),
+      ),
+    // The key only, no database (spec decomposer-evaluation): one decomposer per evaluated model.
+    evaluateDecomposer: () =>
+      requiring(env, [GEMINI_API_KEY], ([apiKey]) =>
+        evaluateDecomposer({
+          goldenSets: new FileGoldenSetSource(join(REPO_ROOT, 'evals')),
+          models: EVALUATED_MODELS.map((model) => ({ model, decomposer: createGenkitRequestDecomposer(apiKey, model) })),
+          now: () => performance.now(),
+        }),
       ),
     // Read only: the three strategies, so the key is always needed (spec search-evaluation).
     evaluateSearch: () =>

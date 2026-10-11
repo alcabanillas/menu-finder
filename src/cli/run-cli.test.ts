@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { CliCommands, SearchOptions } from '@/cli/run-cli';
 import { runCli } from '@/cli/run-cli';
 
-const USAGE_HEADER = 'Usage: pnpm ingest <migrate|recipes|menu|shopping-list|embed|account|search|evaluate-search|decompose>';
+const USAGE_HEADER = 'Usage: pnpm ingest <migrate|recipes|menu|shopping-list|embed|account|search|evaluate-search|decompose|evaluate-decomposer>';
 const NO_RUNS = {
   built: 0,
   menuRuns: 0,
@@ -13,6 +13,7 @@ const NO_RUNS = {
   accountRuns: [],
   searches: [],
   evaluations: 0,
+  decomposerEvaluations: 0,
   decompositions: [],
 };
 
@@ -27,6 +28,7 @@ const setup = () => {
   const accountRuns: string[][] = [];
   const searches: SearchOptions[] = [];
   let evaluations = 0;
+  let decomposerEvaluations = 0;
   const decompositions: string[][] = [];
   const createCommands = (): CliCommands => {
     built += 1;
@@ -63,6 +65,10 @@ const setup = () => {
         evaluations += 1;
         return 0;
       },
+      'evaluate-decomposer': async () => {
+        decomposerEvaluations += 1;
+        return 0;
+      },
       decompose: async (args) => {
         decompositions.push(args);
         return 3;
@@ -82,6 +88,7 @@ const setup = () => {
       accountRuns,
       searches,
       evaluations,
+      decomposerEvaluations,
       decompositions,
     }),
   };
@@ -151,6 +158,13 @@ describe('runCli', () => {
     },
   );
 
+  it('runs the evaluate-decomposer command', async () => {
+    const { run, counts } = setup();
+
+    expect(await run(['evaluate-decomposer'])).toBe(0);
+    expect(counts()).toEqual({ ...NO_RUNS, built: 1, decomposerEvaluations: 1 });
+  });
+
   it('runs the evaluate-search command', async () => {
     const { run, counts } = setup();
 
@@ -189,6 +203,7 @@ describe('runCli', () => {
     [['search', 'a.json', '--strategy', 'lexical', 'extra']],
     [['search', '--strategy', 'lexical']],
     [['evaluate-search', '--strategy', 'lexical']],
+    [['evaluate-decomposer', 'extra']],
   ])('prints the usage and exits with 2 without building the commands for %j', async (args) => {
     const { run, counts, lines } = setup();
 
@@ -211,6 +226,7 @@ describe('runCli', () => {
       'account <email> [name]',
       'search <structure.json>',
       'evaluate-search ',
+      'evaluate-decomposer ',
       'decompose <request>',
     ]) {
       expect(lines.some((line) => line.trim().startsWith(usage))).toBe(true);

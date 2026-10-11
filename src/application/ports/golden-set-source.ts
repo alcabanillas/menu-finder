@@ -1,3 +1,4 @@
+import type { RejectionCategory } from '@/application/dto/decomposition';
 import type { SearchRequestDto } from '@/application/dto/search-request';
 import type { Result } from '@/shared/result';
 
@@ -15,7 +16,17 @@ export type GradedQuery = {
 /** A request of the decomposer golden set (MF-13): its expected structure, not yet validated as a search. */
 export type ExpectedStructure = { id: string; structure: SearchRequestDto };
 
-export type GoldenSets = { queries: GradedQuery[]; structures: ExpectedStructure[] };
+/**
+ * A request of the decomposer golden set (MF-13, MF-40.1) as the decomposer evaluation reads it: the text to send and
+ * the expected answer, a structure for a search request or a category for a rejected one (MF-40.3 design D1).
+ */
+export type DecomposerRequest = {
+  id: string;
+  text: string;
+  expected: { kind: 'search'; structure: SearchRequestDto } | { kind: 'rejection'; category: RejectionCategory };
+};
+
+export type GoldenSets = { queries: GradedQuery[]; structures: ExpectedStructure[]; requests: DecomposerRequest[] };
 
 export type GoldenSetError = { kind: 'golden-set-invalid'; file: string; reason: string };
 

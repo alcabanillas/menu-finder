@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { z } from 'zod';
 import type { SearchRequestDto } from '@/application/dto/search-request';
 import type {
+  DecomposerRequest,
   ExpectedStructure,
   GoldenSetError,
   GoldenSets,
@@ -30,7 +31,13 @@ const retrievalSchema = z.object({
   ),
 });
 
-const decomposerSchema = z.array(z.looseObject({ id: z.string().min(1) }));
+const decomposerSchema = z.array(
+  z.looseObject({
+    id: z.string().min(1),
+    text: z.string().min(1),
+    rejection: z.enum(['gibberish', 'off-topic', 'instruction', 'not-a-search']).optional(),
+  }),
+);
 
 /** Reads the retrieval (MF-12) and decomposer (MF-13) golden sets from `<evalsDir>`, the `evals/` folder of the repository. */
 export class FileGoldenSetSource implements GoldenSetSource {
@@ -41,7 +48,11 @@ export class FileGoldenSetSource implements GoldenSetSource {
     if (!retrieval.ok) return retrieval;
     const decomposer = await this.parse(DECOMPOSER_FILE, decomposerSchema);
     if (!decomposer.ok) return decomposer;
-    return ok({ queries: retrieval.value.queries.map(toGradedQuery), structures: decomposer.value.map(toExpectedStructure) });
+    return ok({
+      queries: retrieval.value.queries.map(toGradedQuery),
+      structures: decomposer.value.map(toExpectedStructure),
+      requests: decomposer.value.map(toDecomposerRequest),
+    });
   }
 
   private async parse<T>(file: string, schema: z.ZodType<T>): Promise<Result<T, GoldenSetError>> {
@@ -71,6 +82,13 @@ function toGradedQuery({ id, type, status, grades }: z.output<typeof retrievalSc
 function toExpectedStructure(request: z.output<typeof decomposerSchema>[number]): ExpectedStructure {
   const structure = Object.fromEntries(Object.entries(request).filter(([key]) => !GOLDEN_SET_METADATA.includes(key)));
   return { id: request.id, structure: structure as SearchRequestDto };
+}
+
+// A rejected request has a category and nothing else (spec decomposer-golden-set, "Rejected requests").
+function toDecomposerRequest(request: z.output<typeof decomposerSchema>[number]): DecomposerRequest {
+  const { id, text, rejection } = request;
+  if (rejection !== undefined) return { id, text, expected: { kind: 'rejection', category: rejection } };
+  return { id, text, expected: { kind: 'search', structure: toExpectedStructure(request).structure } };
 }
 
 function firstIssue([issue]: z.core.$ZodIssue[]): string {
