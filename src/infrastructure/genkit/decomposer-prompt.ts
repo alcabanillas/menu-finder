@@ -16,16 +16,16 @@ Otherwise \`rejection\` is null.
 
 ## Constraints
 
-One constraint per condition, with ids c1, c2… in the order of the request.
+One constraint per condition, with ids c1, c2… in the order of the request. Label what is said, not what is meant: do not add a constraint the request does not state.
 - "y" separates constraints. "ni" splits an exclusion in two. "o" between included items makes alternatives; inside an exclusion it splits like "ni".
-- \`term\`: copy the words of the request exactly. It is the shortest span that states the condition, lowercased, with the same gender, number and accents. Never singularise, correct or translate it, and never replace it with a broader or a narrower concept: "albóndigas" stays "albóndigas", and "muslos de pavo" stays "muslos de pavo", not "pavo". The meal words ("cena", "comida") are not part of it, unless the meal is the whole condition.
+- \`term\`: copy the words of the request exactly. It is the shortest span that states the condition, lowercased, with the same gender, number and accents. Never singularise, correct or translate it, and never replace it with a broader or a narrower concept: "albóndigas" stays "albóndigas", and "muslos de pavo" stays "muslos de pavo", not "pavo". The words that negate ("sin", "nada de", "evitar", "que no lleve") are not part of it: "evitar el cordero" gives "cordero". The meal words ("cena", "comida") are not part of it either, unless the meal is the whole condition.
 - \`type\`:
   - \`literal\`: a concrete dish or ingredient, included.
-  - \`exclusion\`: an excluded ingredient or food group.
+  - \`exclusion\`: an excluded ingredient or food group. A diet that excludes a food group ("vegano") is an \`exclusion\` too, though it has no negating word.
   - \`attribute\`: time, effort, season or meal ("sencillas", "en diez minutos", "para el verano").
-  - \`fuzzy\`: a vague intention or a broad category, included ("que llene", "de horno") or excluded ("nada de rebozados"). A broad food category ("pescado", "carne", "legumbres", "verduras") is \`fuzzy\` when included and \`exclusion\` when excluded.
-- \`polarity\`: \`exclude\` after "sin", "nada de", "ni", "evitar" or "que no lleve"; otherwise \`include\`. An \`exclusion\` is always \`exclude\`.
-- \`hard\`: true only with an explicit marker of strictness ("solo", "sí o sí", "estrictamente", "nada de nada"). Otherwise false.
+  - \`fuzzy\`: a vague intention, a broad category, or a way of cooking or preparing, included ("que llene", "de horno", "al vapor") or excluded ("nada de rebozados", "nada de precocinados"). A broad food category ("pescado", "carne", "legumbres", "verduras", "pasta") is \`fuzzy\` when included and \`exclusion\` when excluded.
+- \`polarity\`: \`exclude\` after "sin", "nada de", "ni", "evitar" or "que no lleve", and for a diet that excludes a food group; otherwise \`include\`. An \`exclusion\` is always \`exclude\`.
+- \`hard\`: true only with an explicit marker of strictness ("solo", "sí o sí", "estrictamente", "nada de nada", "que no haya ni uno"). Otherwise false.
 - \`slot\`: \`dinner\` for "cena" or "cenas"; \`lunch\` for "comida" or "comidas" only when it means the meal, not food in general. A meal that qualifies the whole request goes on every constraint. Leave it out otherwise.
 
 ## Groups
@@ -33,7 +33,8 @@ One constraint per condition, with ids c1, c2… in the order of the request.
 - \`sameDish\`: constraints that one dish must satisfy together. Items joined by "con", and an exclusion right after its noun ("lasaña sin carne"), go in one group.
 - An exclusion that stands alone, or comes after a list of items, applies to the whole week and goes in no group.
 - \`anyOf\`: included alternatives joined by "o".
-- A constraint is in at most one group of each kind, and never in both kinds.
+- A constraint is in at most one group of each kind, and never in both kinds. When "o" comes inside "con" (a dish with one ingredient or another), make neither group for those constraints.
+- Do not guess a group: only "con", "o" and an exclusion right after its noun make one.
 
 ## No condition
 
