@@ -22,7 +22,7 @@ One constraint per condition, with ids c1, c2… in the order of the request. La
 - \`type\`:
   - \`literal\`: a concrete dish or ingredient, included.
   - \`exclusion\`: an excluded ingredient or food group. A diet that excludes a food group ("vegano") is an \`exclusion\` too, though it has no negating word.
-  - \`attribute\`: time, effort, season or meal ("sencillas", "en diez minutos", "para el verano").
+  - \`attribute\`: time, effort, season or meal ("sencillas", "diez minutos", "primavera"). Its term leaves out the words that only introduce it ("para", "para el", "de", "que") and the words that only complete it: "para la primavera" gives "primavera", and "sencillas de cocinar" gives "sencillas". When the meal is the whole condition ("para la cena"), the term is the whole span.
   - \`fuzzy\`: a vague intention, a broad category, or a way of cooking or preparing, included ("que llene", "de horno", "al vapor") or excluded ("nada de rebozados", "nada de precocinados"). A broad food category ("pescado", "carne", "legumbres", "verduras", "pasta") is \`fuzzy\` when included and \`exclusion\` when excluded.
 - \`polarity\`: \`exclude\` after "sin", "nada de", "ni", "evitar" or "que no lleve", and for a diet that excludes a food group; otherwise \`include\`. An \`exclusion\` is always \`exclude\`.
 - \`hard\`: true only with an explicit marker of strictness ("solo", "sí o sí", "estrictamente", "nada de nada", "que no haya ni uno"). Otherwise false.
@@ -33,7 +33,7 @@ One constraint per condition, with ids c1, c2… in the order of the request. La
 - \`sameDish\`: constraints that one dish must satisfy together. Items joined by "con", and an exclusion right after its noun ("lasaña sin carne"), go in one group.
 - An exclusion that stands alone, or comes after a list of items, applies to the whole week and goes in no group.
 - \`anyOf\`: included alternatives joined by "o".
-- A constraint is in at most one group of each kind, and never in both kinds. When "o" comes inside "con" (a dish with one ingredient or another), make neither group for those constraints.
+- A constraint is in at most one group of each kind, and never in both kinds. When "o" comes inside "con" for a dish with one thing or another ("tortilla con espárragos o setas"), make neither group for those constraints. A "con" that does not join two items of one dish ("menús con alubias o judiones") does not stop an \`anyOf\` group.
 - Do not guess a group: only "con", "o" and an exclusion right after its noun make one.
 
 ## No condition
@@ -51,8 +51,8 @@ A search with no condition the four types can hold has \`rejection\` null and em
 "muslos de pavo sí o sí, nada de lactosa"
 {"rejection":null,"constraints":[{"id":"c1","type":"literal","term":"muslos de pavo","polarity":"include","hard":true},{"id":"c2","type":"exclusion","term":"lactosa","polarity":"exclude","hard":false}],"sameDish":[],"anyOf":[]}
 
-"cenas sencillas para el verano"
-{"rejection":null,"constraints":[{"id":"c1","type":"attribute","term":"sencillas","polarity":"include","hard":false,"slot":"dinner"},{"id":"c2","type":"attribute","term":"para el verano","polarity":"include","hard":false,"slot":"dinner"}],"sameDish":[],"anyOf":[]}
+"cenas sencillas para la primavera"
+{"rejection":null,"constraints":[{"id":"c1","type":"attribute","term":"sencillas","polarity":"include","hard":false,"slot":"dinner"},{"id":"c2","type":"attribute","term":"primavera","polarity":"include","hard":false,"slot":"dinner"}],"sameDish":[],"anyOf":[]}
 
 "lasaña sin carne, albóndigas y nada de rebozados"
 {"rejection":null,"constraints":[{"id":"c1","type":"literal","term":"lasaña","polarity":"include","hard":false},{"id":"c2","type":"exclusion","term":"carne","polarity":"exclude","hard":false},{"id":"c3","type":"literal","term":"albóndigas","polarity":"include","hard":false},{"id":"c4","type":"fuzzy","term":"rebozados","polarity":"exclude","hard":false}],"sameDish":[["c1","c2"]],"anyOf":[]}
