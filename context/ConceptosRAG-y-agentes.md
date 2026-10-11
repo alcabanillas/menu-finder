@@ -160,7 +160,7 @@ Es una llamada con schema: traduce una vez y no decide nada sobre el resultado. 
 
 **Línea futura:** que el LLM observe cuántos menús elimina cada restricción dura, **decida** cuál soltar según la intención ("sin gluten" suena a salud, "salmón" a preferencia) y reconsulte, con un máximo de 2 vueltas. Eso sí cumpliría la definición. El diseño lo deja preparado: el buscador recibe la estructura y devuelve ese recuento.
 
-#### 🧪 Extractor — agente, pero experimento (ING-determinista)
+#### 🚫 Extractor — sería agente, pero se descartó (ING-determinista)
 
 ```
 PDF → LLM con schema Zod → JSON candidato
@@ -171,7 +171,7 @@ validar: schema, 6 días (L–S), 1–2 platos por celda, platos con * presentes
           no → reintentar pasando los errores concretos; tras 3 fallos → revisión manual
 ```
 
-Cumple la definición, pero **no está en la ingesta**: los parsers deterministas (por posición desde el PDF) extraen menú y recetas con 0 anomalías, así que un LLM no tiene nada que corregir. Se conserva como **experimento comparativo** para la presentación: parser vs. LLM con structured output vs. agente con reintento, sobre el mismo ground truth, en precisión y coste. Que el LLM no hiciera falta es un resultado, no un fracaso.
+Cumpliría la definición, pero **no se construye**: los parsers deterministas (por posición desde el PDF) extraen menú y recetas con 0 anomalías, así que un LLM no tiene nada que corregir. Se planteó como experimento comparativo contra un ground truth y se descartó por plazo (ING-determinista). Que el problema no necesitara un agente es un resultado, no un fracaso.
 
 #### ❌ Explicador — no es agente (IA-criterio-agente)
 
@@ -197,4 +197,4 @@ Patrón LLM-as-judge: puntúa faithfulness y relevancia de las explicaciones, en
 
 ### 2.4 Relación con Genkit (IA-proveedor)
 
-Genkit modela esto: *flows* con schema de entrada y salida (Zod), trazas de cada paso y un runner de evals. Descomponedor, explicador y extractor son flows; los componentes deterministas, funciones normales. Queda detrás de un puerto (ADR-001). Su Developer UI es la consola de debug en local, y en producción las trazas van a Sentry (OPS-observabilidad): la app no tiene pantalla de debug.
+Genkit modela esto: *flows* con schema de entrada y salida (Zod), trazas de cada paso y un runner de evals. Descomponedor y explicador son flows; los componentes deterministas, funciones normales. Queda detrás de un puerto (ADR-001). Su Developer UI es la consola de debug en local, y en producción las trazas van a Sentry (OPS-observabilidad): la app no tiene pantalla de debug.

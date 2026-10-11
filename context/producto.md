@@ -15,10 +15,10 @@ Aplicación web (responsive, uso principal en móvil) para elegir el menú seman
 Sustituye el flujo actual del autor en Notion.
 
 **Enfoque (PROC-enfoque): proyecto de IA aplicada; la app es la interfaz.** El sistema es **hybrid retrieval + grounded generation**, no RAG documental clásico: no hay chunking, ni problema de ventana de contexto, ni de escala, y en la presentación se describe así. El peso académico descansa en cuatro pilares, por orden:  
-1. **extracción estructurada del menú** medida contra ground truth etiquetado a ciegas (EVAL-ground-truth, ING-parser-menu)  -
+1. **extracción estructurada determinista** de menús y recetas, con la alternativa medida y descartada (ING-determinista, ING-parser-menu). Sin ground truth independiente: es una limitación declarada en la presentación.
 2. **evaluación comparada de recuperación** —léxica vs. semántica vs. híbrida— sobre el golden dataset (EVAL-estrategia). 
 3. **faithfulness de la explicación** con LLM-as-judge (EVAL-estrategia). 
-4. **flujo SDD con agentes** documentado como proceso (PROC-sdd-memoria). Sin (1) y (2) el proyecto es un CRUD con un embedding, así que los cuatro se protegen frente a cualquier recorte de alcance. Argumentación completa en [enfoque-academico.md](enfoque-academico.md).
+4. **flujo SDD con agentes** documentado como proceso (PROC-sdd-memoria). Sin (1) y (2) el proyecto es un CRUD con un embedding, así que los cuatro se protegen frente a cualquier recorte de alcance. La medición de (1) contra ground truth se recortó en el sprint 3 por plazo (decidido por el autor el 2026-10-12): el parser de recetas se dio por bueno tras revisarlo a mano. Argumentación completa en [enfoque-academico.md](enfoque-academico.md).
 
 ## 2. Restricciones duras
 
