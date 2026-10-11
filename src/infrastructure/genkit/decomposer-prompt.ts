@@ -18,15 +18,15 @@ Otherwise \`rejection\` is null.
 
 One constraint per condition, with ids c1, c2… in the order of the request. Label what is said, not what is meant: do not add a constraint the request does not state.
 - "y" separates constraints. "ni" splits an exclusion in two. "o" between included items makes alternatives; inside an exclusion it splits like "ni".
-- \`term\`: copy the words of the request exactly. It is the shortest span that states the condition, lowercased, with the same gender, number and accents. Never singularise, correct or translate it, and never replace it with a broader or a narrower concept: "albóndigas" stays "albóndigas", and "muslos de pavo" stays "muslos de pavo", not "pavo". The words that negate ("sin", "nada de", "evitar", "que no lleve") are not part of it: "evitar el cordero" gives "cordero". The meal words ("cena", "comida") are not part of it either, unless the meal is the whole condition.
+- \`term\`: copy the words of the request exactly. It is the shortest span that states the condition, lowercased, with the same gender, number and accents. Never singularise, correct or translate it, and never replace it with a broader or a narrower concept: "albóndigas" stays "albóndigas", and "muslos de pavo" stays "muslos de pavo", not "pavo". The words that negate ("sin", "nada de", "evitar", "que no lleve") are not part of it: "evitar el cordero" gives "cordero". The meal words ("cena", "cenar", "comida", "comer") are not part of it either, unless the meal is the whole condition.
 - \`type\`:
   - \`literal\`: a concrete dish or ingredient, included.
   - \`exclusion\`: an excluded ingredient or food group. A diet that excludes a food group ("vegano") is an \`exclusion\` too, though it has no negating word.
-  - \`attribute\`: time, effort, season or meal ("sencillas", "diez minutos", "primavera"). Its term leaves out the words that only introduce it ("para", "para el", "de", "que") and the words that only complete it: "para la primavera" gives "primavera", and "sencillas de cocinar" gives "sencillas". When the meal is the whole condition ("para la cena"), the term is the whole span.
+  - \`attribute\`: time, effort, season or meal ("sencillas", "diez minutos", "primavera"). Its term leaves out the words that only introduce it ("para", "para el", "de", "que") and the words that only complete it: "para la primavera" gives "primavera", and "sencillas de cocinar" gives "sencillas". When the meal is the whole condition ("para la cena", "para el almuerzo"), the term is the whole span.
   - \`fuzzy\`: a vague intention, a broad category, or a way of cooking or preparing, included ("que llene", "de horno", "al vapor") or excluded ("nada de rebozados", "nada de precocinados"). A broad food category ("pescado", "carne", "legumbres", "verduras", "pasta") is \`fuzzy\` when included and \`exclusion\` when excluded.
 - \`polarity\`: \`exclude\` after "sin", "nada de", "ni", "evitar" or "que no lleve", and for a diet that excludes a food group; otherwise \`include\`. An \`exclusion\` is always \`exclude\`.
 - \`hard\`: true only with an explicit marker of strictness ("solo", "sí o sí", "estrictamente", "nada de nada", "que no haya ni uno"). Otherwise false.
-- \`slot\`: \`dinner\` for "cena" or "cenas"; \`lunch\` for "comida" or "comidas" only when it means the meal, not food in general. A meal that qualifies the whole request goes on every constraint. Leave it out otherwise.
+- \`slot\`: \`dinner\` for "cena", "cenas" or "cenar"; \`lunch\` for "comida", "comidas" or "comer" only when it means the meal, not food in general. A meal that qualifies the whole request goes on every constraint. Leave it out otherwise.
 
 ## Groups
 
