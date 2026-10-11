@@ -2,7 +2,7 @@
 
 The application is built on Next.js 16 (App Router) and deployed serverless on Vercel (`OPS-vercel`). Continuous Integration is implemented in `.github/workflows/ci.yml` (`OPS-ci-cd`) with two parallel jobs: `checks` (lint, typecheck, Vitest coverage) and `e2e` (Playwright against an isolated Neon test schema).
 
-The Vercel project is created (`menu-finder-mbs`), and production environment variables are stored in Vercel. Repository secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID` are configured in GitHub Actions.
+The Vercel project is created (`menu-finder-mbs`), connected to the GitHub repository through Vercel for GitHub, and its production environment variables are stored in Vercel, for Production only.
 
 See `proposal.md` for motivation.
 
@@ -10,8 +10,8 @@ See `proposal.md` for motivation.
 
 **Goals:**
 - Enforce strict HTTP security headers per `context/safety-first.md §2.4`: fixed headers on every route via `next.config.ts`, and a nonce-based CSP on every page via `src/proxy.ts`.
-- Automate deployment to Vercel in `.github/workflows/ci.yml`, triggered only by pushing a version tag (`v*`) and strictly gated behind green `checks` and `e2e` runs on that tagged commit (*test → build → deploy*). Merging a PR into `main` does not deploy.
-- Disable automatic Git-triggered deployments on Vercel so that GitHub Actions is the sole deployment authority.
+- Deploy to production only when the author moves the `production` branch, and only after `checks`, `e2e` and `release` pass on that commit (*test → build → deploy*). Merging a PR into `main` does not deploy.
+- No deployment from any other branch: no previews, no deploy on `main`.
 - Test and verify security headers with automated unit tests.
 
 **Non-Goals:**
@@ -48,37 +48,37 @@ See `proposal.md` for motivation.
   - Hashes (`'sha256-…'`) or the experimental Subresource Integrity support of Next.js 16. Rejected: the inline scripts Next.js writes carry the data of each request, so their hashes cannot be computed at build time, and SRI exists to keep pages static, which this app does not have.
   - The nonce in `style-src` too, as the guide's example does in production. Rejected: a nonce does not cover `style` attributes, and `src/features/shopping-list/components/progress-bar.tsx` sets one.
 
-### D3: Prebuilt Deployment via a Pinned Vercel CLI in CI
-- **Choice:** Add `vercel` as an exact-version devDependency (recorded in `pnpm-lock.yaml`) and run it with `pnpm exec` in the `deploy` job, after `pnpm install --frozen-lockfile` on the same Node and pnpm setup as the other jobs:
-  1. `pnpm exec vercel pull --yes --environment=production`
-  2. `pnpm exec vercel build --prod`
-  3. `pnpm exec vercel deploy --prebuilt --prod`
-
-  The token reaches the CLI through the job's `env:` (`VERCEL_TOKEN`, with `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`), never as `--token`: when the flag is absent, the CLI reads `VERCEL_TOKEN` from the environment (checked in the bundle of `vercel@62.0.0`), so the token never appears on a command line. The pinned version is `62.0.0` (2026-09-30): `62.1.0` and `62.2.0` were within the 7-day window but are deprecated on npm for a self-upgrade bug.
-- **Why:** The prebuilt pattern (`vercel build` followed by `vercel deploy --prebuilt`) builds with the Node and pnpm versions verified in CI, and Vercel only hosts the result. Pinning the CLI in the lockfile keeps it under the same supply-chain controls as every other package (`context/safety-first.md §2.5`): `--frozen-lockfile`, Dependabot with its 7-day cooldown and OSV-Scanner. The CLI runs with the deployment token, so an unexpected version is an OWASP A03:2025 risk. The version chosen at `apply` must have been published at least 7 days earlier (`OPS-ci-cd`).
+### D3: Vercel Builds the `production` Branch, Held by Deployment Checks
+- **Choice** (decided by the author on 2026-10-11): Vercel for GitHub builds and deploys the project's Production Branch, set to `production` in the Vercel dashboard. Deployment Checks hold each production deployment until the GitHub Actions jobs `checks`, `e2e` and `release` pass on its commit; only then is it promoted to `menu-finder-mbs.vercel.app`. No Vercel CLI, no deploy job and no Vercel token in GitHub.
+- **Why:** The pipeline keeps *test → build → deploy*: a commit that fails a check never reaches production. Nothing new enters the dependency tree, and the deployment token leaves GitHub, which removes the most sensitive secret of the pipeline.
+- **Cost:** Vercel builds, not CI, so the project's Node.js version in Vercel must match the CI's (24). The build runs the same `pnpm install --frozen-lockfile` and `next build`, but on Vercel's machine.
 - **Alternatives considered:**
-  - `pnpm dlx vercel` without a version. Rejected: it resolves the latest release on every deploy, outside the lockfile.
-  - `pnpm dlx vercel@x.y.z`. Rejected: the version is fixed, but outside the lockfile, Dependabot and OSV-Scanner, so nothing warns when it needs updating.
-  - Third-party GitHub Actions (`amondnet/vercel-action`). Rejected: one more third-party dependency holding the token.
+  - The Vercel CLI pinned as a devDependency, running `vercel build` and `vercel deploy --prebuilt` in a CI job. Implemented first and rejected: `vercel@62.0.0` added about 2,800 lines to `pnpm-lock.yaml` and some 35 advisories that OSV-Scanner fails the PR on (`tar`, `undici`, `path-to-regexp`, `js-yaml`, `smol-toml` and others; the two `sandbox` ones are false positives against an unrelated 2020 package of the same name). The latest release, 63.1.2, pulls the same versions, so updating does not help.
+  - The same CLI in its own `deploy/package.json` and lockfile, or accepting the advisories in `osv-scanner.toml`. Rejected by the author: both keep a large, vulnerable tree in the job that holds the token, and only change where it is documented.
+  - A Vercel Deploy Hook called from CI. Rejected: it builds the tip of a branch, not a given commit, and still needs the Git connection.
 
-### D4: Release by Version Tag
-- **Choice:** Production deploys are triggered by pushing a git tag that matches `v*` (for example `v0.1.0`). `ci.yml` adds `tags: ['v*']` to its `push` trigger. `checks` and `e2e` run again on the tagged commit, and the `deploy` job runs only when the ref is a version tag (`if: startsWith(github.ref, 'refs/tags/v')`) and both jobs passed (`needs: [checks, e2e]`). Before deploying, the job checks that the tagged commit is already in `main` (`git merge-base --is-ancestor`), so a tag on an unmerged branch never reaches production. The job uses its own concurrency group (`deploy-production`, `cancel-in-progress: false`) so a deploy is never cancelled halfway.
-- **Why:** Merging a PR does not guarantee a working `main`: two PRs that pass separately can fail together. With tags, the author decides when to publish, the full suite runs on the exact commit that will be deployed, and the tag records which version is in production.
+### D4: Release by Moving the `production` Branch
+- **Choice:** A release bumps `version` in `package.json` in a PR. Once merged, the author tags the commit and moves `production` to it:
+  ```
+  git tag v0.1.0 && git push origin v0.1.0
+  git push origin v0.1.0:production
+  ```
+  `ci.yml` runs on pushes to `production` as well as `main`, so `checks` and `e2e` run again on that commit. A `release` job, only on `production`, fails unless the commit is already in `main` (`git merge-base --is-ancestor`) and the tag `v<version of package.json>` points to it. Nobody commits on `production`: it only moves forward to commits of `main`.
+- **Why:** Merging a PR does not guarantee a working `main`: two PRs that pass separately can fail together. The author decides when to publish, the full suite runs on the exact commit that is deployed, and the tag records which version is in production. The `release` job makes Deployment Checks refuse a commit that is not in `main` or whose tag does not match `package.json`.
 - **Alternatives considered:**
   - Deploy on every push to `main`. Rejected by the author: a merge that breaks `main` would reach production.
-  - Vercel's GitHub integration with branch protection. Rejected for the same reason: Vercel deploys whatever reaches its production branch without waiting for CI.
-  - A long-lived `release` branch. Rejected: with a single developer there is nothing to stabilise in parallel, and the branch has to be kept in sync with `main` (hotfixes merged back).
+  - A tag push as the trigger. Vercel for GitHub deploys branches, not tags, so it would need the CLI (D3).
 
 ### D5: Vercel Configuration via `vercel.json` (Git Governance and Function Region)
-- **Choice:** Add `vercel.json` with `"git": { "deploymentEnabled": false }` and `"regions": ["fra1"]`.
+- **Choice:** `vercel.json` with `"git": { "deploymentEnabled": { "*": false, "production": true } }` and `"regions": ["fra1"]`.
 - **Why:**
-  1. Ensures that opening a PR or pushing to GitHub does not trigger an uncontrolled preview or production build on Vercel bypassing GitHub Actions checks. GitHub Actions controls all deployments.
+  1. Only `production` deploys. A branch that matches several rules deploys if any of them is `true` (Vercel's Git configuration docs), so `production` deploys and every other branch, `main` and PR branches included, does not. With no previews, the rule of `context/safety-first.md §2.4` that previews be access-protected and use their own Neon branch is met by omission.
   2. Colocates Vercel Serverless Functions in Frankfurt (`fra1`) with the Neon PostgreSQL database (`eu-central-1`), eliminating ~80–100ms of transatlantic network roundtrip latency per database query.
-- **Alternative considered:** Configuring "Ignored Build Step" and function regions in Vercel project dashboard manually. Rejected because repository-as-code (`vercel.json`) ensures the configuration is version-controlled, reproducible, and transparent.
+- **Alternative considered:** Configuring "Ignored Build Step" and function regions in Vercel project dashboard manually. Rejected because repository-as-code (`vercel.json`) ensures the configuration is version-controlled, reproducible, and transparent. The Production Branch and the Deployment Checks have no `vercel.json` option, so they are set in the dashboard (tasks).
 
 ### D6: `package.json` Version as the Visible Version
-- **Choice** (decided by the author on 2026-10-11): `"version"` in `package.json` is the only source of the version. A release bumps it in a PR and, once merged, pushes the tag `v<version>`. The `deploy` job fails before building if the tag (`GITHUB_REF_NAME`) is not exactly `v` followed by that version, and tags the Vercel deployment with it as metadata (`vercel deploy … -m version=<tag>`). `next.config.ts` reads the version from `package.json` and inlines it at build time through its `env` option. Only server code reads it: the layouts that mount the shell pass it to `AccountMenu` as a prop, next to the email, and the panel shows "Versión v<version>". `next.config.ts` also sets `poweredByHeader: false`.
-- **Why:** The author needs to confirm, after a release, that the pages served come from that version, and to see the version in the code. With `package.json` as the source and the tag checked against it, the field, the tag, the menu and the Vercel metadata never disagree. Sentry will tag errors with the same value as `release` when MF-32 adds it. Reading the value only on the server keeps it out of the public JavaScript bundles: `AccountMenu` is a client component, and a value read there would be inlined into a chunk anyone can download.
+- **Choice** (decided by the author on 2026-10-11): `"version"` in `package.json` is the only source of the version. A release bumps it in a PR and tags the merged commit `v<version>`; the `release` job checks that the tag matches (D4). `next.config.ts` reads the version from `package.json` and inlines it at build time through its `env` option. Only server code reads it: the layouts that mount the shell pass it to `AccountMenu` as a prop, next to the email, and the panel shows "Versión v<version>". `next.config.ts` also sets `poweredByHeader: false`.
+- **Why:** The author needs to confirm, after a release, that the pages served come from that version, and to see the version in the code. With `package.json` as the source and the tag checked against it, the field, the tag and the menu never disagree. Sentry will tag errors with the same value as `release` when MF-32 adds it. Reading the value only on the server keeps it out of the public JavaScript bundles: `AccountMenu` is a client component, and a value read there would be inlined into a chunk anyone can download.
 - **Verification note:** a tab opened before a deploy keeps the old client code until it is reloaded; the version in the menu is always the one the server rendered, so the check is made after reloading.
 - **Alternatives considered:**
   - The tag as the only source, passed to the build as an environment variable. Rejected: `package.json` `version` would stay at `0.1.0` while the tags move on, a field that misleads whoever reads it.
@@ -89,4 +89,5 @@ See `proposal.md` for motivation.
 - **[Risk: CSP breaks Next.js client-side navigation or inline styles]** → Mitigation: Tested via local build, Vitest unit tests on `next.config.ts`, on `withContentSecurityPolicy` and on the proxy matcher, and the Playwright E2E suite, which runs against `pnpm build && pnpm start`, before pushing.
 - **[Risk: `src/proxy.ts` is not classified in ADR-001]** → Mitigation: check that the `eslint-plugin-boundaries` rules accept it as part of the web adapter before writing it; if they do not, propose its classification to the author instead of silencing the rule.
 - **[Risk: the CSP blocks Sentry]** → `default-src 'self'` will block the browser from sending events to Sentry when MF-32 adds it. MF-32 will need a `connect-src` entry for Sentry or a tunnel route.
-- **[Risk: Vercel CLI requires credentials during build step]** → Mitigation: `vercel pull` fetches project settings using repo secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID`. The `deploy` job runs with `permissions: contents: read` only.
+- **[Risk: Deployment Checks not set, or set to the wrong jobs]** → production would deploy without waiting for CI. Mitigation: the first release is checked by hand in the dashboard (the deployment waits for `checks`, `e2e` and `release`) before it is trusted.
+- **[Risk: someone pushes a commit straight to `production`]** → Mitigation: the `release` job fails for a commit that is not in `main`, and Deployment Checks hold it; branch protection on `production` can forbid direct pushes.

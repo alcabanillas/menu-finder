@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
-    # A version tag is a release: the whole suite runs again on it and, if green, `deploy` publishes it (MF-26 D4).
-    tags: ['v*']
+    # production: the branch Vercel deploys. The whole suite runs again on the commit it is moved to, and Vercel's
+    # Deployment Checks hold the deployment until checks, e2e and release pass (MF-26 design D3, D4).
+    branches: [main, production]
   pull_request:
 
 # safety-first §2.4: least-privilege permissions.
@@ -72,51 +72,24 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
 
-  # test → build → deploy (OPS-ci-cd): only for a version tag whose commit is already in `main`, and only after both
-  # test jobs pass on that commit. Merging into `main` never deploys (MF-26 design D3, D4).
-  deploy:
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: [checks, e2e]
+  # A release is a commit of main tagged v<version of package.json>; anything else never reaches production
+  # (MF-26 design D4, D6). Its result is one of the Deployment Checks in Vercel.
+  release:
+    if: github.ref == 'refs/heads/production'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    # Never cancelled halfway, unlike the test runs.
-    concurrency:
-      group: deploy-production
-      cancel-in-progress: false
-    # The CLI reads the token from the environment, so it never shows on a command line.
-    env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
-      # Full history: the tagged commit is compared with `main` below.
+      # Full history and tags: the commit is compared with main and with its tag.
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v6
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          cache: pnpm
-
-      # The Vercel CLI is a pinned devDependency: it comes from the lockfile (MF-26 design D3).
-      - run: pnpm install --frozen-lockfile
-
-      - name: Check that the tagged commit is in main
+      - name: Check that the commit is in main
         run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
 
-      # package.json is the source of the version the app shows; a tag that does not match it never deploys (MF-26 D6).
-      - name: Check that the tag matches the version in package.json
+      - name: Check that the commit is tagged with the version in package.json
         run: |
-          expected="v$(node -p "require('./package.json').version")"
-          if [ "$GITHUB_REF_NAME" != "$expected" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match package.json ($expected)"
+          tag="v$(node -p "require('./package.json').version")"
+          if [ "$(git rev-parse -q --verify "refs/tags/$tag^{commit}")" != "$GITHUB_SHA" ]; then
+            echo "::error::The commit is not tagged $tag, the version in package.json"
             exit 1
           fi
-
-      - run: pnpm exec vercel pull --yes --environment=production
-      - run: pnpm exec vercel build --prod
-      - run: pnpm exec vercel deploy --prebuilt --prod -m "version=$GITHUB_REF_NAME"
