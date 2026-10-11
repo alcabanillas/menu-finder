@@ -39,7 +39,8 @@ const INDEX_NOT_LOADED: SearchMenusError = {
 const MAX_CONSTRAINTS = 12;
 const MAX_TERM_LENGTH = 100;
 
-const constraintSchema = z.strictObject({
+/** One constraint of the structure; the decomposer validates the model's answer with it too (MF-40.2 design D2). */
+export const constraintSchema = z.strictObject({
   id: z.string().min(1),
   type: z.enum(['literal', 'exclusion', 'attribute', 'fuzzy']),
   term: z.string().trim().min(1).max(MAX_TERM_LENGTH),
