@@ -9,6 +9,7 @@
 - [x] 1.7 Write failing unit tests for `src/proxy.ts`: the response and the forwarded request carry the same CSP, two calls produce different nonces, and the exported `matcher` excludes `api`, `_next/static`, `_next/image`, `favicon.ico` and prefetches (RED)
 - [x] 1.8 Implement `src/proxy.ts` with a nonce from `crypto.randomUUID()` and the matcher of the Next.js 16 CSP guide, and verify its tests pass (GREEN)
 - [x] 1.9 Refactor the header code with the tests green (REFACTOR): the CSP builder and `withContentSecurityPolicy` merged into `src/app/content-security-policy.ts`, with one export and one test file
+- [x] 1.10 Force dynamic rendering with `await connection()` in the root layout, test-first, and check that a build without any environment variable succeeds and prerenders no page (`design.md` D2)
 
 ## 2. Visible Version
 

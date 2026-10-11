@@ -46,7 +46,7 @@ Found in the review of 2026-10-11. All of them are resolved.
 
 ### Resolved
 
-- **`BETTER_AUTH_SECRET` overlaps with MF-46.** The build does not need it. `createWebContainer` (`src/composition/web-container.ts`) reads its variables on the first call, never at import or build time, so `vercel build` succeeds without the secret. It was already set in Vercel on 2026-10-11.
+- **`BETTER_AUTH_SECRET` overlaps with MF-46.** It was already set in Vercel on 2026-10-11. The first answer, that the build did not need it, was wrong: without the variables Next.js tried to prerender `/`, whose session read builds the web container and throws. A Vercel preview without them failed that way. The root layout now calls `connection()` (`design.md` D2), so no page is prerendered and a build without any variable succeeds (checked in a clean worktree).
 - **The case against nonces was weaker than stated.** Every page already renders dynamically, so the author chose a nonce-based CSP in `src/proxy.ts` on 2026-10-11 (`design.md` D2, which also covers hashes and SRI as rejected alternatives).
 - **D1 still said "middleware".** D1 is rewritten around `next.config.ts` and `proxy.ts`.
 - **CSP and Sentry.** Added to Risks in `design.md`: MF-32 will need a `connect-src` entry for Sentry or a tunnel route.
