@@ -18,7 +18,7 @@
 
 ## 3. Vercel Git Build Governance
 
-- [x] 3.1 Set `vercel.json` to `"git": { "deploymentEnabled": { "*": false, "production": true } }`, keeping `"regions": ["fra1"]`, and verify valid JSON syntax (`design.md` D5)
+- [x] 3.1 Set `vercel.json` to `"git": { "deploymentEnabled": { "**": false, "production": true } }`, keeping `"regions": ["fra1"]`, and verify valid JSON syntax (`design.md` D5)
 
 ## 4. Deployment Pipeline
 

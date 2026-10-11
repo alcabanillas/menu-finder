@@ -1,5 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "git": { "deploymentEnabled": { "*": false, "production": true } },
+  "git": { "deploymentEnabled": { "**": false, "production": true } },
   "regions": ["fra1"]
 }

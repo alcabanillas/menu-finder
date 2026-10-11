@@ -70,9 +70,9 @@ See `proposal.md` for motivation.
   - A tag push as the trigger. Vercel for GitHub deploys branches, not tags, so it would need the CLI (D3).
 
 ### D5: Vercel Configuration via `vercel.json` (Git Governance and Function Region)
-- **Choice:** `vercel.json` with `"git": { "deploymentEnabled": { "*": false, "production": true } }` and `"regions": ["fra1"]`.
+- **Choice:** `vercel.json` with `"git": { "deploymentEnabled": { "**": false, "production": true } }` and `"regions": ["fra1"]`.
 - **Why:**
-  1. Only `production` deploys. A branch that matches several rules deploys if any of them is `true` (Vercel's Git configuration docs), so `production` deploys and every other branch, `main` and PR branches included, does not. With no previews, the rule of `context/safety-first.md §2.4` that previews be access-protected and use their own Neon branch is met by omission.
+  1. Only `production` deploys. A branch that matches several rules deploys if any of them is `true` (Vercel's Git configuration docs), so `production` deploys and every other branch (`**`, not `*`: in minimatch `*` does not cross `/`, so `feature/…` and `dependabot/…` branches would still deploy), `main` and PR branches included, does not. With no previews, the rule of `context/safety-first.md §2.4` that previews be access-protected and use their own Neon branch is met by omission.
   2. Colocates Vercel Serverless Functions in Frankfurt (`fra1`) with the Neon PostgreSQL database (`eu-central-1`), eliminating ~80–100ms of transatlantic network roundtrip latency per database query.
 - **Alternative considered:** Configuring "Ignored Build Step" and function regions in Vercel project dashboard manually. Rejected because repository-as-code (`vercel.json`) ensures the configuration is version-controlled, reproducible, and transparent. The Production Branch and the Deployment Checks have no `vercel.json` option, so they are set in the dashboard (tasks).
 
