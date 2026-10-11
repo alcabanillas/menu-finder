@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Holds the golden set of natural-language requests and their expected constraints, labelled before the decomposer exists, that MF-28 uses to measure the decomposer's precision and recall per constraint and per type.
+Holds the golden set of natural-language requests and their expected constraints, labelled before the decomposer exists, that MF-40.3 uses to measure the decomposer's precision and recall per constraint and per type.
 
 ## Requirements
 

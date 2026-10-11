@@ -48,8 +48,9 @@ async function main() {
 }
 
 function goldenTerms(): string[] {
-  const requests = JSON.parse(readFileSync(GOLDEN_SET, 'utf8')) as { constraints: { term: string }[] }[];
-  return [...new Set(requests.flatMap(({ constraints }) => constraints.map(({ term }) => term.trim())))];
+  // A rejected request has no constraints, so it has no terms (MF-40.1).
+  const requests = JSON.parse(readFileSync(GOLDEN_SET, 'utf8')) as { constraints?: { term: string }[] }[];
+  return [...new Set(requests.flatMap(({ constraints = [] }) => constraints.map(({ term }) => term.trim())))];
 }
 
 async function measure(pool: pg.Pool, apiKey: string, terms: (readonly [TermRow['group'], string])[]): Promise<TermRow[]> {
