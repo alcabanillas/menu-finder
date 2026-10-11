@@ -26,7 +26,7 @@ No change to the search, to the web or to the golden set data.
 
 ## Impact
 
-- **Code:** a port in `src/application/ports/`, a use case and its DTO in `src/application/`, an adapter in `src/infrastructure/genkit/`, a command in `src/cli/commands/`, wiring in `src/composition/cli-container.ts` and `src/cli/run-cli.ts`.
+- **Code:** a port in `src/application/ports/`, a use case and its DTO in `src/application/`, the constraint schema moved from `searchMenus` to `src/application/dto/search-request.ts` (design.md D2), an adapter in `src/infrastructure/genkit/`, a command in `src/cli/commands/`, wiring in `src/composition/cli-container.ts` and `src/cli/run-cli.ts`.
 - **Dependencies:** none. `genkit` and `@genkit-ai/google-genai` 1.42.0 and `zod` are already installed.
 - **Decisions it relies on:** BUS-descomponedor, BUS-superficie-consulta (d) and (f), IA-proveedor, IA-criterio-agente, SEG-rate-limit, EVAL-golden-sets.
 - **Rate limit:** the daily LLM limit (SEG-rate-limit, spec `rate-limiting`) is not applied: SEG-rate-limit puts it in the web adapter, and the CLI runs locally (decided by the author on 2026-10-11). The web use of the decomposer is MF-22.

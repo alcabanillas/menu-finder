@@ -71,7 +71,10 @@ A search with no condition the four types can hold has \`rejection\` null and em
 "¿cuántas proteínas tiene un filete de atún?"
 {"rejection":"not-a-search","constraints":[],"sameDish":[],"anyOf":[]}`;
 
+// The delimiters, in any case: a request that holds one could close the data early and write instructions after it.
+const DELIMITERS = /<\/?request>/gi;
+
 /** The prompt of the decomposer: the instructions, then the request between delimiters as data (design D6). */
 export function decomposerPrompt(request: string): string {
-  return `${INSTRUCTIONS}\n\n<request>\n${request}\n</request>`;
+  return `${INSTRUCTIONS}\n\n<request>\n${request.replaceAll(DELIMITERS, '')}\n</request>`;
 }
