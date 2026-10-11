@@ -106,7 +106,9 @@ function reportMarkdown({ requests, models }: DecomposerReport): string {
     '',
     ...table('Measure', models, ({ latency }) => [
       ['mean', millisecondsCell(latency.meanMs)],
+      ['95th percentile', millisecondsCell(latency.p95Ms)],
       ['maximum', millisecondsCell(latency.maxMs)],
+      ['slowest requests', slowestCell(latency.slowest)],
     ]),
     '',
   ].join('\n');
@@ -137,6 +139,10 @@ function idsCell(ids: string[]): string {
 
 function millisecondsCell(value: number | null): string {
   return value === null ? NO_VALUE : `${Math.round(value)} ms`;
+}
+
+function slowestCell(slowest: ModelReport['latency']['slowest']): string {
+  return slowest.length === 0 ? NO_VALUE : slowest.map(({ id, ms }) => `${id} ${millisecondsCell(ms)}`).join(', ');
 }
 
 function formatted(value: number | null): string {

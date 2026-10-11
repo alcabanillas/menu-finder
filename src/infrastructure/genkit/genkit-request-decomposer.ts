@@ -6,13 +6,15 @@ import { decomposerPrompt } from '@/infrastructure/genkit/decomposer-prompt';
 import { redactSecrets } from '@/shared/redact-secrets';
 import { err, ok, type Result } from '@/shared/result';
 
-/** IA-proveedor (MF-40.2 design D9); MF-40.3 compares it with `gemini-3.8-flash`. */
-export const DECOMPOSER_MODEL = 'gemini-3.5-flash-lite';
+/** IA-proveedor: chosen by the author on 2026-10-12 from the MF-40.3 evaluation, over `gemini-3.5-flash-lite`. */
+export const DECOMPOSER_MODEL = 'gemini-3.8-flash';
 
 /** MF-40.2 design D5. */
 const TIMEOUT_MS = 20_000;
 
-/** How much the model thinks: the decomposer uses the least,  (MF-40.2 design D5). */
+/** How much the model thinks: the least `gemini-3.8-flash` accepts is `LOW` (MF-40.3 design D4). */
+const DECOMPOSER_THINKING: ThinkingLevel = 'LOW';
+
 export type ThinkingLevel = 'MINIMAL' | 'LOW' | 'MEDIUM' | 'HIGH';
 
 // The schema comes from `zod` 4, the one of the use case, and not from the `z` of `genkit` (zod 3): Genkit only
@@ -42,7 +44,7 @@ export class GenkitRequestDecomposer implements RequestDecomposer {
     private readonly generate: Generate,
     private readonly apiKey: string,
     readonly model: string = DECOMPOSER_MODEL,
-    readonly thinkingLevel: ThinkingLevel = 'MINIMAL',
+    readonly thinkingLevel: ThinkingLevel = DECOMPOSER_THINKING,
   ) {}
 
   async decompose(request: string): Promise<Result<unknown, DecomposerFailure>> {
@@ -59,12 +61,12 @@ export class GenkitRequestDecomposer implements RequestDecomposer {
 
 /**
  * Gemini through Genkit; the key is passed in, never read by the plugin. Another model and thinking level only for
- * the evaluation of MF-40.3, which compares two models: `gemini-3.8-flash` refuses `MINIMAL` (MF-40.3 design D4).
+ * the evaluation of MF-40.3, which compares models: `gemini-3.8-flash` refuses `MINIMAL` (MF-40.3 design D4).
  */
 export function createGenkitRequestDecomposer(
   apiKey: string,
   model = DECOMPOSER_MODEL,
-  thinkingLevel: ThinkingLevel = 'MINIMAL',
+  thinkingLevel: ThinkingLevel = DECOMPOSER_THINKING,
 ): GenkitRequestDecomposer {
   const ai = genkit({ plugins: [googleAI({ apiKey })] });
   return new GenkitRequestDecomposer(genkitGenerate(ai, googleAI.model(model)), apiKey, model, thinkingLevel);

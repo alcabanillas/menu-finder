@@ -29,22 +29,22 @@ afterEach(() => {
 });
 
 describe('createGenkitRequestDecomposer', () => {
-  it('uses gemini-3.5-flash-lite unless another model is given', () => {
-    expect(createGenkitRequestDecomposer(KEY).model).toBe('gemini-3.5-flash-lite');
-    expect(createGenkitRequestDecomposer(KEY, 'gemini-3.8-flash').model).toBe('gemini-3.8-flash');
+  it('uses gemini-3.8-flash unless another model is given', () => {
+    expect(createGenkitRequestDecomposer(KEY).model).toBe('gemini-3.8-flash');
+    expect(createGenkitRequestDecomposer(KEY, 'gemini-3.5-flash-lite').model).toBe('gemini-3.5-flash-lite');
   });
 
-  it('uses minimal thinking unless another level is given', () => {
-    expect(createGenkitRequestDecomposer(KEY).thinkingLevel).toBe('MINIMAL');
-    expect(createGenkitRequestDecomposer(KEY, 'gemini-3.8-flash', 'LOW').thinkingLevel).toBe('LOW');
+  it('uses low thinking unless another level is given', () => {
+    expect(createGenkitRequestDecomposer(KEY).thinkingLevel).toBe('LOW');
+    expect(createGenkitRequestDecomposer(KEY, 'gemini-3.5-flash-lite', 'MINIMAL').thinkingLevel).toBe('MINIMAL');
   });
 
   it('sends the thinking level it was given', async () => {
     const { generate, calls } = recording();
 
-    await new GenkitRequestDecomposer(generate, KEY, 'gemini-3.8-flash', 'LOW').decompose('algo con bacalao');
+    await new GenkitRequestDecomposer(generate, KEY, 'gemini-3.5-flash-lite', 'MINIMAL').decompose('algo con bacalao');
 
-    expect(calls[0].config.thinkingConfig).toEqual({ thinkingLevel: 'LOW' });
+    expect(calls[0].config.thinkingConfig).toEqual({ thinkingLevel: 'MINIMAL' });
   });
 });
 
@@ -57,13 +57,13 @@ describe('GenkitRequestDecomposer', () => {
     expect(calls[0].prompt).toContain('<request>\nalgo con bacalao\n</request>');
   });
 
-  it('uses gemini-3.5-flash-lite with minimal thinking and no sampling parameters', async () => {
+  it('uses gemini-3.8-flash with low thinking and no sampling parameters', async () => {
     const { generate, calls } = recording();
 
     await new GenkitRequestDecomposer(generate, KEY).decompose('algo con bacalao');
 
-    expect(DECOMPOSER_MODEL).toBe('gemini-3.5-flash-lite');
-    expect(calls[0].config.thinkingConfig).toEqual({ thinkingLevel: 'MINIMAL' });
+    expect(DECOMPOSER_MODEL).toBe('gemini-3.8-flash');
+    expect(calls[0].config.thinkingConfig).toEqual({ thinkingLevel: 'LOW' });
     expect(calls[0].config).not.toHaveProperty('temperature');
     expect(calls[0].config).not.toHaveProperty('topP');
     expect(calls[0].config).not.toHaveProperty('topK');
@@ -161,7 +161,7 @@ describe('genkitGenerate', () => {
     await decomposer.decompose('algo con bacalao');
 
     expect(configs[0]).toMatchObject({
-      thinkingConfig: { thinkingLevel: 'MINIMAL' },
+      thinkingConfig: { thinkingLevel: 'LOW' },
       responseJsonSchema: { required: ['rejection', 'constraints', 'sameDish', 'anyOf'] },
     });
   });

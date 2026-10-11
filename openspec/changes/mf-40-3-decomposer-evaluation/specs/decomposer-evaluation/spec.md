@@ -79,11 +79,15 @@ An answer the decomposer refuses (an invalid answer, a request too long) and a f
 - **THEN** the run goes on, and the request id is listed as a failed call for that model
 
 ### Requirement: Latency
-The evaluation SHALL give, for each model, the mean and the maximum time of one decomposition, measured around each call.
+The evaluation SHALL give, for each model, the mean, the 95th percentile and the maximum time of one decomposition, measured around each call, and the ids and times of its five slowest requests. The percentile is the nearest rank: the time at position ⌈0.95 × n⌉ of the n times in ascending order.
 
 #### Scenario: Mean and maximum
 - **WHEN** the two calls of a model take 100 ms and 300 ms
 - **THEN** the report gives a mean of 200 ms and a maximum of 300 ms for that model
+
+#### Scenario: Percentile and slowest requests
+- **WHEN** the 20 calls of a model take 100, 200, … 2000 ms, in the order of the golden set
+- **THEN** the report gives a 95th percentile of 1900 ms, and the five slowest requests, slowest first, are the last five with 2000, 1900, 1800, 1700 and 1600 ms
 
 ### Requirement: Report
 `pnpm ingest evaluate-decomposer` SHALL write the results of every model to `evals/decomposer/results.md`. The report SHALL hold the model names, the request ids and numbers only, never a term or a text. The command SHALL print, at the console, the expected constraints not found and the constraints that miss of each request, by id and model. It SHALL need `GEMINI_API_KEY` and no database. It SHALL exit with code 0 when the report is written, and with code 1, writing nothing, when the golden set cannot be read or a variable is missing. It SHALL take no argument: with one, it SHALL print the usage and exit with code 2. Every printed line SHALL pass through `redactSecrets`.

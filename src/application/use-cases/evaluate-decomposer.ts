@@ -42,6 +42,8 @@ type ConstraintType = Constraint['type'];
 const CONSTRAINT_TYPES: ConstraintType[] = ['literal', 'exclusion', 'attribute', 'fuzzy'];
 const CATEGORIES: RejectionCategory[] = ['gibberish', 'off-topic', 'instruction', 'not-a-search'];
 const NOTHING: SearchRequestDto = { constraints: [], sameDish: [], anyOf: [] };
+const PERCENTILE = 0.95;
+const SLOWEST = 5;
 
 /**
  * Sends every request of the decomposer golden set to each model, once, and compares the answer with its label
@@ -106,7 +108,7 @@ function modelReport(model: string, runs: Scored[]): ModelReport {
     rejectedSearches: idsWhere(runs, ({ request, outcome }) => request.expected.kind === 'search' && outcome.kind === 'rejection'),
     invalidAnswers: idsWhere(runs, ({ outcome }) => outcome.kind === 'invalid'),
     failedCalls: idsWhere(runs, ({ outcome }) => outcome.kind === 'failed'),
-    latency: latency(runs.map(({ ms }) => ms)),
+    latency: latency(runs),
   };
 }
 
@@ -144,9 +146,21 @@ function idsWhere(runs: Scored[], predicate: (run: Scored) => boolean): string[]
   return runs.filter(predicate).map(({ request }) => request.id);
 }
 
-function latency(times: number[]): ModelReport['latency'] {
-  if (times.length === 0) return { meanMs: null, maxMs: null };
-  return { meanMs: sum(times) / times.length, maxMs: Math.max(...times) };
+function latency(runs: Scored[]): ModelReport['latency'] {
+  const slowestFirst = runs.map(({ request, ms }) => ({ id: request.id, ms })).sort((a, b) => b.ms - a.ms);
+  const times = slowestFirst.map(({ ms }) => ms);
+  if (times.length === 0) return { meanMs: null, p95Ms: null, maxMs: null, slowest: [] };
+  return {
+    meanMs: sum(times) / times.length,
+    p95Ms: nearestRank(times.toReversed(), PERCENTILE),
+    maxMs: times[0],
+    slowest: slowestFirst.slice(0, SLOWEST),
+  };
+}
+
+// The time at position ⌈p × n⌉, counted from 1, of the times in ascending order (spec "Latency").
+function nearestRank(ascending: number[], p: number): number {
+  return ascending[Math.ceil(p * ascending.length) - 1];
 }
 
 // Only a request with a miss: a constraint not found, a constraint that misses, or a wrong rejection.

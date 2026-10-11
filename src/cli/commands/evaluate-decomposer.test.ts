@@ -26,7 +26,15 @@ const modelReport = (model: string): ModelReport => ({
   rejectedSearches: ['L07'],
   invalidAnswers: [],
   failedCalls: ['R02'],
-  latency: { meanMs: 812.4, maxMs: 2400 },
+  latency: {
+    meanMs: 812.4,
+    p95Ms: 1900,
+    maxMs: 2400,
+    slowest: [
+      { id: 'X07', ms: 2400 },
+      { id: 'R03', ms: 1900 },
+    ],
+  },
 });
 
 const EVALUATION: DecomposerEvaluation = {
@@ -66,6 +74,13 @@ describe('runEvaluateDecomposer', () => {
     expect(written[0].content).toContain('| Type | gemini-3.5-flash-lite | gemini-3.8-flash |');
     expect(written[0].content).toContain('P 0.500 · R 0.400 (2/4/5)');
     expect(written[0].content).toContain('R02');
+  });
+
+  it('writes the 95th percentile and the slowest requests of each model', async () => {
+    const { written } = await run(ok(EVALUATION));
+
+    expect(written[0].content).toContain('| 95th percentile | 1900 ms | 1900 ms |');
+    expect(written[0].content).toContain('| slowest requests | X07 2400 ms, R03 1900 ms | X07 2400 ms, R03 1900 ms |');
   });
 
   it('writes no term of the golden set into the report', async () => {

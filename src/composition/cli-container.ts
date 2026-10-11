@@ -45,13 +45,14 @@ const DATABASE_URL = 'DATABASE_URL_UNPOOLED';
 const GEMINI_API_KEY = 'GEMINI_API_KEY';
 const BETTER_AUTH_SECRET = 'BETTER_AUTH_SECRET';
 
-// The model of the decomposer, then the newest Flash it is compared with (MF-40.2 design D9, MF-40.3 design D4), each
-// with the least thinking it accepts: `gemini-3.8-flash` answers `MINIMAL` with HTTP 400 (task 6.1). The model of the
-// decomposer also runs with `LOW`, the step MF-40.2 design D9 tries before changing the model (author, 2026-10-12).
+// The Lite model the decomposer started with, with `MINIMAL` and `LOW` thinking, then the model of the decomposer,
+// `gemini-3.8-flash`, which answers `MINIMAL` with HTTP 400 (MF-40.3 design D4, task 6.1). The author chose Flash on
+// 2026-10-12; Lite stays in the report as the comparison behind that choice.
+const LITE_MODEL = 'gemini-3.5-flash-lite';
 const EVALUATED_MODELS: { model: string; thinkingLevel: ThinkingLevel }[] = [
-  { model: DECOMPOSER_MODEL, thinkingLevel: 'MINIMAL' },
+  { model: LITE_MODEL, thinkingLevel: 'MINIMAL' },
+  { model: LITE_MODEL, thinkingLevel: 'LOW' },
   { model: DECOMPOSER_MODEL, thinkingLevel: 'LOW' },
-  { model: 'gemini-3.8-flash', thinkingLevel: 'LOW' },
 ];
 
 // The library asks for a base URL when it is built, but only uses it to write email-verification links, and this system

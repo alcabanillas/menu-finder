@@ -168,7 +168,24 @@ describe('evaluateDecomposer: latency', () => {
 
     const { report } = await run([GIBBERISH, INSTRUCTION], {}, now);
 
-    expect(report.latency).toEqual({ meanMs: 200, maxMs: 300 });
+    expect(report.latency).toMatchObject({ meanMs: 200, maxMs: 300 });
+  });
+
+  it('gives the 95th percentile by nearest rank and the five slowest requests, slowest first', async () => {
+    const requests = Array.from({ length: 20 }, (_, index) => ({ ...GIBBERISH, id: `X${index + 1}` }));
+    const ticks = requests.flatMap((_, index) => [0, (index + 1) * 100]);
+    const now = () => ticks.shift() ?? 0;
+
+    const { report } = await run(requests, {}, now);
+
+    expect(report.latency.p95Ms).toBe(1900);
+    expect(report.latency.slowest).toEqual([
+      { id: 'X20', ms: 2000 },
+      { id: 'X19', ms: 1900 },
+      { id: 'X18', ms: 1800 },
+      { id: 'X17', ms: 1700 },
+      { id: 'X16', ms: 1600 },
+    ]);
   });
 });
 

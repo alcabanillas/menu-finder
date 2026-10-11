@@ -22,7 +22,15 @@ export type ModelReport = {
   /** Answers the decomposer refused, and calls that failed: both scored as no constraints. */
   invalidAnswers: string[];
   failedCalls: string[];
-  latency: { meanMs: number | null; maxMs: number | null };
+  latency: Latency;
+};
+
+/** The 95th percentile is the nearest rank; `slowest` holds the five slowest requests, slowest first. */
+type Latency = {
+  meanMs: number | null;
+  p95Ms: number | null;
+  maxMs: number | null;
+  slowest: { id: string; ms: number }[];
 };
 
 /** Hits over answered is the precision, hits over expected the recall; null when the count behind it is 0. */
