@@ -92,6 +92,18 @@ describe('decomposeRequest: request length', () => {
     expect(calls).toHaveLength(1);
   });
 
+  it('counts characters, not UTF-16 units: 300 emojis are at the limit, 301 are over it', async () => {
+    const atLimit = answering(rejection('gibberish'));
+    const over = answering(rejection('gibberish'));
+
+    await decomposeRequest('🍲'.repeat(MAX_REQUEST_LENGTH), { decomposer: atLimit.decomposer });
+    const result = await decomposeRequest('🍲'.repeat(MAX_REQUEST_LENGTH + 1), { decomposer: over.decomposer });
+
+    expect(atLimit.calls).toHaveLength(1);
+    expect(result).toEqual(err({ kind: 'request-too-long', max: 300 }));
+    expect(over.calls).toHaveLength(0);
+  });
+
   it('sends the request trimmed', async () => {
     const { decomposer, calls } = answering(structure());
 
