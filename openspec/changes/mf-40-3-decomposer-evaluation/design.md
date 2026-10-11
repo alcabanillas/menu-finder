@@ -41,7 +41,7 @@ Calls go one after another, model by model, in the order of the golden set. 142 
 
 ### D4. The adapter takes the model as a parameter
 
-`createGenkitRequestDecomposer(apiKey, model = DECOMPOSER_MODEL)`. The command `decompose` keeps calling it with the key only. The list of evaluated models, `gemini-3.5-flash-lite` then `gemini-3.8-flash` (MF-40.2 design D9), is a constant of `cli-container.ts`, the only place that chooses adapters.
+`createGenkitRequestDecomposer(apiKey, model = DECOMPOSER_MODEL, thinkingLevel = 'MINIMAL')`. The command `decompose` keeps calling it with the key only. Each evaluated model runs with the least thinking it accepts: `gemini-3.8-flash` answers `MINIMAL` with HTTP 400, so it runs with `LOW` (found in task 6.1). The report names the level in the column of each model. The list of evaluated models, `gemini-3.5-flash-lite` then `gemini-3.8-flash` (MF-40.2 design D9), is a constant of `cli-container.ts`, the only place that chooses adapters.
 
 ### D5. The report
 

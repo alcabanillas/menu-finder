@@ -12,6 +12,9 @@ export const DECOMPOSER_MODEL = 'gemini-3.5-flash-lite';
 /** MF-40.2 design D5. */
 const TIMEOUT_MS = 20_000;
 
+/** How much the model thinks: the decomposer uses the least,  (MF-40.2 design D5). */
+export type ThinkingLevel = 'MINIMAL' | 'LOW' | 'MEDIUM' | 'HIGH';
+
 // The schema comes from `zod` 4, the one of the use case, and not from the `z` of `genkit` (zod 3): Genkit only
 // receives this JSON Schema. Draft 7, because Genkit's validator does not know Zod's default, draft 2020-12 (task 4.1).
 const RESPONSE_JSON_SCHEMA = z.toJSONSchema(decompositionSchema, { target: 'draft-7' });
@@ -21,7 +24,7 @@ const RESPONSE_JSON_SCHEMA = z.toJSONSchema(decompositionSchema, { target: 'draf
  * as Gemini's own `responseJsonSchema`, so that Genkit does not validate the answer (design D2).
  */
 type DecomposerConfig = {
-  thinkingConfig: { thinkingLevel: 'MINIMAL' };
+  thinkingConfig: { thinkingLevel: ThinkingLevel };
   responseJsonSchema: Record<string, unknown>;
 };
 
@@ -39,11 +42,12 @@ export class GenkitRequestDecomposer implements RequestDecomposer {
     private readonly generate: Generate,
     private readonly apiKey: string,
     readonly model: string = DECOMPOSER_MODEL,
+    readonly thinkingLevel: ThinkingLevel = 'MINIMAL',
   ) {}
 
   async decompose(request: string): Promise<Result<unknown, DecomposerFailure>> {
     try {
-      const text = await withTimeout(this.generate(toCall(request)));
+      const text = await withTimeout(this.generate(toCall(request, this.thinkingLevel)));
       if (text.trim() === '') return failed('empty answer');
       return ok(parsed(text));
     } catch (error) {
@@ -54,12 +58,16 @@ export class GenkitRequestDecomposer implements RequestDecomposer {
 }
 
 /**
- * Gemini through Genkit; the key is passed in, never read by the plugin. Another model only for the evaluation of
- * MF-40.3, which compares two (MF-40.3 design D4).
+ * Gemini through Genkit; the key is passed in, never read by the plugin. Another model and thinking level only for
+ * the evaluation of MF-40.3, which compares two models: `gemini-3.8-flash` refuses `MINIMAL` (MF-40.3 design D4).
  */
-export function createGenkitRequestDecomposer(apiKey: string, model = DECOMPOSER_MODEL): GenkitRequestDecomposer {
+export function createGenkitRequestDecomposer(
+  apiKey: string,
+  model = DECOMPOSER_MODEL,
+  thinkingLevel: ThinkingLevel = 'MINIMAL',
+): GenkitRequestDecomposer {
   const ai = genkit({ plugins: [googleAI({ apiKey })] });
-  return new GenkitRequestDecomposer(genkitGenerate(ai, googleAI.model(model)), apiKey, model);
+  return new GenkitRequestDecomposer(genkitGenerate(ai, googleAI.model(model)), apiKey, model, thinkingLevel);
 }
 
 /**
@@ -73,10 +81,10 @@ export function genkitGenerate(ai: Genkit, model: ModelArgument): Generate {
   };
 }
 
-function toCall(request: string): DecomposerCall {
+function toCall(request: string, thinkingLevel: ThinkingLevel): DecomposerCall {
   return {
     prompt: decomposerPrompt(request),
-    config: { thinkingConfig: { thinkingLevel: 'MINIMAL' }, responseJsonSchema: RESPONSE_JSON_SCHEMA },
+    config: { thinkingConfig: { thinkingLevel }, responseJsonSchema: RESPONSE_JSON_SCHEMA },
   };
 }
 

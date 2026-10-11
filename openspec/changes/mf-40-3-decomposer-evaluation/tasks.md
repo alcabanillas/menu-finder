@@ -30,13 +30,19 @@
 
 ## 6. Real run
 
-- [ ] 6.1 Run `pnpm ingest evaluate-decomposer` and commit `evals/decomposer/results.md`. No prompt or label is changed after seeing it (EVAL-golden-sets)
+- [x] 6.1 Run `pnpm ingest evaluate-decomposer` and commit `evals/decomposer/results.md`. No prompt or label is changed after seeing it (EVAL-golden-sets)
+
+  Results (2026-10-11):
+  - First run: `gemini-3.8-flash` answered every call with HTTP 400, "Thinking level MINIMAL is not supported for this model". The adapter now takes the thinking level, and Flash runs with `LOW`, the least it accepts (design D4). That run's Lite column was overall P 0.720 · R 0.670 (67/93/100).
+  - Second run, the committed report: Lite (`MINIMAL`) overall P 0.723 · R 0.680 (68/94/100); Flash (`LOW`) P 0.840 · R 0.840 (84/100/100). Both reject the 10 rejected requests with the right category. Lite rejected one search request (A09) and gave one invalid answer (R01); Flash timed out once (A08). Mean latency 743 ms against 2819 ms.
+  - Between the two runs, Lite moved by one or two hits per type.
+  - Most attribute misses of both models are where the term is cut, not its type: the model answers "para el invierno", "de verano" or "cenar" where the label has "invierno", "verano" or "para cenar". The prompt of MF-40.2 has the example term "para el verano", and `evals/decomposer/labelling-guide.md` rule 3 gives "para el invierno" as an attribute, while the labels keep the short cut. Nothing is changed here: the author decides.
 
 ## 7. Documentation
 
-- [ ] 7.1 `context/decisiones.md` EVAL-golden-sets: the decomposer is measured with `pnpm ingest evaluate-decomposer`, with the matching rules of the roadmap line of MF-40.3, and the report is `evals/decomposer/results.md`. The figures are not copied there: they live in the report
+- [x] 7.1 `context/decisiones.md` EVAL-golden-sets: the decomposer is measured with `pnpm ingest evaluate-decomposer`, with the matching rules of the roadmap line of MF-40.3, and the report is `evals/decomposer/results.md`. The figures are not copied there: they live in the report
 
 ## 8. Verification
 
-- [ ] 8.1 Run `pnpm lint`, `pnpm typecheck` and `pnpm test:run`, and verify everything passes
-- [ ] 8.2 Run `openspec validate mf-40-3-decomposer-evaluation --strict` and verify it passes
+- [x] 8.1 Run `pnpm lint`, `pnpm typecheck` and `pnpm test:run`, and verify everything passes
+- [x] 8.2 Run `openspec validate mf-40-3-decomposer-evaluation --strict` and verify it passes

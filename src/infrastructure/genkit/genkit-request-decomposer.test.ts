@@ -33,6 +33,19 @@ describe('createGenkitRequestDecomposer', () => {
     expect(createGenkitRequestDecomposer(KEY).model).toBe('gemini-3.5-flash-lite');
     expect(createGenkitRequestDecomposer(KEY, 'gemini-3.8-flash').model).toBe('gemini-3.8-flash');
   });
+
+  it('uses minimal thinking unless another level is given', () => {
+    expect(createGenkitRequestDecomposer(KEY).thinkingLevel).toBe('MINIMAL');
+    expect(createGenkitRequestDecomposer(KEY, 'gemini-3.8-flash', 'LOW').thinkingLevel).toBe('LOW');
+  });
+
+  it('sends the thinking level it was given', async () => {
+    const { generate, calls } = recording();
+
+    await new GenkitRequestDecomposer(generate, KEY, 'gemini-3.8-flash', 'LOW').decompose('algo con bacalao');
+
+    expect(calls[0].config.thinkingConfig).toEqual({ thinkingLevel: 'LOW' });
+  });
 });
 
 describe('GenkitRequestDecomposer', () => {

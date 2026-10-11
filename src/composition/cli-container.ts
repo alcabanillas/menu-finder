@@ -19,7 +19,11 @@ import { createAccountCreator } from '@/infrastructure/auth/create-account';
 import { FanOutRepository } from '@/infrastructure/fan-out/fan-out-repository';
 import { FileGoldenSetSource } from '@/infrastructure/golden-sets/file-golden-set-source';
 import { createGenkitEmbeddings } from '@/infrastructure/genkit/genkit-embeddings';
-import { createGenkitRequestDecomposer, DECOMPOSER_MODEL } from '@/infrastructure/genkit/genkit-request-decomposer';
+import {
+  createGenkitRequestDecomposer,
+  DECOMPOSER_MODEL,
+  type ThinkingLevel,
+} from '@/infrastructure/genkit/genkit-request-decomposer';
 import { JsonFileMenuRepository, MENU_DATASET_FILE } from '@/infrastructure/json-file/json-file-menu-repository';
 import { JsonFileRecipeRepository, RECIPE_DATASET_FILE } from '@/infrastructure/json-file/json-file-recipe-repository';
 import { LocalDocumentSource } from '@/infrastructure/local-documents/local-document-source';
@@ -41,8 +45,12 @@ const DATABASE_URL = 'DATABASE_URL_UNPOOLED';
 const GEMINI_API_KEY = 'GEMINI_API_KEY';
 const BETTER_AUTH_SECRET = 'BETTER_AUTH_SECRET';
 
-// The model of the decomposer, then the newest Flash it is compared with (MF-40.2 design D9, MF-40.3 design D4).
-const EVALUATED_MODELS = [DECOMPOSER_MODEL, 'gemini-3.8-flash'];
+// The model of the decomposer, then the newest Flash it is compared with (MF-40.2 design D9, MF-40.3 design D4), each
+// with the least thinking it accepts: `gemini-3.8-flash` answers `MINIMAL` with HTTP 400 (task 6.1).
+const EVALUATED_MODELS: { model: string; thinkingLevel: ThinkingLevel }[] = [
+  { model: DECOMPOSER_MODEL, thinkingLevel: 'MINIMAL' },
+  { model: 'gemini-3.8-flash', thinkingLevel: 'LOW' },
+];
 
 // The library asks for a base URL when it is built, but only uses it to write email-verification links, and this system
 // verifies no email (SEG-sistema-cerrado). The session cookie is signed with the secret, not with the URL, so an account
@@ -126,7 +134,10 @@ export function createCliContainer(env: Env = {}) {
       requiring(env, [GEMINI_API_KEY], ([apiKey]) =>
         evaluateDecomposer({
           goldenSets: new FileGoldenSetSource(join(REPO_ROOT, 'evals')),
-          models: EVALUATED_MODELS.map((model) => ({ model, decomposer: createGenkitRequestDecomposer(apiKey, model) })),
+          models: EVALUATED_MODELS.map(({ model, thinkingLevel }) => ({
+            model: `${model}, thinking ${thinkingLevel}`,
+            decomposer: createGenkitRequestDecomposer(apiKey, model, thinkingLevel),
+          })),
           now: () => performance.now(),
         }),
       ),
