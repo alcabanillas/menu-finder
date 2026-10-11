@@ -35,3 +35,16 @@
 
 - [x] 7.1 Run `pnpm lint`, `pnpm typecheck` and `pnpm test:run`, and verify everything passes
 - [x] 7.2 Run `openspec validate mf-40-1-rejected-requests --strict` and verify it passes
+
+## Security checklist (`context/safety-first.md` §4), 2026-10-11
+
+- **Business and security decisions in the backend:** not applicable. The change only adds data to the golden set and rules to its validator, which runs in the unit tests.
+- **New endpoints (auth, permissions, negative tests):** not applicable. There is no endpoint or command.
+- **User from the session:** not applicable, for the same reason.
+- **Minimum data returned:** not applicable. Nothing is returned to a user.
+- **No secrets in the diff:** yes. Checked with a `grep` of the branch diff against `main` for Gemini keys and connection strings with a password: 0 matches.
+- **New dependencies:** none. `package.json` and the lockfile are unchanged.
+- **Parameterised queries:** not applicable. No new SQL.
+- **Tests with unexpected values:** yes. Unknown origin, unknown category, a rejected request without category or with constraints, a search request with a rejection. X07 and X08 are prompt-injection texts kept as data: no LLM reads them until MF-40.3, which is what they test.
+- **Sensitive actions logged:** not applicable. There is no user action.
+- **Deviations from a MUST rule:** none.

@@ -117,7 +117,7 @@ function checkGroups(request: SearchRequest, field: GroupField, issues: Issue[])
   }
 }
 
-// "o" in an exclusion is "ni" (two exclusions), and "o" inside "con" is left to T3.
+// "o" in an exclusion is "ni" (two exclusions), and "o" inside "con" is not labelled (labelling guide).
 function checkAlternatives(request: SearchRequest, issues: Issue[]): void {
   const excluded = new Set(request.constraints.filter((c) => c.polarity === 'exclude').map((c) => c.id));
   const sameDish = new Set(request.sameDish.flat());
