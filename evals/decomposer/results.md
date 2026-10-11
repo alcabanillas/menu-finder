@@ -8,25 +8,25 @@ One run per model over the 71 requests of `evals/decomposer/golden-set.json`. A 
 
 | Type | gemini-3.5-flash-lite, thinking MINIMAL | gemini-3.8-flash, thinking LOW |
 |---|---|---|
-| literal | P 0.839 · R 0.839 (26/31/31) | P 0.939 · R 1.000 (31/33/31) |
-| exclusion | P 0.947 · R 0.900 (18/19/20) | P 0.950 · R 0.950 (19/20/20) |
-| attribute | P 0.333 · R 0.375 (6/18/16) | P 0.353 · R 0.375 (6/17/16) |
-| fuzzy | P 0.692 · R 0.545 (18/26/33) | P 0.933 · R 0.848 (28/30/33) |
-| overall | P 0.723 · R 0.680 (68/94/100) | P 0.840 · R 0.840 (84/100/100) |
+| literal | P 1.000 · R 0.871 (27/27/31) | P 1.000 · R 1.000 (31/31/31) |
+| exclusion | P 1.000 · R 1.000 (20/20/20) | P 0.952 · R 1.000 (20/21/20) |
+| attribute | P 0.316 · R 0.375 (6/19/16) | P 0.375 · R 0.375 (6/16/16) |
+| fuzzy | P 0.788 · R 0.788 (26/33/33) | P 0.969 · R 0.939 (31/32/33) |
+| overall | P 0.798 · R 0.790 (79/99/100) | P 0.880 · R 0.880 (88/100/100) |
 
 ## Hard and slot, over the hits
 
 | Field | gemini-3.5-flash-lite, thinking MINIMAL | gemini-3.8-flash, thinking LOW |
 |---|---|---|
-| hard | 0.971 (66/68) | 0.988 (83/84) |
-| slot | 0.985 (67/68) | 0.988 (83/84) |
+| hard | 0.987 (78/79) | 1.000 (88/88) |
+| slot | 0.962 (76/79) | 0.989 (87/88) |
 
 ## Groups
 
 | Group | gemini-3.5-flash-lite, thinking MINIMAL | gemini-3.8-flash, thinking LOW |
 |---|---|---|
-| sameDish | P 0.667 · R 0.800 (4/6/5) | P 0.500 · R 0.800 (4/8/5) |
-| anyOf | P – · R 0.000 (0/0/1) | P 1.000 · R 1.000 (1/1/1) |
+| sameDish | P 0.625 · R 1.000 (5/8/5) | P 0.714 · R 1.000 (5/7/5) |
+| anyOf | P 1.000 · R 1.000 (1/1/1) | P – · R 0.000 (0/0/1) |
 
 ## Rejections
 
@@ -36,7 +36,7 @@ One run per model over the 71 requests of `evals/decomposer/golden-set.json`. A 
 | off-topic | 3/3 | 3/3 |
 | instruction | 2/2 | 2/2 |
 | not-a-search | 2/2 | 2/2 |
-| search requests rejected by mistake | 1 (A09) | 0 |
+| search requests rejected by mistake | 0 | 0 |
 
 ## Invalid answers and failed calls
 
@@ -44,12 +44,12 @@ Both count as an answer with no constraints.
 
 | Outcome | gemini-3.5-flash-lite, thinking MINIMAL | gemini-3.8-flash, thinking LOW |
 |---|---|---|
-| invalid answers | 1 (R01) | 0 |
-| failed calls | 0 | 1 (A08) |
+| invalid answers | 0 | 0 |
+| failed calls | 0 | 0 |
 
 ## Latency of one decomposition
 
 | Measure | gemini-3.5-flash-lite, thinking MINIMAL | gemini-3.8-flash, thinking LOW |
 |---|---|---|
-| mean | 743 ms | 2819 ms |
-| maximum | 1271 ms | 20012 ms |
+| mean | 852 ms | 2905 ms |
+| maximum | 6468 ms | 12321 ms |
