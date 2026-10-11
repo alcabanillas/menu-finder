@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    # production: the branch Vercel deploys. The whole suite runs again on the commit it is moved to, and Vercel's
-    # Deployment Checks hold the deployment until checks, e2e and release pass (MF-26 design D3, D4).
-    branches: [main, production]
+    # Not on production: the commit production moves to is already in main, so checks and e2e have run on it here.
+    # A second run would give that commit two results per job for Vercel's Deployment Checks (MF-26 design D3, D4).
+    branches: [main]
   pull_request:
 
 # safety-first §2.4: least-privilege permissions.
@@ -71,25 +71,3 @@ jobs:
 
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
-
-  # A release is a commit of main tagged v<version of package.json>; anything else never reaches production
-  # (MF-26 design D4, D6). Its result is one of the Deployment Checks in Vercel.
-  release:
-    if: github.ref == 'refs/heads/production'
-    runs-on: ubuntu-latest
-    steps:
-      # Full history and tags: the commit is compared with main and with its tag.
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-
-      - name: Check that the commit is in main
-        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
-
-      - name: Check that the commit is tagged with the version in package.json
-        run: |
-          tag="v$(node -p "require('./package.json').version")"
-          if [ "$(git rev-parse -q --verify "refs/tags/$tag^{commit}")" != "$GITHUB_SHA" ]; then
-            echo "::error::The commit is not tagged $tag, the version in package.json"
-            exit 1
-          fi
