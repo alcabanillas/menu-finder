@@ -68,3 +68,16 @@
 
 - [x] 8.1 Run `pnpm lint`, `pnpm typecheck` and `pnpm test:run`, and verify everything passes
 - [x] 8.2 Run `openspec validate mf-40-2-decomposer --strict` and verify it passes
+
+## Security checklist (`context/safety-first.md` §4), 2026-10-11
+
+- **Business and security decisions in the backend:** yes. Every check of the model's answer lives in the use case `decomposeRequest`: shape, rejection, `parseSearchRequest` and the literal term. The adapter only calls the model and parses its text.
+- **New endpoints (auth, permissions, negative tests):** not applicable. There is no endpoint: `decompose` is a local CLI command, run by the owner like the other `ingest` commands (proposal, A01). Its negative tests cover validation: no argument, two arguments, no key, a request too long, an invalid answer.
+- **User from the session:** not applicable. There is no session in the CLI.
+- **Minimum data returned:** yes. The command prints the structure, the rejection category or the names of the failing fields. An answer of the model that is not a decomposition is never printed (test "refuses plain text from an injected request and returns none of it").
+- **No secrets in the diff:** yes. Checked with a `grep` of the branch diff against `main` for Gemini keys and connection strings with a password: 0 matches, apart from the fake values of the tests. The API key is redacted from every error of the adapter, and every printed line passes through `redactSecrets`.
+- **New dependencies:** none. The only change to `package.json` is the script `evals:term-variants`. `genkit-cli` was tried as a development dependency and removed, because it brought 10 advisories (design.md D10).
+- **Parameterised queries:** not applicable. No new SQL.
+- **Tests with unexpected values:** yes. Empty and whitespace-only requests, 300 and 301 characters, 300 and 301 emojis (length counted in characters), unknown fields at both levels, unknown type and category, a group naming an unknown constraint, a request that holds the delimiters `</request>` and `<request>`, and a prompt injection whose answer is plain text.
+- **Sensitive actions logged:** not applicable. There is no login or access decision.
+- **Deviations from a MUST rule:** none. The daily LLM limit (SEG-rate-limit) does not apply to the CLI; that is documented in the proposal.

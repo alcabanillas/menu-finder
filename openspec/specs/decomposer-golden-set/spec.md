@@ -30,7 +30,7 @@ Holds the golden set of natural-language requests and their expected constraints
 - **THEN** validation fails naming the request and the field `origin`
 
 ### Requirement: Constraint schema
-Each request SHALL have a list of constraints, which MAY be empty when the request expresses nothing that the four types can hold. Each constraint SHALL have:
+Each search request SHALL have a list of constraints, which MAY be empty when the request expresses nothing that the four types can hold. Each constraint SHALL have:
 - an `id` unique within its request;
 - a `type`: `literal`, `exclusion`, `attribute` or `fuzzy`;
 - a `term`: the words of the request that express the constraint, lowercased, without the words that only set the slot;
@@ -90,7 +90,7 @@ A rejection is not an empty list of constraints: a request with `"constraints": 
 - **THEN** validation passes
 
 ### Requirement: Same-dish groups
-Each request SHALL have a list `sameDish` of groups, each a list of two or more constraint ids of that request. A group SHALL mean that one dish must satisfy all its constraints (BUS-superficie-consulta (a)). An exclusion in a group SHALL apply to that dish; an exclusion outside every group SHALL apply to the week (BUS-superficie-consulta (b)). A constraint SHALL belong to at most one group.
+Each search request SHALL have a list `sameDish` of groups, each a list of two or more constraint ids of that request. A group SHALL mean that one dish must satisfy all its constraints (BUS-superficie-consulta (a)). An exclusion in a group SHALL apply to that dish; an exclusion outside every group SHALL apply to the week (BUS-superficie-consulta (b)). A constraint SHALL belong to at most one group.
 
 #### Scenario: Group with an unknown constraint
 - **WHEN** a group of `C04` names the constraint `c9` and `C04` has no such constraint
@@ -105,7 +105,7 @@ Each request SHALL have a list `sameDish` of groups, each a list of two or more 
 - **THEN** validation fails naming the request and the constraint
 
 ### Requirement: Alternatives groups
-Each request SHALL have a list `anyOf` of groups, each a list of two or more constraint ids of that request. A group SHALL mean one condition that a dish satisfies by meeting any of its constraints ("garbanzos o lentejas", BUS-superficie-consulta (a)). Every constraint in a group SHALL have polarity `include`. A constraint SHALL belong to at most one `anyOf` group, and SHALL NOT belong to both an `anyOf` group and a `sameDish` group.
+Each search request SHALL have a list `anyOf` of groups, each a list of two or more constraint ids of that request. A group SHALL mean one condition that a dish satisfies by meeting any of its constraints ("garbanzos o lentejas", BUS-superficie-consulta (a)). Every constraint in a group SHALL have polarity `include`. A constraint SHALL belong to at most one `anyOf` group, and SHALL NOT belong to both an `anyOf` group and a `sameDish` group.
 
 #### Scenario: Alternatives group of one
 - **WHEN** an `anyOf` group has a single constraint id
