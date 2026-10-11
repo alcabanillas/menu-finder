@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readEnvFile, testDatabaseUrl } from './support/e2e-environment';
 import { signInAs, registerTestAccount } from './support/test-account';
+import { version } from '../package.json';
 
 // Spec app-shell (MF-51.1), against the test database only (MF-49), like the sign-in specs.
 test.skip(!testDatabaseUrl(process.env, readEnvFile()), 'needs the test database; DATABASE_URL_TEST is not set');
@@ -96,7 +97,7 @@ test.describe('with a session', () => {
 
     await expect(accountButton(page)).toHaveAttribute('aria-expanded', 'true');
     const panel = page.locator(`#${await accountButton(page).getAttribute('aria-controls')}`);
-    await expect(panel).toHaveText(`${account.email}Cerrar sesión`);
+    await expect(panel).toHaveText(`${account.email}Versión v${version}Cerrar sesión`);
   });
 
   test('Escape closes the panel and returns the focus to the button', async ({ page }) => {

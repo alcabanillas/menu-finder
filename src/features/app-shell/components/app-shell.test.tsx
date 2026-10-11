@@ -4,7 +4,7 @@ import { AppShell } from '@/features/app-shell/components/app-shell';
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/planner' }));
 
-const ACCOUNT = { email: 'ana@example.test', signOutAction: async () => {} };
+const ACCOUNT = { email: 'ana@example.test', version: '0.1.0', signOutAction: async () => {} };
 
 function renderShell() {
   return render(

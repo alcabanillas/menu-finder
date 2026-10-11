@@ -3,12 +3,13 @@ import { describe, expect, it, vi } from 'vitest';
 import { AccountMenu } from '@/features/app-shell/components/account-menu';
 
 const EMAIL = 'ana@example.test';
+const VERSION = '0.1.0';
 
 function renderMenu(signOut: () => Promise<void> = async () => {}) {
   return render(
     <div>
       <p>Fuera del menú</p>
-      <AccountMenu email={EMAIL} signOutAction={signOut} />
+      <AccountMenu email={EMAIL} version={VERSION} signOutAction={signOut} />
     </div>,
   );
 }
@@ -17,6 +18,15 @@ const button = () => screen.getByRole('button', { name: 'Cuenta' });
 const open = () => fireEvent.click(button());
 
 describe('AccountMenu', () => {
+  // Spec app-shell, "The menu shows the version".
+  it('shows the version the application was built from', () => {
+    renderMenu();
+
+    open();
+
+    expect(screen.getByText('Versión v0.1.0')).toBeInTheDocument();
+  });
+
   // Spec app-shell, "Closed by default".
   it('is closed by default: the button reports it and neither the email nor the sign-out control is shown', () => {
     renderMenu();
@@ -84,13 +94,13 @@ describe('AccountMenu', () => {
   });
 
   // Spec app-shell, "The menu shows the email and no other user data".
-  it('shows the email and the sign-out control, and nothing else of the user', () => {
+  it('shows the email, the version and the sign-out control, and nothing else of the user', () => {
     renderMenu();
 
     open();
 
     const panel = screen.getByText(EMAIL).parentElement!;
-    expect(panel).toHaveTextContent(`${EMAIL}Cerrar sesión`);
+    expect(panel).toHaveTextContent(`${EMAIL}Versión v${VERSION}Cerrar sesión`);
   });
 
   it('calls the sign-out action it received when "Cerrar sesión" is activated', async () => {

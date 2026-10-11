@@ -51,7 +51,8 @@ export default defineConfig({
           testTimeout: 30_000,
           // evals/: validación de los golden sets versionados (MF-13). scripts/: tooling del proyecto (MF-39).
           // e2e/support/: pure helpers of the Playwright run (MF-49); the .spec.ts files stay with Playwright.
-          include: ['src/**/*.test.ts', 'evals/**/*.test.ts', 'scripts/**/*.test.ts', 'e2e/**/*.test.ts'],
+          // next.config.test.ts: the security headers of the web (MF-26).
+          include: ['src/**/*.test.ts', 'evals/**/*.test.ts', 'scripts/**/*.test.ts', 'e2e/**/*.test.ts', 'next.config.test.ts'],
           // Transformed, not loaded as is, so that a test's mock of `next/headers` also reaches the import inside
           // better-auth's `nextCookies` plugin (MF-20.3).
           server: { deps: { inline: ['better-auth'] } },

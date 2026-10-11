@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { signOutAction } from '@/app/_session/actions';
+import { APP_VERSION } from '@/app/app-version';
 import { sessionUser } from '@/app/_session/session-user';
 import { AppShell } from '@/features/app-shell/components/app-shell';
 
@@ -12,5 +13,5 @@ import { AppShell } from '@/features/app-shell/components/app-shell';
  */
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const user = await sessionUser();
-  return <AppShell account={user ? { email: user.email, signOutAction } : undefined}>{children}</AppShell>;
+  return <AppShell account={user ? { email: user.email, version: APP_VERSION, signOutAction } : undefined}>{children}</AppShell>;
 }

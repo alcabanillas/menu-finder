@@ -1,5 +1,6 @@
 import { signInAction, signOutAction } from '@/app/_session/actions';
 import { sessionUser } from '@/app/_session/session-user';
+import { APP_VERSION } from '@/app/app-version';
 import { AppShell } from '@/features/app-shell/components/app-shell';
 import { SignInScreen } from '@/features/auth/components/sign-in-screen';
 
@@ -16,7 +17,7 @@ export default async function Home() {
 
 function TodayPage({ email }: { email: string }) {
   return (
-    <AppShell account={{ email, signOutAction }}>
+    <AppShell account={{ email, version: APP_VERSION, signOutAction }}>
       <div className="flex flex-col items-center justify-center gap-6 px-5 py-16">
         <h1 className="text-2xl font-extrabold">Hoy</h1>
         <p>Aquí verás qué toca hoy.</p>
