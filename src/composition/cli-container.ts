@@ -13,6 +13,7 @@ import { migrate } from '@/application/use-cases/ingest/migrate';
 import type { SearchRequestDto } from '@/application/dto/search-request';
 import type { SearchStrategy } from '@/application/dto/search-result';
 import type { EmbeddingsPort } from '@/application/ports/embeddings-port';
+import { searchByText } from '@/application/use-cases/search/search-by-text';
 import { searchMenus } from '@/application/use-cases/search/search-menus';
 import { PostgresDishTextSearch } from '@/infrastructure/postgres/postgres-dish-text-search';
 import { createAccountCreator } from '@/infrastructure/auth/create-account';
@@ -125,6 +126,18 @@ export function createCliContainer(env: Env = {}) {
       requiring(env, strategy === 'lexical' ? [DATABASE_URL] : [DATABASE_URL, GEMINI_API_KEY], ([url, apiKey]) =>
         withPool(url, (pool) =>
           searchMenus(dto, strategy, searchPorts(pool, apiKey === undefined ? NO_EMBEDDINGS : createGenkitEmbeddings(apiKey))),
+        ),
+      ),
+    // Both variables before the model is called, with every strategy: the decomposer needs the key (MF-22.1 design D5).
+    // `pg` opens no connection until the first query, which the use case only makes after a structure with constraints.
+    // No daily LLM limit, as in `decompose`: it is applied in the web adapter (SEG-rate-limit).
+    searchByText: (request: string, strategy: SearchStrategy) =>
+      requiring(env, [DATABASE_URL, GEMINI_API_KEY], ([url, apiKey]) =>
+        withPool(url, (pool) =>
+          searchByText(request, strategy, {
+            decomposer: createGenkitRequestDecomposer(apiKey),
+            ...searchPorts(pool, createGenkitEmbeddings(apiKey)),
+          }),
         ),
       ),
     // The key only, no database (spec request-decomposer). No daily LLM limit: it is applied in the web adapter (SEG-rate-limit).

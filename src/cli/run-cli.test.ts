@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import type { CliCommands, SearchOptions } from '@/cli/run-cli';
+import type { CliCommands, SearchOptions, SearchTextOptions } from '@/cli/run-cli';
 import { runCli } from '@/cli/run-cli';
 
-const USAGE_HEADER = 'Usage: pnpm ingest <migrate|recipes|menu|shopping-list|embed|account|search|evaluate-search|decompose|evaluate-decomposer>';
+const USAGE_HEADER = 'Usage: pnpm ingest <migrate|recipes|menu|shopping-list|embed|account|search|search-text|evaluate-search|decompose|evaluate-decomposer>';
 const NO_RUNS = {
   built: 0,
   menuRuns: 0,
@@ -12,6 +12,7 @@ const NO_RUNS = {
   embedRuns: 0,
   accountRuns: [],
   searches: [],
+  textSearches: [],
   evaluations: 0,
   decomposerEvaluations: 0,
   decompositions: [],
@@ -27,6 +28,7 @@ const setup = () => {
   let embedRuns = 0;
   const accountRuns: string[][] = [];
   const searches: SearchOptions[] = [];
+  const textSearches: SearchTextOptions[] = [];
   let evaluations = 0;
   let decomposerEvaluations = 0;
   const decompositions: string[][] = [];
@@ -61,6 +63,10 @@ const setup = () => {
         searches.push(options);
         return 0;
       },
+      'search-text': async (options) => {
+        textSearches.push(options);
+        return 0;
+      },
       'evaluate-search': async () => {
         evaluations += 1;
         return 0;
@@ -87,6 +93,7 @@ const setup = () => {
       embedRuns,
       accountRuns,
       searches,
+      textSearches,
       evaluations,
       decomposerEvaluations,
       decompositions,
@@ -172,11 +179,11 @@ describe('runCli', () => {
     expect(counts()).toEqual({ ...NO_RUNS, built: 1, evaluations: 1 });
   });
 
-  it('runs the search command with the hybrid strategy by default', async () => {
+  it('runs the search command with the semantic strategy by default', async () => {
     const { run, counts } = setup();
 
     expect(await run(['search', 'pollo.json'])).toBe(0);
-    expect(counts()).toEqual({ ...NO_RUNS, built: 1, searches: [{ file: 'pollo.json', strategy: 'hybrid' }] });
+    expect(counts()).toEqual({ ...NO_RUNS, built: 1, searches: [{ file: 'pollo.json', strategy: 'semantic' }] });
   });
 
   it.each(['lexical', 'semantic', 'hybrid'])('runs the search command with --strategy %s', async (strategy) => {
@@ -184,6 +191,20 @@ describe('runCli', () => {
 
     expect(await run(['search', 'pollo.json', '--strategy', strategy])).toBe(0);
     expect(counts()).toEqual({ ...NO_RUNS, built: 1, searches: [{ file: 'pollo.json', strategy }] });
+  });
+
+  it('runs the search-text command with the semantic strategy by default', async () => {
+    const { run, counts } = setup();
+
+    expect(await run(['search-text', 'cenas rápidas sin alitas'])).toBe(0);
+    expect(counts()).toEqual({ ...NO_RUNS, built: 1, textSearches: [{ request: 'cenas rápidas sin alitas', strategy: 'semantic' }] });
+  });
+
+  it('runs the search-text command with --strategy lexical', async () => {
+    const { run, counts } = setup();
+
+    expect(await run(['search-text', 'algo con pollo', '--strategy', 'lexical'])).toBe(0);
+    expect(counts()).toEqual({ ...NO_RUNS, built: 1, textSearches: [{ request: 'algo con pollo', strategy: 'lexical' }] });
   });
 
   it.each([
@@ -202,6 +223,10 @@ describe('runCli', () => {
     [['search', 'a.json', '--strategy', 'fuzzy-magic']],
     [['search', 'a.json', '--strategy', 'lexical', 'extra']],
     [['search', '--strategy', 'lexical']],
+    [['search-text']],
+    [['search-text', 'algo con pollo', 'y arroz']],
+    [['search-text', 'algo con pollo', '--strategy', 'fuzzy-magic']],
+    [['search-text', '--strategy', 'lexical']],
     [['evaluate-search', '--strategy', 'lexical']],
     [['evaluate-decomposer', 'extra']],
   ])('prints the usage and exits with 2 without building the commands for %j', async (args) => {
@@ -225,6 +250,7 @@ describe('runCli', () => {
       'embed ',
       'account <email> [name]',
       'search <structure.json>',
+      'search-text <request>',
       'evaluate-search ',
       'evaluate-decomposer ',
       'decompose <request>',

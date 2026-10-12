@@ -36,7 +36,7 @@ pnpm ingest recipes        # → data/recetas.json y la BD (sale con 1 si alguna
 pnpm ingest menu           # → data/menu-platos.json y la BD (sale con 1 si algún menú falla)
 pnpm ingest shopping-list  # → tabla shopping_item en la BD y data/qa/qa-lista-compra.md
 pnpm ingest embed          # → embeddings de las recetas en la BD; solo calcula los nuevos o cambiados
-pnpm ingest search <estructura.json> [--strategy lexical|semantic|hybrid] # → top 5 de menús; lee la BD, no escribe (hybrid por defecto)
+pnpm ingest search <estructura.json> [--strategy lexical|semantic|hybrid] # → top 5 de menús; lee la BD, no escribe (semantic por defecto)
 ```
 
 Todos son idempotentes: se pueden relanzar. Los JSON se sobrescriben enteros; en la BD, cada receta o menú recibido sustituye a su versión anterior y no se borra lo que no llega (ING-cli-local). Las garantías esperadas de cada uno (recuentos, anomalías) están en `context/tareas/T2-esquema-json-ingesta.md` §2.5, §3.5 y §4.4.

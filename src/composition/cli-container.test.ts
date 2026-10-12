@@ -138,4 +138,23 @@ describe('createCliContainer', () => {
       expect(result).toEqual({ ok: false, error: { kind: 'missing-variables', names: ['DATABASE_URL_UNPOOLED'] } });
     });
   });
+
+  // Both variables are checked before the model is called (MF-22.1 design D5): a missing one returns before any
+  // adapter is built, so neither Gemini nor the database is reached.
+  describe('searchByText', () => {
+    it.each(['lexical', 'hybrid'] as const)('asks for the Gemini key with the %s strategy', async (strategy) => {
+      const result = await createCliContainer({ DATABASE_URL_UNPOOLED: UNREACHABLE }).searchByText('algo con pollo', strategy);
+
+      expect(result).toEqual({ ok: false, error: { kind: 'missing-variables', names: ['GEMINI_API_KEY'] } });
+    });
+
+    it('asks for the direct database URL before calling the model', async () => {
+      const result = await createCliContainer({ GEMINI_API_KEY: 'key', DATABASE_URL: 'postgresql://pooled' }).searchByText(
+        'algo con pollo',
+        'hybrid',
+      );
+
+      expect(result).toEqual({ ok: false, error: { kind: 'missing-variables', names: ['DATABASE_URL_UNPOOLED'] } });
+    });
+  });
 });

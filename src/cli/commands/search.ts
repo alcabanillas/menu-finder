@@ -30,7 +30,7 @@ export async function runSearch({ file, strategy, readFile, searchMenus, print }
     return 1;
   }
   const result = await searchMenus(structure.value, strategy);
-  const lines = result.ok ? resultLines(result.value) : errorLines(file, result.error);
+  const lines = result.ok ? rankingLines(result.value) : errorLines(file, result.error);
   lines.forEach((line) => print(redactSecrets(line)));
   return result.ok ? 0 : 1;
 }
@@ -62,7 +62,8 @@ function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-function resultLines({ strategy, menus, tiedWithFirst, removedBy }: SearchResultDto): string[] {
+/** The lines of a ranking: the top five with their evidence, the tie count and the menus each hard constraint removes. */
+export function rankingLines({ strategy, menus, tiedWithFirst, removedBy }: SearchResultDto): string[] {
   return [
     `Search with the ${strategy} strategy: ${menus.length} menus.`,
     ...(menus.length === 0 ? ['No menu is ranked.'] : menus.flatMap(menuLines)),
