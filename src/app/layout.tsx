@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Archivo } from 'next/font/google';
 import { connection } from 'next/server';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import '@/app/globals.css';
 
 export const metadata: Metadata = {
@@ -21,7 +22,10 @@ export default async function RootLayout({ children }: LayoutProps<'/'>) {
   await connection();
   return (
     <html lang="es" className={archivo.variable}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <SpeedInsights />
+      </body>
     </html>
   );
 }
