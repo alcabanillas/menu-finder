@@ -1,6 +1,7 @@
 import pg from 'pg';
 import { expect, test } from '@playwright/test';
 import { currentE2eEnvironment, readEnvFile, testDatabaseUrl } from './support/e2e-environment';
+import { newFixtureRun } from './support/fixture-run';
 import { registerTestAccount, signInAs } from './support/test-account';
 
 // Spec weekly-menu (MF-23.1), against the test database only (MF-49), like the other specs.
@@ -11,9 +12,11 @@ test.use({ viewport: { width: 375, height: 812 } });
 
 // A fictitious menu and recipe (AGENTS.md: never real data), with the same dishes every day and a dinner named after
 // the day, so any day can be today and switching days shows a change.
-const MENU = 9002;
-const RECIPE = 'e2e-lentejas-ficticias';
-const PLAIN = 'dish:Fruta ficticia e2e';
+// The number and the recipe keys are this run's only, so a parallel run never deletes them (MF-62). Titles stay.
+const run = newFixtureRun();
+const MENU = run.menuNumber(0);
+const RECIPE = run.key('e2e-lentejas-ficticias');
+const PLAIN = run.key('dish:Fruta ficticia e2e');
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 const TAB_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 const MS_PER_DAY = 86_400_000;

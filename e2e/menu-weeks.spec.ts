@@ -1,16 +1,18 @@
 import pg from 'pg';
 import { expect, test } from '@playwright/test';
 import { currentE2eEnvironment, readEnvFile, testDatabaseUrl } from './support/e2e-environment';
+import { newFixtureRun } from './support/fixture-run';
 import { registerTestAccount, signInAs } from './support/test-account';
 
 // Spec weekly-menu (MF-55), against the test database only (MF-49), like the other specs.
 test.skip(!testDatabaseUrl(process.env, readEnvFile()), 'needs the test database; DATABASE_URL_TEST is not set');
 
 // Fictitious menus, one per week, each with a single dish named after its week, so the page's heading and dish say
-// which week is on screen. Numbers of their own: menu.spec.ts uses 9002 and removes it in parallel.
-const THIS_WEEK = { number: 9011, dish: 'Sopa ficticia de esta semana' };
-const LAST_WEEK = { number: 9012, dish: 'Sopa ficticia de la semana pasada' };
-const NEXT_WEEK = { number: 9013, dish: 'Sopa ficticia de la semana que viene' };
+// which week is on screen. Numbers and recipe keys of this run only, so a parallel run never deletes them (MF-62).
+const run = newFixtureRun();
+const THIS_WEEK = { number: run.menuNumber(0), dish: 'Sopa ficticia de esta semana' };
+const LAST_WEEK = { number: run.menuNumber(1), dish: 'Sopa ficticia de la semana pasada' };
+const NEXT_WEEK = { number: run.menuNumber(2), dish: 'Sopa ficticia de la semana que viene' };
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 const MS_PER_DAY = 86_400_000;
 const WEEK_MS = 7 * MS_PER_DAY;
@@ -159,9 +161,10 @@ function mondayOffset(weeks: number): string {
   return new Date(Date.parse(`${thisMonday()}T00:00:00Z`) + weeks * WEEK_MS).toISOString().slice(0, 10);
 }
 
-// A dish without a recipe is keyed `dish:<name>` and has a name-only recipe row, as the menu repository stores it.
+// A dish without a recipe is keyed `dish:<name>` and has a name-only recipe row, as the menu repository stores it;
+// the key also carries this run (MF-62).
 function dishKey(dish: string): string {
-  return `dish:${dish}`;
+  return run.key(`dish:${dish}`);
 }
 
 async function insertMenu(client: pg.Client, number: number, dish: string): Promise<void> {
