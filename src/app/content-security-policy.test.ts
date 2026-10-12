@@ -69,8 +69,73 @@ describe('withContentSecurityPolicy', () => {
 
     expect(directive(policy(), 'script-src')).toContain("'unsafe-eval'");
   });
-});
 
+  // The browser sends its errors to Sentry, and only to the exact ingest host of the project (MF-22.2 design D4).
+  describe('connect-src', () => {
+    const DSN = 'https://public@o123.ingest.de.sentry.io/456';
+
+    it('allows the exact ingest host of the DSN', () => {
+      vi.stubEnv('SENTRY_DSN', DSN);
+
+      expect(directive(policy(), 'connect-src')).toBe("connect-src 'self' https://o123.ingest.de.sentry.io");
+    });
+
+    it("keeps 'self', so the app can still talk to itself", () => {
+      vi.stubEnv('SENTRY_DSN', DSN);
+
+      expect(directive(policy(), 'connect-src')?.split(' ')).toContain("'self'");
+    });
+
+    it('never adds a wildcard', () => {
+      vi.stubEnv('SENTRY_DSN', DSN);
+
+      expect(policy()).not.toContain('*');
+    });
+
+    it('keeps the public key and the project id of the DSN out of the header', () => {
+      vi.stubEnv('SENTRY_DSN', DSN);
+
+      expect(policy()).not.toContain('public');
+      expect(policy()).not.toContain('456');
+    });
+
+    it('adds no connect-src without a DSN, and leaves the rest of the policy as it was', () => {
+      vi.stubEnv('SENTRY_DSN', '');
+      const csp = policy();
+
+      expect(directive(csp, 'connect-src')).toBeUndefined();
+      expect(csp.split(';').map((part) => part.trim().split(' ')[0])).toEqual([
+        'default-src',
+        'script-src',
+        'style-src',
+        'img-src',
+        'font-src',
+        'object-src',
+        'base-uri',
+        'form-action',
+        'frame-ancestors',
+      ]);
+    });
+
+    // eslint-disable-next-line sonarjs/no-clear-text-protocols -- an http DSN on purpose: the policy must refuse it
+    it.each(['not a url', 'http://public@o123.ingest.de.sentry.io/456', 'javascript:alert(1)'])(
+      'adds no connect-src for the invalid DSN %j',
+      (dsn) => {
+        vi.stubEnv('SENTRY_DSN', dsn);
+
+        expect(directive(policy(), 'connect-src')).toBeUndefined();
+      },
+    );
+
+    it('cannot be given another directive through the DSN', () => {
+      vi.stubEnv('SENTRY_DSN', `${DSN}; script-src *`);
+      const csp = policy();
+
+      expect(csp).not.toContain('script-src *');
+      expect(csp.split(';').filter((part) => part.trim().startsWith('script-src '))).toHaveLength(1);
+    });
+  });
+});
 function directive(csp: string, name: string): string | undefined {
   return csp
     .split(';')

@@ -1,6 +1,7 @@
 import * as Sentry from '@sentry/nextjs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { onRequestError, register } from './instrumentation';
+import { NOTHING_FROM_REQUESTS } from '@/app/sentry-data-collection';
 
 vi.mock('@sentry/nextjs', () => ({ init: vi.fn(), captureRequestError: vi.fn() }));
 
@@ -49,6 +50,12 @@ describe('register', () => {
       queues: false,
       stackFrameVariables: false,
     });
+  });
+
+  it('takes its data rules from the definition it shares with the browser', async () => {
+    const options = await startedOptions();
+
+    expect(options.dataCollection).toBe(NOTHING_FROM_REQUESTS);
   });
 });
 

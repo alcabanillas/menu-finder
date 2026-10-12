@@ -34,7 +34,7 @@ const architecture = {
     ],
     // Next.js requires the proxy (MF-26) and the instrumentation hook (MF-40.5) next to app/, but they are entries of
     // the web adapter too. Elements match folders, so the files get a category and the same rules as app/.
-    'boundaries/files': [{ category: 'web-entry', pattern: 'src/{proxy,instrumentation}.ts' }],
+    'boundaries/files': [{ category: 'web-entry', pattern: 'src/{proxy,instrumentation,instrumentation-client}.ts' }],
   },
   rules: { 'boundaries/dependencies': dependencyRule() },
 };

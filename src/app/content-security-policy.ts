@@ -8,7 +8,7 @@ const CSP = 'Content-Security-Policy';
  * the response, where the browser enforces it.
  */
 export function withContentSecurityPolicy(request: NextRequest): NextResponse {
-  const policy = contentSecurityPolicy(newNonce(), process.env.NODE_ENV);
+  const policy = contentSecurityPolicy(newNonce(), process.env.NODE_ENV, process.env.SENTRY_DSN);
   const response = NextResponse.next({ request: { headers: withPolicy(request.headers, policy) } });
   response.headers.set(CSP, policy);
   return response;
@@ -21,13 +21,14 @@ function newNonce(): string {
 
 // Only the scripts that carry the nonce run, and `'strict-dynamic'` lets them load the chunks they need. Styles keep
 // `'unsafe-inline'`: a nonce does not cover `style` attributes.
-function contentSecurityPolicy(nonce: string, nodeEnv: string | undefined): string {
+function contentSecurityPolicy(nonce: string, nodeEnv: string | undefined, sentryDsn: string | undefined): string {
   return [
     "default-src 'self'",
     scriptSources(nonce, nodeEnv === 'development'),
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data:",
     "font-src 'self'",
+    ...connectSources(sentryDsn),
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -39,6 +40,21 @@ function contentSecurityPolicy(nonce: string, nodeEnv: string | undefined): stri
 function scriptSources(nonce: string, isDevelopment: boolean): string {
   const evalInDevelopment = isDevelopment ? " 'unsafe-eval'" : '';
   return `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${evalInDevelopment}`;
+}
+
+// The browser sends its errors to the exact ingest host of the DSN, never to a wildcard, which would let an injected
+// script send data to any Sentry organisation (MF-22.2 design D4). `origin` has no key, project or path, and cannot
+// carry a `;`. With no valid https DSN there is no connect-src, and connections fall back to default-src 'self'.
+// 'self' stays first: an explicit connect-src replaces default-src, and server actions call the app itself.
+function connectSources(sentryDsn: string | undefined): string[] {
+  const origin = httpsOrigin(sentryDsn);
+  return origin === null ? [] : [`connect-src 'self' ${origin}`];
+}
+
+function httpsOrigin(url: string | undefined): string | null {
+  if (!url || !URL.canParse(url)) return null;
+  const parsed = new URL(url);
+  return parsed.protocol === 'https:' ? parsed.origin : null;
 }
 
 function withPolicy(headers: Headers, policy: string): Headers {
