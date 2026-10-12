@@ -3,6 +3,7 @@ import { genkit, type Genkit, type ModelArgument } from 'genkit';
 import { z } from 'zod';
 import { decompositionSchema, type DecomposerFailure, type RequestDecomposer } from '@/application/ports/request-decomposer';
 import { decomposerPrompt } from '@/infrastructure/genkit/decomposer-prompt';
+import { configureGenkitTelemetry } from '@/infrastructure/genkit/genkit-telemetry';
 import { redactSecrets } from '@/shared/redact-secrets';
 import { err, ok, type Result } from '@/shared/result';
 
@@ -68,6 +69,7 @@ export function createGenkitRequestDecomposer(
   model = DECOMPOSER_MODEL,
   thinkingLevel: ThinkingLevel = DECOMPOSER_THINKING,
 ): GenkitRequestDecomposer {
+  configureGenkitTelemetry();
   const ai = genkit({ plugins: [googleAI({ apiKey })] });
   return new GenkitRequestDecomposer(genkitGenerate(ai, googleAI.model(model)), apiKey, model, thinkingLevel);
 }

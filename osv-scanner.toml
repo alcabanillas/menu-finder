@@ -1,22 +1,27 @@
 # Accepted vulnerabilities (MF-41, openspec/changes/archive/2026-10-03-mf-41-search-index/proposal.md).
 # All four come through genkit@1.42.0, which pins @opentelemetry/core ~1.25, @opentelemetry/sdk-node ^0.52
 # and uuid ^10. The patched versions are new majors: forcing them with pnpm overrides makes genkit fail to
-# load (`core_1.getEnv is not a function`), checked on 2026-10-01. None is reachable as the project uses
-# genkit today. Review again in MF-40 and MF-22, when genkit runs in the decomposer and on Vercel.
+# load (`core_1.getEnv is not a function`), checked on 2026-10-01.
+# Genkit 1.42 starts an OpenTelemetry NodeSDK on its own on the first action. The project turns that off
+# outside `genkit start` (GENKIT_ENV=dev) with disableGenkitOTelInitialization (MF-40.4,
+# src/infrastructure/genkit/genkit-telemetry.ts), so in production no OpenTelemetry SDK from genkit runs.
+# ENABLE_FIREBASE_MONITORING must stay unset: the switch still keeps the NodeSDK off on that path, but the
+# variable loads @genkit-ai/google-cloud, its auto-instrumentations and its Cloud Logging logger.
+# Review when genkit moves past 1.42.0 (a test pins it): 1.43 no longer starts the NodeSDK (PR #6336).
 # Dependabot does not read this file: the same four alerts are dismissed in GitHub with the reason
 # "Vulnerable code is not actually used".
 
 [[IgnoredVulns]]
 id = "GHSA-q7rr-3cgh-j5r3"
-reason = "Prometheus exporter crash (@opentelemetry/sdk-node, auto-instrumentations-node). Needs the Prometheus exporter listening; genkit never configures it and the project must never enable it (OTEL_METRICS_EXPORTER=prometheus)."
+reason = "Prometheus exporter crash (@opentelemetry/sdk-node, auto-instrumentations-node). Needs the Prometheus exporter listening; genkit's NodeSDK is off outside GENKIT_ENV=dev (MF-40.4) and never configures it, and the project must never enable it (OTEL_METRICS_EXPORTER=prometheus)."
 
 [[IgnoredVulns]]
 id = "GHSA-45rx-2jwx-cxfr"
-reason = "JaegerPropagator DoS on a malformed header (@opentelemetry/propagator-jaeger). Only active when 'jaeger' is in the configured propagators; the default is tracecontext,baggage and the project never adds jaeger."
+reason = "JaegerPropagator DoS on a malformed header (@opentelemetry/propagator-jaeger). Only active when 'jaeger' is in the propagators of an OpenTelemetry SDK; genkit's NodeSDK is off outside GENKIT_ENV=dev (MF-40.4) and the project never adds jaeger."
 
 [[IgnoredVulns]]
 id = "GHSA-8988-4f7v-96qf"
-reason = "Unbounded memory in W3C Baggage propagation (@opentelemetry/core). Needs incoming HTTP requests whose baggage header OpenTelemetry extracts; the CLI receives none and genkit adds no HTTP instrumentation. Review in MF-22, when genkit runs behind HTTP on Vercel."
+reason = "Unbounded memory in W3C Baggage propagation (@opentelemetry/core). Next.js extracts the baggage header of each request only while a global propagator is registered. Genkit's NodeSDK, which would register the vulnerable one, is off outside GENKIT_ENV=dev (MF-40.4); the propagator in production is Sentry's, and @sentry/nextjs does not depend on @opentelemetry/core. The CLI receives no HTTP requests."
 
 [[IgnoredVulns]]
 id = "GHSA-w5hq-g745-h8pq"
@@ -27,7 +32,7 @@ reason = "uuid v3/v5/v6 bounds check when a buf argument is passed. The only cal
 # other instrumentation-* packages at matching versions. Review with the four above.
 [[IgnoredVulns]]
 id = "GHSA-qqmp-wf37-98f9"
-reason = "instrumentation-* (pg, mysql, knex...) put the database user in the db.user span attribute. The instrumentations only load when genkit telemetry is enabled (enableGoogleCloudTelemetry, enableFirebaseTelemetry or ENABLE_FIREBASE_MONITORING=true); the project enables none of them. It uses pg, so enabling genkit telemetry would send the Neon role name to the trace exporter."
+reason = "instrumentation-* (pg, mysql, knex...) put the database user in the db.user span attribute. The instrumentations only load with @genkit-ai/google-cloud (enableGoogleCloudTelemetry, enableFirebaseTelemetry or ENABLE_FIREBASE_MONITORING=true); the project uses none of them and ENABLE_FIREBASE_MONITORING must stay unset (MF-40.4). It uses pg, so enabling genkit telemetry would send the Neon role name to the trace exporter."
 
 # Accepted 2026-10-03. braces has no patched version. It comes only through development tools:
 # micromatch, used by eslint-plugin-boundaries and by eslint-config-next (via fast-glob).

@@ -1,6 +1,7 @@
 import { googleAI } from '@genkit-ai/google-genai';
 import { genkit } from 'genkit';
 import type { EmbeddingDocument, EmbeddingError, Embeddings, EmbeddingsPort } from '@/application/ports/embeddings-port';
+import { configureGenkitTelemetry } from '@/infrastructure/genkit/genkit-telemetry';
 import { redactSecrets } from '@/shared/redact-secrets';
 import { err, ok, type Result } from '@/shared/result';
 
@@ -57,6 +58,7 @@ export class GenkitEmbeddings implements EmbeddingsPort {
 
 /** The embedding service of the Gemini API through Genkit; the key is passed in, never read by the plugin. */
 export function createGenkitEmbeddings(apiKey: string): GenkitEmbeddings {
+  configureGenkitTelemetry();
   const ai = genkit({ plugins: [googleAI({ apiKey })] });
   const embedder = googleAI.embedder(EMBEDDING_MODEL);
   return new GenkitEmbeddings(
