@@ -11,7 +11,7 @@ MF-59.1 made the rule "a use case never imports another use case" verifiable, an
   - It moves with its test, unchanged.
   - `select-random-menu` calls the service.
   - It leaves the `web-container`, because no page calls it. The container test that went through it is deleted, and its case is already in the service's test.
-- **`currentShoppingSelection` → `src/application/services/shopping-list/current-shopping-selection.ts`:**
+- **`currentShoppingSelection` → `src/application/services/selection/current-shopping-selection.ts`:**
   - It moves out of `shopping-checklist.ts` and gets its own test.
   - `shopping-checklist` and `check-shopping-items` call the service.
 - **Search → `src/application/services/search/`:**

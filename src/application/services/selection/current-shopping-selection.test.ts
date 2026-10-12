@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Clock } from '@/application/ports/clock';
 import type { SelectionRepository } from '@/application/ports/selection-repository';
-import { currentShoppingSelection } from '@/application/services/shopping-list/current-shopping-selection';
+import { currentShoppingSelection } from '@/application/services/selection/current-shopping-selection';
 import type { LocalDate } from '@/domain/selection/local-date';
 import { err, ok } from '@/shared/result';
 

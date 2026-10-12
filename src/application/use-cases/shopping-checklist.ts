@@ -2,7 +2,7 @@ import type { ShoppingChecklistDto } from '@/application/dto/shopping-checklist'
 import type { Clock } from '@/application/ports/clock';
 import type { SelectionRepository } from '@/application/ports/selection-repository';
 import type { ShoppingListRepository } from '@/application/ports/shopping-list-repository';
-import { currentShoppingSelection } from '@/application/services/shopping-list/current-shopping-selection';
+import { currentShoppingSelection } from '@/application/services/selection/current-shopping-selection';
 import type { Selection } from '@/domain/selection/selection';
 import { toChecklist, type Checklist } from '@/domain/shopping/checklist';
 import { err, ok, type Result } from '@/shared/result';

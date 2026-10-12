@@ -34,12 +34,12 @@ Rules for every Phase 2 subagent:
 
 **May touch:**
 - `src/application/use-cases/`: `shopping-checklist.ts`, `check-shopping-items.ts`
-- `src/application/services/shopping-list/` (new)
+- `src/application/services/selection/` (new)
 
 **Must not touch:** `eslint.config.mjs`, `src/composition/`, and any file of tracks A, C or D.
 
-- [x] 3.1 RED. Create `src/application/services/shopping-list/current-shopping-selection.test.ts`. Base its fakes on those in `src/application/use-cases/shopping-checklist.test.ts`. Write three tests for `currentShoppingSelection` from `@/application/services/shopping-list/current-shopping-selection`: it returns `null` when the user has no current shopping list; it returns the selection whose list is current; and it returns the read error when `listFrom` fails. Verify: `pnpm vitest run src/application/services/shopping-list` fails because the module is missing.
-- [x] 3.2 GREEN. Move `currentShoppingSelection` from `shopping-checklist.ts` into `src/application/services/shopping-list/current-shopping-selection.ts`. Its `Deps` is `{ selections: SelectionRepository; clock: Clock }`. Take with it the imports it needs, and remove from `shopping-checklist.ts` the imports it no longer uses. Import the service in `shopping-checklist.ts` and `check-shopping-items.ts`. Verify: `pnpm vitest run src/application/services/shopping-list src/application/use-cases/shopping-checklist.test.ts src/application/use-cases/check-shopping-items.test.ts` passes, and `pnpm eslint src/application/services/shopping-list src/application/use-cases/shopping-checklist.ts src/application/use-cases/check-shopping-items.ts` reports no error.
+- [x] 3.1 RED. Create `src/application/services/selection/current-shopping-selection.test.ts`. Base its fakes on those in `src/application/use-cases/shopping-checklist.test.ts`. Write three tests for `currentShoppingSelection` from `@/application/services/selection/current-shopping-selection`: it returns `null` when the user has no current shopping list; it returns the selection whose list is current; and it returns the read error when `listFrom` fails. Verify: `pnpm vitest run src/application/services/selection` fails because the module is missing.
+- [x] 3.2 GREEN. Move `currentShoppingSelection` from `shopping-checklist.ts` into `src/application/services/selection/current-shopping-selection.ts`. Its `Deps` is `{ selections: SelectionRepository; clock: Clock }`. Take with it the imports it needs, and remove from `shopping-checklist.ts` the imports it no longer uses. Import the service in `shopping-checklist.ts` and `check-shopping-items.ts`. Verify: `pnpm vitest run src/application/services/selection src/application/use-cases/shopping-checklist.test.ts src/application/use-cases/check-shopping-items.test.ts` passes, and `pnpm eslint src/application/services/selection src/application/use-cases/shopping-checklist.ts src/application/use-cases/check-shopping-items.ts` reports no error.
 
 ## 4. Phase 2, track C — search (Haiku, parallel with A, B and D)
 

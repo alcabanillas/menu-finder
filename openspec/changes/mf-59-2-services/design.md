@@ -34,8 +34,8 @@ See proposal.md, Why. Current state that shapes the approach:
 A service and the use case that delegates to it cannot share a name without an import alias. The services are named after what they do:
 - `findMenus` and `FindMenusDeps` (was `SearchMenusDeps`), in `services/search/find-menus.ts`
 - `decomposeText` and `DecomposeTextDeps` (was `DecomposeRequestDeps`), in `services/search/decompose-text.ts`, with `MAX_REQUEST_LENGTH`
-- `selectMenu`, in `services/selection/select-menu.ts`. No use case keeps that name, so the name stays.
-- `currentShoppingSelection`, in `services/shopping-list/current-shopping-selection.ts`
+- `selectMenu`, in `services/selection/select-menu.ts`. No use case keeps that name, so the name stays. Its only caller is `select-random-menu`, which is provisional (MF-43). MF-22 deletes it, and `selectMenu` goes back to `use-cases/`, called from the `/planner` server action (decided by the author on 2026-10-12, noted in `context/roadmap.md`, MF-22). Moving it inside `select-random-menu` now would mean taking it out again in MF-22.
+- `currentShoppingSelection`, in `services/selection/current-shopping-selection.ts`. It returns a `Selection`, and its rule (`currentOf`) lives in `domain/selection/week.ts`, so it goes in `selection/`: the shopping list is what it is used for, not what it is (decided by the author on 2026-10-12, after the verify).
 
 The decomposition goes in `search/` because it produces a search structure (`domain/search/request-terms.ts` already holds its rule).
 

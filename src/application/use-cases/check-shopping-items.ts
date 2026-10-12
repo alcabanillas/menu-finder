@@ -3,7 +3,7 @@ import type { Clock } from '@/application/ports/clock';
 import type { SelectionRepository } from '@/application/ports/selection-repository';
 import type { ShoppingListRepository } from '@/application/ports/shopping-list-repository';
 import { positiveIntegerInput } from '@/application/dto/positive-integer-input';
-import { currentShoppingSelection } from '@/application/services/shopping-list/current-shopping-selection';
+import { currentShoppingSelection } from '@/application/services/selection/current-shopping-selection';
 import { err, ok, type Result } from '@/shared/result';
 
 /** What a form or a direct call sends: nothing but the user id is trusted, and it comes from the session. */
