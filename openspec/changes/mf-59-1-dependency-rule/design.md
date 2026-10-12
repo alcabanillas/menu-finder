@@ -52,9 +52,9 @@ Because the config never imports the package, knip reports it as unused. `knip.j
 **Alternative:** rely on the transitive copy. Rejected by the author (`context/roadmap.md`, MF-59 (3)).
 
 ### D4. Temporary exceptions as a file-scoped override, named in one place
-At the end of Phase 3, the 4 remaining imports are allowed by one config block:
-- `files` lists exactly the 4 importing files.
-- Its policy allows only the 4 target modules (`fileInternalPath`).
+At the end of Phase 3, the 4 remaining imports are allowed by one list in `eslint.config.mjs` (`temporaryUseCaseImports`):
+- It holds one caller → callee pair per import.
+- Each pair becomes a config entry: the caller may import only its callee (`fileInternalPath`). For example, `select-random-menu` → `search-menus` still fails.
 - A comment says: "Temporary: MF-59.2 replaces these with services."
 
 MF-59.2 starts by deleting that block (its RED).

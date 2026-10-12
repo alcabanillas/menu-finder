@@ -11,7 +11,8 @@
   - Use cases may import ports, DTOs, services, domain and shared, but never another use case.
   - Services may import ports, DTOs, services, domain and shared, but never a use case.
   - `app`, `cli` and `infrastructure` never import services.
-  - Enable `import/no-cycle`, with `eslint-plugin-import` as a direct devDependency.
+  - A DTO never imports a port. The use case translates the port errors into the DTO's failures (decided by the author on 2026-10-12).
+  - Enable `import/no-cycle`, with `eslint-plugin-import` as a direct devDependency. `knip.json` ignores the package, because the config uses it through `eslint-config-next` and never imports it.
 - **Coverage:** remove `src/application/dto/**` from the coverage exclude in `vitest.config.mts`. The DTOs now hold runtime validation, and type-only files add no statements (decided by the author on 2026-10-12).
 - **Removal:** delete `active-menu.ts` and its test. It has been dead code since MF-55: it is wired in the `web-container`, but no page calls it.
 - **Moves without ports:**
@@ -21,6 +22,7 @@
 - **Single caller:** `week-menu.ts` and `selected-week.ts` move inside `menu-week-page.ts` as helpers.
 - **Evaluation metrics:** `ranking-metrics.ts` and `decomposition-score.ts` move from `domain/search/` to `domain/evaluation/`.
 - **Temporary exceptions:** the 4 imports left go on a temporary exception list that points to MF-59.2: `select-random-menu` → `selectMenu`, `check-shopping-items` → `currentShoppingSelection`, `evaluate-search` → `searchMenus` and `evaluate-decomposer` → `decomposeRequest`.
+- **Temporary exceptions for the DTOs:** 6 DTOs that import 10 port types go on a second temporary list. MF-59.4 (`context/roadmap.md`) removes that list by moving the concepts to `domain/` and translating the errors.
 - **ADR-001 §3:** add the `application/services` row and the use-case/service rule.
 - **No behaviour change:** no route, command, port or stored data changes.
 
