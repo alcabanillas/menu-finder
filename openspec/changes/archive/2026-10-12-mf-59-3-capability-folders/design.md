@@ -13,7 +13,7 @@
 - Each folder name is a domain concept or a capability, never an OpenSpec change (AGENTS.md naming rule).
 
 **Non-Goals:**
-- Subdividing `services/`, `dto/` or `ports/`. The roadmap scopes MF-59.3 to `use-cases/`. They hold 4, 17 and 17 non-test files. `dto/` and `ports/` are past the ~15 of ADR-001 §2 point 3, so whether they get capability folders too is left to the author (counted on 2026-10-12, during propose).
+- Subdividing `services/`, `dto/` or `ports/`. The roadmap scopes MF-59.3 to `use-cases/`. They hold 4, 17 and 17 non-test files. `dto/` and `ports/` are past the ~15 of ADR-001 §2 point 3. The author decided on 2026-10-12 not to subdivide them: the work left in the plan is not expected to add new DTOs or ports.
 - Renaming any use case or export.
 
 ## Decisions
