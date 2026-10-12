@@ -26,12 +26,25 @@
 ## 6. Verification
 
 - [x] 6.1 Run `pnpm lint`, `pnpm typecheck`, `pnpm test:coverage` and `pnpm test:e2e`, and verify they pass with the CI thresholds
-- [x] 6.2 Author, before the merge: in Sentry, Allowed Domains (General Settings → Client Security) for the Vercel domain and Spike Protection on, since the free plan has no rate limit per DSN key; in Vercel, check that `SENTRY_AUTH_TOKEN` can upload source maps and add `SENTRY_PROJECT`, plus `SENTRY_ORG` if the token needs it (design D6)
-- [ ] 6.3 Author, after the release: on a production page opened with a made-up query parameter, run `setTimeout(() => { throw new Error('MF-22.2 browser check'); })` in the console, and verify the event appears in Sentry with no cookies or headers; the query parameters do reach it, accepted by the author (design D1). In Sentry, Settings → Source Maps, verify the deploy uploaded the source maps. The stack trace that names a file in `src/` is checked in MF-22.4, with a temporary button (design Migration Plan)
+- [x] 6.2 Author, before the merge: in Sentry, Allowed Domains (General Settings → Client Security) for the Vercel domain and Spike Protection on, since the free plan has no rate limit per DSN key; in Vercel, check that `SENTRY_AUTH_TOKEN` can upload source maps and add `SENTRY_PROJECT` and `SENTRY_ORG`, which is needed even with an organisation token (design D5, D6)
+- [x] 6.3 Author, after the release: on a production page opened with a made-up query parameter, run `setTimeout(() => { throw new Error('MF-22.2 browser check'); })` in the console, and verify the event appears in Sentry with no cookies or headers; the query parameters do reach it, accepted by the author (design D1). In Sentry, Settings → Source Maps, verify the deploy uploaded the source maps. The stack trace that names a file in `src/` is checked in MF-22.4, with a temporary button (design Migration Plan)
 
 ## 7. Build logs (after the first production check)
 
 - [x] 7.1 RED: in `next.config.test.ts`, write "Upload errors visible in the build log": `sentryBuildOptions` does not set `silent`. See it fail
 - [x] 7.2 GREEN: remove `silent: true` from `sentryBuildOptions` (design D5) and verify 7.1 and the existing config tests pass
 - [x] 7.3 Version 0.3.1 in `package.json`, decided by the author on 2026-10-13
-- [ ] 7.4 Author, after the release of 0.3.1: read the Sentry lines of the Vercel build log, fix the cause of the failed upload if there is one, and repeat 6.3
+- [x] 7.4 Author, after the release of 0.3.1: read the Sentry lines of the Vercel build log, fix the cause of the failed upload if there is one, and repeat 6.3. The log showed `404 Not Found`; with `SENTRY_ORG` set it showed `Successfully uploaded source maps to Sentry`, and the frame of the SDK chunk was unminified with its source
+
+## Safety review (`context/safety-first.md` §4)
+
+- Business and security decisions in the backend: yes. The browser only reports errors, and the CSP is built on the server.
+- New endpoint: none. Sentry's `tunnelRoute` was rejected for this reason (design D4).
+- User and permissions from the session: not applicable, no session change.
+- Negative tests: the CSP rejects a missing, malformed, `http` and `javascript:` DSN, and a DSN that tries to inject a directive.
+- Minimum data returned: `dataCollection` off on both sides. Deviation accepted by the author: the browser SDK sends the query parameters of the URL (design D1).
+- Secrets: none in the diff. The DSN is public by design; `SENTRY_AUTH_TOKEN` lives only in Vercel, as a secret, with the `org:ci` scope.
+- New dependencies: none. `handlebars` is overridden to 4.7.10 for GHSA-p8wg-vrv2-v86f.
+- Database queries: none.
+- Unexpected input: the DSN, covered by the CSP tests above. Nothing reaches the LLM.
+- Sensitive actions logged: not applicable.
