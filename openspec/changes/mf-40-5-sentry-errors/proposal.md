@@ -31,7 +31,7 @@ None.
 - **Documentation:** OPS-observabilidad in `context/decisiones.md`; ADR-001 §2.
 - **Decisions it relies on:** OPS-observabilidad, SEG-datos-nutricionista, SEG-owasp, ARQ-hexagonal, ADR-001.
 - **Contradictions to flag:**
-  - The MF-40 parent item still says that MF-40 checks the export of Genkit traces to Sentry, and MF-32 plans those traces. Since MF-40.4 there are none in production. The author asked not to edit either item.
+  - The MF-40 parent item said that MF-40 checks the export of Genkit traces to Sentry, and MF-32 planned those traces. Since MF-40.4 there are none in production. At the author's request (2026-10-12), both items now say so, and MF-32 decides how to measure latency and cost without traces.
   - OPS-observabilidad says that errors are captured on the server and in the browser (decided 2026-10-11). The browser part now lands in MF-22.
 - **Security (safety-first P1, SEG-owasp):**
   - *Data touched:* the error event: message, stack trace, runtime, URL path and release. The request text and nutritionist data can reach an event through bodies, headers, cookies, query strings, stack frame variables or AI inputs, so every `dataCollection` field is off (SEG-datos-nutricionista). Today the web has no free-text input apart from sign-in; MF-22 brings the search text.
