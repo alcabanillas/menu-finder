@@ -17,7 +17,7 @@
 
 ## 4. Dependencies and documentation
 
-- [ ] 4.1 Rewrite the header and the OpenTelemetry reasons of `osv-scanner.toml` (design D4), and run `osv-scanner` to confirm the same entries are still the only ones ignored
+- [x] 4.1 Rewrite the header and the OpenTelemetry reasons of `osv-scanner.toml` (design D4), and run `osv-scanner` to confirm the same entries are still the only ones ignored
 - [x] 4.2 Ask the author to confirm that `ENABLE_FIREBASE_MONITORING` and `GENKIT_ENV` are not set in Vercel (Settings → Environment Variables); it is outside the repository
 - [x] 4.3 Update OPS-observabilidad in `context/decisiones.md` (design D5)
 - [x] 4.4 Flag to the author the ING-trazabilidad line on Genkit traces (proposal, Impact); edit it only if the author asks
