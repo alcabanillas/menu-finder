@@ -6,3 +6,9 @@ ignoredBuiltDependencies:
   - protobufjs
   - sharp
   - unrs-resolver
+
+# GHSA-p8wg-vrv2-v86f (Dependabot #18, critical): handlebars <= 4.7.9, transitive through genkit, dotprompt and
+# eslint-plugin-boundaries. 4.7.10 is a patch of the same major. Remove when they depend on >= 4.7.10.
+overrides:
+  handlebars: ^4.7.10
+

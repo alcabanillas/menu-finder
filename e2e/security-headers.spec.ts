@@ -73,6 +73,16 @@ test('no public script bundle contains the version of the app', () => {
   expect(bundles.filter((file) => readFileSync(file, 'utf8').includes(`"${version}"`))).toEqual([]);
 });
 
+// Source maps go to Sentry and are deleted after the upload, and a build without a token makes none (spec
+// error-reporting, MF-22.2 design D5). This build has no SENTRY_AUTH_TOKEN, so nothing under _next/static may point
+// to the original source.
+test('no source map is served with the public bundles', () => {
+  const files = filesUnder(STATIC_DIR);
+
+  expect(files.filter((file) => file.endsWith('.map'))).toEqual([]);
+  expect(files.filter((file) => file.endsWith('.js') && readFileSync(file, 'utf8').includes('sourceMappingURL'))).toEqual([]);
+});
+
 function expectFixedHeaders(response: APIResponse) {
   const headers = response.headers();
   for (const [name, value] of Object.entries(FIXED_HEADERS)) expect(headers[name], name).toBe(value);
