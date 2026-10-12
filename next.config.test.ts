@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import nextConfig from './next.config';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import nextConfig, { sentryBuildOptions } from './next.config';
 import { version } from './package.json';
 
 const ALL_ROUTES = '/:path*';
@@ -43,6 +43,41 @@ describe('version and framework disclosure', () => {
 
   it('does not announce the framework in an X-Powered-By header', () => {
     expect(nextConfig.poweredByHeader).toBe(false);
+  });
+});
+
+// The browser reads the DSN inlined at build time, the same SENTRY_DSN the server reads (MF-22.2 design D3).
+describe('browser error reporting', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it('builds the DSN into the browser bundle', async () => {
+    const dsn = 'https://public@o0.ingest.sentry.io/0';
+    vi.stubEnv('SENTRY_DSN', dsn);
+    vi.resetModules();
+
+    const { default: config } = await import('./next.config');
+
+    expect(config.env?.SENTRY_DSN).toBe(dsn);
+  });
+});
+
+// Source maps only where they can be uploaded, and never served (MF-22.2 design D5).
+describe('sentryBuildOptions', () => {
+  it('uploads the source maps and deletes them afterwards when there is a token', () => {
+    const options = sentryBuildOptions({ SENTRY_AUTH_TOKEN: 'sntrys_test' });
+
+    expect(options.sourcemaps).toEqual({ deleteSourcemapsAfterUpload: true });
+  });
+
+  it.each([{}, { SENTRY_AUTH_TOKEN: '' }])('generates no source maps without a token (%j)', (env) => {
+    expect(sentryBuildOptions(env).sourcemaps).toEqual({ disable: true });
+  });
+
+  it('sends no telemetry of its own to Sentry', () => {
+    expect(sentryBuildOptions({}).telemetry).toBe(false);
   });
 });
 
