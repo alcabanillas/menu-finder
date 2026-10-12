@@ -53,7 +53,7 @@ The value is fixed in each build. On Vercel every deploy is a new build, so chan
 
 ### D5. Source maps only where they can be uploaded
 
-`next.config.ts` is wrapped with `withSentryConfig`, with telemetry off and the build logs not silenced. `silent: true` was the first choice, but in `@sentry/nextjs` it also drops the errors (`config/buildLogger.js`): the first production build failed to upload its source maps, and neither the build nor its log said so. It passes neither `project`, `org` nor `authToken`: the Sentry build plugin reads `SENTRY_PROJECT`, `SENTRY_ORG` and `SENTRY_AUTH_TOKEN` from the environment itself, and an organisation token (`sntrys_…`) already carries the org. With a token, `sourcemaps.deleteSourcemapsAfterUpload` is `true`. Without one, `sourcemaps.disable` is `true`. Sentry deletes only the maps it generated itself and uploaded, so a build that cannot upload must not generate any. The end-to-end test that no `.map` is served is the guard against an SDK change in that behaviour.
+`next.config.ts` is wrapped with `withSentryConfig`, with telemetry off and the build logs not silenced. `silent: true` was the first choice, but in `@sentry/nextjs` it also drops the errors (`config/buildLogger.js`): the first production build failed to upload its source maps, and neither the build nor its log said so. It passes neither `project`, `org` nor `authToken`: the Sentry build plugin reads `SENTRY_PROJECT`, `SENTRY_ORG` and `SENTRY_AUTH_TOKEN` from the environment itself. `SENTRY_ORG` must be set even with an organisation token (`sntrys_…`): the plugin accepts the token without an org, but passes no org to the Sentry CLI (`sentry` 0.45.0), which then guesses it, and the production build failed with `404 Not Found` until `SENTRY_ORG` was set (2026-10-13). With a token, `sourcemaps.deleteSourcemapsAfterUpload` is `true`. Without one, `sourcemaps.disable` is `true`. Sentry deletes only the maps it generated itself and uploaded, so a build that cannot upload must not generate any. The end-to-end test that no `.map` is served is the guard against an SDK change in that behaviour.
 
 The existing `next.config.test.ts` keeps checking the fixed headers and `poweredByHeader: false` through the wrapped config.
 
@@ -62,7 +62,7 @@ The existing `next.config.test.ts` keeps checking the fixed headers and `powered
 These are done by the author:
 
 - **In the Sentry project:** Allowed Domains, under General Settings → Client Security, limited to the Vercel domain of the app. It only stops requests that carry an `Origin` or `Referer` header, that is, browsers on other sites. The free plan offers no rate limit on the DSN key, so Spike Protection, on in the project, and the monthly quota take its place: a flood of events at worst stops the reports until the month ends, at no cost.
-- **In Vercel:** `SENTRY_DSN` and `SENTRY_AUTH_TOKEN` already exist. The author checks that the token can upload source maps, and adds `SENTRY_PROJECT`, plus `SENTRY_ORG` if the token needs it.
+- **In Vercel:** `SENTRY_DSN` and `SENTRY_AUTH_TOKEN` already exist. The author replaces the personal token with an organisation token (`org:ci` scope, least privilege) and adds `SENTRY_PROJECT` and `SENTRY_ORG`, both as plain variables: they are not secrets. `SENTRY_URL` is not needed: the token carries the region.
 
 They live in account settings, outside the repository.
 
@@ -79,7 +79,7 @@ They live in account settings, outside the repository.
 
 ## Migration Plan
 
-1. Before the merge, the author adds `SENTRY_PROJECT` (and `SENTRY_ORG` if needed) in Vercel, and Allowed Domains in Sentry, and checks that Spike Protection is on.
+1. Before the merge, the author adds `SENTRY_PROJECT` and `SENTRY_ORG` in Vercel, and Allowed Domains in Sentry, and checks that Spike Protection is on.
 2. After the release, an error thrown from the browser console of production shows up in Sentry with no request data, and Sentry lists the uploaded source maps. Console code is not in the bundle, so its stack trace cannot name a file in `src/`. That check moves to MF-22.4, the next subtask with UI: a temporary button that throws, removed in the same subtask (decided by the author on 2026-10-12). A preview deploy would not do, because its domain is outside the Allowed Domains.
 
 Rollback: revert the merge. No variable is renamed, so the server keeps reporting errors either way.
