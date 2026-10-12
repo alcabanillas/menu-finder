@@ -36,7 +36,7 @@ Aplazar un control es una decisión explícita: debe quedar registrada como ries
 - Autorizar en el servidor cada solicitud y cada objeto, no solo la ruta o la visibilidad en la interfaz.
 - Comprobar rol, pertenencia y propiedad del recurso para evitar IDOR/BOLA. No confiar en identificadores, claims o roles enviados por el cliente.
 - Proteger frente a CSRF las operaciones que cambian estado cuando la sesión viaje en cookies: token anti-CSRF o `SameSite` restrictivo con verificación de origen. Ningún `GET` debe tener efectos secundarios.
-- **Un solo rol** (SEG-roles; no hay admin ni premium): no hay endpoints de administración ni de debug en la app. La ingesta y sus correcciones se hacen por CLI local, no desde la app (ING-cli-local, ING-sin-subida, EVAL-ground-truth); **no existe subida manual de PDFs**.
+- **Un solo rol** (SEG-roles; no hay admin ni premium): no hay endpoints de administración ni de debug en la app. La ingesta y sus correcciones se hacen por CLI local, no desde la app (ING-cli-local, ING-sin-subida); **no existe subida manual de PDFs**.
 - Evitar exposición masiva de datos: seleccionar únicamente los campos autorizados y limitar listados, exportaciones y búsquedas.
 - Probar acceso horizontal, vertical, anónimo y con credenciales caducadas o revocadas.
 

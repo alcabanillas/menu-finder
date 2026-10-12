@@ -138,7 +138,7 @@ a plato que el script anterior (comparación de paridad de MF-11):
 
 Esta validación es sobre la **estructura** (¿se separan bien los platos de cada celda?,
 ¿se resuelve bien el fichero de receta?), no sobre el **contenido** semántico de cada
-plato contra un ground truth etiquetado a mano — eso sigue pendiente (EVAL-ground-truth).
+plato contra un ground truth etiquetado a mano, que se descartó por plazo (ING-parser-menu).
 
 ### 2.6 Limitaciones conocidas / fuera de alcance de esta pata
 
@@ -321,7 +321,8 @@ Sobre los 639 PDF de los 36 menús (QA que escribe `pnpm ingest recipes` en
 
 Como en la pata 1, esto es validación **estructural** del parser (¿encuentra cada bloque?,
 ¿casa cada línea?), no del contenido. La precisión real contra ground truth etiquetado a
-mano sigue siendo EVAL-ground-truth (30 recetas a ciegas).
+mano no se mide: se descartó por plazo, y el autor dio el parser por bueno tras revisarlo
+a mano (ING-determinista).
 
 **Consecuencia para ING-determinista:** con 100 % de líneas parseadas y 0 anomalías estructurales, el
 agente extractor con LLM no tiene nada que corregir. Queda como **experimento de

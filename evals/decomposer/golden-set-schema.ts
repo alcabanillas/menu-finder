@@ -20,7 +20,7 @@ const constraintSchema = z.strictObject({
   slot: z.enum(['lunch', 'dinner']).optional(),
 });
 
-const requestSchema = z.strictObject({
+const searchRequestSchema = z.strictObject({
   id: z.string().min(1),
   text: z.string().min(1),
   origin: z.enum(['retrieval-golden-set', 'llm-blind']),
@@ -29,7 +29,20 @@ const requestSchema = z.strictObject({
   anyOf: z.array(z.array(z.string())),
 });
 
+// A request that is not a search for menus: the decomposer must reject it (BUS-descomponedor).
+const rejectedRequestSchema = z.strictObject({
+  id: z.string().min(1),
+  text: z.string().min(1),
+  origin: z.literal('llm-blind-rejected'),
+  rejection: z.enum(['gibberish', 'off-topic', 'instruction', 'not-a-search']),
+});
+
+const requestSchema = z.discriminatedUnion('origin', [searchRequestSchema, rejectedRequestSchema]);
+
 type Request = z.infer<typeof requestSchema>;
+type SearchRequest = z.infer<typeof searchRequestSchema>;
+
+const isSearch = (request: Request): request is SearchRequest => request.origin !== 'llm-blind-rejected';
 
 // Reads an id from raw data, so that a schema issue can name its request or constraint.
 const idOf = (raw: unknown, index: number): string =>
@@ -66,7 +79,7 @@ function parseRequests(goldenSet: unknown, issues: Issue[]): Request[] {
   return requests;
 }
 
-function checkConstraints(request: Request, issues: Issue[]): void {
+function checkConstraints(request: SearchRequest, issues: Issue[]): void {
   const seen = new Set<string>();
   const text = request.text.toLowerCase();
   for (const constraint of request.constraints) {
@@ -88,7 +101,7 @@ function checkConstraints(request: Request, issues: Issue[]): void {
 // which satisfies the condition ("o"). BUS-superficie-consulta (a).
 type GroupField = 'sameDish' | 'anyOf';
 
-function checkGroups(request: Request, field: GroupField, issues: Issue[]): void {
+function checkGroups(request: SearchRequest, field: GroupField, issues: Issue[]): void {
   const known = new Set(request.constraints.map((constraint) => constraint.id));
   const grouped = new Set<string>();
   for (const group of request[field]) {
@@ -104,8 +117,8 @@ function checkGroups(request: Request, field: GroupField, issues: Issue[]): void
   }
 }
 
-// "o" in an exclusion is "ni" (two exclusions), and "o" inside "con" is left to T3.
-function checkAlternatives(request: Request, issues: Issue[]): void {
+// "o" in an exclusion is "ni" (two exclusions), and "o" inside "con" is not labelled (labelling guide).
+function checkAlternatives(request: SearchRequest, issues: Issue[]): void {
   const excluded = new Set(request.constraints.filter((c) => c.polarity === 'exclude').map((c) => c.id));
   const sameDish = new Set(request.sameDish.flat());
   for (const id of new Set(request.anyOf.flat())) {
@@ -118,13 +131,18 @@ function checkAlternatives(request: Request, issues: Issue[]): void {
 const LONG_REQUESTS = 7;
 const LONG_MIN_CONSTRAINTS = 3;
 const LONG_MIN_TYPES = 2;
+const REJECTED_REQUESTS = 10;
 
-// The golden set is the retrieval queries plus seven long requests with several constraints.
+// The golden set is the retrieval queries, seven long requests with several constraints and ten rejected requests.
 function checkComposition(requests: Request[], retrievalQueries: RetrievalQuery[], issues: Issue[]): void {
   const retrievalIds = new Set(retrievalQueries.map((query) => query.id));
-  const long = requests.filter((request) => request.origin === 'llm-blind');
+  const long = requests.filter(isSearch).filter((request) => request.origin === 'llm-blind');
   if (long.length !== LONG_REQUESTS) {
     issues.push({ message: `expected ${LONG_REQUESTS} long requests, found ${long.length}` });
+  }
+  const rejected = requests.filter((request) => !isSearch(request));
+  if (rejected.length !== REJECTED_REQUESTS) {
+    issues.push({ message: `expected ${REJECTED_REQUESTS} rejected requests, found ${rejected.length}` });
   }
   for (const request of long) {
     const types = new Set(request.constraints.map((constraint) => constraint.type));
@@ -169,7 +187,7 @@ export function validateGoldenSet(goldenSet: unknown, retrievalQueries: Retrieva
   const issues: Issue[] = [];
   const requests = parseRequests(goldenSet, issues);
   checkIds(requests, issues);
-  for (const request of requests) {
+  for (const request of requests.filter(isSearch)) {
     checkConstraints(request, issues);
     checkGroups(request, 'sameDish', issues);
     checkGroups(request, 'anyOf', issues);

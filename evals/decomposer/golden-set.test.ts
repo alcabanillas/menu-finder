@@ -59,6 +59,64 @@ describe('decomposer golden set: requests', () => {
 
     expect(issueFor(issues, { request: 'R03', field: 'id' })).toBe(true);
   });
+
+  it('reports an unknown origin', () => {
+    const manual = { ...reused('M01', 'algo'), origin: 'manual' };
+    const issues = validateGoldenSet([...validRequests(), manual], retrievalQueries);
+
+    expect(issueFor(issues, { request: 'M01', field: 'origin' })).toBe(true);
+  });
+});
+
+describe('decomposer golden set: rejected requests', () => {
+  const rejected = (overrides: object = {}) => ({
+    id: 'X01',
+    text: 'asdfgh',
+    origin: 'llm-blind-rejected',
+    rejection: 'gibberish',
+    ...overrides,
+  });
+  const issuesOf = (issues: Issue[], request: string) => issues.filter((issue) => issue.request === request);
+
+  it('accepts a valid rejected request', () => {
+    const issues = validateGoldenSet([...validRequests(), rejected()], retrievalQueries);
+
+    expect(issuesOf(issues, 'X01')).toEqual([]);
+  });
+
+  it('reports an unknown category', () => {
+    const issues = validateGoldenSet([...validRequests(), rejected({ rejection: 'spam' })], retrievalQueries);
+
+    expect(issueFor(issues, { request: 'X01', field: 'rejection' })).toBe(true);
+  });
+
+  it('reports a rejected request without category', () => {
+    const withoutCategory = { id: 'X01', text: 'asdfgh', origin: 'llm-blind-rejected' };
+    const issues = validateGoldenSet([...validRequests(), withoutCategory], retrievalQueries);
+
+    expect(issueFor(issues, { request: 'X01', field: 'rejection' })).toBe(true);
+  });
+
+  it('reports a rejected request with constraints', () => {
+    const issues = validateGoldenSet([...validRequests(), rejected({ constraints: [] })], retrievalQueries);
+
+    expect(issueFor(issues, { request: 'X01', field: 'constraints' })).toBe(true);
+  });
+
+  it('reports a search request with a rejection', () => {
+    const offTopic = { ...reused('L06', 'pollo'), rejection: 'off-topic' };
+    const issues = validateGoldenSet([offTopic, reused('F01', 'de cuchara')], retrievalQueries);
+
+    expect(issueFor(issues, { request: 'L06', field: 'rejection' })).toBe(true);
+  });
+
+  it('accepts an empty search, which is not a rejection', () => {
+    const retrieval: RetrievalQuery[] = [{ id: 'A12', text: 'platos para el finde' }];
+    const empty = { ...reused('A12', 'platos para el finde'), constraints: [] };
+    const issues = validateGoldenSet([empty], retrieval);
+
+    expect(issuesOf(issues, 'A12')).toEqual([]);
+  });
 });
 
 describe('decomposer golden set: constraint schema', () => {
@@ -207,6 +265,18 @@ describe('decomposer golden set: composition', () => {
     const issues = validateGoldenSet([long('R01', [spoon, chicken, noPork])], []);
 
     expect(issues.some((issue) => issue.request === undefined && issue.message.includes('7'))).toBe(true);
+  });
+
+  it('reports a golden set without ten rejected requests', () => {
+    const rejected = Array.from({ length: 9 }, (_, index) => ({
+      id: `X0${index + 1}`,
+      text: 'asdfgh',
+      origin: 'llm-blind-rejected',
+      rejection: 'gibberish',
+    }));
+    const issues = validateGoldenSet(rejected, []);
+
+    expect(issues.some((issue) => issue.request === undefined && issue.message.includes('10 rejected'))).toBe(true);
   });
 
   it('reports a reused request that is not a retrieval query', () => {

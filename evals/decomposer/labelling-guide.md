@@ -1,8 +1,8 @@
 # Decomposer golden set: labelling guide
 
-Rules for labelling the expected structure of each request in `golden-set.json` (MF-13, spec `decomposer-golden-set`). The same text is the prompt of the drafting LLM, the reference for the author's review and the meaning MF-28 relies on.
+Rules for labelling the expected structure of each request in `golden-set.json` (MF-13, spec `decomposer-golden-set`). The same text is the prompt of the drafting LLM, the reference for the author's review and the meaning MF-40.3 relies on.
 
-The schema is **minimal**: it only holds what BUS-superficie-consulta already decides. Concepts, food groups and attribute parameters are not labelled here. They are fixed by the spike T3 and labelled in a later pass, declared non-blind.
+The schema is **minimal**: it only holds what BUS-superficie-consulta already decides. Concepts, food groups, attribute parameters and "o" inside "con" are not labelled for the decomposer: the search interprets the term (BUS-superficie-consulta (d), decided by the author on 2026-10-11 in MF-40.1).
 
 ## Format
 
@@ -20,7 +20,7 @@ The schema is **minimal**: it only holds what BUS-superficie-consulta already de
 }
 ```
 
-- `origin`: `retrieval-golden-set` for a query reused from `evals/retrieval/queries.json` (same `id` and `text`), `llm-blind` for a long request `R01`–`R07`.
+- `origin`: `retrieval-golden-set` for a query reused from `evals/retrieval/queries.json` (same `id` and `text`), `llm-blind` for a long request `R01`–`R07`, `llm-blind-rejected` for a rejected request `X01`–`X10` (rule 9).
 - `sameDish` and `anyOf` are lists of groups of constraint ids (rule 1). A request has both, empty when it has no group.
 - A constraint has `id` (`c1`, `c2`… within the request), `type`, `term`, `polarity`, `hard` and, optionally, `slot` (`lunch` or `dinner`). No other field.
 
@@ -33,7 +33,7 @@ The label is the author's reading of the request in context: the decomposer is a
    - "ni" splits an exclusion: "sin pescado ni marisco" → two.
    - "con" joins constraints that one dish must satisfy: they go in a `sameDish` group.
    - "o" joins alternatives, any of which satisfies the condition: "garbanzos o lentejas" → two constraints in an `anyOf` group. Only included constraints go in it: in an exclusion, "o" splits like "ni" ("sin gluten o lactosa" → two exclusions, no group).
-   - A constraint is in at most one group of each kind, and never in both kinds: "o" inside "con" ("arroz con pollo o pescado") is not labelled yet (T3 decides it).
+   - A constraint is in at most one group of each kind, and never in both kinds: "o" inside "con" ("arroz con pollo o pescado") is not labelled.
 2. **`term`** is the shortest span of the request that states the condition, lowercased and copied as written ("carne roja", not "evitar la carne roja"; "alitas de pollo", not "pollo").
    - Slot words are not part of it: "cenas rápidas" → term `rápidas`, slot `dinner`.
    - When the slot is the whole condition ("para cenar"), the term is that span.
@@ -55,6 +55,7 @@ The label is the author's reading of the request in context: the decomposer is a
 6. **`slot`**: "comida" sets `lunch` only when it means the meal ("comidas rápidas"), not food in general ("comida reconfortante", "comida casera"). "cena" sets `dinner`. A slot applies to the constraint it qualifies; a slot that qualifies the whole request goes on every constraint.
 7. **Empty list.** A request that none of the four types can hold ("platos para el finde") has `"constraints": []`, `"sameDish": []` and `"anyOf": []`. It is a negative case for the decomposer.
 8. **Label what is said, not what is meant.** Do not add constraints the request does not state, do not normalise synonyms ("alitas" stays "alitas"), and do not guess a group.
+9. **Rejected request.** A request that is not a search for menus is rejected (BUS-descomponedor). It has `id`, `text`, the origin `llm-blind-rejected` and a `rejection` category, and nothing else: `gibberish` (random keys, "asdfgh"), `off-topic` (unrelated to food), `instruction` (orders to the model, a prompt injection or a command) or `not-a-search` (about food, but asks to invent a recipe or to compute something). It differs from rule 7: an empty list is a search that the four types cannot hold, a rejection is not a search. The 10 rejected requests, their generation prompt and the selection are in `rejected-requests.md`.
 
 ## Known ambiguous cases
 

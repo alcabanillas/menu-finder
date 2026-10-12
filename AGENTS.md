@@ -27,7 +27,7 @@ Red-Green-Refactor cycle, applied to ALL functions and components from here on:
 
 ## Roadmap
 
-Fase actual: **setup del repositorio**. Después del setup van, por este orden: los golden sets de búsqueda, el spike T3 y T4, la evaluación de la extracción (`context/roadmap.md`).
+Fase actual: **setup del repositorio**. Después del setup van, por este orden: los golden sets de búsqueda y el spike T3 (`context/roadmap.md`).
 
 ## Project context
 This TFM is a part-time personal project. Estimate work in hours, not full-time sprint weeks. Check the actual PR and commit history before judging the timeline. The user decides the current priority task. When asked for the next task, give one plain recommendation instead of arguing against the user's stated priority.
@@ -47,7 +47,7 @@ This TFM is a part-time personal project. Estimate work in hours, not full-time 
 | Buscador, retrieval, scoring | Buscador · Arquitectura (modelo de datos) | `context/ConceptosRAG-y-agentes.md`; `context/datos.md` |
 | Ingesta: PDFs, parsers, CLI | Ingesta | `context/datos.md`; `context/tareas/T2-esquema-json-ingesta.md`; runbook local en `context/tareas/T0-extraccion-previa.md` |
 | LLM: prompts, Genkit, agentes | IA transversal | `context/ConceptosRAG-y-agentes.md`; `context/safety-first.md` §2.6 |
-| Evaluación: golden sets, ground truth | Evaluación | `context/tareas/T4-evaluacion-extraccion.md` |
+| Evaluación: golden sets | Evaluación | Los resultados en `evals/` |
 | Tests, CI, despliegue, observabilidad | Despliegue y calidad | Para publicar o tocar el despliegue, `context/despliegue.md` |
 | Seguridad: auth, roles, validación, límites | Seguridad | `context/safety-first.md`; `context/OWASP-Top10.md` por categoría |
 | Cambios con OpenSpec | Proceso | `openspec/config.yaml`, la spec afectada en `openspec/specs/` y el cambio activo en `openspec/changes/` |
@@ -117,6 +117,7 @@ Cada cambio sigue `explore` (opcional) → `propose` → `apply` → `verify` �
 
 - **Tamaño antes de `propose` (obligatorio):** cuando el autor elige un ítem de `context/roadmap.md`, antes de `/opsx:propose` se reevalúa su estimación. Si pasa de 2 h, se propone al autor dividirlo (el umbral es una recomendación: decide el autor) y, si acepta, se divide en subtasks `MF-nn.k` de 2 h o menos, con sangría bajo el ítem en `context/roadmap.md`. Cada subtask lleva un **Resultado** (algo que se ve o se ejecuta al terminar), se hace, se prueba y se archiva por separado, y es un cambio de OpenSpec propio (`mf-20-1-…`). El ítem conserva su ID y la estimación total. Se divide solo el ítem elegido, no los lejanos. Un ítem con cambio activo en `openspec/changes/` no se divide en el roadmap: su descomposición es su `tasks.md`.
 - **La seguridad entra por la spec:** el proposal identifica los datos tocados, los posibles abusos y las categorías OWASP que aplican. Cada endpoint o comando trae sus escenarios negativos de autorización y validación. Antes del `archive` se repasa la checklist de `safety-first.md` §4.
+- **Cobertura antes de abrir la PR (obligatorio):** antes de `gh pr create`, el agente corre `pnpm test:coverage`, que aplica los mismos umbrales que la CI. El pre-commit no mide cobertura, para que los commits parciales sigan siendo rápidos, y la falta de cobertura solo salía en la CI (MF-40, decidido por el autor el 2026-10-12). Si el autor ha pedido preguntar antes de correr tests, se le pregunta igual.
 - La presentación y el vídeo cuentan este flujo **como proceso**: qué se delega a los agentes y qué se revisa (PROC-sdd-memoria).
 
 ## Cómo trabajar conmigo (el autor)

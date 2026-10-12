@@ -1,7 +1,11 @@
 /** What a search takes (spec menu-search, "Request structure"): a typed structure of constraints, not text. */
-type ConstraintType = 'literal' | 'exclusion' | 'attribute' | 'fuzzy';
-type Polarity = 'include' | 'exclude';
-type Slot = 'lunch' | 'dinner';
+export const CONSTRAINT_TYPES = ['literal', 'exclusion', 'attribute', 'fuzzy'] as const;
+export const POLARITIES = ['include', 'exclude'] as const;
+export const SLOTS = ['lunch', 'dinner'] as const;
+
+export type ConstraintType = (typeof CONSTRAINT_TYPES)[number];
+export type Polarity = (typeof POLARITIES)[number];
+export type Slot = (typeof SLOTS)[number];
 
 export type Constraint = {
   id: string;

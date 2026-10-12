@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { SearchRequestDto, SearchRequestError } from '@/application/dto/search-request';
+import { constraintSchema, type SearchRequestDto, type SearchRequestError } from '@/application/dto/search-request';
 import type { SearchMenusError, SearchResultDto, SearchStrategy } from '@/application/dto/search-result';
 import type { DishAddress, DishTextSearch } from '@/application/ports/dish-text-search';
 import type { EmbeddingsPort } from '@/application/ports/embeddings-port';
@@ -35,18 +35,8 @@ const INDEX_NOT_LOADED: SearchMenusError = {
   message: 'no recipe embeddings are stored: run `pnpm ingest embed` first',
 };
 
-/** Limits of the structure (spec menu-search, "Request structure"), so that a request cannot exhaust the quota or the memory. */
+/** Limit of the structure (spec menu-search, "Request structure"), so that a request cannot exhaust the quota or the memory. */
 const MAX_CONSTRAINTS = 12;
-const MAX_TERM_LENGTH = 100;
-
-const constraintSchema = z.strictObject({
-  id: z.string().min(1),
-  type: z.enum(['literal', 'exclusion', 'attribute', 'fuzzy']),
-  term: z.string().trim().min(1).max(MAX_TERM_LENGTH),
-  polarity: z.enum(['include', 'exclude']),
-  hard: z.boolean(),
-  slot: z.enum(['lunch', 'dinner']).optional(),
-});
 
 // The schema must accept exactly the shape of the DTO: `satisfies` breaks the build if they drift apart.
 const searchRequestSchema = z.strictObject({

@@ -2,6 +2,8 @@ import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import pg from 'pg';
 import { createAccount } from '@/application/use-cases/create-account';
+import { decomposeRequest } from '@/application/use-cases/decompose-request';
+import { evaluateDecomposer } from '@/application/use-cases/evaluate-decomposer';
 import { ingestMenus } from '@/application/use-cases/ingest-menus';
 import { ingestRecipes } from '@/application/use-cases/ingest-recipes';
 import { ingestShoppingLists } from '@/application/use-cases/ingest-shopping-lists';
@@ -17,6 +19,11 @@ import { createAccountCreator } from '@/infrastructure/auth/create-account';
 import { FanOutRepository } from '@/infrastructure/fan-out/fan-out-repository';
 import { FileGoldenSetSource } from '@/infrastructure/golden-sets/file-golden-set-source';
 import { createGenkitEmbeddings } from '@/infrastructure/genkit/genkit-embeddings';
+import {
+  createGenkitRequestDecomposer,
+  DECOMPOSER_MODEL,
+  type ThinkingLevel,
+} from '@/infrastructure/genkit/genkit-request-decomposer';
 import { JsonFileMenuRepository, MENU_DATASET_FILE } from '@/infrastructure/json-file/json-file-menu-repository';
 import { JsonFileRecipeRepository, RECIPE_DATASET_FILE } from '@/infrastructure/json-file/json-file-recipe-repository';
 import { LocalDocumentSource } from '@/infrastructure/local-documents/local-document-source';
@@ -37,6 +44,16 @@ const REPO_ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const DATABASE_URL = 'DATABASE_URL_UNPOOLED';
 const GEMINI_API_KEY = 'GEMINI_API_KEY';
 const BETTER_AUTH_SECRET = 'BETTER_AUTH_SECRET';
+
+// The Lite model the decomposer started with, with `MINIMAL` and `LOW` thinking, then the model of the decomposer,
+// `gemini-3.8-flash`, which answers `MINIMAL` with HTTP 400 (MF-40.3 design D4, task 6.1). The author chose Flash on
+// 2026-10-12; Lite stays in the report as the comparison behind that choice.
+const LITE_MODEL = 'gemini-3.5-flash-lite';
+const EVALUATED_MODELS: { model: string; thinkingLevel: ThinkingLevel }[] = [
+  { model: LITE_MODEL, thinkingLevel: 'MINIMAL' },
+  { model: LITE_MODEL, thinkingLevel: 'LOW' },
+  { model: DECOMPOSER_MODEL, thinkingLevel: 'LOW' },
+];
 
 // The library asks for a base URL when it is built, but only uses it to write email-verification links, and this system
 // verifies no email (SEG-sistema-cerrado). The session cookie is signed with the secret, not with the URL, so an account
@@ -79,6 +96,7 @@ export function createCliContainer(env: Env = {}) {
     dataDir,
     qaDir: join(dataDir, 'qa'),
     searchReportPath: join(REPO_ROOT, 'evals', 'search', 'results.md'),
+    decomposerReportPath: join(REPO_ROOT, 'evals', 'decomposer', 'results.md'),
     ingestMenus: () => onDatabase((pool) => ingestMenus({ source, menus: menuRepository(pool) })),
     ingestRecipes: () => onDatabase((pool) => ingestRecipes({ source, recipes: recipeRepository(pool) })),
     ingestShoppingLists: () =>
@@ -108,6 +126,23 @@ export function createCliContainer(env: Env = {}) {
         withPool(url, (pool) =>
           searchMenus(dto, strategy, searchPorts(pool, apiKey === undefined ? NO_EMBEDDINGS : createGenkitEmbeddings(apiKey))),
         ),
+      ),
+    // The key only, no database (spec request-decomposer). No daily LLM limit: it is applied in the web adapter (SEG-rate-limit).
+    decomposeRequest: (request: string) =>
+      requiring(env, [GEMINI_API_KEY], ([apiKey]) =>
+        decomposeRequest(request, { decomposer: createGenkitRequestDecomposer(apiKey) }),
+      ),
+    // The key only, no database (spec decomposer-evaluation): one decomposer per evaluated model.
+    evaluateDecomposer: () =>
+      requiring(env, [GEMINI_API_KEY], ([apiKey]) =>
+        evaluateDecomposer({
+          goldenSets: new FileGoldenSetSource(join(REPO_ROOT, 'evals')),
+          models: EVALUATED_MODELS.map(({ model, thinkingLevel }) => ({
+            model: `${model}, thinking ${thinkingLevel}`,
+            decomposer: createGenkitRequestDecomposer(apiKey, model, thinkingLevel),
+          })),
+          now: () => performance.now(),
+        }),
       ),
     // Read only: the three strategies, so the key is always needed (spec search-evaluation).
     evaluateSearch: () =>

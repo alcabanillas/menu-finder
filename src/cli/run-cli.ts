@@ -13,6 +13,8 @@ export type CliCommands = {
   account: (args: string[]) => Promise<number>;
   search: (options: SearchOptions) => Promise<number>;
   'evaluate-search': () => Promise<number>;
+  decompose: (args: string[]) => Promise<number>;
+  'evaluate-decomposer': () => Promise<number>;
 };
 
 export type RunCliDeps = {
@@ -32,11 +34,13 @@ const ARGUMENTS: Record<ArgsCommand, { min: number; max: number }> = {
   embed: { min: 0, max: 0 },
   account: { min: 1, max: 2 },
   'evaluate-search': { min: 0, max: 0 },
+  decompose: { min: 1, max: 1 },
+  'evaluate-decomposer': { min: 0, max: 0 },
 };
 
 // Listed in the order they are run (MF-41 design D9, MF-10 design D3): migrate → recipes → menu → shopping-list → embed.
 const USAGE = [
-  'Usage: pnpm ingest <migrate|recipes|menu|shopping-list|embed|account|search|evaluate-search>',
+  'Usage: pnpm ingest <migrate|recipes|menu|shopping-list|embed|account|search|evaluate-search|decompose|evaluate-decomposer>',
   '  migrate                 Apply the pending SQL migrations of postgres/migrations to the database',
   '  recipes                 Ingest the recipes from data/raw/Dieta into data/recetas.json and the database',
   '  menu                    Ingest the weekly menus from data/raw/Dieta into data/menu-platos.json and the database',
@@ -45,6 +49,8 @@ const USAGE = [
   '  account <email> [name]  Create an account; the password is asked at a prompt, or read from stdin',
   '  search <structure.json> Search the menus with a structure file [--strategy lexical|semantic|hybrid]',
   '  evaluate-search         Measure the three strategies against the golden sets into evals/search/results.md',
+  '  decompose <request>     Decompose a request into a search structure with the model, or print its rejection',
+  '  evaluate-decomposer     Measure the decomposer against its golden set into evals/decomposer/results.md',
 ];
 
 const STRATEGIES: SearchStrategy[] = ['lexical', 'semantic', 'hybrid'];

@@ -1,0 +1,22 @@
+# What the Vercel CLI must never upload from a local deploy (SEG-datos-nutricionista). Same as .gitignore, which
+# the CLI is not documented to read.
+/data/
+/reports/
+.env*
+*.pem
+.vercel
+.neon
+.genkit/
+.claude/
+/node_modules
+/.next/
+/out/
+/build
+/coverage
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+*.tsbuildinfo
+next-env.d.ts
+/TASKS.md

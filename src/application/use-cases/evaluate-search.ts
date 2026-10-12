@@ -6,7 +6,7 @@ import type {
   EvaluationReport,
 } from '@/application/dto/evaluation-report';
 import type { EmbeddingsPort } from '@/application/ports/embeddings-port';
-import type { GoldenSets, GoldenSetSource, GradedQuery, QueryType } from '@/application/ports/golden-set-source';
+import { QUERY_TYPES, type GoldenSets, type GoldenSetSource, type GradedQuery } from '@/application/ports/golden-set-source';
 import { parseSearchRequest, searchMenus, type SearchMenusDeps } from '@/application/use-cases/search-menus';
 import type { WeeklyMenu } from '@/domain/menu/weekly-menu';
 import { MIN_MENU_SCORE } from '@/domain/search/rank-menus';
@@ -28,7 +28,6 @@ type QueryScore = EvaluationReport['queries'][number];
 type MemoizedEmbeddings = EmbeddingsPort & { dimensions: () => number };
 
 const STRATEGIES: SearchStrategy[] = ['lexical', 'semantic', 'hybrid'];
-const QUERY_TYPES: QueryType[] = ['literal', 'exclusion', 'attribute', 'fuzzy', 'combined'];
 
 const SEARCH_FAILED = 'search-failed';
 
