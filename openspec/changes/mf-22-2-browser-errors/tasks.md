@@ -25,6 +25,13 @@
 
 ## 6. Verification
 
-- [ ] 6.1 Run `pnpm lint`, `pnpm typecheck`, `pnpm test:coverage` and `pnpm test:e2e`, and verify they pass with the CI thresholds
+- [x] 6.1 Run `pnpm lint`, `pnpm typecheck`, `pnpm test:coverage` and `pnpm test:e2e`, and verify they pass with the CI thresholds
 - [x] 6.2 Author, before the merge: in Sentry, Allowed Domains (General Settings → Client Security) for the Vercel domain and Spike Protection on, since the free plan has no rate limit per DSN key; in Vercel, check that `SENTRY_AUTH_TOKEN` can upload source maps and add `SENTRY_PROJECT`, plus `SENTRY_ORG` if the token needs it (design D6)
-- [ ] 6.3 Author, after the release: on a production page opened with a made-up query parameter, run `setTimeout(() => { throw new Error('MF-22.2 browser check'); })` in the console, and verify the event appears in Sentry with no cookies, headers or query parameters. In Sentry, Settings → Source Maps, verify the deploy uploaded the source maps. The stack trace that names a file in `src/` is checked in MF-22.4, with a temporary button (design Migration Plan)
+- [ ] 6.3 Author, after the release: on a production page opened with a made-up query parameter, run `setTimeout(() => { throw new Error('MF-22.2 browser check'); })` in the console, and verify the event appears in Sentry with no cookies or headers; the query parameters do reach it, accepted by the author (design D1). In Sentry, Settings → Source Maps, verify the deploy uploaded the source maps. The stack trace that names a file in `src/` is checked in MF-22.4, with a temporary button (design Migration Plan)
+
+## 7. Build logs (after the first production check)
+
+- [x] 7.1 RED: in `next.config.test.ts`, write "Upload errors visible in the build log": `sentryBuildOptions` does not set `silent`. See it fail
+- [x] 7.2 GREEN: remove `silent: true` from `sentryBuildOptions` (design D5) and verify 7.1 and the existing config tests pass
+- [x] 7.3 Version 0.3.1 in `package.json`, decided by the author on 2026-10-13
+- [ ] 7.4 Author, after the release of 0.3.1: read the Sentry lines of the Vercel build log, fix the cause of the failed upload if there is one, and repeat 6.3
