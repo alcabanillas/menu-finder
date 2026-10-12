@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { requireUser } from '@/app/_auth/require-user';
-import type { SelectRandomMenuFailure } from '@/application/use-cases/select-random-menu';
+import type { SelectRandomMenuFailure } from '@/application/use-cases/menu/select-random-menu';
 import { webContainer } from '@/composition/web-container';
 import type { RandomMenuState } from '@/features/menu-planner/components/random-menu-form';
 import { formatMonday } from '@/shared/format-monday';

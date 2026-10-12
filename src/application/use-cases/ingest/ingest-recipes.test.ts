@@ -4,7 +4,7 @@ import { err, ok, type Result } from '@/shared/result';
 import type { DocumentSource, MenuFolder, SourceError, SourceRecipe } from '@/application/ports/document-source';
 import type { RepositoryError } from '@/application/ports/repository-error';
 import type { RecipeRepository } from '@/application/ports/recipe-repository';
-import { ingestRecipes } from '@/application/use-cases/ingest-recipes';
+import { ingestRecipes } from '@/application/use-cases/ingest/ingest-recipes';
 
 const content: RecipeContent = {
   title: 'Guiso de prueba',

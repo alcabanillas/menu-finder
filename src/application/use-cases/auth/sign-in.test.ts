@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { AuditEvent, AuditLog } from '@/application/ports/audit-log';
 import type { RateLimiter } from '@/application/ports/rate-limiter';
 import type { Credentials, SessionManager, SignedInUser, SignInError } from '@/application/ports/session-manager';
-import { signIn } from '@/application/use-cases/sign-in';
+import { signIn } from '@/application/use-cases/auth/sign-in';
 import { err, ok, type Result } from '@/shared/result';
 
 const PASSWORD = 'a-long-enough-pass';

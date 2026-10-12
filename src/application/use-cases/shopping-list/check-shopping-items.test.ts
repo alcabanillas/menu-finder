@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Clock } from '@/application/ports/clock';
 import type { SelectionRepository } from '@/application/ports/selection-repository';
 import type { ShoppingListRepository } from '@/application/ports/shopping-list-repository';
-import { checkShoppingItems } from '@/application/use-cases/check-shopping-items';
+import { checkShoppingItems } from '@/application/use-cases/shopping-list/check-shopping-items';
 import type { LocalDate } from '@/domain/selection/local-date';
 import type { StoredShoppingItem } from '@/domain/shopping/shopping-list';
 import { err, ok } from '@/shared/result';

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { DecomposerRequest, GoldenSets, GoldenSetSource } from '@/application/ports/golden-set-source';
 import type { DecomposerFailure, RequestDecomposer } from '@/application/ports/request-decomposer';
-import { evaluateDecomposer } from '@/application/use-cases/evaluate-decomposer';
+import { evaluateDecomposer } from '@/application/use-cases/evaluation/evaluate-decomposer';
 import { err, ok, type Result } from '@/shared/result';
 
 const constraint = (id: string, term: string, overrides: object = {}) => ({

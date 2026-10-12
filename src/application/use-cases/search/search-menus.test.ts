@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { SearchRequestDto } from '@/application/dto/search-request';
 import { findMenus, type FindMenusDeps } from '@/application/services/search/find-menus';
-import { searchMenus } from '@/application/use-cases/search-menus';
+import { searchMenus } from '@/application/use-cases/search/search-menus';
 import { err } from '@/shared/result';
 
 const DTO = {

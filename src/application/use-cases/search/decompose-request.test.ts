@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { RequestDecomposer } from '@/application/ports/request-decomposer';
 import { decomposeText } from '@/application/services/search/decompose-text';
-import { decomposeRequest } from '@/application/use-cases/decompose-request';
+import { decomposeRequest } from '@/application/use-cases/search/decompose-request';
 import { err } from '@/shared/result';
 
 describe('decomposeRequest: delegation', () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { SessionManager, SignedInUser } from '@/application/ports/session-manager';
-import { currentUser } from '@/application/use-cases/current-user';
+import { currentUser } from '@/application/use-cases/auth/current-user';
 import { ok } from '@/shared/result';
 
 const sessionsWith = (user: SignedInUser | null): SessionManager => ({

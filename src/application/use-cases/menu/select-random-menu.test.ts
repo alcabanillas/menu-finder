@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Clock } from '@/application/ports/clock';
 import type { MenuRepository } from '@/application/ports/menu-repository';
 import type { SelectionRepository } from '@/application/ports/selection-repository';
-import { selectRandomMenu } from '@/application/use-cases/select-random-menu';
+import { selectRandomMenu } from '@/application/use-cases/menu/select-random-menu';
 import type { LocalDate } from '@/domain/selection/local-date';
 import type { Selection } from '@/domain/selection/selection';
 import { err, ok } from '@/shared/result';

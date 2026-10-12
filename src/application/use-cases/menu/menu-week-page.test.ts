@@ -3,7 +3,7 @@ import type { Clock } from '@/application/ports/clock';
 import type { MenuRepository } from '@/application/ports/menu-repository';
 import type { RecipeRepository } from '@/application/ports/recipe-repository';
 import type { SelectionRepository } from '@/application/ports/selection-repository';
-import { menuWeekPage } from '@/application/use-cases/menu-week-page';
+import { menuWeekPage } from '@/application/use-cases/menu/menu-week-page';
 import type { MenuDish, WeeklyMenu } from '@/domain/menu/weekly-menu';
 import type { Recipe } from '@/domain/recipe/recipe';
 import type { Selection } from '@/domain/selection/selection';

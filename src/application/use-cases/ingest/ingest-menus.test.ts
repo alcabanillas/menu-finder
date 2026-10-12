@@ -4,7 +4,7 @@ import type { SourceMenu } from '@/domain/menu/source-menu';
 import { err, ok, type Result } from '@/shared/result';
 import type { DocumentSource, MenuFolder, SourceError } from '@/application/ports/document-source';
 import type { RepositoryError } from '@/application/ports/repository-error';
-import { ingestMenus, type IngestMenusDeps } from '@/application/use-cases/ingest-menus';
+import { ingestMenus, type IngestMenusDeps } from '@/application/use-cases/ingest/ingest-menus';
 
 type FakeMenu = { menu: SourceMenu; recipeFiles?: string[] } | { error: SourceError };
 

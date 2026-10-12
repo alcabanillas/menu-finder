@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { SearchRequestDto } from '@/application/dto/search-request';
 import type { DishAddress } from '@/application/ports/dish-text-search';
 import type { GoldenSets, GradedQuery } from '@/application/ports/golden-set-source';
-import { evaluateSearch } from '@/application/use-cases/evaluate-search';
+import { evaluateSearch } from '@/application/use-cases/evaluation/evaluate-search';
 import type { QueryType } from '@/domain/evaluation/query-type';
 import type { WeeklyMenu } from '@/domain/menu/weekly-menu';
 import { err, ok } from '@/shared/result';

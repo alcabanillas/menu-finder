@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { err, ok } from '@/shared/result';
 import type { MigrationRunner } from '@/application/ports/migration-runner';
-import { migrate } from '@/application/use-cases/migrate';
+import { migrate } from '@/application/use-cases/ingest/migrate';
 
 const fakeRunner = (available: string[], applied: string[], failing?: string) => {
   const calls: string[] = [];

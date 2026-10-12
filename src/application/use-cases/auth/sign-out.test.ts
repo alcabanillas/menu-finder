@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { AuditEvent, AuditLog } from '@/application/ports/audit-log';
 import type { SessionManager } from '@/application/ports/session-manager';
-import { signOut } from '@/application/use-cases/sign-out';
+import { signOut } from '@/application/use-cases/auth/sign-out';
 import { ok } from '@/shared/result';
 
 const fakes = (userId: string | null) => {

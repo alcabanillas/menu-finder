@@ -10,7 +10,7 @@ import type { ShoppingListRepository } from '@/application/ports/shopping-list-r
 import type { ShoppingItem, ShoppingList } from '@/domain/shopping/shopping-list';
 import type { ShoppingListAnomaly } from '@/domain/shopping/shopping-list-anomalies';
 import { err, ok, type Result } from '@/shared/result';
-import { ingestShoppingLists } from '@/application/use-cases/ingest-shopping-lists';
+import { ingestShoppingLists } from '@/application/use-cases/ingest/ingest-shopping-lists';
 
 const sampleItem: ShoppingItem = {
   category: 'Cárnicos y derivados',

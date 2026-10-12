@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { CreateAccountError } from '@/application/use-cases/create-account';
+import type { CreateAccountError } from '@/application/use-cases/auth/create-account';
 import { runCreateAccount } from '@/cli/commands/create-account';
 import type { MissingVariables } from '@/composition/cli-container';
 import { err, ok, type Result } from '@/shared/result';

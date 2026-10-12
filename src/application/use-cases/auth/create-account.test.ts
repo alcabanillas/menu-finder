@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { AccountCreator, AccountError, NewAccount } from '@/application/ports/account-creator';
-import { createAccount } from '@/application/use-cases/create-account';
+import { createAccount } from '@/application/use-cases/auth/create-account';
 import { err, ok, type Result } from '@/shared/result';
 
 const fakeCreator = (result: Result<{ userId: string }, AccountError> = ok({ userId: 'user-1' })) => {

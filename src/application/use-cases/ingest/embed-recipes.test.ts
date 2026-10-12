@@ -5,7 +5,7 @@ import type {
   RecipeEmbeddingRepository,
   RecipeToEmbed,
 } from '@/application/ports/recipe-embedding-repository';
-import { embedRecipes } from '@/application/use-cases/embed-recipes';
+import { embedRecipes } from '@/application/use-cases/ingest/embed-recipes';
 import { EMBEDDING_VARIANT } from '@/domain/search/embedding-text';
 import { err, ok } from '@/shared/result';
 

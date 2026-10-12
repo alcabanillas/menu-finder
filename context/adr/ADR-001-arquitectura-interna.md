@@ -17,7 +17,8 @@ Se descartan los vertical slices. Razones: alineación con el marco teórico del
 src/
   domain/            # entidades, value objects, reglas puras. CERO dependencias externas
   application/
-    use-cases/       # un caso de uso = una operación del sistema
+    use-cases/       # un caso de uso = una operación del sistema, por capacidad (MF-59):
+                     #   auth/, menu/, search/, shopping-list/, ingest/, evaluation/
     services/        # pasos con puertos que comparten varios casos de uso (MF-59)
     ports/           # interfaces de lo que el dominio necesita del exterior
     dto/             # formas de entrada/salida de los casos de uso
@@ -108,4 +109,4 @@ Ejemplo que fija el criterio — **el parser del menú (MF-11)**: leer el PDF (`
 
 **En contra:** más ficheros por funcionalidad y más tiempo de revisión. Riesgo real de plazo, mitigado por la [§4](#4-qué-merece-un-puerto-y-qué-no).
 
-**Revisar si:** la [§4](#4-qué-merece-un-puerto-y-qué-no) se incumple y aparecen puertos con una sola implementación que nunca se sustituye, o si `use-cases/` supera los 15 ficheros (entonces se aplica la subdivisión de la [§2, punto 3](#2-estructura)).
+**Revisar si:** la [§4](#4-qué-merece-un-puerto-y-qué-no) se incumple y aparecen puertos con una sola implementación que nunca se sustituye, o si una carpeta por capacidad de `use-cases/` supera los 15 ficheros (entonces se aplica la subdivisión de la [§2, punto 3](#2-estructura)).
