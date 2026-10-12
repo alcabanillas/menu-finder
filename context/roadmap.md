@@ -37,7 +37,7 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 
 **Setup del repo (antes de la primera línea de `src/`)**
 - ✅ **MF-01** Repo del producto creado: Next.js 16 + TypeScript + Tailwind v4 con pnpm (ARQ-nextjs, OPS-paquetes, UI-estilos), estructura de `src/` de [ADR-001](adr/ADR-001-arquitectura-interna.md) y OpenSpec con `openspec/config.yaml` (PROC-sdd)
-- ⬜ **MF-02** (~0,5 h · A) Terminar la revisión de [OWASP-Top10.md](OWASP-Top10.md): l.96 (MFA para administradores) y l.110 (cambios de privilegios) ya no aplican con un solo rol (SEG-roles)
+- ✅ **MF-02** (~0,5 h · A) Revisión de [OWASP-Top10.md](OWASP-Top10.md) completada: l.96 (MFA para administradores) y l.110 (cambios de privilegios) no aplican con un solo rol (SEG-roles, SEG-auth)
 - ✅ **MF-03** Activar el workflow `verify` de OpenSpec (`openspec config profile`), con soporte para Claude Code y Antigravity
 - ✅ **MF-04** Reglas de arquitectura en ESLint con `eslint-plugin-boundaries` (ARQ-hexagonal, ADR-001 §3, incluida la Scope Rule de la UI) y pre-commit con Husky + lint-staged que ejecuta lint y tests (OPS-calidad)
 - ✅ **MF-05** Testing: Vitest (unit en Node, UI en jsdom con Testing Library) y Playwright para E2E, con un test de humo por nivel (OPS-calidad, PROC-tdd)
