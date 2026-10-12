@@ -1,6 +1,7 @@
 import pg from 'pg';
 import { expect, test, type Page } from '@playwright/test';
 import { currentE2eEnvironment, readEnvFile, testDatabaseUrl } from './support/e2e-environment';
+import { newFixtureRun } from './support/fixture-run';
 import { registerTestAccount, signInAs, type TestAccount } from './support/test-account';
 
 // Spec menu-planner (MF-43.2), against the test database only (MF-49), like the other specs.
@@ -8,7 +9,8 @@ test.skip(!testDatabaseUrl(process.env, readEnvFile()), 'needs the test database
 
 // A fictitious menu, so there is at least one to pick (AGENTS.md: never real data). Other menus may exist in the test
 // database, so the tests check the shape of the answer, not a fixed number.
-const MENU = 9001;
+// A number of this run only, so a parallel run never deletes it (MF-62).
+const MENU = newFixtureRun().menuNumber(0);
 const CHOSEN = /Te ha tocado el menú (\d+): empieza el lunes \d+ de \p{L}+\./u;
 
 const account = registerTestAccount();
