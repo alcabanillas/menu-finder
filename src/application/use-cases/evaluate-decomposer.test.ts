@@ -117,6 +117,15 @@ describe('evaluateDecomposer: groups', () => {
     expect(row(report.groups, 'sameDish')).toEqual({ kind: 'sameDish', hits: 1, answered: 1, expected: 1, precision: 1, recall: 1 });
     expect(row(report.groups, 'anyOf')).toEqual({ kind: 'anyOf', hits: 0, answered: 0, expected: 0, precision: null, recall: null });
   });
+
+  it('reads a label without groups as no groups expected', async () => {
+    const noGroups = { ...SEARCH, expected: { kind: 'search', structure: { constraints: [POLLO, ARROZ, CERDO] } } } as DecomposerRequest;
+
+    const { report } = await run([noGroups], { [SEARCH.text]: ok(EXACT) });
+
+    expect(row(report.groups, 'sameDish')).toMatchObject({ hits: 0, answered: 1, expected: 0 });
+    expect(row(report.groups, 'anyOf')).toMatchObject({ hits: 0, answered: 0, expected: 0 });
+  });
 });
 
 describe('evaluateDecomposer: rejections', () => {
@@ -186,6 +195,12 @@ describe('evaluateDecomposer: latency', () => {
       { id: 'X17', ms: 1700 },
       { id: 'X16', ms: 1600 },
     ]);
+  });
+
+  it('gives no times for a golden set without requests', async () => {
+    const { report } = await run([], {});
+
+    expect(report.latency).toEqual({ meanMs: null, p95Ms: null, maxMs: null, slowest: [] });
   });
 });
 

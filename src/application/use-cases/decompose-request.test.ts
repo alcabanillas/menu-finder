@@ -152,6 +152,14 @@ describe('decomposeRequest: invalid answers', () => {
     expect(issues).toContainEqual(expect.objectContaining({ constraint: 'c1', field: 'type' }));
   });
 
+  it('refuses a constraint that is not an object, naming it by its position', async () => {
+    const { decomposer } = answering(structure({ constraints: ['pollo'] }));
+
+    const issues = issuesOf(await decomposeRequest('algo con pollo', { decomposer }));
+
+    expect(issues).toContainEqual(expect.objectContaining({ constraint: '#0', field: 'constraints' }));
+  });
+
   it('refuses a term that is not in the request', async () => {
     const { decomposer } = answering(structure({ constraints: [constraint({ term: 'salmón' })] }));
 

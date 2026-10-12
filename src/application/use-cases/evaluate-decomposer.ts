@@ -27,21 +27,24 @@ export type EvaluateDecomposerDeps = {
 
 /** What came back for one request: invalid answers and failed calls score as no constraints (spec "Failed answers"). */
 type Outcome =
-  | { kind: 'structure'; structure: SearchRequestDto }
+  | { kind: 'structure'; structure: Grouped }
   | { kind: 'rejection'; category: RejectionCategory }
   | { kind: 'invalid' }
   | { kind: 'failed' };
 
+/** A structure with both kinds of groups: the decomposer always answers them, a label may leave them out. */
+type Grouped = Required<SearchRequestDto>;
+
 type Run = { request: DecomposerRequest; outcome: Outcome; ms: number };
 
 /** A run with its constraints paired: the answered ones, the expected ones and the hits. */
-type Scored = Run & { expected: SearchRequestDto; answered: SearchRequestDto; pairs: ConstraintPair[] };
+type Scored = Run & { expected: Grouped; answered: Grouped; pairs: ConstraintPair[] };
 
 type ConstraintType = Constraint['type'];
 
 const CONSTRAINT_TYPES: ConstraintType[] = ['literal', 'exclusion', 'attribute', 'fuzzy'];
 const CATEGORIES: RejectionCategory[] = ['gibberish', 'off-topic', 'instruction', 'not-a-search'];
-const NOTHING: SearchRequestDto = { constraints: [], sameDish: [], anyOf: [] };
+const NOTHING: Grouped = { constraints: [], sameDish: [], anyOf: [] };
 const PERCENTILE = 0.95;
 const SLOWEST = 5;
 
@@ -78,7 +81,7 @@ async function runModel(requests: DecomposerRequest[], decomposer: RequestDecomp
   return runs;
 }
 
-function toOutcome(result: Result<SearchRequestDto, DecomposeError>): Outcome {
+function toOutcome(result: Result<Grouped, DecomposeError>): Outcome {
   if (result.ok) return { kind: 'structure', structure: result.value };
   switch (result.error.kind) {
     case 'rejected':
@@ -91,9 +94,13 @@ function toOutcome(result: Result<SearchRequestDto, DecomposeError>): Outcome {
 }
 
 function score(run: Run): Scored {
-  const expected = run.request.expected.kind === 'search' ? run.request.expected.structure : NOTHING;
+  const expected = run.request.expected.kind === 'search' ? withGroups(run.request.expected.structure) : NOTHING;
   const answered = run.outcome.kind === 'structure' ? run.outcome.structure : NOTHING;
   return { ...run, expected, answered, pairs: matchConstraints(expected.constraints, answered.constraints) };
+}
+
+function withGroups({ constraints, sameDish, anyOf }: SearchRequestDto): Grouped {
+  return { constraints, sameDish: sameDish ?? [], anyOf: anyOf ?? [] };
 }
 
 function modelReport(model: string, runs: Scored[]): ModelReport {
@@ -121,9 +128,9 @@ function constraintRow(kind: ConstraintType | 'overall', runs: Scored[]): CountR
 }
 
 function groupRow(kind: 'sameDish' | 'anyOf', runs: Scored[]): CountRow<'sameDish' | 'anyOf'> {
-  const hits = sum(runs.map(({ expected, answered, pairs }) => groupHits(expected[kind] ?? [], answered[kind] ?? [], pairs)));
-  const answered = sum(runs.map((run) => (run.answered[kind] ?? []).length));
-  const expected = sum(runs.map((run) => (run.expected[kind] ?? []).length));
+  const hits = sum(runs.map(({ expected, answered, pairs }) => groupHits(expected[kind], answered[kind], pairs)));
+  const answered = sum(runs.map((run) => run.answered[kind].length));
+  const expected = sum(runs.map((run) => run.expected[kind].length));
   return countRow(kind, hits, answered, expected);
 }
 

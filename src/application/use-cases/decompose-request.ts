@@ -20,7 +20,7 @@ type Decomposition = z.output<typeof decompositionSchema>;
 export async function decomposeRequest(
   request: string,
   { decomposer }: DecomposeRequestDeps,
-): Promise<Result<SearchRequestDto, DecomposeError>> {
+): Promise<Result<Required<SearchRequestDto>, DecomposeError>> {
   const text = request.trim();
   const length = [...text].length;
   if (length === 0) return err({ kind: 'request-too-short' });
@@ -31,7 +31,7 @@ export async function decomposeRequest(
 }
 
 // The order of design D2: shape, rejection, empty structure, then the rules of the search and the terms.
-function readAnswer(text: string, answer: unknown): Result<SearchRequestDto, DecomposeError> {
+function readAnswer(text: string, answer: unknown): Result<Required<SearchRequestDto>, DecomposeError> {
   const parsed = decompositionSchema.safeParse(answer);
   if (!parsed.success) return invalid(parsed.error.issues.map((issue) => toIssue(answer, issue)));
   const { rejection, ...structure } = parsed.data;
