@@ -19,12 +19,13 @@ const REJECTED_EXIT_CODE = 3;
 /** `ingest decompose "<request>"`: prints the structure as JSON, or the rejection with its category. Returns the exit code. */
 export async function runDecompose({ request, decomposeRequest, print }: RunDecomposeDeps): Promise<number> {
   const result = await decomposeRequest(request);
-  const lines = result.ok ? [JSON.stringify(result.value, null, 2)] : errorLines(result.error);
+  const lines = result.ok ? [JSON.stringify(result.value, null, 2)] : decomposeErrorLines(result.error);
   lines.forEach((line) => print(redactSecrets(line)));
   return exitCode(result);
 }
 
-function errorLines(error: DecomposeError | MissingVariables): string[] {
+/** The lines of a decomposition that gives no structure, or of a missing variable. */
+export function decomposeErrorLines(error: DecomposeError | MissingVariables): string[] {
   if (isMissingVariables(error)) return missingLines(error);
   switch (error.kind) {
     case 'rejected':

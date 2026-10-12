@@ -1,4 +1,5 @@
-import type { SearchRequestError } from '@/application/dto/search-request';
+import type { DecomposeError } from '@/application/dto/decomposition';
+import type { SearchRequestDto, SearchRequestError } from '@/application/dto/search-request';
 
 /** How a term is matched against a dish: by its text, by its embedding, or by the mean of both. */
 export type SearchStrategy = 'lexical' | 'semantic' | 'hybrid';
@@ -30,3 +31,12 @@ export type SearchMenusError =
   | SearchRequestError
   | { kind: 'index-not-loaded'; message: string }
   | { kind: 'search-failed'; reason: string };
+
+/** A search from the text of a request: the structure the decomposer returned and the ranking it gave. */
+export type TextSearchDto = { structure: Required<SearchRequestDto>; result: SearchResultDto };
+
+/**
+ * Why a request gives no ranking: the decomposer gave no structure, its structure has no constraints (a valid
+ * decomposition the search cannot use, MF-22.1 design D2), or the search failed.
+ */
+export type SearchByTextError = DecomposeError | { kind: 'nothing-to-search' } | SearchMenusError;

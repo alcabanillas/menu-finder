@@ -9,6 +9,7 @@ import { runMigrate } from '@/cli/commands/migrate';
 import { runCreateAccount } from '@/cli/commands/create-account';
 import { readPassword } from '@/cli/read-password';
 import { runSearch } from '@/cli/commands/search';
+import { runSearchText } from '@/cli/commands/search-text';
 import { runEvaluateSearch } from '@/cli/commands/evaluate-search';
 import { runDecompose } from '@/cli/commands/decompose';
 import { runEvaluateDecomposer } from '@/cli/commands/evaluate-decomposer';
@@ -58,6 +59,8 @@ runCli(process.argv.slice(2), {
           searchMenus: container.searchMenus,
           print,
         }),
+      'search-text': ({ request, strategy }) =>
+        runSearchText({ request, strategy, searchByText: container.searchByText, print }),
       'evaluate-search': () =>
         runEvaluateSearch({
           evaluateSearch: container.evaluateSearch,
