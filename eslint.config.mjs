@@ -12,6 +12,7 @@ const layer = (type) => ({ to: { element: { type } } });
 const applicationPart = (...kinds) => ({
   to: { element: { type: 'application', captured: { kind: kinds.length > 1 ? `{${kinds.join(',')}}` : kinds[0] } } },
 });
+const fromApplicationPart = (...kinds) => applicationPart(...kinds).to;
 const container = (name) => ({
   to: { element: { type: 'composition', fileInternalPath: `${name}.ts` } },
 });
@@ -45,6 +46,8 @@ const architectureTests = {
   rules: {
     'boundaries/dependencies': dependencyRule([
       { from: { element: { type: 'domain' } }, allow: { to: { module: { source: 'vitest' } } } },
+      // Cada test importa el caso de uso que prueba.
+      { from: { element: { type: 'application' } }, allow: applicationPart('use-cases') },
     ]),
   },
 };
@@ -68,6 +71,8 @@ function dependencyRule(extraPolicies = []) {
       default: 'disallow',
       // Sin esto solo se revisan las importaciones locales y domain podría importar librerías.
       checkAllOrigins: true,
+      // Sin esto no se revisan las importaciones dentro de un elemento, como un caso de uso que importa otro.
+      checkInternals: true,
       policies: [
         ...extraPolicies,
         // Librerías de terceros y módulos de Node: todas las capas salvo domain.
@@ -76,10 +81,14 @@ function dependencyRule(extraPolicies = []) {
           allow: { to: { module: { origin: '{external,core}' } } },
         },
         { from: { element: { type: 'domain' } }, allow: [layer('domain'), layer('shared')] },
+        // Un caso de uso nunca importa otro caso de uso, y un service nunca importa casos de uso (MF-59).
         {
-          from: { element: { type: 'application' } },
-          allow: [layer('application'), layer('domain'), layer('shared')],
+          from: fromApplicationPart('use-cases', 'services'),
+          allow: [applicationPart('ports', 'dto', 'services'), layer('domain'), layer('shared')],
         },
+        { from: fromApplicationPart('ports'), allow: [applicationPart('ports', 'dto'), layer('domain'), layer('shared')] },
+        // Un DTO no conoce los puertos: el caso de uso traduce sus errores (MF-59).
+        { from: fromApplicationPart('dto'), allow: [applicationPart('dto'), layer('domain'), layer('shared')] },
         {
           from: { element: { type: 'infrastructure' } },
           allow: [layer('infrastructure'), applicationPart('ports', 'dto'), layer('domain'), layer('shared')],
@@ -180,6 +189,12 @@ const eslintConfig = defineConfig([
   },
   architecture,
   architectureTests,
+  // Sin ciclos entre módulos (ADR-001 §3). eslint-config-next ya registra el plugin import y su resolver de TypeScript;
+  // registrarlo otra vez falla («Cannot redefine plugin»), así que aquí solo va la regla.
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    rules: { 'import/no-cycle': 'error' },
+  },
   // MF-20.1: la autenticación con el registro abierto solo existe para la CLI (SEG-sistema-cerrado).
   // composition puede importarlo todo, así que la web se cierra aparte: app/ ya lo impide la regla de capas.
   {

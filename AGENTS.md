@@ -90,7 +90,7 @@ Folders in `domain/` and `application/`, ports, use cases and CLI commands are n
 | ❌ | `use-cases/load-json-to-pg.ts` | A technology in the core |
 | ✅ | `domain/menu/dish-recipe.ts` | Dishes and recipes are domain concepts |
 | ✅ | `domain/search/embedding-text.ts` | A rule of the search |
-| ✅ | `use-cases/embed-recipes.ts`, `cli/commands/embed.ts` | Says what it does; the command and its file share the name |
+| ✅ | `use-cases/ingest/embed-recipes.ts`, `cli/commands/embed.ts` | Says what it does; the command and its file share the name |
 | ✅ | `infrastructure/postgres/postgres-menu-repository.ts` | The technology appears only in infrastructure |
 
 ### Rule: short functions, most important first (mandatory)

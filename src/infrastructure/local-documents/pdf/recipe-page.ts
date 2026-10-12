@@ -1,4 +1,5 @@
-import type { LayoutAnomaly, SourceError, SourceRecipe } from '@/application/ports/document-source';
+import type { SourceError, SourceRecipe } from '@/application/ports/document-source';
+import type { LayoutAnomaly } from '@/domain/recipe/layout-anomalies';
 import type { RecipeIngredient, RecipeTimes, Unit } from '@/domain/recipe/recipe';
 import { err, ok, type Result } from '@/shared/result';
 

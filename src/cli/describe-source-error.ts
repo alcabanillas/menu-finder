@@ -1,10 +1,7 @@
-import type { MenuFailure } from '@/application/dto/ingest-menus';
-
-// The CLI only sees the use case DTOs, not the ports (ADR-001 §3): the source error reaches it inside a failure.
-type SourceError = MenuFailure['error'];
+import type { SourceFailure } from '@/application/dto/ingest-failure';
 
 /** One line saying why a PDF or its folder could not be read. */
-export const describeSourceError = (error: SourceError): string => {
+export const describeSourceError = (error: SourceFailure): string => {
   switch (error.kind) {
     case 'missing-raw-directory':
       return `raw directory not found: ${error.path}`;

@@ -1,7 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import type { SignInFailure } from '@/application/use-cases/sign-in';
+import type { SignInFailure } from '@/application/use-cases/auth/sign-in';
 import { webContainer } from '@/composition/web-container';
 import type { LoginFormState } from '@/features/auth/components/login-form';
 

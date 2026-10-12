@@ -1,4 +1,4 @@
-import type { CreateAccountError } from '@/application/use-cases/create-account';
+import type { CreateAccountError } from '@/application/use-cases/auth/create-account';
 import { isMissingVariables, missingLines } from '@/cli/commands/missing-variables';
 import type { AccountRequest, MissingVariables } from '@/composition/cli-container';
 import { redactSecrets } from '@/shared/redact-secrets';

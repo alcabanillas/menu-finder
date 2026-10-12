@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { LayoutAnomaly, SourceRecipe } from '@/application/ports/document-source';
+import type { SourceRecipe } from '@/application/ports/document-source';
+import type { LayoutAnomaly } from '@/domain/recipe/layout-anomalies';
 import { err } from '@/shared/result';
 import { parseRecipePage, type PositionedText } from '@/infrastructure/local-documents/pdf/recipe-page';
 

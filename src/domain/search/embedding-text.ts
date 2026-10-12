@@ -1,3 +1,6 @@
+/** The embedded text: recipe title and ingredient names (EVAL-golden-sets, ablation (b)). */
+export const EMBEDDING_VARIANT = 'name-ingredients';
+
 /** The text of a recipe row that is embedded: its title and ingredient names, never the preparation. */
 export type EmbeddingDocument = { title: string; content: string };
 

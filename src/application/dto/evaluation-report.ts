@@ -1,5 +1,5 @@
 import type { SearchResultDto, SearchStrategy } from '@/application/dto/search-result';
-import type { QueryType } from '@/application/ports/golden-set-source';
+import type { QueryType } from '@/domain/evaluation/query-type';
 
 /**
  * What `evaluate-search` measures (spec search-evaluation). It holds ids, types, strategy names and numbers only,

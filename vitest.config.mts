@@ -34,7 +34,6 @@ export default defineConfig({
         'src/composition/**',
         // Solo tipos: no hay código que ejecutar.
         'src/application/ports/**',
-        'src/application/dto/**',
         'src/domain/menu/weekly-menu.ts',
         'src/domain/menu/source-menu.ts',
       ],

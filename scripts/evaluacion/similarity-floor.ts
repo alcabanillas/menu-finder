@@ -5,7 +5,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import pg from 'pg';
-import { EMBEDDING_VARIANT } from '@/application/use-cases/embed-recipes';
+import { EMBEDDING_VARIANT } from '@/domain/search/embedding-text';
 import { createGenkitEmbeddings } from '@/infrastructure/genkit/genkit-embeddings';
 import { PostgresDishTextSearch } from '@/infrastructure/postgres/postgres-dish-text-search';
 import { PostgresRecipeEmbeddingRepository } from '@/infrastructure/postgres/postgres-recipe-embedding-repository';

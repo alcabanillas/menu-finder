@@ -4,6 +4,7 @@
     "neon.ts"
   ],
   "ignoreDependencies": [
-    "@neon/env"
+    "@neon/env",
+    "eslint-plugin-import"
   ]
 }

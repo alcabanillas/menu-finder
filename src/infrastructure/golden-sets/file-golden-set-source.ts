@@ -2,15 +2,15 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { z } from 'zod';
 import type { SearchRequestDto } from '@/application/dto/search-request';
-import {
-  QUERY_TYPES,
-  type DecomposerRequest,
-  type ExpectedStructure,
-  type GoldenSetError,
-  type GoldenSets,
-  type GoldenSetSource,
-  type GradedQuery,
+import type {
+  DecomposerRequest,
+  ExpectedStructure,
+  GoldenSetError,
+  GoldenSets,
+  GoldenSetSource,
+  GradedQuery,
 } from '@/application/ports/golden-set-source';
+import { QUERY_TYPES } from '@/domain/evaluation/query-type';
 import { err, ok, type Result } from '@/shared/result';
 
 const RETRIEVAL_FILE = 'retrieval/golden-set.json';
