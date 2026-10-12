@@ -11,7 +11,7 @@ import type { SearchRequestDto } from '@/application/dto/search-request';
 import type { DecomposerRequest, GoldenSetSource } from '@/application/ports/golden-set-source';
 import type { RequestDecomposer } from '@/application/ports/request-decomposer';
 import { decomposeRequest } from '@/application/use-cases/decompose-request';
-import { groupHits, matchConstraints, type ConstraintPair } from '@/domain/search/decomposition-score';
+import { groupHits, matchConstraints, type ConstraintPair } from '@/domain/evaluation/decomposition-score';
 import { CONSTRAINT_TYPES, type Constraint, type ConstraintType } from '@/domain/search/search-request';
 import { ok, type Result } from '@/shared/result';
 

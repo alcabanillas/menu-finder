@@ -1,6 +1,6 @@
-import { z } from 'zod';
 import type { Clock } from '@/application/ports/clock';
 import type { SelectionRepository, SelectionWriteError } from '@/application/ports/selection-repository';
+import { positiveIntegerInput } from '@/application/dto/positive-integer-input';
 import { mondayOf } from '@/domain/selection/local-date';
 import type { Selection } from '@/domain/selection/selection';
 import { startsOnFor } from '@/domain/selection/week';
@@ -13,18 +13,6 @@ export type SelectMenuInput = { userId: string; menuNumber?: unknown };
 export type SelectMenuFailure = { kind: 'invalid-menu' } | { kind: 'unknown-menu' } | { kind: 'failed' };
 
 type Deps = { selections: SelectionRepository; clock: Clock };
-
-const positiveSafeInteger = z.number().int().positive().max(Number.MAX_SAFE_INTEGER);
-
-// A form sends strings: only digits are accepted, so "12abc" and "1.5" are refused instead of half-parsed.
-export const positiveIntegerInput = z.union([
-  positiveSafeInteger,
-  z
-    .string()
-    .regex(/^\d+$/)
-    .transform(Number)
-    .pipe(positiveSafeInteger),
-]);
 
 /**
  * Stores the user's choice of a menu. The start date is computed here from today, never read from the request:

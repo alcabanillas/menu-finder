@@ -1,8 +1,7 @@
 import { z } from 'zod';
 import type { DecomposeError, RejectionCategory } from '@/application/dto/decomposition';
-import type { SearchRequestDto, SearchRequestIssue } from '@/application/dto/search-request';
+import { parseSearchRequest, type SearchRequestDto, type SearchRequestIssue } from '@/application/dto/search-request';
 import { decompositionSchema, type RequestDecomposer } from '@/application/ports/request-decomposer';
-import { parseSearchRequest } from '@/application/use-cases/search-menus';
 import { termsNotInRequest } from '@/domain/search/request-terms';
 import { err, ok, type Result } from '@/shared/result';
 

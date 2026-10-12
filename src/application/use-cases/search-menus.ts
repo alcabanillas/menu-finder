@@ -1,22 +1,16 @@
-import { z } from 'zod';
-import { constraintSchema, type SearchRequestDto, type SearchRequestError } from '@/application/dto/search-request';
+import { parseSearchRequest, type SearchRequestDto } from '@/application/dto/search-request';
 import type { SearchMenusError, SearchResultDto, SearchStrategy } from '@/application/dto/search-result';
 import type { DishAddress, DishTextSearch } from '@/application/ports/dish-text-search';
 import type { EmbeddingsPort } from '@/application/ports/embeddings-port';
 import type { MenuRepository } from '@/application/ports/menu-repository';
 import type { RecipeEmbeddingRepository } from '@/application/ports/recipe-embedding-repository';
-import { EMBEDDING_VARIANT } from '@/application/use-cases/embed-recipes';
 import type { Meal, MenuDish, WeeklyMenu } from '@/domain/menu/weekly-menu';
 import { toUnits, type ScoredDish, type ScoredMenu, type Unit } from '@/domain/search/constraint-unit';
+import { EMBEDDING_VARIANT } from '@/domain/search/embedding-text';
 import { filterByHardUnits, type HardFilter } from '@/domain/search/hard-constraints';
 import { rankMenus, type Ranking } from '@/domain/search/rank-menus';
 import { scoreMenu } from '@/domain/search/score-menu';
-import {
-  findRequestIssues,
-  type Constraint,
-  type RequestIssue,
-  type SearchRequest,
-} from '@/domain/search/search-request';
+import type { Constraint, SearchRequest } from '@/domain/search/search-request';
 import { hybridScore, rescaleSimilarities } from '@/domain/search/term-score';
 import { err, ok, type Result } from '@/shared/result';
 
@@ -34,18 +28,6 @@ const INDEX_NOT_LOADED: SearchMenusError = {
   kind: 'index-not-loaded',
   message: 'no recipe embeddings are stored: run `pnpm ingest embed` first',
 };
-
-/** Limit of the structure (spec menu-search, "Request structure"), so that a request cannot exhaust the quota or the memory. */
-const MAX_CONSTRAINTS = 12;
-
-// The schema must accept exactly the shape of the DTO: `satisfies` breaks the build if they drift apart.
-const searchRequestSchema = z.strictObject({
-  constraints: z.array(constraintSchema).min(1).max(MAX_CONSTRAINTS),
-  sameDish: z.array(z.array(z.string())).default([]),
-  anyOf: z.array(z.array(z.string())).default([]),
-}) satisfies z.ZodType<unknown, SearchRequestDto>;
-
-type ValidDto = z.output<typeof searchRequestSchema>;
 
 /**
  * Scores the menus against a typed structure with one strategy and returns the five best, the ties with the first
@@ -66,48 +48,6 @@ export async function searchMenus(
   if (!scores.ok) return scores;
   const menus = catalog.value.map((menu) => toScoredMenu(menu, request.value.constraints, terms, scores.value));
   return ok(rank(menus, toUnits(request.value), strategy));
-}
-
-/**
- * Validates the DTO before any query and turns it into the domain request. The shape is checked first; the
- * rules across constraints and groups run only on a well-formed shape, so a rejected DTO names the fields of the
- * first stage that fails. The DTO comes from outside, so its type is a contract, not a guarantee.
- */
-export function parseSearchRequest(dto: SearchRequestDto): Result<SearchRequest, SearchRequestError> {
-  const parsed = searchRequestSchema.safeParse(dto);
-  if (!parsed.success) return invalid(parsed.error.issues.map((issue) => toIssue(dto, issue)));
-  const request = toSearchRequest(parsed.data);
-  const issues = findRequestIssues(request);
-  return issues.length > 0 ? invalid(issues) : ok(request);
-}
-
-// Names the field that failed; for a constraint, its id too, read from the unvalidated DTO.
-function toIssue(dto: unknown, issue: z.core.$ZodIssue): RequestIssue {
-  const keys = issue.code === 'unrecognized_keys' ? issue.keys.join(', ') : undefined;
-  const [first, position, ...rest] = issue.path;
-  if (first === 'constraints' && typeof position === 'number') {
-    const field = keys ?? (rest.length > 0 ? rest.join('.') : 'constraints');
-    return { constraint: constraintIdAt(dto, position), field, message: issue.message };
-  }
-  return { field: keys ?? (first === undefined ? 'structure' : String(first)), message: issue.message };
-}
-
-function constraintIdAt(dto: unknown, position: number): string {
-  const constraints = (dto as { constraints?: unknown[] }).constraints;
-  const id = (constraints?.[position] as { id?: unknown } | undefined)?.id;
-  return typeof id === 'string' ? id : `#${position}`;
-}
-
-function invalid(issues: RequestIssue[]): Result<never, SearchRequestError> {
-  return err({ kind: 'invalid-request', issues });
-}
-
-function toSearchRequest({ constraints, sameDish, anyOf }: ValidDto): SearchRequest {
-  return { constraints: constraints.map(toConstraint), sameDish, anyOf };
-}
-
-function toConstraint({ id, type, term, polarity, hard, slot }: ValidDto['constraints'][number]): Constraint {
-  return slot === undefined ? { id, type, term, polarity, hard } : { id, type, term, polarity, hard, slot };
 }
 
 // A failure of any port ends the search: there is never a partial ranking.

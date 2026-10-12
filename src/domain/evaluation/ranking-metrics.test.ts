@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { hitAt5, ndcgAt5, type Grades, type RankedMenu } from '@/domain/search/ranking-metrics';
+import { hitAt5, ndcgAt5, type Grades, type RankedMenu } from '@/domain/evaluation/ranking-metrics';
 
 /** A ranking with strictly decreasing scores, so that no two menus tie. */
 function untied(menus: number[]): RankedMenu[] {

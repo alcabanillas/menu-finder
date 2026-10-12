@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { groupHits, matchConstraints } from '@/domain/search/decomposition-score';
+import { groupHits, matchConstraints } from '@/domain/evaluation/decomposition-score';
 import type { Constraint } from '@/domain/search/search-request';
 
 const constraint = (id: string, term: string, overrides: Partial<Constraint> = {}): Constraint => ({

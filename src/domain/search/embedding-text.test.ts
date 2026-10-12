@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { embeddingDocument, embeddingSource } from '@/domain/search/embedding-text';
+import { EMBEDDING_VARIANT, embeddingDocument, embeddingSource } from '@/domain/search/embedding-text';
+
+describe('EMBEDDING_VARIANT', () => {
+  it('is the name and ingredients variant', () => {
+    expect(EMBEDDING_VARIANT).toBe('name-ingredients');
+  });
+});
 
 describe('embeddingDocument', () => {
   it('is the title and the ingredient names', () => {

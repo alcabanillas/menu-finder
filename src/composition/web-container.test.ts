@@ -78,7 +78,7 @@ describe('createWebContainer', () => {
     const container = createWebContainer(COMPLETE_ENV, noCookies);
 
     await container.currentUser();
-    const result = await container.activeMenu({ userId: 'user-1' });
+    const result = await container.currentSelections({ userId: 'user-1' });
 
     expect(result).toEqual({ ok: false, error: { kind: 'failed' } });
     expect(poolSpy).toHaveBeenCalledTimes(1);

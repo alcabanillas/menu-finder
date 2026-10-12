@@ -63,13 +63,18 @@ Hay **dos adaptadores primarios sobre el mismo hexágono**: la web (`app/`) y la
 | Capa | Puede importar | No puede importar |
 |---|---|---|
 | `domain` | `domain`, `shared` (salvo `shared/ui`) | todo lo demás, **incluidas librerías de terceros** |
-| `application` | `domain`, `shared` | `infrastructure`, `composition`, `app`, `cli`, Next.js |
+| `application/use-cases` | `application` (ports, dto, services), `domain`, `shared` | **otros casos de uso**; `infrastructure`, `composition`, `app`, `cli`, Next.js |
+| `application/services` | `application` (ports, dto, services), `domain`, `shared` | **casos de uso**; `infrastructure`, `composition`, `app`, `cli`, Next.js |
+| `application/ports` | `application` (ports, dto), `domain`, `shared` | casos de uso, services; `infrastructure`, `composition`, `app`, `cli`, Next.js |
+| `application/dto` | `application` (dto), `domain`, `shared` | **ports**, casos de uso, services; `infrastructure`, `composition`, `app`, `cli`, Next.js |
 | `infrastructure` | `application` (ports, dto), `domain`, `shared`, librerías externas | `composition`, `app`, `cli` |
 | `composition` | todas | — |
 | `app` (Next.js) | `composition/web-container`, `application` (dto y tipos de caso de uso), `features`, `shared` | **`domain` e `infrastructure` directamente**; `composition/cli-container`; `cli` |
 | `features` | `application` (dto), `shared` (incluido `shared/ui`), la propia feature | **otras features**; `domain`, `infrastructure`, `composition`, `app`, `cli` |
 | `shared/ui` | `shared`, `application` (dto) | `features`, `domain`, `infrastructure`, `composition`, `app`, `cli` |
 | `cli` | `composition/cli-container`, `application` (dto y tipos de caso de uso), `shared` | **`domain` e `infrastructure` directamente**; `composition/web-container`; `app` |
+
+**Casos de uso y services (MF-59).** Un caso de uso es una operación que llama un adaptador; nunca llama a otro caso de uso. Si dos casos de uso comparten un paso con puertos, ese paso es un *service* (`application/services/`): lo llaman los casos de uso y otros services, nunca un adaptador (`app`, `cli`, `infrastructure`). Lo compartido sin puertos va a `domain/`, o junto a su DTO si usa una librería. Lo que tiene un solo llamante se queda dentro de su caso de uso. Un DTO es la forma de entrada o salida que ve el consumidor: no conoce los puertos, y el caso de uso traduce los errores de los puertos a los fallos del DTO. No hay ciclos entre módulos (`import/no-cycle`). Como `use-cases/` es un solo elemento para `eslint-plugin-boundaries`, la regla se comprueba con `checkInternals: true`, que revisa también los imports dentro de un elemento; los tests pueden importar el caso de uso que prueban.
 
 **Estas reglas se validan con ESLint (`import/no-restricted-paths` o `eslint-plugin-boundaries`) y se ejecutan en el hook de pre-commit (OPS-calidad) y en CI (OPS-ci-cd).** Una regla de arquitectura que no comprueba una herramienta acaba incumpliéndose sin que nadie lo note, sobre todo si el código lo generan agentes. Regla derivada: **no se adopta ninguna norma de arquitectura que no se pueda verificar automáticamente** — se queda en recomendación, no en norma.
 

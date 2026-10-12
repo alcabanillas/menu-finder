@@ -5,7 +5,8 @@ import type {
   RecipeEmbeddingRepository,
   RecipeToEmbed,
 } from '@/application/ports/recipe-embedding-repository';
-import { EMBEDDING_VARIANT, embedRecipes } from '@/application/use-cases/embed-recipes';
+import { embedRecipes } from '@/application/use-cases/embed-recipes';
+import { EMBEDDING_VARIANT } from '@/domain/search/embedding-text';
 import { err, ok } from '@/shared/result';
 
 const MODEL = 'gemini-embedding-2';

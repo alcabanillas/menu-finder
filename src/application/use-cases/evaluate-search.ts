@@ -1,4 +1,4 @@
-import type { SearchRequestDto, SearchRequestIssue } from '@/application/dto/search-request';
+import { parseSearchRequest, type SearchRequestDto, type SearchRequestIssue } from '@/application/dto/search-request';
 import type { SearchMenusError, SearchResultDto, SearchStrategy } from '@/application/dto/search-result';
 import type {
   EvaluateSearchError,
@@ -7,10 +7,10 @@ import type {
 } from '@/application/dto/evaluation-report';
 import type { EmbeddingsPort } from '@/application/ports/embeddings-port';
 import { QUERY_TYPES, type GoldenSets, type GoldenSetSource, type GradedQuery } from '@/application/ports/golden-set-source';
-import { parseSearchRequest, searchMenus, type SearchMenusDeps } from '@/application/use-cases/search-menus';
+import { searchMenus, type SearchMenusDeps } from '@/application/use-cases/search-menus';
 import type { WeeklyMenu } from '@/domain/menu/weekly-menu';
 import { MIN_MENU_SCORE } from '@/domain/search/rank-menus';
-import { hitAt5, ndcgAt5 } from '@/domain/search/ranking-metrics';
+import { hitAt5, ndcgAt5 } from '@/domain/evaluation/ranking-metrics';
 import { HYBRID_WEIGHT, MATCH_THRESHOLD } from '@/domain/search/term-score';
 import { err, ok, type Result } from '@/shared/result';
 

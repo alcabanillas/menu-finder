@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { Clock } from '@/application/ports/clock';
 import type { SelectionRepository } from '@/application/ports/selection-repository';
 import type { ShoppingListRepository } from '@/application/ports/shopping-list-repository';
-import { positiveIntegerInput } from '@/application/use-cases/select-menu';
+import { positiveIntegerInput } from '@/application/dto/positive-integer-input';
 import { currentShoppingSelection } from '@/application/use-cases/shopping-checklist';
 import { err, ok, type Result } from '@/shared/result';
 

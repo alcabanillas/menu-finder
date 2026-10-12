@@ -41,7 +41,13 @@ describe('who may build the setup with open sign-up', () => {
   );
 });
 
+// import/no-cycle walks the files on disk, and the linted paths do not exist: it would crash, and cycles are not
+// what these cases check.
+const LAYER_RULES_ONLY = { rules: { 'import/no-cycle': 'off' as const } };
+
 async function lintedRuleIds(repoPath: string): Promise<Array<string | null>> {
-  const [result] = await new ESLint().lintText(IMPORTS_OPEN_SETUP, { filePath: join(process.cwd(), repoPath) });
+  const [result] = await new ESLint({ overrideConfig: LAYER_RULES_ONLY }).lintText(IMPORTS_OPEN_SETUP, {
+    filePath: join(process.cwd(), repoPath),
+  });
   return result.messages.map((message) => message.ruleId);
 }
