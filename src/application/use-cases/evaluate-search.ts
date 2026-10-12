@@ -7,14 +7,14 @@ import type {
 } from '@/application/dto/evaluation-report';
 import type { EmbeddingsPort } from '@/application/ports/embeddings-port';
 import { QUERY_TYPES, type GoldenSets, type GoldenSetSource, type GradedQuery } from '@/application/ports/golden-set-source';
-import { searchMenus, type SearchMenusDeps } from '@/application/use-cases/search-menus';
+import { findMenus, type FindMenusDeps } from '@/application/services/search/find-menus';
 import type { WeeklyMenu } from '@/domain/menu/weekly-menu';
 import { MIN_MENU_SCORE } from '@/domain/search/rank-menus';
 import { hitAt5, ndcgAt5 } from '@/domain/evaluation/ranking-metrics';
 import { HYBRID_WEIGHT, MATCH_THRESHOLD } from '@/domain/search/term-score';
 import { err, ok, type Result } from '@/shared/result';
 
-export type EvaluateSearchDeps = SearchMenusDeps & { goldenSets: GoldenSetSource };
+export type EvaluateSearchDeps = FindMenusDeps & { goldenSets: GoldenSetSource };
 
 /** A kept query with its expected structure, validated as a search. */
 type Input = { query: GradedQuery; structure: SearchRequestDto };
@@ -103,7 +103,7 @@ function memoizeQueries(inner: EmbeddingsPort): MemoizedEmbeddings {
       const embedded = missing.length > 0 ? await inner.embedQueries(missing) : ok([]);
       if (!embedded.ok) return embedded;
       embedded.value.forEach((vector, index) => vectors.set(missing[index], vector));
-      // A term the service returned no vector for is left out, so `searchMenus` sees the count is wrong.
+      // A term the service returned no vector for is left out, so `findMenus` sees the count is wrong.
       return ok(terms.flatMap((term) => (vectors.has(term) ? [vectors.get(term)!] : [])));
     },
     dimensions: () => vectors.values().next().value?.length ?? 0,
@@ -111,15 +111,15 @@ function memoizeQueries(inner: EmbeddingsPort): MemoizedEmbeddings {
 }
 
 // The catalog is read once for the whole run, not once per search.
-function fixedCatalog(catalog: WeeklyMenu[]): SearchMenusDeps['menus'] {
+function fixedCatalog(catalog: WeeklyMenu[]): FindMenusDeps['menus'] {
   return { list: async () => ok(catalog) };
 }
 
-async function runSearches(inputs: Input[], deps: SearchMenusDeps): Promise<Result<Run[], EvaluateSearchError>> {
+async function runSearches(inputs: Input[], deps: FindMenusDeps): Promise<Result<Run[], EvaluateSearchError>> {
   const runs: Run[] = [];
   for (const { query, structure } of inputs) {
     for (const strategy of STRATEGIES) {
-      const result = await searchMenus(structure, strategy, deps);
+      const result = await findMenus(structure, strategy, deps);
       if (!result.ok) return err(searchError(query.id, result.error));
       runs.push({ query, result: result.value });
     }

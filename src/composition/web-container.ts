@@ -2,7 +2,6 @@ import { headers } from 'next/headers';
 import pg from 'pg';
 import type { CheckShoppingItemsInput } from '@/application/use-cases/check-shopping-items';
 import type { CurrentSelectionsInput } from '@/application/use-cases/current-selections';
-import type { SelectMenuInput } from '@/application/use-cases/select-menu';
 import type { SelectRandomMenuInput } from '@/application/use-cases/select-random-menu';
 import type { ShoppingChecklistInput } from '@/application/use-cases/shopping-checklist';
 import type { SignInInput } from '@/application/use-cases/sign-in';
@@ -10,7 +9,6 @@ import type { MenuWeekPageInput } from '@/application/use-cases/menu-week-page';
 import { checkShoppingItems } from '@/application/use-cases/check-shopping-items';
 import { currentSelections } from '@/application/use-cases/current-selections';
 import { currentUser } from '@/application/use-cases/current-user';
-import { selectMenu } from '@/application/use-cases/select-menu';
 import { menuWeekPage } from '@/application/use-cases/menu-week-page';
 import { selectRandomMenu } from '@/application/use-cases/select-random-menu';
 import { shoppingChecklist } from '@/application/use-cases/shopping-checklist';
@@ -63,7 +61,6 @@ export function createWebContainer(env: Env, requestHeaders: RequestHeaders) {
     },
     signOut: async () => signOut(lazyDeps()),
     currentUser: async () => currentUser(lazyDeps()),
-    selectMenu: async (input: SelectMenuInput) => selectMenu(lazyDeps(), input),
     currentSelections: async (input: CurrentSelectionsInput) => currentSelections(lazyDeps(), input),
     selectRandomMenu: async (input: SelectRandomMenuInput) => selectRandomMenu(lazyDeps(), input),
     menuWeekPage: async (input: MenuWeekPageInput) => menuWeekPage(lazyDeps(), input),

@@ -1,11 +1,9 @@
 import type { ShoppingChecklistDto } from '@/application/dto/shopping-checklist';
 import type { Clock } from '@/application/ports/clock';
-import type { RepositoryReadError } from '@/application/ports/repository-error';
 import type { SelectionRepository } from '@/application/ports/selection-repository';
 import type { ShoppingListRepository } from '@/application/ports/shopping-list-repository';
-import { mondayOf } from '@/domain/selection/local-date';
+import { currentShoppingSelection } from '@/application/services/shopping-list/current-shopping-selection';
 import type { Selection } from '@/domain/selection/selection';
-import { currentOf } from '@/domain/selection/week';
 import { toChecklist, type Checklist } from '@/domain/shopping/checklist';
 import { err, ok, type Result } from '@/shared/result';
 
@@ -36,16 +34,6 @@ export async function shoppingChecklist(
   ]);
   if (!items.ok || !ticks.ok) return err({ kind: 'failed' });
   return ok(toDto(selection, toChecklist(items.value, ticks.value)));
-}
-
-/** The selection whose shopping list is the user's current one, or `null` when there is none. */
-export async function currentShoppingSelection(
-  { selections, clock }: Pick<Deps, 'selections' | 'clock'>,
-  userId: string,
-): Promise<Result<Selection | null, RepositoryReadError>> {
-  const today = clock.today();
-  const fromThisMonday = await selections.listFrom(userId, mondayOf(today));
-  return fromThisMonday.ok ? ok(currentOf(fromThisMonday.value, today).shoppingList) : fromThisMonday;
 }
 
 function toDto({ menuNumber, startsOn }: Selection, checklist: Checklist): ShoppingChecklistDto {

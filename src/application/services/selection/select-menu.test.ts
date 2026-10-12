@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Clock } from '@/application/ports/clock';
 import type { MenuChoice, SelectionRepository } from '@/application/ports/selection-repository';
-import { selectMenu } from '@/application/use-cases/select-menu';
+import { selectMenu } from '@/application/services/selection/select-menu';
 import type { LocalDate } from '@/domain/selection/local-date';
 import { err, ok } from '@/shared/result';
 

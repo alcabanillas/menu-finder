@@ -1,7 +1,7 @@
 import type { Clock } from '@/application/ports/clock';
 import type { MenuRepository } from '@/application/ports/menu-repository';
 import type { SelectionRepository } from '@/application/ports/selection-repository';
-import { selectMenu } from '@/application/use-cases/select-menu';
+import { selectMenu } from '@/application/services/selection/select-menu';
 import type { Selection } from '@/domain/selection/selection';
 import { err, ok, type Result } from '@/shared/result';
 

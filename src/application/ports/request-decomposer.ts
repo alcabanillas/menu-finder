@@ -9,7 +9,7 @@ const REJECTION_CATEGORIES = ['gibberish', 'off-topic', 'instruction', 'not-a-se
 
 /**
  * What the model must answer: a structure, or a rejection with no constraints or groups (MF-40.2 design D2). It is
- * the contract of this port: the adapter asks the model for this shape, and `decomposeRequest` validates the
+ * the contract of this port: the adapter asks the model for this shape, and `decomposeText` validates the
  * answer with it, because the model may not keep to it.
  */
 export const decompositionSchema = z.strictObject({
@@ -22,7 +22,7 @@ export const decompositionSchema = z.strictObject({
 /**
  * The model that turns the text of a request into a decomposition (BUS-descomponedor, MF-40.2 design D1). No
  * existing port covers text generation: `EmbeddingsPort` only embeds. The answer is what the model said, not
- * trusted: `decomposeRequest` validates it.
+ * trusted: `decomposeText` validates it.
  */
 export interface RequestDecomposer {
   /** One call to the model, with the request as delimited data. A failure of the call or a timeout is an error. */

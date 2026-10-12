@@ -52,24 +52,6 @@ const architectureTests = {
   },
 };
 
-// Temporary: MF-59.2 replaces these with services. Each use case may import only the one use case it still calls.
-const temporaryUseCaseImports = [
-  ['select-random-menu', 'select-menu'],
-  ['check-shopping-items', 'shopping-checklist'],
-  ['evaluate-search', 'search-menus'],
-  ['evaluate-decomposer', 'decompose-request'],
-].map(([caller, callee]) => ({
-  files: [`src/application/use-cases/${caller}.ts`],
-  rules: {
-    'boundaries/dependencies': dependencyRule([
-      {
-        from: fromApplicationPart('use-cases'),
-        allow: { to: { element: { ...applicationPart('use-cases').to.element, fileInternalPath: `${callee}.ts` } } },
-      },
-    ]),
-  },
-}));
-
 /** What the web adapter may import: app/ and its entries outside it (the proxy). */
 function webAdapter() {
   return [
@@ -207,7 +189,6 @@ const eslintConfig = defineConfig([
   },
   architecture,
   architectureTests,
-  ...temporaryUseCaseImports,
   // Sin ciclos entre módulos (ADR-001 §3). eslint-config-next ya registra el plugin import y su resolver de TypeScript;
   // registrarlo otra vez falla («Cannot redefine plugin»), así que aquí solo va la regla.
   {

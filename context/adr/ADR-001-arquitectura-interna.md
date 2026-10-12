@@ -18,6 +18,7 @@ src/
   domain/            # entidades, value objects, reglas puras. CERO dependencias externas
   application/
     use-cases/       # un caso de uso = una operación del sistema
+    services/        # pasos con puertos que comparten varios casos de uso (MF-59)
     ports/           # interfaces de lo que el dominio necesita del exterior
     dto/             # formas de entrada/salida de los casos de uso
   infrastructure/    # implementaciones de los ports (BD, ficheros, LLM, embeddings)
