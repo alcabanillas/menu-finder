@@ -1,6 +1,5 @@
 import type { RejectionCategory } from '@/application/dto/decomposition';
-
-type ConstraintType = 'literal' | 'exclusion' | 'attribute' | 'fuzzy';
+import type { ConstraintType, Polarity } from '@/domain/search/search-request';
 
 /**
  * What `evaluate-decomposer` measures for each model (spec decomposer-evaluation). It holds model names, request ids
@@ -48,7 +47,7 @@ type Share = { matching: number; of: number; share: number | null };
 type RejectionRow = { category: RejectionCategory; hits: number; total: number };
 
 /** A constraint as the console names it. */
-export type ConstraintText = { term: string; type: ConstraintType; polarity: 'include' | 'exclude' };
+export type ConstraintText = { term: string; type: ConstraintType; polarity: Polarity };
 
 /**
  * One request of one model with a miss, for the console only: it names terms, so it is never written. `answer` says

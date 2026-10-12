@@ -1,9 +1,11 @@
 import type { RejectionCategory } from '@/application/dto/decomposition';
 import type { SearchRequestDto } from '@/application/dto/search-request';
+import { CONSTRAINT_TYPES, type ConstraintType } from '@/domain/search/search-request';
 import type { Result } from '@/shared/result';
 
-/** The query types of the retrieval golden set (EVAL-golden-sets). */
-export type QueryType = 'literal' | 'exclusion' | 'attribute' | 'fuzzy' | 'combined';
+/** The query types of the retrieval golden set (EVAL-golden-sets): one per constraint type, and queries that combine them. */
+export const QUERY_TYPES = [...CONSTRAINT_TYPES, 'combined'] as const;
+export type QueryType = ConstraintType | 'combined';
 
 /** A query of the retrieval golden set (MF-12): the grade (0, 1 or 2) of each menu, keyed by menu number. */
 export type GradedQuery = {

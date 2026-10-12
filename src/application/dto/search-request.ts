@@ -1,4 +1,12 @@
 import { z } from 'zod';
+import {
+  CONSTRAINT_TYPES,
+  POLARITIES,
+  SLOTS,
+  type ConstraintType,
+  type Polarity,
+  type Slot,
+} from '@/domain/search/search-request';
 
 /** Limit of a term (spec menu-search, "Request structure"), so that a request cannot exhaust the quota or the memory. */
 const MAX_TERM_LENGTH = 100;
@@ -10,11 +18,11 @@ const MAX_TERM_LENGTH = 100;
  */
 export const constraintSchema = z.strictObject({
   id: z.string().min(1),
-  type: z.enum(['literal', 'exclusion', 'attribute', 'fuzzy']),
+  type: z.enum(CONSTRAINT_TYPES),
   term: z.string().trim().min(1).max(MAX_TERM_LENGTH),
-  polarity: z.enum(['include', 'exclude']),
+  polarity: z.enum(POLARITIES),
   hard: z.boolean(),
-  slot: z.enum(['lunch', 'dinner']).optional(),
+  slot: z.enum(SLOTS).optional(),
 }) satisfies z.ZodType<unknown, ConstraintDto>;
 
 /**
@@ -30,11 +38,11 @@ export type SearchRequestDto = {
 
 type ConstraintDto = {
   id: string;
-  type: 'literal' | 'exclusion' | 'attribute' | 'fuzzy';
+  type: ConstraintType;
   term: string;
-  polarity: 'include' | 'exclude';
+  polarity: Polarity;
   hard: boolean;
-  slot?: 'lunch' | 'dinner';
+  slot?: Slot;
 };
 
 export type SearchRequestIssue = {

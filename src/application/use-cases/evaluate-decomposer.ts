@@ -12,7 +12,7 @@ import type { DecomposerRequest, GoldenSetSource } from '@/application/ports/gol
 import type { RequestDecomposer } from '@/application/ports/request-decomposer';
 import { decomposeRequest } from '@/application/use-cases/decompose-request';
 import { groupHits, matchConstraints, type ConstraintPair } from '@/domain/search/decomposition-score';
-import type { Constraint } from '@/domain/search/search-request';
+import { CONSTRAINT_TYPES, type Constraint, type ConstraintType } from '@/domain/search/search-request';
 import { ok, type Result } from '@/shared/result';
 
 /** One model of the run, with its own decomposer (MF-40.3 design D3). */
@@ -40,9 +40,6 @@ type Run = { request: DecomposerRequest; outcome: Outcome; ms: number };
 /** A run with its constraints paired: the answered ones, the expected ones and the hits. */
 type Scored = Run & { expected: Grouped; answered: Grouped; pairs: ConstraintPair[] };
 
-type ConstraintType = Constraint['type'];
-
-const CONSTRAINT_TYPES: ConstraintType[] = ['literal', 'exclusion', 'attribute', 'fuzzy'];
 const CATEGORIES: RejectionCategory[] = ['gibberish', 'off-topic', 'instruction', 'not-a-search'];
 const NOTHING: Grouped = { constraints: [], sameDish: [], anyOf: [] };
 const PERCENTILE = 0.95;

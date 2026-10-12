@@ -2,13 +2,14 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { z } from 'zod';
 import type { SearchRequestDto } from '@/application/dto/search-request';
-import type {
-  DecomposerRequest,
-  ExpectedStructure,
-  GoldenSetError,
-  GoldenSets,
-  GoldenSetSource,
-  GradedQuery,
+import {
+  QUERY_TYPES,
+  type DecomposerRequest,
+  type ExpectedStructure,
+  type GoldenSetError,
+  type GoldenSets,
+  type GoldenSetSource,
+  type GradedQuery,
 } from '@/application/ports/golden-set-source';
 import { err, ok, type Result } from '@/shared/result';
 
@@ -23,7 +24,7 @@ const retrievalSchema = z.object({
   queries: z.array(
     z.object({
       id: z.string().min(1),
-      type: z.enum(['literal', 'exclusion', 'attribute', 'fuzzy', 'combined']),
+      type: z.enum(QUERY_TYPES),
       status: z.enum(['kept', 'withdrawn']),
       // A withdrawn query was never graded; a kept one without grades is stopped by the use case.
       grades: z.record(z.string().regex(/^\d+$/), z.union([z.literal(0), z.literal(1), z.literal(2)])).optional(),
