@@ -4,7 +4,7 @@ Este documento contiene instrucciones de seguridad para cualquier agente que dis
 
 El Top 10 es un marco de concienciación, no una garantía de seguridad ni una lista exhaustiva. Cuando una decisión afecte a autenticación, autorización, datos personales, secretos, infraestructura o IA generativa, el agente debe señalar el riesgo y pedir revisión humana si no puede verificar el control necesario.
 
-> Última revisión: 2026-09-24, con el stack decidido. Revisar cuando OWASP publique una nueva edición o cuando se elija la librería de autenticación ([decisiones.md §2](decisiones.md)).
+> Última revisión: 2026-10-12, con Better Auth y un solo rol decididos (SEG-auth, SEG-roles). Revisar cuando OWASP publique una nueva edición.
 
 ## Instrucciones de trabajo
 
@@ -92,9 +92,9 @@ Aplazar un control es una decisión explícita: debe quedar registrada como ries
 - Preferir el mecanismo de identidad y sesión mantenido por el framework o proveedor. No crear protocolos de autenticación propios.
 - Proteger login, recuperación y MFA contra fuerza bruta y enumeración mediante respuestas uniformes, rate limiting y monitorización.
 - Usar cookies seguras o validar completamente firma, emisor, audiencia, expiración y algoritmo de los tokens. Nunca aceptar `alg=none` ni elegir el algoritmo desde datos no confiables.
-- Rotar el identificador de sesión al autenticar o elevar privilegios; expirar e invalidar sesiones al cerrar sesión, cambiar credenciales o revocar acceso.
-- Exigir MFA para administradores cuando la plataforma lo permita y no registrar credenciales ni códigos de recuperación.
-- Probar credenciales inválidas, sesión fijada, token expirado/revocado y recuperación de cuenta.
+- Rotar el identificador de sesión al autenticar; expirar e invalidar sesiones al cerrar sesión, cambiar credenciales o revocar acceso (elevar privilegios no aplica, SEG-roles).
+- No registrar credenciales ni secretos en ningún caso. Exigir MFA para administradores no aplica al operar con un solo rol sin perfil de administración (SEG-roles, SEG-sistema-cerrado).
+- Probar credenciales inválidas, sesión fijada y token expirado/revocado (la recuperación de cuenta no aplica en el sistema cerrado, SEG-sistema-cerrado).
 - Antipatrones a evitar: decodificar un JWT sin verificar la firma, aceptar el algoritmo declarado en el propio token, guardar el rol en `localStorage` o en una cookie no firmada y confiar en él, y comparar secretos con `===` en lugar de una comparación en tiempo constante.
 
 ## A08:2025 - Fallos de integridad de software o datos
@@ -107,7 +107,7 @@ Aplazar un control es una decisión explícita: debe quedar registrada como ries
 
 ## A09:2025 - Fallos de registro y alertas de seguridad
 
-- Registrar autenticaciones fallidas, denegaciones de acceso, cambios de privilegios, acciones administrativas y fallos de validación relevantes.
+- Registrar autenticaciones fallidas, denegaciones de acceso y fallos de validación relevantes (cambios de privilegios y acciones administrativas no aplican al operar con un solo rol, SEG-roles).
 - Generar eventos estructurados con fecha, tipo, resultado e identificador de correlación; evitar datos personales y secretos.
 - No registrar cuerpos completos, prompts, documentos o respuestas del LLM sin una necesidad aprobada y una política de redacción y retención.
 - Enviar errores a Sentry de forma saneada y configurar alertas ante patrones anómalos; integrar Sentry no sustituye la definición de alertas ni la respuesta a incidentes.
