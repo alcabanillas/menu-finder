@@ -21,7 +21,7 @@ In Next.js 16 the proxy runs on Node.js (`node_modules/next/dist/docs/01-app/03-
 
 ### D1. `src/instrumentation-client.ts`, errors only
 
-The file Next.js loads before the app becomes interactive calls `Sentry.init` with the DSN, the shared `dataCollection` and no tracing or replay options. The default browser integrations stay: global error and unhandled-rejection handlers, and default breadcrumbs. The breadcrumbs carry no query parameters, because `urlQueryParams` is off.
+The file Next.js loads before the app becomes interactive calls `Sentry.init` with the DSN, the shared `dataCollection` and no tracing or replay options. The default browser integrations stay: global error and unhandled-rejection handlers, and default breadcrumbs. `urlQueryParams: false` does not reach the URL of a browser event or the navigation and fetch breadcrumbs: the browser SDK does not gate them by `dataCollection` (`@sentry/browser`, `integrations/httpcontext.js`). The query parameters of the page therefore reach Sentry. The production check showed it, and the author accepted it on 2026-10-13, since today no URL of the app carries user text. MF-22.4 must keep the text of a search out of the URL.
 
 The file is added to the `web-entry` pattern of `eslint.config.mjs`, next to `proxy` and `instrumentation`.
 
@@ -53,7 +53,7 @@ The value is fixed in each build. On Vercel every deploy is a new build, so chan
 
 ### D5. Source maps only where they can be uploaded
 
-`next.config.ts` is wrapped with `withSentryConfig`, with telemetry off and logs silent. It passes neither `project`, `org` nor `authToken`: the Sentry build plugin reads `SENTRY_PROJECT`, `SENTRY_ORG` and `SENTRY_AUTH_TOKEN` from the environment itself, and an organisation token (`sntrys_…`) already carries the org. With a token, `sourcemaps.deleteSourcemapsAfterUpload` is `true`. Without one, `sourcemaps.disable` is `true`. Sentry deletes only the maps it generated itself and uploaded, so a build that cannot upload must not generate any. The end-to-end test that no `.map` is served is the guard against an SDK change in that behaviour.
+`next.config.ts` is wrapped with `withSentryConfig`, with telemetry off and the build logs not silenced. `silent: true` was the first choice, but in `@sentry/nextjs` it also drops the errors (`config/buildLogger.js`): the first production build failed to upload its source maps, and neither the build nor its log said so. It passes neither `project`, `org` nor `authToken`: the Sentry build plugin reads `SENTRY_PROJECT`, `SENTRY_ORG` and `SENTRY_AUTH_TOKEN` from the environment itself, and an organisation token (`sntrys_…`) already carries the org. With a token, `sourcemaps.deleteSourcemapsAfterUpload` is `true`. Without one, `sourcemaps.disable` is `true`. Sentry deletes only the maps it generated itself and uploaded, so a build that cannot upload must not generate any. The end-to-end test that no `.map` is served is the guard against an SDK change in that behaviour.
 
 The existing `next.config.test.ts` keeps checking the fixed headers and `poweredByHeader: false` through the wrapped config.
 

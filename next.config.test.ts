@@ -76,6 +76,11 @@ describe('sentryBuildOptions', () => {
     expect(sentryBuildOptions(env).sourcemaps).toEqual({ disable: true });
   });
 
+  // `silent` also drops the errors of the upload, so a failed upload left no trace in the build log (design D5).
+  it('shows the errors of the source map upload in the build log', () => {
+    expect(sentryBuildOptions({ SENTRY_AUTH_TOKEN: 'sntrys_test' })).not.toHaveProperty('silent');
+  });
+
   it('sends no telemetry of its own to Sentry', () => {
     expect(sentryBuildOptions({}).telemetry).toBe(false);
   });

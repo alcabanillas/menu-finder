@@ -24,13 +24,13 @@ export default withSentryConfig(nextConfig, sentryBuildOptions(process.env));
 /**
  * The Sentry build plugin reads SENTRY_AUTH_TOKEN, SENTRY_ORG and SENTRY_PROJECT itself; an organisation token carries
  * the org. Source maps only where they can be uploaded: Sentry deletes the maps it uploaded, so a build without a token
- * must generate none, or they would be served (MF-22.2 design D5).
+ * must generate none, or they would be served. The logs stay on: `silent` also drops the errors of the upload
+ * (MF-22.2 design D5).
  */
 export function sentryBuildOptions(env: Env): SentryBuildOptions {
   return {
     sourcemaps: env.SENTRY_AUTH_TOKEN ? { deleteSourcemapsAfterUpload: true } : { disable: true },
     telemetry: false,
-    silent: true,
     // Errors only, with no navigation tracing: the router-transition hook has nothing to do (design D1).
     suppressOnRouterTransitionStartWarning: true,
   };
