@@ -34,6 +34,10 @@ A production build with `SENTRY_AUTH_TOKEN` set SHALL upload the browser source 
 - **WHEN** the Next.js configuration is built without `SENTRY_AUTH_TOKEN`
 - **THEN** source maps are disabled, and nothing is uploaded
 
+#### Scenario: Upload errors visible in the build log
+- **WHEN** the Next.js configuration is built for Sentry
+- **THEN** the Sentry build logs are not silenced, so a failed source-map upload shows its error in the build output
+
 #### Scenario: No source map served
 - **WHEN** the production build is served and the browser requests any script under `/_next/static`
 - **THEN** no `.map` file exists in the public build output and no script references one with `sourceMappingURL`

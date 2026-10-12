@@ -1,6 +1,7 @@
 import pg from 'pg';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { currentE2eEnvironment, readEnvFile, testDatabaseUrl } from './support/e2e-environment';
+import { newFixtureRun } from './support/fixture-run';
 import { registerTestAccount, signInAs, type TestAccount } from './support/test-account';
 
 // Spec shopping-checklist (MF-24), against the test database only (MF-49), like the other specs.
@@ -10,8 +11,10 @@ test.skip(!testDatabaseUrl(process.env, readEnvFile()), 'needs the test database
 test.describe.configure({ mode: 'serial' });
 
 // Fictitious menus and items (AGENTS.md: never real data). MENU has the list; OTHER_MENU only replaces it.
-const MENU = 9101;
-const OTHER_MENU = 9102;
+// Numbers of this run only, so a parallel run never deletes or re-seeds them (MF-62).
+const run = newFixtureRun();
+const MENU = run.menuNumber(0);
+const OTHER_MENU = run.menuNumber(1);
 const ITEMS = [
   { position: 1, category: 'Legumbres', name: 'Garbanzos cocidos', quantity: 400, unit: 'g', optional: false },
   { position: 2, category: 'Legumbres', name: 'Piñones', quantity: 20, unit: 'g', optional: true },
