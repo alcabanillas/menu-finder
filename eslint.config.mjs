@@ -31,9 +31,9 @@ const architecture = {
       { type: 'shared-ui', pattern: 'src/shared/ui', partialMatch: false },
       { type: 'shared', pattern: 'src/shared', partialMatch: false },
     ],
-    // Next.js requires the proxy next to app/, but it is an entry of the web adapter too (MF-26). Elements match
-    // folders, so the file gets a category and the same rules as app/.
-    'boundaries/files': [{ category: 'web-entry', pattern: 'src/proxy.ts' }],
+    // Next.js requires the proxy (MF-26) and the instrumentation hook (MF-40.5) next to app/, but they are entries of
+    // the web adapter too. Elements match folders, so the files get a category and the same rules as app/.
+    'boundaries/files': [{ category: 'web-entry', pattern: 'src/{proxy,instrumentation}.ts' }],
   },
   rules: { 'boundaries/dependencies': dependencyRule() },
 };
