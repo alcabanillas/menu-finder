@@ -195,15 +195,6 @@ const eslintConfig = defineConfig([
     files: ['src/**/*.{ts,tsx}'],
     rules: { 'import/no-cycle': 'error' },
   },
-  // Temporary: MF-59.4 moves these types to domain/ or translates the port errors in the use case.
-  {
-    files: [
-      'src/application/dto/{embed-recipes,evaluation-report,ingest-menus,ingest-recipes,ingest-shopping-lists,migrate}.ts',
-    ],
-    rules: {
-      'boundaries/dependencies': dependencyRule([{ from: fromApplicationPart('dto'), allow: applicationPart('ports') }]),
-    },
-  },
   // MF-20.1: la autenticación con el registro abierto solo existe para la CLI (SEG-sistema-cerrado).
   // composition puede importarlo todo, así que la web se cierra aparte: app/ ya lo impide la regla de capas.
   {

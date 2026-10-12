@@ -2,13 +2,13 @@ import { describe, expect, it } from 'vitest';
 import type {
   DocumentSource,
   MenuFolder,
-  ShoppingListAnomaly,
   SourceError,
   SourceShoppingList,
 } from '@/application/ports/document-source';
 import type { RepositoryError } from '@/application/ports/repository-error';
 import type { ShoppingListRepository } from '@/application/ports/shopping-list-repository';
 import type { ShoppingItem, ShoppingList } from '@/domain/shopping/shopping-list';
+import type { ShoppingListAnomaly } from '@/domain/shopping/shopping-list-anomalies';
 import { err, ok, type Result } from '@/shared/result';
 import { ingestShoppingLists } from '@/application/use-cases/ingest-shopping-lists';
 

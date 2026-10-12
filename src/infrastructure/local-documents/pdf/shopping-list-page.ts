@@ -1,6 +1,7 @@
-import type { ShoppingListAnomaly, SourceShoppingList } from '@/application/ports/document-source';
+import type { SourceShoppingList } from '@/application/ports/document-source';
 import type { Unit } from '@/domain/recipe/recipe';
 import type { ShoppingItem } from '@/domain/shopping/shopping-list';
+import type { ShoppingListAnomaly } from '@/domain/shopping/shopping-list-anomalies';
 import type { PositionedText } from '@/infrastructure/local-documents/pdf/positioned-text';
 
 export type { PositionedText };

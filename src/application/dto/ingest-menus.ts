@@ -1,8 +1,7 @@
 import type { Day, MealType } from '@/domain/menu/weekly-menu';
-import type { RepositoryError } from '@/application/ports/repository-error';
-import type { SourceError } from '@/application/ports/document-source';
+import type { SaveFailure, SourceFailure } from '@/application/dto/ingest-failure';
 
-export type MenuFailure = { menu: number; error: SourceError };
+export type MenuFailure = { menu: number; error: SourceFailure };
 
 /** One dish of a parsed menu, with the match evidence the saved menu does not keep. */
 export type DishQaRow = {
@@ -40,6 +39,6 @@ export type IngestMenusSummary = {
 };
 
 export type IngestMenusError =
-  | { kind: 'source-unavailable'; error: SourceError }
+  | { kind: 'source-unavailable'; error: SourceFailure }
   | { kind: 'no-menu-parsed'; failures: MenuFailure[] }
-  | { kind: 'save-failed'; error: RepositoryError };
+  | { kind: 'save-failed'; error: SaveFailure };

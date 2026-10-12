@@ -1,9 +1,9 @@
-import type { ShoppingListAnomaly, SourceError } from '@/application/ports/document-source';
-import type { RepositoryError } from '@/application/ports/repository-error';
+import type { SaveFailure, SourceFailure } from '@/application/dto/ingest-failure';
+import type { ShoppingListAnomaly } from '@/domain/shopping/shopping-list-anomalies';
 
 export type { ShoppingListAnomaly };
 
-export type ShoppingListFailure = { menu: number; error: SourceError | { kind: 'empty-list' } };
+export type ShoppingListFailure = { menu: number; error: SourceFailure | { kind: 'empty-list' } };
 
 export type ShoppingListAnomalyRow = { menu: number; anomaly: ShoppingListAnomaly };
 
@@ -25,6 +25,6 @@ export type IngestShoppingListsSummary = {
 };
 
 export type IngestShoppingListsError =
-  | { kind: 'source-unavailable'; error: SourceError }
+  | { kind: 'source-unavailable'; error: SourceFailure }
   | { kind: 'no-list-parsed'; failures: ShoppingListFailure[] }
-  | { kind: 'save-failed'; error: RepositoryError };
+  | { kind: 'save-failed'; error: SaveFailure };

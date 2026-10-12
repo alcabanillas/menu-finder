@@ -1,9 +1,9 @@
 import type { ContentAnomaly } from '@/domain/recipe/content-anomalies';
 import type { DivergentRecipe, RecipeField } from '@/domain/recipe/select-versions';
-import type { LayoutAnomaly, SourceError } from '@/application/ports/document-source';
-import type { RepositoryError } from '@/application/ports/repository-error';
+import type { LayoutAnomaly } from '@/domain/recipe/layout-anomalies';
+import type { SaveFailure, SourceFailure } from '@/application/dto/ingest-failure';
 
-export type RecipeFailure = { menu: number; file: string; error: SourceError };
+export type RecipeFailure = { menu: number; file: string; error: SourceFailure };
 
 export type RecipeAnomaly = LayoutAnomaly | ContentAnomaly;
 
@@ -40,6 +40,6 @@ export type IngestRecipesSummary = {
 };
 
 export type IngestRecipesError =
-  | { kind: 'source-unavailable'; error: SourceError }
+  | { kind: 'source-unavailable'; error: SourceFailure }
   | { kind: 'no-recipe-parsed'; failures: RecipeFailure[] }
-  | { kind: 'save-failed'; error: RepositoryError };
+  | { kind: 'save-failed'; error: SaveFailure };

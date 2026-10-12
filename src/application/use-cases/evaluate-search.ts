@@ -6,8 +6,9 @@ import type {
   EvaluationReport,
 } from '@/application/dto/evaluation-report';
 import type { EmbeddingsPort } from '@/application/ports/embeddings-port';
-import { QUERY_TYPES, type GoldenSets, type GoldenSetSource, type GradedQuery } from '@/application/ports/golden-set-source';
+import type { GoldenSets, GoldenSetSource, GradedQuery } from '@/application/ports/golden-set-source';
 import { findMenus, type FindMenusDeps } from '@/application/services/search/find-menus';
+import { QUERY_TYPES } from '@/domain/evaluation/query-type';
 import type { WeeklyMenu } from '@/domain/menu/weekly-menu';
 import { MIN_MENU_SCORE } from '@/domain/search/rank-menus';
 import { hitAt5, ndcgAt5 } from '@/domain/evaluation/ranking-metrics';

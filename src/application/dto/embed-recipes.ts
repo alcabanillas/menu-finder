@@ -1,6 +1,3 @@
-import type { EmbeddingError } from '@/application/ports/embeddings-port';
-import type { EmbeddingStoreError } from '@/application/ports/recipe-embedding-repository';
-
 export type EmbedRecipesSummary = {
   /** Recipe rows in the database, the rows of dishes without recipe file included. */
   recipes: number;
@@ -11,4 +8,5 @@ export type EmbedRecipesSummary = {
   model: string;
 };
 
-export type EmbedRecipesError = EmbeddingError | EmbeddingStoreError;
+/** The embedding service or the vector store failed. The same kinds as their ports report (MF-59.4). */
+export type EmbedRecipesError = { kind: 'embedding-failed'; reason: string } | { kind: 'store-failed'; reason: string };
