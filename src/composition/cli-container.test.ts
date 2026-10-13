@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { SearchRequestDto } from '@/application/dto/search-request';
 import { createCliContainer } from '@/composition/cli-container';
+import { PostgresRateLimiter } from '@/infrastructure/postgres/postgres-rate-limiter';
 
 // A host that does not exist: if the container tried to connect, the error would be a network error.
 const UNREACHABLE = 'postgresql://user:password@unreachable.invalid/db';
@@ -155,6 +156,17 @@ describe('createCliContainer', () => {
       );
 
       expect(result).toEqual({ ok: false, error: { kind: 'missing-variables', names: ['DATABASE_URL_UNPOOLED'] } });
+    });
+
+    // The daily LLM limit is the web's (SEG-rate-limit): the CLI has no limiter and records no hit in any bucket.
+    it('records no hit in the daily LLM bucket', async () => {
+      const hit = vi.spyOn(PostgresRateLimiter.prototype, 'hit');
+      const container = createCliContainer({ GEMINI_API_KEY: 'key', DATABASE_URL_UNPOOLED: UNREACHABLE });
+
+      const result = await container.searchByText('   ', 'hybrid');
+
+      expect(result).toEqual({ ok: false, error: { kind: 'request-too-short' } });
+      expect(hit).not.toHaveBeenCalled();
     });
   });
 });

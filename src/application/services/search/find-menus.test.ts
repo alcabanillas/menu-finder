@@ -199,12 +199,17 @@ describe('findMenus', () => {
     ['list', 'lexical'],
     ['matches', 'lexical'],
     ['matches', 'hybrid'],
-    ['embed', 'semantic'],
     ['similarities', 'semantic'],
   ] as const)('ends with an error and no ranking when %s fails', async (fail, strategy) => {
     const result = await search(request([constraint('c1', 'pollo')]), strategy, { fail }).result;
 
     expect(result).toEqual({ ok: false, error: { kind: 'search-failed', reason: 'connection lost' } });
+  });
+
+  it('keeps the kind and the reason when the embedding service fails, with no ranking', async () => {
+    const result = await search(request([constraint('c1', 'pollo')]), 'semantic', { fail: 'embed' }).result;
+
+    expect(result).toEqual({ ok: false, error: { kind: 'embedding-failed', reason: 'connection lost' } });
   });
 
   it('ends with an error when the embedding service returns fewer vectors than terms', async () => {

@@ -195,6 +195,25 @@ const eslintConfig = defineConfig([
     files: ['src/**/*.{ts,tsx}'],
     rules: { 'import/no-cycle': 'error' },
   },
+  // Las cabeceras de la petición entran por un solo sitio: el container de la web las lee de Next.js y las inyecta en
+  // los adaptadores que las necesitan (ADR-001 §5). Los tests pueden mockearlas: vi.mock no es un import.
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/composition/web-container.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'next/headers',
+              message: 'Only src/composition/web-container.ts reads next/headers: receive the request headers injected.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   // MF-20.1: la autenticación con el registro abierto solo existe para la CLI (SEG-sistema-cerrado).
   // composition puede importarlo todo, así que la web se cierra aparte: app/ ya lo impide la regla de capas.
   {

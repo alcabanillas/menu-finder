@@ -132,6 +132,7 @@ function searchError(id: string, error: SearchMenusError): EvaluateSearchError {
   switch (error.kind) {
     case 'index-not-loaded':
       return error;
+    case 'embedding-failed':
     case SEARCH_FAILED:
       return searchFailed(error.reason, id);
     // Unreachable: every structure was validated by `pairInputs` before the run. Mapped for exhaustiveness only.

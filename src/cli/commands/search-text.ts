@@ -40,6 +40,8 @@ function errorLines(error: SearchByTextError | MissingVariables): string[] {
       return ['The structure is not a valid search:', ...error.issues.map(issueLine)];
     case 'index-not-loaded':
       return [error.message];
+    case 'embedding-failed':
+      return [`The embedding service failed: ${error.reason}`];
     case 'search-failed':
       return [`The search failed: ${error.reason}`];
     default:
