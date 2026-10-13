@@ -25,7 +25,7 @@
 ## 4b. Refactor: composition only wires
 
 - [x] 4b.1 Move the client IP of the sign-in out of `web-container.ts` into `src/infrastructure/http/forwarded-client-ip.ts`, which receives the injected request headers like `BetterAuthSessionManager`; the existing web-container test now checks the IP in the rate-limit key. Restrict `next/headers` to `web-container.ts` with ESLint (ADR-001 §5). No behavior change (PROC-sdd, small refactor)
-- [x] 4b.2 Split `web-container.ts` into `src/composition/web/` (`env.ts`, `infrastructure-deps.ts`, `search-deps.ts`, `request-headers.ts`): the container keeps only the wiring of the use cases and its cache. `request-headers.ts` is now the one file that reads `next/headers` (it replaces `web-container.ts` in 4b.1), and the ESLint blocks for `next/headers` and the open sign-up setup, which were the same rule and overrode each other, are one block per file. Public API unchanged; tests in `src/composition/web-boundaries.test.ts` and `account-creation-boundary.test.ts` (ADR-001 §2, §5; PROC-sdd, small refactor)
+- [x] 4b.2 Split `web-container.ts` into `src/composition/web/` (`env.ts`, `infrastructure-deps.ts`, `search-deps.ts`, `request-headers.ts`, and the use cases wired by area in `auth-`, `menu-`, `shopping-` and `search-use-cases.ts`): the container only joins the areas and keeps its cache. `request-headers.ts` is now the one file that reads `next/headers` (it replaces `web-container.ts` in 4b.1), and the ESLint blocks for `next/headers` and the open sign-up setup, which were the same rule and overrode each other, are one block per file. Public API unchanged; tests in `src/composition/web-boundaries.test.ts` and `account-creation-boundary.test.ts` (ADR-001 §2, §5; PROC-sdd, small refactor)
 
 ## 5. Close
 

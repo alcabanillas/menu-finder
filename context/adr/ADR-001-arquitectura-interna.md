@@ -24,8 +24,8 @@ src/
     dto/             # formas de entrada/salida de los casos de uso
   infrastructure/    # implementaciones de los ports (BD, ficheros, LLM, embeddings)
   composition/       # composition roots: única capa que conoce implementaciones concretas
-    web-container.ts # para app/: solo enlaza los casos de uso
-    web/             # lo que construye web-container.ts: env, adaptadores comunes, adaptadores de la búsqueda, cabeceras
+    web-container.ts # para app/: junta el enlace de cada área y cachea las dependencias
+    web/             # lo que construye web-container.ts: env, adaptadores, cabeceras y el enlace de los casos de uso por área
     cli-container.ts # para cli/
   cli/               # CLI = ADAPTADOR PRIMARIO: ingesta, alta de cuentas, evaluación
     commands/

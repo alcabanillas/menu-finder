@@ -1,28 +1,14 @@
-import type { CheckShoppingItemsInput } from '@/application/use-cases/shopping-list/check-shopping-items';
-import type { CurrentSelectionsInput } from '@/application/use-cases/menu/current-selections';
-import type { SelectRandomMenuInput } from '@/application/use-cases/menu/select-random-menu';
-import type { ShoppingChecklistInput } from '@/application/use-cases/shopping-list/shopping-checklist';
-import type { SignInInput } from '@/application/use-cases/auth/sign-in';
-import type { MenuWeekPageInput } from '@/application/use-cases/menu/menu-week-page';
-import { checkShoppingItems } from '@/application/use-cases/shopping-list/check-shopping-items';
-import { currentSelections } from '@/application/use-cases/menu/current-selections';
-import { currentUser } from '@/application/use-cases/auth/current-user';
-import { menuWeekPage } from '@/application/use-cases/menu/menu-week-page';
-import { selectRandomMenu } from '@/application/use-cases/menu/select-random-menu';
-import { shoppingChecklist } from '@/application/use-cases/shopping-list/shopping-checklist';
-import { signIn } from '@/application/use-cases/auth/sign-in';
-import { signOut } from '@/application/use-cases/auth/sign-out';
-import { searchByTextWithinDailyLimit, type DailyLimitedSearchDeps } from '@/application/use-cases/search/search-by-text';
-import { forwardedClientIp } from '@/infrastructure/http/forwarded-client-ip';
+import type { DailyLimitedSearchDeps } from '@/application/use-cases/search/search-by-text';
+import { authUseCases } from '@/composition/web/auth-use-cases';
 import type { Env } from '@/composition/web/env';
 import { buildDeps, type Deps } from '@/composition/web/infrastructure-deps';
+import { menuUseCases } from '@/composition/web/menu-use-cases';
 import { nextRequestHeaders, type RequestHeaders } from '@/composition/web/request-headers';
 import { buildSearchDeps, type WebSeams } from '@/composition/web/search-deps';
+import { searchUseCases } from '@/composition/web/search-use-cases';
+import { shoppingUseCases } from '@/composition/web/shopping-use-cases';
 
 type WebContainer = ReturnType<typeof createWebContainer>;
-
-// The default of the CLI (MF-22.1): the embedding of the terms, with no text match.
-const WEB_SEARCH_STRATEGY = 'semantic';
 
 const globalCache = globalThis as typeof globalThis & { menuFinderWebContainer?: WebContainer };
 
@@ -48,19 +34,10 @@ export function createWebContainer(env: Env, requestHeaders: RequestHeaders, sea
     return search;
   };
 
-  // async, so that a missing variable is a rejected promise like any other failure of the call.
   return {
-    signIn: async (input: SignInInput) =>
-      signIn(lazyDeps(), { ...input, clientIp: await forwardedClientIp(requestHeaders) }),
-    signOut: async () => signOut(lazyDeps()),
-    currentUser: async () => currentUser(lazyDeps()),
-    currentSelections: async (input: CurrentSelectionsInput) => currentSelections(lazyDeps(), input),
-    selectRandomMenu: async (input: SelectRandomMenuInput) => selectRandomMenu(lazyDeps(), input),
-    menuWeekPage: async (input: MenuWeekPageInput) => menuWeekPage(lazyDeps(), input),
-    shoppingChecklist: async (input: ShoppingChecklistInput) => shoppingChecklist(lazyDeps(), input),
-    checkShoppingItems: async (input: CheckShoppingItemsInput) => checkShoppingItems(lazyDeps(), input),
-    // No session check here: the server action of MF-22.4 calls this only for a signed-in user.
-    searchByText: async (request: string) =>
-      searchByTextWithinDailyLimit(request, WEB_SEARCH_STRATEGY, lazySearch()),
+    ...authUseCases(lazyDeps, requestHeaders),
+    ...menuUseCases(lazyDeps),
+    ...shoppingUseCases(lazyDeps),
+    ...searchUseCases(lazySearch),
   };
 }
