@@ -17,6 +17,15 @@ const container = (name) => ({
   to: { element: { type: 'composition', fileInternalPath: `${name}.ts` } },
 });
 
+const nextHeadersRestriction = {
+  name: 'next/headers',
+  message: 'Only src/composition/web/request-headers.ts reads next/headers: receive the request headers injected.',
+};
+const openSignUpRestriction = {
+  group: ['**/infrastructure/auth/create-account', '@/infrastructure/auth/create-account'],
+  message: 'The web must not build the authentication with open sign-up: only the CLI creates accounts.',
+};
+
 const architecture = {
   files: ['src/**/*.{ts,tsx}'],
   plugins: { boundaries },
@@ -195,42 +204,28 @@ const eslintConfig = defineConfig([
     files: ['src/**/*.{ts,tsx}'],
     rules: { 'import/no-cycle': 'error' },
   },
-  // Las cabeceras de la petición entran por un solo sitio: el container de la web las lee de Next.js y las inyecta en
-  // los adaptadores que las necesitan (ADR-001 §5). Los tests pueden mockearlas: vi.mock no es un import.
+  // Las cabeceras de la petición entran por un solo sitio, src/composition/web/request-headers.ts: el container de la
+  // web las lee de Next.js y las inyecta en los adaptadores que las necesitan (ADR-001 §5). Los tests pueden
+  // mockearlas: vi.mock no es un import.
+  // MF-20.1: la autenticación con el registro abierto solo existe para la CLI (SEG-sistema-cerrado). composition
+  // puede importarlo todo, así que la web se cierra aparte: app/ ya lo impide la regla de capas.
+  // Las dos son la misma regla, `no-restricted-imports`, y cuando dos bloques la configuran para un fichero el último
+  // sustituye las opciones del anterior en vez de sumarlas. Por eso cada fichero cae en un solo bloque.
   {
     files: ['src/**/*.{ts,tsx}'],
-    ignores: ['src/composition/web-container.ts'],
+    ignores: ['src/composition/web-container.ts', 'src/composition/web/**'],
+    rules: { 'no-restricted-imports': ['error', { paths: [nextHeadersRestriction] }] },
+  },
+  {
+    files: ['src/composition/web-container.ts', 'src/composition/web/**'],
+    ignores: ['src/composition/web/request-headers.ts'],
     rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          paths: [
-            {
-              name: 'next/headers',
-              message: 'Only src/composition/web-container.ts reads next/headers: receive the request headers injected.',
-            },
-          ],
-        },
-      ],
+      'no-restricted-imports': ['error', { paths: [nextHeadersRestriction], patterns: [openSignUpRestriction] }],
     },
   },
-  // MF-20.1: la autenticación con el registro abierto solo existe para la CLI (SEG-sistema-cerrado).
-  // composition puede importarlo todo, así que la web se cierra aparte: app/ ya lo impide la regla de capas.
   {
-    files: ['src/composition/web-container.ts'],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['**/infrastructure/auth/create-account', '@/infrastructure/auth/create-account'],
-              message: 'The web must not build the authentication with open sign-up: only the CLI creates accounts.',
-            },
-          ],
-        },
-      ],
-    },
+    files: ['src/composition/web/request-headers.ts'],
+    rules: { 'no-restricted-imports': ['error', { patterns: [openSignUpRestriction] }] },
   },
   // scripts/datos/ son los scripts CommonJS de generación local de datos (T0).
   // Se sustituyen por la CLI de ingesta (src/cli/); hasta entonces se permite require().

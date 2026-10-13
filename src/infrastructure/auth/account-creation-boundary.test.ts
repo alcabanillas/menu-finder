@@ -20,6 +20,16 @@ describe('who may build the setup with open sign-up', () => {
   );
 
   it(
+    'rejects the files the web composition root is split into',
+    async () => {
+      const ruleIds = await lintedRuleIds('src/composition/web/infrastructure-deps.ts');
+
+      expect(ruleIds).toContain('no-restricted-imports');
+    },
+    LINT_TIMEOUT_MS,
+  );
+
+  it(
     'rejects a route under app/, already closed by the layer rules of ADR-001',
     async () => {
       const ruleIds = await lintedRuleIds('src/app/api/accounts/route.ts');

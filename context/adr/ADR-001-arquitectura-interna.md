@@ -24,7 +24,8 @@ src/
     dto/             # formas de entrada/salida de los casos de uso
   infrastructure/    # implementaciones de los ports (BD, ficheros, LLM, embeddings)
   composition/       # composition roots: única capa que conoce implementaciones concretas
-    web-container.ts # para app/
+    web-container.ts # para app/: solo enlaza los casos de uso
+    web/             # lo que construye web-container.ts: env, adaptadores comunes, adaptadores de la búsqueda, cabeceras
     cli-container.ts # para cli/
   cli/               # CLI = ADAPTADOR PRIMARIO: ingesta, alta de cuentas, evaluación
     commands/
@@ -102,7 +103,7 @@ Ejemplo que fija el criterio — **el parser del menú (MF-11)**: leer el PDF (`
 - **En Vercel (OPS-vercel) no hay proceso de larga vida**: el contenedor puede recrearse en cada invocación. El acceso a BD usa el **pooler** de Neon; prohibido asumir un pool de conexiones persistente.
 - **Los route handlers y los comandos de la CLI son adaptadores finos**: parsear, autenticar y autorizar (la web), llamar a un caso de uso, mapear `Result` a HTTP o a código de salida. Cero lógica de negocio. Si un handler o un comando pasa de ~30 líneas, la lógica está en el sitio equivocado.
 - **Server Components y Server Actions son la trampa del patrón**: pueden importar cualquier cosa y hacerlo parecerá natural. Norma: **un Server Component solo puede invocar casos de uso a través del composition root**, nunca repositorios, clientes de BD o SDK del LLM. Toda escritura pasa por un caso de uso. Esto además es lo que exige `safety-first.md` P5 (las decisiones viven en el backend).
-- **Las cabeceras de la petición entran por un solo sitio.** Solo `web-container.ts` importa `next/headers`; los adaptadores que las necesitan (la sesión de Better Auth, la IP del cliente para el límite de login) reciben la función `headers` inyectada y la interpretan ellos. Lo comprueba ESLint (`no-restricted-imports`) (decidido por el autor el 2026-10-13).
+- **Las cabeceras de la petición entran por un solo sitio.** Solo `composition/web/request-headers.ts` importa `next/headers` y `web-container.ts` se lo pasa a los adaptadores; los adaptadores que las necesitan (la sesión de Better Auth, la IP del cliente para el límite de login) reciben la función `headers` inyectada y la interpretan ellos. Lo comprueba ESLint (`no-restricted-imports`) (decidido por el autor el 2026-10-13).
 - **Solo `app/` toca el `web-container`.** Las features reciben los datos (DTO) y las server actions por props, y se limitan a pintar. Así se testean con Testing Library sin servidor ni BD, y la sesión y la autorización no se pueden saltar desde la UI.
 - **Errores:** `domain` y `application` devuelven `Result<T, E>`; los adaptadores de infraestructura pueden lanzar, y su propio adaptador captura y convierte a `Result` en la frontera. No se propagan excepciones de librerías hacia dentro.
 
