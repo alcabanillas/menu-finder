@@ -277,6 +277,29 @@ describe('searchByTextWithinDailyLimit', () => {
 
       expect(hits[0].options.limit).toBe(2);
     });
+
+    it('with a limit of 2, lets two searches of the day run and stops the third', async () => {
+      const { deps, modelCalls } = webDeps();
+      const counted: string[] = [];
+      const rateLimiter: RateLimiter = {
+        ...deps.rateLimiter,
+        hit: async (key, { limit }) => {
+          counted.push(key);
+          return { allowed: counted.length <= limit, remaining: 0, resetAt: new Date(0) };
+        },
+      };
+      const limited = { ...deps, rateLimiter, dailyLimit: 2 };
+
+      const outcomes = [
+        await searchByTextWithinDailyLimit(REQUEST, 'lexical', limited),
+        await searchByTextWithinDailyLimit(REQUEST, 'lexical', limited),
+        await searchByTextWithinDailyLimit(REQUEST, 'lexical', limited),
+      ];
+
+      expect(outcomes.map((outcome) => outcome.ok)).toEqual([true, true, false]);
+      expect(outcomes[2]).toEqual(err({ kind: 'llm-limit-reached' }));
+      expect(modelCalls).toHaveLength(2);
+    });
   });
 
   describe('the failure report', () => {

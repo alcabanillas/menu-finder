@@ -27,7 +27,7 @@ See proposal.md, "Why". The current state:
 - `searchByText(request, strategy, deps)`, the CLI's, with no limit and no report.
 - `searchByTextWithinDailyLimit(request, strategy, deps)`, the web's: first one hit on the daily bucket, then `runSearch`, then the report of a failed outcome. Its extra dependencies are `rateLimiter`, `failureReport`, `now`, `dailyLimit`, `decomposerModel` and `secrets`.
 
-`web-container.ts` only wires: it reads `LLM_DAILY_LIMIT`, builds the adapters and passes them in (ADR-001 §3, "composition solo cablea").
+`src/composition/web/search-deps.ts` only wires: it reads `LLM_DAILY_LIMIT`, builds the adapters and passes them in (ADR-001 §3, "composition solo cablea").
 
 - **Why:** SEG-rate-limit applies the limit only in the web, so the CLI calls the variant without it, with no flag and no stub. The limit and the report are application logic, so they are tested with fakes like `signIn`, not inside the composition root.
 - **Alternative rejected:** a `RateLimiter` dependency inside `searchByText`, with an unlimited stub for the CLI. It adds a fake adapter to the CLI only to switch it off.
@@ -42,7 +42,7 @@ A search makes two Gemini calls: the decomposer, and the embedding of the terms 
 
 The key is `llm:daily:<YYYY-MM-DD>` in UTC, with a window of 86,400 seconds, so the counter rolls over at midnight UTC as spec `rate-limiting` says, whatever time the first search of the day ran. The current instant is a parameter (`now: () => Date`), so the rollover is tested without a fake timer. The `Clock` port is not used, because it gives the Europe/Madrid date and the spec counts in UTC.
 
-`LLM_DAILY_LIMIT` is read once, by the web container, when the search's dependencies are built. A value that is not a positive integer falls back to 100.
+`LLM_DAILY_LIMIT` is read once, by `src/composition/web/search-deps.ts`, when the search's dependencies are built. A value that is not a positive integer falls back to 100.
 
 ### D4. `embedding-failed` becomes a kind of `SearchMenusError`
 
@@ -58,6 +58,8 @@ A failed outcome is not an `Error`, so it is sent with `Sentry.captureMessage('s
 - `extra.reason`: the reason, passed through `redactSecrets(reason, [apiKey, request])`.
 
 The level is `error` for the faults (`decomposer-failed`, `embedding-failed`, `search-failed`, `index-not-loaded`) and `warning` for `llm-limit-reached`, which is the system working as designed.
+
+The user outcomes give no event, through the `default` branch of `toEvent`. `invalid-request` is one of them, but `searchByTextWithinDailyLimit` cannot reach it: `decomposeText` checks the structure with the same `parseSearchRequest` that `findMenus` uses and returns a failure as `invalid-answer`, and an empty structure stops at `nothing-to-search` before `findMenus`. So the test of "User outcomes not reported" covers the other five kinds, and `invalid-request` relies on the `default` branch.
 
 The sender is `src/infrastructure/sentry/sentry-search-failure-report.ts`, behind the port `SearchFailureReport` (`src/application/ports/search-failure-report.ts`): the use case calls it (D1), and monitoring is an external boundary that no existing port covers. The use case builds the event and redacts the reason, so the adapter only sends it. `dataCollection` already keeps the request out of the event, and the server's `beforeSend` is not touched.
 
