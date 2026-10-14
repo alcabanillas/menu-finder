@@ -164,11 +164,11 @@ describe('createWebContainer searchByText', () => {
     const { seams, calls, events } = fakeSearch();
     const container = createWebContainer(SEARCH_ENV, noCookies, seams);
 
-    const result = await container.searchByText('quiero pollo');
+    const result = await container.searchByText('user-a', 'quiero pollo');
 
     expect(result.ok).toBe(true);
     expect(calls).toMatchObject({ decompose: 1, embed: 1, list: 1, matches: 0 });
-    expect(calls.hits).toEqual([expect.stringMatching(/^llm:daily:\d{4}-\d{2}-\d{2}$/)]);
+    expect(calls.hits).toEqual([expect.stringMatching(/^llm:daily:user-a:\d{4}-\d{2}-\d{2}$/)]);
     expect(events).toEqual([]);
   });
 
@@ -176,7 +176,7 @@ describe('createWebContainer searchByText', () => {
     const { seams, calls, events } = fakeSearch({ allowedHits: 0 });
     const container = createWebContainer(SEARCH_ENV, noCookies, seams);
 
-    const result = await container.searchByText('quiero pollo');
+    const result = await container.searchByText('user-a', 'quiero pollo');
 
     expect(result).toEqual(err({ kind: 'llm-limit-reached' }));
     expect(calls).toMatchObject({ decompose: 0, embed: 0, list: 0, matches: 0 });
@@ -188,7 +188,7 @@ describe('createWebContainer searchByText', () => {
     const { seams, events } = fakeSearch({ answer: failure });
     const container = createWebContainer(SEARCH_ENV, noCookies, seams);
 
-    const result = await container.searchByText('quiero pollo');
+    const result = await container.searchByText('user-a', 'quiero pollo');
 
     expect(result).toEqual(failure);
     expect(events).toEqual([expect.objectContaining({ kind: 'decomposer-failed', level: 'error', reason: 'quota exceeded' })]);
@@ -207,7 +207,7 @@ describe('createWebContainer searchByText', () => {
     const { seams, calls } = fakeSearch();
     const container = createWebContainer({ ...SEARCH_ENV, LLM_DAILY_LIMIT: value }, noCookies, seams);
 
-    await container.searchByText('quiero pollo');
+    await container.searchByText('user-a', 'quiero pollo');
 
     expect(calls.limits).toEqual([expected]);
   });
@@ -216,7 +216,7 @@ describe('createWebContainer searchByText', () => {
     const { seams, calls } = fakeSearch();
     const container = createWebContainer(COMPLETE_ENV, noCookies, seams);
 
-    const failure = container.searchByText('quiero pollo');
+    const failure = container.searchByText('user-a', 'quiero pollo');
 
     await expect(failure).rejects.toThrow('Missing environment variables: GEMINI_API_KEY');
     await expect(failure).rejects.not.toThrow(SECRET);

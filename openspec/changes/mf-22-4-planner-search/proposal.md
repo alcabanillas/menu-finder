@@ -10,6 +10,7 @@ Roadmap item **MF-22.4** (`context/roadmap.md`). MF-22.3 left a web search entry
 - When no menu fits, the page says so.
 - One message for each outcome that gives no ranking: a request that is empty or too long, a rejected request, an answer that does not validate, nothing to search, the daily limit reached, and a failure of the system.
 - An empty or too-long request is refused before the daily LLM bucket is hit, so it does not spend the limit. Today the hit comes first.
+- The daily LLM limit becomes one bucket per user, keyed on the user of the session, and the global bucket goes.
 - One Sentry breadcrumb in the browser when a search is sent and one when its answer arrives, with no request text and no terms.
 - The random button and its summary stay until MF-22.5 removes them.
 - Not in this change: the "Prueba con" suggestions of the mock (if they come back, their texts come from the search golden set, with measured results), the "Añade otra condición…" placeholder (the request does not accumulate), the menu title, the "Ver semana" button, the eyebrow with the number of menus, how many menus tie with the first, and how many menus each hard constraint removes when fewer than five are left (see Impact, "Decisions relied on").
@@ -23,7 +24,7 @@ None.
 ### Modified Capabilities
 
 - `menu-planner`: new requirements for searching from a request, the restriction chips, the candidate cards, an empty ranking, the search messages and the session check of the search.
-- `rate-limiting`: an empty or too-long request is not counted in the daily LLM limit.
+- `rate-limiting`: an empty or too-long request is not counted in the daily LLM limit, and the limit is counted per user, with no ceiling shared by all users (decided by the author on 2026-10-14: with one shared ceiling, a single account spent the day's searches of every other).
 - `error-reporting`: the browser breadcrumbs of a search carry no request data.
 - `menu-search`: the result gives the units of the request, and the evidence of each menu follows their order, so the web does not group the constraints again.
 

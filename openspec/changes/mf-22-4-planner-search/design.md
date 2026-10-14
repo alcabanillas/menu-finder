@@ -46,6 +46,12 @@ The server action turns the `Result` into a `PlannerSearchState`, a discriminate
 
 *Alternative:* check the length in the server action. This was rejected because it would copy the limit of 300 into the web adapter, and because the rule protects the daily limit, which is application logic (SEG-rate-limit, ADR-001 §3).
 
+### D2b. The daily limit per user
+
+The key of the daily bucket gains the user id: `llm:daily:<userId>:<date>`. `searchByTextWithinDailyLimit` takes the user id, the server action passes the user of `requireUser()`, and the web container's `searchByText` takes it too. The id comes only from the session, never from the form (spec `menu-planner`, "Searching needs a session and trusts only the session"). `LLM_DAILY_LIMIT` keeps its name and its default of 100, now per user, so no variable changes in Vercel. The buckets of the old global key expire on their own.
+
+*Alternative:* a per-user bucket plus the global one as a cost ceiling. Rejected by the author (2026-10-14): accounts are created only by the CLI, so the cost stays bounded by the number of accounts.
+
 ### D3. The units come from the search, not from the UI
 
 The domain already groups the constraints into units (`toUnits` in `src/domain/search/constraint-unit.ts`), and `find-menus.ts` builds the evidence of each menu in that order. But `SearchResultDto` does not expose the units, so the order is not a contract, and the UI would have to group the constraints again. `SearchResultDto` gets `units: { kind: 'constraint' | 'sameDish' | 'anyOf'; constraints: string[] }[]`, built from the same `Unit[]` that scores the menus. The `evidence` of every menu is aligned with it by index (spec `menu-search`, "Top five and ties").

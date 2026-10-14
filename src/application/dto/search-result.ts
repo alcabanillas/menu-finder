@@ -47,5 +47,5 @@ export type TextSearchDto = { structure: Required<SearchRequestDto>; result: Sea
  */
 export type SearchByTextError = DecomposeError | { kind: 'nothing-to-search' } | SearchMenusError;
 
-/** The web's search can also stop at the global daily ceiling: nothing was sent to the model (spec rate-limiting). */
+/** The web's search can also stop at the user's daily ceiling: nothing was sent to the model (spec rate-limiting). */
 export type DailyLimitedSearchError = SearchByTextError | { kind: 'llm-limit-reached' };

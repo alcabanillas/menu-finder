@@ -104,7 +104,7 @@ describe('searchMenusAction', () => {
 
     const state = await searchMenusAction(IDLE, formWith('  garbanzos  '));
 
-    expect(mocks.searchByText).toHaveBeenCalledExactlyOnceWith('garbanzos');
+    expect(mocks.searchByText).toHaveBeenCalledExactlyOnceWith('user-a', 'garbanzos');
     expect(state).toMatchObject({ status: 'ranking', attempt: 1 });
     expect(state.status === 'ranking' && state.cards.map(({ menu }) => menu)).toEqual([12]);
   });
@@ -144,6 +144,6 @@ describe('searchMenusAction', () => {
 
     await searchMenusAction(IDLE, formWith('garbanzos', { userId: 'user-b', strategy: 'semantic' }));
 
-    expect(mocks.searchByText).toHaveBeenCalledExactlyOnceWith('garbanzos');
+    expect(mocks.searchByText).toHaveBeenCalledExactlyOnceWith('user-a', 'garbanzos');
   });
 });

@@ -31,13 +31,13 @@ export async function chooseRandomMenuAction(previous: RandomMenuState): Promise
 
 /**
  * The planner's search. The session is checked before the form is read, because a server action is a public POST
- * endpoint. Only the `request` field is read, and a value that is not text is an empty request; the strategy is the
- * web's own (MF-22.4 design D1).
+ * endpoint. Only the `request` field is read, and a value that is not text is an empty request; the user, whose
+ * daily limit the search spends, comes from the session, and the strategy is the web's own (MF-22.4 design D1, D2b).
  */
 export async function searchMenusAction(previous: PlannerSearchState, formData: FormData): Promise<PlannerSearchState> {
-  await requireUser();
+  const user = await requireUser();
   const attempt = previous.attempt + 1;
   const request = formData.get('request');
   if (typeof request !== 'string') return toSearchState(err({ kind: 'request-too-short' }), attempt);
-  return toSearchState(await webContainer().searchByText(request.trim()), attempt);
+  return toSearchState(await webContainer().searchByText(user.userId, request.trim()), attempt);
 }

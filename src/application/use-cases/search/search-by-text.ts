@@ -15,7 +15,7 @@ import { err, ok, type Result } from '@/shared/result';
 
 export type SearchByTextDeps = DecomposeTextDeps & FindMenusDeps;
 
-/** What the web adds to the search: the global daily ceiling and the report of the system's failures. */
+/** What the web adds to the search: the daily ceiling of each user and the report of the system's failures. */
 export type DailyLimitedSearchDeps = SearchByTextDeps & {
   rateLimiter: RateLimiter;
   failureReport: SearchFailureReport;
@@ -43,16 +43,17 @@ export async function searchByText(
 }
 
 /**
- * The web's search: one hit on the daily bucket before any call to the model, then the same search, then one report
+ * The web's search: one hit on the user's daily bucket before any call to the model, then the same search, then one report
  * for an outcome that is a failure of the system (SEG-rate-limit, spec error-reporting). The outcome is returned
  * whether it was reported or not.
  */
 export async function searchByTextWithinDailyLimit(
+  userId: string,
   request: string,
   strategy: SearchStrategy,
   deps: DailyLimitedSearchDeps,
 ): Promise<Result<TextSearchDto, DailyLimitedSearchError>> {
-  const outcome = await limitedSearch(request, strategy, deps);
+  const outcome = await limitedSearch(userId, request, strategy, deps);
   if (!outcome.ok) reportFailure(outcome.error, request, deps);
   return outcome;
 }
@@ -81,20 +82,22 @@ function hasNothingToSearch({ constraints }: Required<SearchRequestDto>): boolea
 // One search is one hit, recorded before the decomposer (MF-22.3 design D2) and after the length check, so that an
 // empty or too-long request does not spend the limit (MF-22.4 design D2).
 async function limitedSearch(
+  userId: string,
   request: string,
   strategy: SearchStrategy,
   deps: DailyLimitedSearchDeps,
 ): Promise<Result<TextSearchDto, DailyLimitedSearchError>> {
   const length = checkRequestLength(request);
   if (!length.ok) return length;
-  const status = await deps.rateLimiter.hit(dailyKey(deps.now()), { limit: deps.dailyLimit, windowSeconds: DAY_SECONDS });
+  const status = await deps.rateLimiter.hit(dailyKey(userId, deps.now()), { limit: deps.dailyLimit, windowSeconds: DAY_SECONDS });
   if (!status.allowed) return err({ kind: 'llm-limit-reached' });
   return runSearch(request, strategy, deps);
 }
 
-// The key carries the UTC date, so the counter rolls over at midnight UTC whatever time the first search ran (D3).
-function dailyKey(now: Date): string {
-  return `llm:daily:${now.toISOString().slice(0, ISO_DATE_LENGTH)}`;
+// One bucket per user and UTC day (MF-22.4 design D2b): the date rolls the counter over at midnight UTC whatever time
+// the first search ran (MF-22.3 design D3).
+function dailyKey(userId: string, now: Date): string {
+  return `llm:daily:${userId}:${now.toISOString().slice(0, ISO_DATE_LENGTH)}`;
 }
 
 function reportFailure(error: DailyLimitedSearchError, request: string, deps: DailyLimitedSearchDeps): void {

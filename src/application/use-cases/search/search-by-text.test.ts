@@ -187,8 +187,9 @@ describe('searchByText', () => {
 const DAY_SECONDS = 86_400;
 const API_KEY = 'AIza-secret-key-1234567890';
 const REQUEST = 'quiero menús con pollo sin gluten';
+const USER = 'user-a';
 
-/** A limiter that records every hit and allows the first `allowedHits` of them. */
+/** A limiter that records every hit and allows the first `allowedHits` of each key. */
 function fakeLimiter(allowedHits: number) {
   const hits: { key: string; options: RateLimitOptions }[] = [];
   const rateLimiter: RateLimiter = {
@@ -197,7 +198,7 @@ function fakeLimiter(allowedHits: number) {
     },
     hit: async (key, options) => {
       hits.push({ key, options });
-      return { allowed: hits.length <= allowedHits, remaining: 0, resetAt: new Date(0) };
+      return { allowed: hits.filter((hit) => hit.key === key).length <= allowedHits, remaining: 0, resetAt: new Date(0) };
     },
     reset: async () => {
       throw new Error('the daily limit never resets');
@@ -239,17 +240,17 @@ describe('searchByTextWithinDailyLimit', () => {
     it('records one hit on the bucket of the UTC day and runs the search under the limit', async () => {
       const { deps, hits, events } = webDeps();
 
-      const outcome = await searchByTextWithinDailyLimit(REQUEST, 'lexical', deps);
+      const outcome = await searchByTextWithinDailyLimit(USER, REQUEST, 'lexical', deps);
 
       expect(outcome.ok).toBe(true);
-      expect(hits).toEqual([{ key: 'llm:daily:2026-10-13', options: { limit: 100, windowSeconds: DAY_SECONDS } }]);
+      expect(hits).toEqual([{ key: 'llm:daily:user-a:2026-10-13', options: { limit: 100, windowSeconds: DAY_SECONDS } }]);
       expect(events).toEqual([]);
     });
 
     it('answers llm-limit-reached with no call to the model or the search, and reports it as a warning', async () => {
       const { deps, events, modelCalls, calls } = webDeps({ allowedHits: 0 });
 
-      const outcome = await searchByTextWithinDailyLimit(REQUEST, 'lexical', deps);
+      const outcome = await searchByTextWithinDailyLimit(USER, REQUEST, 'lexical', deps);
 
       expect(outcome).toEqual(err({ kind: 'llm-limit-reached' }));
       expect(modelCalls).toEqual([]);
@@ -257,23 +258,38 @@ describe('searchByTextWithinDailyLimit', () => {
       expect(events).toEqual([{ kind: 'llm-limit-reached', level: 'warning' }]);
     });
 
+    it("keeps a bucket per user, so one user's limit does not stop another", async () => {
+      const { deps, hits } = webDeps({ allowedHits: 2 });
+
+      const outcomes = [
+        await searchByTextWithinDailyLimit('user-a', REQUEST, 'lexical', deps),
+        await searchByTextWithinDailyLimit('user-a', REQUEST, 'lexical', deps),
+        await searchByTextWithinDailyLimit('user-a', REQUEST, 'lexical', deps),
+        await searchByTextWithinDailyLimit('user-b', REQUEST, 'lexical', deps),
+      ];
+
+      expect(outcomes.map((outcome) => outcome.ok)).toEqual([true, true, false, true]);
+      expect(outcomes[2]).toEqual(err({ kind: 'llm-limit-reached' }));
+      expect(hits.at(-1)?.key).toBe('llm:daily:user-b:2026-10-13');
+    });
+
     it('rolls over at midnight UTC: the days before and after it have different buckets', async () => {
       const before = webDeps({ at: '2026-10-13T23:59:00Z' });
       const after = webDeps({ at: '2026-10-14T00:01:00Z' });
 
-      await searchByTextWithinDailyLimit(REQUEST, 'lexical', before.deps);
-      await searchByTextWithinDailyLimit(REQUEST, 'lexical', after.deps);
+      await searchByTextWithinDailyLimit(USER, REQUEST, 'lexical', before.deps);
+      await searchByTextWithinDailyLimit(USER, REQUEST, 'lexical', after.deps);
 
       expect([...before.hits, ...after.hits].map(({ key }) => key)).toEqual([
-        'llm:daily:2026-10-13',
-        'llm:daily:2026-10-14',
+        'llm:daily:user-a:2026-10-13',
+        'llm:daily:user-a:2026-10-14',
       ]);
     });
 
     it('passes the configured limit to the limiter', async () => {
       const { deps, hits } = webDeps();
 
-      await searchByTextWithinDailyLimit(REQUEST, 'lexical', { ...deps, dailyLimit: 2 });
+      await searchByTextWithinDailyLimit(USER, REQUEST, 'lexical', { ...deps, dailyLimit: 2 });
 
       expect(hits[0].options.limit).toBe(2);
     });
@@ -291,9 +307,9 @@ describe('searchByTextWithinDailyLimit', () => {
       const limited = { ...deps, rateLimiter, dailyLimit: 2 };
 
       const outcomes = [
-        await searchByTextWithinDailyLimit(REQUEST, 'lexical', limited),
-        await searchByTextWithinDailyLimit(REQUEST, 'lexical', limited),
-        await searchByTextWithinDailyLimit(REQUEST, 'lexical', limited),
+        await searchByTextWithinDailyLimit(USER, REQUEST, 'lexical', limited),
+        await searchByTextWithinDailyLimit(USER, REQUEST, 'lexical', limited),
+        await searchByTextWithinDailyLimit(USER, REQUEST, 'lexical', limited),
       ];
 
       expect(outcomes.map((outcome) => outcome.ok)).toEqual([true, true, false]);
@@ -309,7 +325,7 @@ describe('searchByTextWithinDailyLimit', () => {
     ])('refuses a request of %s with no hit and no call to the model', async (_name, request, error) => {
       const { deps, hits, modelCalls } = webDeps();
 
-      const outcome = await searchByTextWithinDailyLimit(request, 'lexical', deps);
+      const outcome = await searchByTextWithinDailyLimit(USER, request, 'lexical', deps);
 
       expect(outcome).toEqual(err(error));
       expect(hits).toEqual([]);
@@ -322,7 +338,7 @@ describe('searchByTextWithinDailyLimit', () => {
       const failure = err({ kind: 'decomposer-failed' as const, reason: 'quota exceeded' });
       const { deps, events } = webDeps({ answer: failure });
 
-      const outcome = await searchByTextWithinDailyLimit(REQUEST, 'lexical', deps);
+      const outcome = await searchByTextWithinDailyLimit(USER, REQUEST, 'lexical', deps);
 
       expect(outcome).toEqual(failure);
       expect(events).toEqual([
@@ -333,7 +349,7 @@ describe('searchByTextWithinDailyLimit', () => {
     it('reports an embedding failure with the embedding model', async () => {
       const { deps, events } = webDeps();
 
-      await searchByTextWithinDailyLimit(REQUEST, 'semantic', deps);
+      await searchByTextWithinDailyLimit(USER, REQUEST, 'semantic', deps);
 
       expect(events).toEqual([{ kind: 'embedding-failed', level: 'error', model: 'test-model', reason: 'not expected' }]);
     });
@@ -341,7 +357,7 @@ describe('searchByTextWithinDailyLimit', () => {
     it('reports a database failure with no model', async () => {
       const { deps, events } = webDeps({ ports: countingPorts({ menusFailWith: 'connection lost' }) });
 
-      await searchByTextWithinDailyLimit(REQUEST, 'lexical', deps);
+      await searchByTextWithinDailyLimit(USER, REQUEST, 'lexical', deps);
 
       expect(events).toEqual([{ kind: 'search-failed', level: 'error', reason: 'connection lost' }]);
     });
@@ -351,7 +367,7 @@ describe('searchByTextWithinDailyLimit', () => {
       ports.deps.embeddings.embedQueries = async (terms) => ok(terms.map(() => [0]));
       const { deps, events } = webDeps({ ports });
 
-      await searchByTextWithinDailyLimit(REQUEST, 'semantic', deps);
+      await searchByTextWithinDailyLimit(USER, REQUEST, 'semantic', deps);
 
       expect(events).toEqual([{ kind: 'index-not-loaded', level: 'error' }]);
     });
@@ -360,7 +376,7 @@ describe('searchByTextWithinDailyLimit', () => {
       const reason = `invalid key ${API_KEY} for prompt "${REQUEST}"`;
       const { deps, events } = webDeps({ answer: err({ kind: 'decomposer-failed', reason }) });
 
-      await searchByTextWithinDailyLimit(REQUEST, 'lexical', deps);
+      await searchByTextWithinDailyLimit(USER, REQUEST, 'lexical', deps);
 
       expect(events[0].reason).toBe('invalid key *** for prompt "***"');
     });
@@ -374,7 +390,7 @@ describe('searchByTextWithinDailyLimit', () => {
     ])('does not report the user outcome %s', async (kind, answer, request) => {
       const { deps, events } = webDeps({ answer });
 
-      const outcome = await searchByTextWithinDailyLimit(request, 'lexical', deps);
+      const outcome = await searchByTextWithinDailyLimit(USER, request, 'lexical', deps);
 
       expect(outcome.ok || outcome.error.kind).toBe(kind);
       expect(events).toEqual([]);
@@ -383,7 +399,7 @@ describe('searchByTextWithinDailyLimit', () => {
     it('does not report a successful search', async () => {
       const { deps, events } = webDeps();
 
-      const outcome = await searchByTextWithinDailyLimit(REQUEST, 'lexical', deps);
+      const outcome = await searchByTextWithinDailyLimit(USER, REQUEST, 'lexical', deps);
 
       expect(outcome.ok).toBe(true);
       expect(events).toEqual([]);
