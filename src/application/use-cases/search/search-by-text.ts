@@ -8,7 +8,7 @@ import type {
 } from '@/application/dto/search-result';
 import type { RateLimiter } from '@/application/ports/rate-limiter';
 import type { SearchFailureReport } from '@/application/ports/search-failure-report';
-import { decomposeText, type DecomposeTextDeps } from '@/application/services/search/decompose-text';
+import { checkRequestLength, decomposeText, type DecomposeTextDeps } from '@/application/services/search/decompose-text';
 import { findMenus, type FindMenusDeps } from '@/application/services/search/find-menus';
 import { redactSecrets } from '@/shared/redact-secrets';
 import { err, ok, type Result } from '@/shared/result';
@@ -78,12 +78,15 @@ function hasNothingToSearch({ constraints }: Required<SearchRequestDto>): boolea
   return constraints.length === 0;
 }
 
-// One search is one hit, recorded before the decomposer (MF-22.3 design D2).
+// One search is one hit, recorded before the decomposer (MF-22.3 design D2) and after the length check, so that an
+// empty or too-long request does not spend the limit (MF-22.4 design D2).
 async function limitedSearch(
   request: string,
   strategy: SearchStrategy,
   deps: DailyLimitedSearchDeps,
 ): Promise<Result<TextSearchDto, DailyLimitedSearchError>> {
+  const length = checkRequestLength(request);
+  if (!length.ok) return length;
   const status = await deps.rateLimiter.hit(dailyKey(deps.now()), { limit: deps.dailyLimit, windowSeconds: DAY_SECONDS });
   if (!status.allowed) return err({ kind: 'llm-limit-reached' });
   return runSearch(request, strategy, deps);

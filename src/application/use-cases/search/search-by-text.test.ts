@@ -302,6 +302,21 @@ describe('searchByTextWithinDailyLimit', () => {
     });
   });
 
+  describe('an invalid request is not counted', () => {
+    it.each([
+      ['only spaces', '   ', { kind: 'request-too-short' }],
+      ['301 characters', 'a'.repeat(301), { kind: 'request-too-long', max: 300 }],
+    ])('refuses a request of %s with no hit and no call to the model', async (_name, request, error) => {
+      const { deps, hits, modelCalls } = webDeps();
+
+      const outcome = await searchByTextWithinDailyLimit(request, 'lexical', deps);
+
+      expect(outcome).toEqual(err(error));
+      expect(hits).toEqual([]);
+      expect(modelCalls).toEqual([]);
+    });
+  });
+
   describe('the failure report', () => {
     it('reports a decomposer failure with the decomposer model and returns it unchanged', async () => {
       const failure = err({ kind: 'decomposer-failed' as const, reason: 'quota exceeded' });

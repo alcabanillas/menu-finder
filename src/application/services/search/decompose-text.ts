@@ -20,13 +20,20 @@ export async function decomposeText(
   request: string,
   { decomposer }: DecomposeTextDeps,
 ): Promise<Result<Required<SearchRequestDto>, DecomposeError>> {
+  const length = checkRequestLength(request);
+  if (!length.ok) return length;
   const text = request.trim();
-  const length = [...text].length;
-  if (length === 0) return err({ kind: 'request-too-short' });
-  if (length > MAX_REQUEST_LENGTH) return err({ kind: 'request-too-long', max: MAX_REQUEST_LENGTH });
   const answer = await decomposer.decompose(text);
   if (!answer.ok) return answer;
   return readAnswer(text, answer.value);
+}
+
+/** Refuses a request that is empty or longer than the limit, before any hit on the daily bucket or call to the model. */
+export function checkRequestLength(request: string): Result<void, Extract<DecomposeError, { kind: 'request-too-short' | 'request-too-long' }>> {
+  const length = [...request.trim()].length;
+  if (length === 0) return err({ kind: 'request-too-short' });
+  if (length > MAX_REQUEST_LENGTH) return err({ kind: 'request-too-long', max: MAX_REQUEST_LENGTH });
+  return ok(undefined);
 }
 
 // The order of design D2: shape, rejection, empty structure, then the rules of the search and the terms.
