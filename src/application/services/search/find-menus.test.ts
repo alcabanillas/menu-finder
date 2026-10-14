@@ -123,6 +123,7 @@ describe('findMenus', () => {
     expect(await result).toEqual(
       ok({
         strategy: 'lexical',
+        units: [{ kind: 'constraint', constraints: ['c1'] }],
         menus: [
           { menu: 1, score: 1, evidence: [{ constraints: ['c1'], dish: lunchDish('Pollo asado') }] },
           { menu: 3, score: 1, evidence: [{ constraints: ['c1'], dish: lunchDish('Arroz con pollo') }] },
@@ -187,6 +188,29 @@ describe('findMenus', () => {
         removedBy: [{ constraints: ['c1'], menusRemoved: 1 }],
       },
     });
+  });
+
+  it('gives the units of the request, and every menu has one evidence item for each, in their order', async () => {
+    const raw = request(
+      [
+        constraint('c1', 'arroz'),
+        constraint('c2', 'marisco', { type: 'exclusion', polarity: 'exclude' }),
+        constraint('c3', 'pollo'),
+      ],
+      { sameDish: [['c1', 'c2']] },
+    );
+
+    const result = await search(raw, 'lexical').result;
+
+    expect(result.ok && result.value.units).toEqual([
+      { kind: 'sameDish', constraints: ['c1', 'c2'] },
+      { kind: 'constraint', constraints: ['c3'] },
+    ]);
+    expect(result.ok && result.value.menus.length).toBeGreaterThan(0);
+    expect(result.ok && result.value.menus.every(({ evidence }) => evidence.length === 2)).toBe(true);
+    expect(result.ok && result.value.menus.map(({ evidence }) => evidence.map(({ constraints }) => constraints))).toEqual(
+      result.ok ? result.value.menus.map(() => [['c1', 'c2'], ['c3']]) : [],
+    );
   });
 
   it('asks to run embed first when no embedding is stored', async () => {

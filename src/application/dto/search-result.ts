@@ -10,11 +10,15 @@ export type SearchStrategy = 'lexical' | 'semantic' | 'hybrid';
  */
 export type SearchResultDto = {
   strategy: SearchStrategy;
+  /** The units the menus are scored on; the `evidence` of every menu follows their order. */
+  units: UnitDto[];
   menus: RankedMenuDto[];
   tiedWithFirst: number;
   ranked: MenuScoreDto[];
   removedBy: RemovedMenusDto[];
 };
+
+type UnitDto = { kind: 'constraint' | 'sameDish' | 'anyOf'; constraints: string[] };
 
 type MenuScoreDto = { menu: number; score: number };
 

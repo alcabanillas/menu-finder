@@ -16,6 +16,10 @@ const STRUCTURE = {
 
 const RESULT: SearchResultDto = {
   strategy: 'lexical',
+  units: [
+    { kind: 'constraint', constraints: ['c1'] },
+    { kind: 'constraint', constraints: ['c2'] },
+  ],
   menus: [
     {
       menu: 3,

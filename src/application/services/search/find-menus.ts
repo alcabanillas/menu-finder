@@ -153,6 +153,7 @@ function toResultDto(
 ): SearchResultDto {
   return {
     strategy,
+    units: units.map(({ kind, members }) => ({ kind, constraints: members.map((member) => member.id) })),
     menus: top.map(({ menu, score, units: unitScores }) => ({
       menu,
       score,
