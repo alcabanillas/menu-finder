@@ -8,7 +8,7 @@ vi.mock('@/app/_auth/require-user', () => ({
   requireUser: async () => ({ userId: 'user-1', name: 'Ana', email: 'ana@example.test' }),
 }));
 vi.mock('@/composition/web-container', () => ({ webContainer: () => ({ currentSelections: mocks.currentSelections }) }));
-vi.mock('@/app/(signed-in)/planner/actions', () => ({ chooseRandomMenuAction: vi.fn() }));
+vi.mock('@/app/(signed-in)/planner/actions', () => ({ chooseRandomMenuAction: vi.fn(), searchMenusAction: vi.fn() }));
 
 const NOTHING_CHOSEN = { ok: true, value: { activeMenu: null, shoppingList: null } };
 
@@ -50,5 +50,15 @@ describe('PlannerPage', () => {
 
     expect(screen.getByText('No se ha podido cargar tu menú.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Elegir un menú al azar' })).toBeInTheDocument();
+  });
+
+  it('renders the search above the selection summary and the random-menu button, which stay', async () => {
+    mocks.currentSelections.mockResolvedValue(NOTHING_CHOSEN);
+    render(await PlannerPage());
+
+    const box = screen.getByRole('textbox');
+    const button = screen.getByRole('button', { name: 'Elegir un menú al azar' });
+    expect(box).toHaveAttribute('name', 'request');
+    expect(box.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 });
