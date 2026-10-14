@@ -162,6 +162,46 @@ describe('PlannerSearch', () => {
     expect(screen.getByText('Menú 7')).toBeInTheDocument();
   });
 
+  describe('a blank request', () => {
+    it.each([['nothing', ''], ['only spaces', '   ']])(
+      'with %s says so at once: no search is sent, no server trip, no breadcrumb',
+      async (_name, text) => {
+        const action = answering();
+        render(<PlannerSearch action={action} />);
+
+        await search(text);
+
+        expect(screen.getByRole('alert')).toHaveTextContent('Escribe qué te apetece.');
+        expect(action).not.toHaveBeenCalled();
+        expect(sentry.addBreadcrumb).not.toHaveBeenCalled();
+      },
+    );
+
+    it('hides the results of the previous search, as a new search would', async () => {
+      render(<PlannerSearch action={answering(ranking(1))} />);
+      await search('garbanzos');
+      await screen.findByText('Menú 12');
+
+      await search('  ');
+
+      expect(screen.getByRole('alert')).toHaveTextContent('Escribe qué te apetece.');
+      expect(screen.queryByRole('article')).not.toBeInTheDocument();
+      expect(screen.queryByRole('list', { name: 'Lo que has pedido' })).not.toBeInTheDocument();
+    });
+
+    it('goes away when the next search is sent', async () => {
+      const action = answering(ranking(1));
+      render(<PlannerSearch action={action} />);
+      await search('');
+
+      await search('garbanzos');
+
+      await screen.findByText('Menú 12');
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      expect(action).toHaveBeenCalledOnce();
+    });
+  });
+
   describe('breadcrumbs', () => {
     it('adds one when the form is sent and one when a ranking arrives, with counts only', async () => {
       render(<PlannerSearch action={answering(ranking(1, [1, 2, 3, 4, 5]))} />);

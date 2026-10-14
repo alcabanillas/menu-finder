@@ -1,11 +1,11 @@
 'use client';
 
 import * as Sentry from '@sentry/nextjs';
-import { useActionState, useEffect } from 'react';
+import { useActionState, useEffect, useState, type FormEvent } from 'react';
 import { MenuCandidateCard } from '@/features/menu-planner/components/menu-candidate-card';
 import { RestrictionChipList } from '@/features/menu-planner/components/restriction-chip-list';
 import { SearchBox } from '@/features/menu-planner/components/search-box';
-import { IDLE_SEARCH, type PlannerSearchState } from '@/features/menu-planner/search-view';
+import { EMPTY_REQUEST_MESSAGE, IDLE_SEARCH, type PlannerSearchState } from '@/features/menu-planner/search-view';
 
 type PlannerSearchProps = {
   action: (previous: PlannerSearchState, formData: FormData) => Promise<PlannerSearchState>;
@@ -22,8 +22,12 @@ const NO_MENU_FITS = 'Ningún menú encaja con lo que has pedido.';
 export function PlannerSearch({ action }: PlannerSearchProps) {
   const [state, formAction, pending] = useActionState(action, IDLE_SEARCH);
   useAnswerBreadcrumb(state);
-  // While a search runs, `state` is still the previous answer: a new search replaces it, so it is not shown.
-  const hasResults = !pending && state.status === 'ranking';
+  const [blankSends, setBlankSends] = useState(0);
+  const blank = blankSends > 0;
+  // While a search runs, `state` is still the previous answer: a new search replaces it, so it is not shown. The same
+  // goes for a blank request, which is answered in the browser.
+  const shown = !pending && !blank;
+  const hasResults = shown && state.status === 'ranking';
   return (
     <section
       aria-label="Buscar menú"
@@ -35,7 +39,7 @@ export function PlannerSearch({ action }: PlannerSearchProps) {
         }`}
       >
         <div className="flex min-w-0 flex-col gap-4">
-          <form action={formAction} onSubmit={addSentBreadcrumb} className="flex flex-col gap-4">
+          <form action={formAction} onSubmit={(event) => onSend(event, () => setBlankSends((sends) => sends + 1), () => setBlankSends(0))} className="flex flex-col gap-4">
             <SearchBox pending={pending} />
           </form>
           {pending && (
@@ -43,9 +47,15 @@ export function PlannerSearch({ action }: PlannerSearchProps) {
               Buscando…
             </p>
           )}
-          {!pending && state.status === 'ranking' && <RestrictionChipList chips={state.chips} />}
+          {shown && state.status === 'ranking' && <RestrictionChipList chips={state.chips} />}
         </div>
-        {!pending && <Results state={state} />}
+        {blank && (
+          // A new element on every blank send, so that it is announced each time.
+          <p key={blankSends} role="alert" className="text-terracotta-700">
+            {EMPTY_REQUEST_MESSAGE}
+          </p>
+        )}
+        {shown && <Results state={state} />}
       </div>
     </section>
   );
@@ -69,6 +79,20 @@ function Results({ state }: { state: PlannerSearchState }) {
       ))}
     </div>
   );
+}
+
+// A blank request is answered here, with no trip to the server and no breadcrumb. Without JavaScript this code does
+// not run and the server answers the same (spec menu-planner, "Empty request"). The text is read from the form, so the
+// action still receives the form untouched.
+function onSend(event: FormEvent<HTMLFormElement>, onBlank: () => void, onRequest: () => void): void {
+  const request = new FormData(event.currentTarget).get('request');
+  if (typeof request === 'string' && request.trim() === '') {
+    event.preventDefault();
+    onBlank();
+    return;
+  }
+  onRequest();
+  addSentBreadcrumb();
 }
 
 // Breadcrumbs carry counts and outcomes only: never the request, a term or a dish (spec error-reporting).

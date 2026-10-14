@@ -47,6 +47,8 @@
   See it fail
 - [x] 5.6 GREEN: write `SearchBox` (from `SearchBox.jsx`) and `PlannerSearch`, with the layout of `PlannerScreen.jsx` from an 800 px container (design D6, D8). Verify 5.5 passes
 
+- [x] 5.7 Found in review: an empty request still travelled to the server and added the "search sent" breadcrumb. RED then GREEN in `planner-search.test.tsx`: with JavaScript, a blank request is answered in the browser with `EMPTY_REQUEST_MESSAGE` (`search-view.ts`), with no action call and no breadcrumb, and it hides the previous results. Without JavaScript the server answers as before. New scenario "Empty request with JavaScript" in the spec `menu-planner`
+
 ## 6. The page
 
 - [x] 6.1 RED: in `src/app/(signed-in)/planner/page.test.tsx`, assert that the page renders the search with `searchMenusAction`, above the selection summary and the random button, which stay. See it fail

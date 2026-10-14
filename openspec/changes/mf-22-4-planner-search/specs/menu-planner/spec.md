@@ -113,6 +113,10 @@ When a search gives no ranking, the page SHALL show one message for its outcome 
 - **WHEN** a signed-in user sends a request that is empty or only spaces
 - **THEN** the page says "Escribe qué te apetece." and no search runs
 
+#### Scenario: Empty request with JavaScript
+- **WHEN** a signed-in user with JavaScript sends a request that is empty or only spaces
+- **THEN** the page says "Escribe qué te apetece." at once, no request is sent to the server and no breadcrumb is added
+
 #### Scenario: Request too long
 - **WHEN** a signed-in user sends a request of 301 characters
 - **THEN** the page says "La petición es demasiado larga: como mucho 300 caracteres." and no search runs

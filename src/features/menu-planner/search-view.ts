@@ -45,6 +45,9 @@ const MESSAGES: Record<DailyLimitedSearchError['kind'], string> = {
   'invalid-request': SYSTEM_FAILURE,
 };
 
+/** What the page says to a blank request, on the server and, with JavaScript, in the browser before any trip. */
+export const EMPTY_REQUEST_MESSAGE = MESSAGES['request-too-short'];
+
 const DAYS: Record<string, string> = {
   monday: 'Lunes',
   tuesday: 'Martes',
