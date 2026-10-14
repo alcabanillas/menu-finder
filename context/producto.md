@@ -54,7 +54,7 @@ Qué falta por hacer de cada pantalla está en [roadmap.md](roadmap.md).
 | Ruta | Pantalla |
 |---|---|
 | `/` | Sin sesión, home informativa; con sesión, dashboard (UI-home-sin-login): menú activo, "qué toca hoy", progreso de la compra |
-| `/planner` | **Buscador de menús**: petición en lenguaje natural → candidatos con explicación. Forma fijada por **BUS-superficie-consulta**: caja de texto que permanece, chips de restricciones solo orientativos (no se editan) que acumulan, los 5 mejores de los 36 menús puntuados, evidencia por chip y explicación. Modelo de datos: ARQ-modelo-datos |
+| `/planner` | **Buscador de menús**: petición en lenguaje natural → candidatos con explicación. Forma fijada por **BUS-superficie-consulta**: caja de texto que permanece, chips de restricciones solo orientativos (no se editan ni acumulan: cada búsqueda empieza de cero), los 5 mejores de los 36 menús puntuados, evidencia por chip y explicación. Modelo de datos: ARQ-modelo-datos |
 | `/menu` | Menú semanal activo, rejilla L–S / tabs en móvil. Card de receta desplegable al pulsar un plato (UI-card-receta) |
 | `/shopping-list` | Checklist agrupada por las 13 categorías del PDF ([datos.md §2](datos.md)) |
 
