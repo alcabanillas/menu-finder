@@ -1,10 +1,12 @@
 import type { SearchRequestDto } from '@/application/dto/search-request';
 import type { DailyLimitedSearchError, SearchResultDto, TextSearchDto } from '@/application/dto/search-result';
+import type { DayDto } from '@/application/dto/weekly-menu';
 import type { Result } from '@/shared/result';
 
 type Structure = Required<SearchRequestDto>;
 type Constraint = Structure['constraints'][number];
 type Evidence = SearchResultDto['menus'][number]['evidence'][number];
+type Dish = NonNullable<Evidence['dish']>;
 
 /** One constraint of a chip, as the search returned it. */
 export type ChipMember = Pick<Constraint, 'term' | 'polarity' | 'type' | 'hard' | 'slot'>;
@@ -45,10 +47,7 @@ const MESSAGES: Record<DailyLimitedSearchError['kind'], string> = {
   'invalid-request': SYSTEM_FAILURE,
 };
 
-/** What the page says to a blank request, on the server and, with JavaScript, in the browser before any trip. */
-export const EMPTY_REQUEST_MESSAGE = MESSAGES['request-too-short'];
-
-const DAYS: Record<string, string> = {
+const DAYS: Record<DayDto, string> = {
   monday: 'Lunes',
   tuesday: 'Martes',
   wednesday: 'Miércoles',
@@ -58,12 +57,13 @@ const DAYS: Record<string, string> = {
   sunday: 'Domingo',
 };
 
-const MEALS: Record<string, string> = { lunch: 'comida', dinner: 'cena' };
+const MEALS: Record<Dish['meal'], string> = { lunch: 'comida', dinner: 'cena' };
 
 /** The view of a search: a ranking with its chips and cards, or the message of the outcome that gave none. */
 export function toSearchState(result: Result<TextSearchDto, DailyLimitedSearchError>, attempt: number): PlannerSearchState {
-  if (!result.ok) return { status: 'failed', kind: result.error.kind, message: MESSAGES[result.error.kind], attempt };
+  if (!result.ok) return toFailedState(result.error.kind, attempt);
   const { structure, result: ranking } = result.value;
+  if (!isAligned(structure, ranking)) return toFailedState('search-failed', attempt);
   const chips = toChips(structure, ranking.units);
   const cards = ranking.menus.map(({ menu, evidence }, index) => ({
     rank: index + 1,
@@ -87,6 +87,24 @@ export function toEvidenceLines(chips: Chip[], evidence: Evidence[]): EvidenceLi
   return chips.map((chip, index) => toLine(chip, evidence[index]));
 }
 
+/** What a screen reader says for a chip, and for the terms of an evidence line (spec menu-planner). */
+export function describeChip({ kind, members }: Pick<Chip, 'kind' | 'members'>): string {
+  const prefix = { constraint: '', sameDish: 'En el mismo plato: ', anyOf: 'Una de: ' }[kind];
+  return prefix + members.map(describeMember).join(kind === 'anyOf' ? ' o ' : ' y ');
+}
+
+function toFailedState(kind: DailyLimitedSearchError['kind'], attempt: number): PlannerSearchState {
+  return { status: 'failed', kind, message: MESSAGES[kind], attempt };
+}
+
+// The search promises every unit's ids in the structure and one evidence item per unit (spec menu-search); a broken
+// promise is a failure of the system, not an error page (MF-22.4 design D4).
+function isAligned({ constraints }: Structure, { units, menus }: SearchResultDto): boolean {
+  const ids = new Set(constraints.map(({ id }) => id));
+  const knownIds = units.every((unit) => unit.constraints.every((id) => ids.has(id)));
+  return knownIds && menus.every(({ evidence }) => evidence.length === units.length);
+}
+
 function toMember({ term, polarity, type, hard, slot }: Constraint): ChipMember {
   return { term, polarity, type, hard, slot };
 }
@@ -99,4 +117,15 @@ function toLine({ kind, members }: Chip, { dish }: Evidence): EvidenceLine {
   return onlyExclusions
     ? { kind, terms: members, found: true, detail: 'no aparece en la semana' }
     : { kind, terms: members, found: false, detail: 'ningún plato' };
+}
+
+function describeMember({ polarity, type, term, hard, slot }: ChipMember): string {
+  const hardness = hard ? ', obligatorio' : ', preferencia';
+  const meal = slot ? `, en la ${MEALS[slot]}` : '';
+  return roleOf(polarity, type) + term + hardness + meal;
+}
+
+function roleOf(polarity: ChipMember['polarity'], type: ChipMember['type']): string {
+  if (polarity === 'exclude') return 'excluido: ';
+  return type === 'attribute' ? 'atributo: ' : '';
 }

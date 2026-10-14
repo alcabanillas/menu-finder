@@ -2,7 +2,7 @@
 
 ### Requirement: Searching from a request
 
-`/planner` SHALL offer a signed-in user a search box with the placeholder "¿Qué te apetece esta semana?". Sending it SHALL run one web search with the text of the request (spec `menu-search`, "Search from a request") and SHALL show, for that search only, the restriction chips of the request and the menus of its ranking, at most five, in ranking order. A new search SHALL replace the chips and menus of the previous one. The request text SHALL travel in the body of the request, never in the URL. The search SHALL work without JavaScript. While a search runs with JavaScript, the page SHALL say that it is searching, and the search button SHALL be disabled.
+`/planner` SHALL offer a signed-in user a search box with the placeholder "¿Qué te apetece esta semana?". Sending it SHALL run one web search with the text of the request (spec `menu-search`, "Search from a request") and SHALL show, for that search only, the restriction chips of the request and the menus of its ranking, at most five, in ranking order. A new search SHALL replace the chips and menus of the previous one. The request text SHALL travel in the body of the request, never in the URL. The search SHALL work without JavaScript. The search box SHALL be a required field, so that the browser does not send it empty, with or without JavaScript. The box SHALL NOT cut the text the user types or pastes: the length of a request is checked on the server. While a search runs with JavaScript, the page SHALL say that it is searching, and the search button SHALL be disabled.
 
 #### Scenario: Searching shows the chips and the top 5
 - **WHEN** a signed-in user searches "garbanzos sin cerdo" and the search returns a structure with the constraints `garbanzos` and the exclusion `cerdo`, and the menus 12, 3, 20, 7 and 15 in that order
@@ -70,7 +70,7 @@ The page SHALL show one chip per unit of the request: one for each constraint in
 
 ### Requirement: Candidate cards with evidence
 
-Each menu of the ranking SHALL be shown as a card with its rank, "Menú N" and one evidence line per unit of the request, in the order of the chips. An evidence line SHALL name the terms of its unit and, when the search gave a dish for it, the day, the meal and the name of that dish, as "Martes, comida · <dish name>". A unit with no dish SHALL say "no aparece en la semana" when all its members are `exclude`, and "ningún plato" otherwise, with a cross instead of a check. The terms of a line SHALL be olive for an `include` member, an included `attribute` among them, and terracotta for an `exclude` member. The cards SHALL have no title, no explanation and no action.
+Each menu of the ranking SHALL be shown as a card with its rank, "Menú N" and one evidence line per unit of the request, in the order of the chips. An evidence line SHALL name the terms of its unit and, when the search gave a dish for it, the day, the meal and the name of that dish, as "Martes, comida · <dish name>". A unit with no dish SHALL say "no aparece en la semana" when all its members are `exclude`, and "ningún plato" otherwise, with a cross instead of a check. The terms of a line SHALL be olive for an `include` member, an included `attribute` among them, and terracotta for an `exclude` member, and an `exclude` member SHALL also carry a minus, so that the polarity is not told by colour alone. A long term SHALL wrap, never be cut or overflow the card. Each line SHALL have a text for screen readers: the text of its chip ("Restriction chips"), ": " and its detail; its terms, icons and separators SHALL be hidden from screen readers. The cards SHALL have no title, no explanation and no action.
 
 #### Scenario: A unit covered by a dish
 - **WHEN** the unit of `garbanzos` has as evidence the lunch dish "Garbanzos con espinacas" of Tuesday
@@ -83,6 +83,10 @@ Each menu of the ranking SHALL be shown as a card with its rank, "Menú N" and o
 #### Scenario: A soft constraint no dish covers
 - **WHEN** the unit of the included `salmón` has no dish
 - **THEN** the card shows a cross, "salmón" and "ningún plato"
+
+#### Scenario: An evidence line read by a screen reader
+- **WHEN** the `sameDish` unit of `arroz` and the exclusion `marisco` has as evidence the lunch dish "Arroz con verduras" of Tuesday
+- **THEN** "marisco" shows a minus, and the screen reader text of the line is "En el mismo plato: arroz, preferencia y excluido: marisco, preferencia: Martes, comida · Arroz con verduras"
 
 #### Scenario: Cards have no actions
 - **WHEN** the cards are shown
@@ -109,13 +113,13 @@ When a search gives no ranking, the page SHALL show one message for its outcome 
 | daily limit reached | "Hoy ya no se pueden hacer más búsquedas. Vuelve a intentarlo mañana." |
 | any failure of the system | "No se ha podido buscar. Inténtalo de nuevo." |
 
-#### Scenario: Empty request
-- **WHEN** a signed-in user sends a request that is empty or only spaces
-- **THEN** the page says "Escribe qué te apetece." and no search runs
+#### Scenario: Empty box
+- **WHEN** a signed-in user sends the search with the box empty, with or without JavaScript
+- **THEN** the browser does not send it: no request reaches the server and no breadcrumb is added
 
-#### Scenario: Empty request with JavaScript
-- **WHEN** a signed-in user with JavaScript sends a request that is empty or only spaces
-- **THEN** the page says "Escribe qué te apetece." at once, no request is sent to the server and no breadcrumb is added
+#### Scenario: Empty request
+- **WHEN** a signed-in user sends a request of only spaces
+- **THEN** the page says "Escribe qué te apetece." and no search runs
 
 #### Scenario: Request too long
 - **WHEN** a signed-in user sends a request of 301 characters
@@ -136,6 +140,10 @@ When a search gives no ranking, the page SHALL show one message for its outcome 
 #### Scenario: Failure of the system
 - **WHEN** the search returns `decomposer-failed`, `embedding-failed`, `search-failed`, `index-not-loaded` or `invalid-request`
 - **THEN** the page says "No se ha podido buscar. Inténtalo de nuevo."
+
+#### Scenario: A ranking that does not match its request
+- **WHEN** the search returns a unit with a constraint id the structure does not have, or a menu whose evidence does not have one item per unit
+- **THEN** the page says "No se ha podido buscar. Inténtalo de nuevo." with the outcome `search-failed`, and shows no chips or cards
 
 ### Requirement: Searching needs a session and trusts only the session
 

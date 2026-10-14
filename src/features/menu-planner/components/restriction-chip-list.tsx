@@ -1,5 +1,5 @@
 import { PlannerIcon } from '@/features/menu-planner/components/planner-icon';
-import type { Chip, ChipMember } from '@/features/menu-planner/search-view';
+import { describeChip, type Chip, type ChipMember } from '@/features/menu-planner/search-view';
 
 type Tone = 'include' | 'exclude' | 'mixed';
 
@@ -39,7 +39,7 @@ function RestrictionChip({ chip }: { chip: Chip }) {
   const mixedHardness = !allSoft && members.some(({ hard }) => !hard);
   return (
     <li className={`${CHIP} ${TONES[tone]} ${allSoft ? 'border-dashed' : 'border-solid'}`}>
-      <span className="sr-only">{screenReaderText(chip)}</span>
+      <span className="sr-only">{describeChip(chip)}</span>
       {members.map((member, index) => (
         <ChipMemberView
           key={index}
@@ -111,20 +111,4 @@ function iconOf({ polarity, type }: ChipMember): 'plus' | 'minus' | 'sparkles' {
 function sharedSlotOf(members: ChipMember[]): ChipMember['slot'] {
   const first = members[0].slot;
   return members.every(({ slot }) => slot === first) ? first : undefined;
-}
-
-function screenReaderText({ kind, members }: Chip): string {
-  const prefix = { constraint: '', sameDish: 'En el mismo plato: ', anyOf: 'Una de: ' }[kind];
-  return prefix + members.map(memberText).join(kind === 'anyOf' ? ' o ' : ' y ');
-}
-
-function memberText({ polarity, type, term, hard, slot }: ChipMember): string {
-  const hardness = hard ? ', obligatorio' : ', preferencia';
-  const meal = slot ? `, en la ${SLOT_LABELS[slot]}` : '';
-  return roleOf(polarity, type) + term + hardness + meal;
-}
-
-function roleOf(polarity: ChipMember['polarity'], type: ChipMember['type']): string {
-  if (polarity === 'exclude') return 'excluido: ';
-  return type === 'attribute' ? 'atributo: ' : '';
 }

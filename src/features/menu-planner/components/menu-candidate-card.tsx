@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 import { PlannerIcon } from '@/features/menu-planner/components/planner-icon';
-import type { CandidateCard, EvidenceLine } from '@/features/menu-planner/search-view';
+import { describeChip, type CandidateCard, type EvidenceLine } from '@/features/menu-planner/search-view';
 
 // Ported from the design system's `components/recipe/MenuCandidateCard.jsx` (version 1791992191-0fd0): the rank, the
 // number and the evidence lines. No title, explanation or action (spec menu-planner). The design system colours the
@@ -34,9 +34,12 @@ function EvidenceItem({ line }: { line: EvidenceLine }) {
   const mixed = new Set(line.terms.map(({ polarity }) => polarity)).size > 1;
   return (
     <li className="flex items-baseline gap-2.5 text-sm">
+      {/* The separators and colours carry meaning a screen reader would lose: it reads the chip's text instead. */}
+      <span className="sr-only">{`${describeChip({ kind: line.kind, members: line.terms })}: ${line.detail}`}</span>
       <span
+        aria-hidden="true"
         data-terms
-        className={`inline-flex items-baseline gap-1 font-semibold whitespace-nowrap ${mixed ? MIXED_TERMS : ''}`}
+        className={`inline-flex min-w-0 flex-wrap items-baseline gap-1 font-semibold ${mixed ? MIXED_TERMS : ''}`}
       >
         {/* The icon has no text baseline: centred on its own, so that the terms give the baseline of the line. */}
         <span className="flex-none self-center">
@@ -45,11 +48,19 @@ function EvidenceItem({ line }: { line: EvidenceLine }) {
         {line.terms.map((term, index) => (
           <Fragment key={index}>
             {index > 0 && <TermSeparator kind={line.kind} />}
-            <span className={TERM_COLOURS[term.polarity]}>{term.term}</span>
+            {term.polarity === 'exclude' && (
+              // A minus as well as the colour, so the polarity is not told by colour alone (WCAG 1.4.1).
+              <span className={`flex-none self-center ${TERM_COLOURS.exclude}`}>
+                <PlannerIcon name="minus" size={12} strokeWidth={2.2} />
+              </span>
+            )}
+            <span className={`wrap-anywhere ${TERM_COLOURS[term.polarity]}`}>{term.term}</span>
           </Fragment>
         ))}
       </span>
-      <span className="min-w-0 text-text-muted">{line.detail}</span>
+      <span aria-hidden="true" className="min-w-0 text-text-muted">
+        {line.detail}
+      </span>
     </li>
   );
 }

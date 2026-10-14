@@ -110,4 +110,46 @@ describe('MenuCandidateCard', () => {
     expect(screen.queryByRole('heading')).not.toBeInTheDocument();
     expect(screen.getByRole('article').querySelectorAll('p')).toHaveLength(0);
   });
+
+  describe('for a screen reader and without colour', () => {
+    const GROUP: CandidateCard = {
+      rank: 1,
+      menu: 3,
+      lines: [
+        {
+          kind: 'sameDish',
+          terms: [member('arroz'), member('marisco', { polarity: 'exclude', type: 'exclusion' })],
+          found: true,
+          detail: 'Martes, comida · Arroz con verduras',
+        },
+      ],
+    };
+
+    it('reads each line as the text of its chip and its detail, with the terms hidden', () => {
+      render(<MenuCandidateCard card={GROUP} />);
+
+      const line = lines()[0];
+      expect(within(line).getByText(
+        'En el mismo plato: arroz, preferencia y excluido: marisco, preferencia: Martes, comida · Arroz con verduras',
+      )).toHaveClass('sr-only');
+      expect(line.querySelector('[data-terms]')).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    it('marks an excluded term with a minus, not only with colour', () => {
+      render(<MenuCandidateCard card={GROUP} />);
+
+      const terms = lines()[0].querySelector('[data-terms]') as HTMLElement;
+      expect(terms.querySelectorAll('svg[data-icon="minus"]')).toHaveLength(1);
+      expect(within(terms).getByText('marisco').previousElementSibling?.querySelector('svg[data-icon="minus"]')).toBeInTheDocument();
+    });
+
+    it('lets long terms wrap instead of keeping them on one line', () => {
+      render(<MenuCandidateCard card={GROUP} />);
+
+      const terms = lines()[0].querySelector('[data-terms]') as HTMLElement;
+      expect(terms).not.toHaveClass('whitespace-nowrap');
+      expect(terms).toHaveClass('flex-wrap');
+      expect(within(terms).getByText('arroz')).toHaveClass('wrap-anywhere');
+    });
+  });
 });

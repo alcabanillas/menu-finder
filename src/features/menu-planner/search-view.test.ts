@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { SearchRequestDto } from '@/application/dto/search-request';
 import type { DailyLimitedSearchError, SearchResultDto } from '@/application/dto/search-result';
-import { IDLE_SEARCH, toChips, toEvidenceLines, toSearchState } from '@/features/menu-planner/search-view';
+import { describeChip, IDLE_SEARCH, toChips, toEvidenceLines, toSearchState } from '@/features/menu-planner/search-view';
 import { err, ok } from '@/shared/result';
 
 type Structure = Required<SearchRequestDto>;
@@ -104,6 +104,30 @@ describe('toEvidenceLines', () => {
 
 const SYSTEM_FAILURE = 'No se ha podido buscar. Inténtalo de nuevo.';
 
+describe('describeChip', () => {
+  it('reads a constraint in no group as its term and hardness', () => {
+    expect(describeChip({ kind: 'constraint', members: [member(POLLO)] })).toBe('pollo, preferencia');
+  });
+
+  it('reads an exclusion with its meal', () => {
+    expect(describeChip({ kind: 'constraint', members: [member(MARISCO)] })).toBe('excluido: marisco, obligatorio, en la cena');
+  });
+
+  it('reads an included attribute', () => {
+    const attribute = { ...POLLO, type: 'attribute', term: 'sencillas' } as const;
+    expect(describeChip({ kind: 'constraint', members: [member(attribute)] })).toBe('atributo: sencillas, preferencia');
+  });
+
+  it('joins the members of a sameDish group with "y" and of an anyOf group with "o"', () => {
+    expect(describeChip({ kind: 'sameDish', members: [member(ARROZ), member({ ...MARISCO, hard: false, slot: undefined })] })).toBe(
+      'En el mismo plato: arroz, preferencia y excluido: marisco, preferencia',
+    );
+    expect(describeChip({ kind: 'anyOf', members: [member(LUBINA), member(DORADA)] })).toBe(
+      'Una de: lubina, preferencia o dorada, preferencia',
+    );
+  });
+});
+
 describe('toSearchState', () => {
   it('starts idle, with no answer yet', () => {
     expect(IDLE_SEARCH).toEqual({ status: 'idle', attempt: 0 });
@@ -140,6 +164,25 @@ describe('toSearchState', () => {
     ]);
   });
 
+  it.each<[string, SearchResultDto]>([
+    ['a unit names an id the structure does not have', { ...resultWith([12]), units: [{ kind: 'constraint', constraints: ['c9'] }] }],
+    ['a menu has fewer evidence items than units', { ...resultWith([12]), menus: [{ menu: 12, score: 1, evidence: [] }] }],
+    [
+      'a menu has more evidence items than units',
+      {
+        ...resultWith([12]),
+        menus: [{ menu: 12, score: 1, evidence: [{ constraints: ['c3'], dish: null }, { constraints: ['c3'], dish: null }] }],
+      },
+    ],
+  ])('gives the failure of the system when %s, instead of throwing', (_case, result) => {
+    expect(toSearchState(ok({ structure: structure([POLLO]), result }), 4)).toEqual({
+      status: 'failed',
+      kind: 'search-failed',
+      message: SYSTEM_FAILURE,
+      attempt: 4,
+    });
+  });
+
   it('turns an empty ranking into a ranking state with chips and no cards', () => {
     const state = toSearchState(ok({ structure: structure([POLLO]), result: resultWith([]) }), 2);
 
@@ -147,6 +190,10 @@ describe('toSearchState', () => {
     expect(state.status === 'ranking' && state.chips).toHaveLength(1);
   });
 });
+
+function member({ term, polarity, type, hard, slot }: Structure['constraints'][number]) {
+  return { term, polarity, type, hard, slot };
+}
 
 function resultWith(menus: number[]): SearchResultDto {
   return {

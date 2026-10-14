@@ -162,43 +162,33 @@ describe('PlannerSearch', () => {
     expect(screen.getByText('Menú 7')).toBeInTheDocument();
   });
 
-  describe('a blank request', () => {
-    it.each([['nothing', ''], ['only spaces', '   ']])(
-      'with %s says so at once: no search is sent, no server trip, no breadcrumb',
-      async (_name, text) => {
-        const action = answering();
-        render(<PlannerSearch action={action} />);
+  describe('the box', () => {
+    it('is required and does not cut the text: the server checks the length', () => {
+      render(<PlannerSearch action={answering()} />);
 
-        await search(text);
-
-        expect(screen.getByRole('alert')).toHaveTextContent('Escribe qué te apetece.');
-        expect(action).not.toHaveBeenCalled();
-        expect(sentry.addBreadcrumb).not.toHaveBeenCalled();
-      },
-    );
-
-    it('hides the results of the previous search, as a new search would', async () => {
-      render(<PlannerSearch action={answering(ranking(1))} />);
-      await search('garbanzos');
-      await screen.findByText('Menú 12');
-
-      await search('  ');
-
-      expect(screen.getByRole('alert')).toHaveTextContent('Escribe qué te apetece.');
-      expect(screen.queryByRole('article')).not.toBeInTheDocument();
-      expect(screen.queryByRole('list', { name: 'Lo que has pedido' })).not.toBeInTheDocument();
+      const box = screen.getByRole('textbox');
+      expect(box).toBeRequired();
+      expect(box).not.toHaveAttribute('maxlength');
     });
 
-    it('goes away when the next search is sent', async () => {
-      const action = answering(ranking(1));
+    it('when empty, is not sent: no search and no breadcrumb', async () => {
+      const action = answering();
       render(<PlannerSearch action={action} />);
+
       await search('');
 
-      await search('garbanzos');
+      expect(action).not.toHaveBeenCalled();
+      expect(sentry.addBreadcrumb).not.toHaveBeenCalled();
+    });
 
-      await screen.findByText('Menú 12');
-      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    it('with only spaces, is sent: the server answers it', async () => {
+      const action = answering({ status: 'failed', kind: 'request-too-short', message: 'Escribe qué te apetece.', attempt: 1 });
+      render(<PlannerSearch action={action} />);
+
+      await search('   ');
+
       expect(action).toHaveBeenCalledOnce();
+      expect(await screen.findByRole('alert')).toHaveTextContent('Escribe qué te apetece.');
     });
   });
 

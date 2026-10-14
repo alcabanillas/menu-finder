@@ -47,7 +47,7 @@
   See it fail
 - [x] 5.6 GREEN: write `SearchBox` (from `SearchBox.jsx`) and `PlannerSearch`, with the layout of `PlannerScreen.jsx` from an 800 px container (design D6, D8). Verify 5.5 passes
 
-- [x] 5.7 Found in review: an empty request still travelled to the server and added the "search sent" breadcrumb. RED then GREEN in `planner-search.test.tsx`: with JavaScript, a blank request is answered in the browser with `EMPTY_REQUEST_MESSAGE` (`search-view.ts`), with no action call and no breadcrumb, and it hides the previous results. Without JavaScript the server answers as before. New scenario "Empty request with JavaScript" in the spec `menu-planner`
+- [x] 5.7 Found in review: an empty request still travelled to the server and added the "search sent" breadcrumb. Replaced by 8.1.
 
 ## 6. The page
 
@@ -74,3 +74,12 @@
   - Sensitive actions logged: yes. The daily limit is reported to Sentry as a warning and a system failure as an error (MF-22.3). Seen in Sentry on 2026-10-14: the event carries the failure kind and the URL without a query string. A search is not a login or an access denial, which `requireUser` and the auth use cases already log.
   - Deviations from a DEBE rule: one, SEG-rate-limit asks for `429` and a server action answers with a message. It is justified in `design.md` (D9) and in the proposal.
   - Observed, outside this change: Sentry may group the failure kinds in one issue (`context/decisiones.md` §2, item 5), and Replay stays off on purpose (item 4).
+
+## 8. Review fixes (2026-10-14)
+
+- [x] 8.1 RED then GREEN in `planner-search.test.tsx`: the box is `required`, an empty box sends nothing (no action call, no breadcrumb), and a request of only spaces still reaches the action. Remove the browser answer of 5.7 and its state. Spec `menu-planner`, "Empty box" and "Empty request" (design D5)
+- [x] 8.2 RED then GREEN: the box has no `maxLength` (design D5)
+- [x] 8.3 RED then GREEN in `search-view.test.ts`: `describeChip` gives the screen reader text of a chip, moved from `restriction-chip-list.tsx`; `toSearchState` gives the `failed` state of `search-failed` when a unit names an unknown id or a menu has a different number of evidence items (spec "A ranking that does not match its request", design D4)
+- [x] 8.4 RED then GREEN in `menu-candidate-card.test.tsx`: each line has the screen reader text of "An evidence line read by a screen reader", its terms are hidden from screen readers, an excluded term shows a minus, and the terms are not kept on one line (design D4)
+- [x] 8.5 `DishDto` names its day with `DayDto` and its meal with `lunch` or `dinner`, and the labels of `search-view.ts` are typed with them (design D4). Verify `pnpm typecheck`
+- [x] 8.6 E2E in `e2e/planner.spec.ts`, without JavaScript: a request of only spaces posts to the server, the page answers "Escribe qué te apetece." and the URL has no query string. It needs no model, so it covers 7.2 except the search itself

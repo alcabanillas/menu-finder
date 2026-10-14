@@ -56,13 +56,17 @@ The domain already groups the constraints into units (`toUnits` in `src/domain/s
 
 ### D4. Evidence lines, by index
 
+If a unit names an id the structure does not have, or a menu does not have one evidence item per unit, the alignment is broken. `toSearchState` then returns the `failed` state of `search-failed` instead of throwing, so the user gets the message of a system failure and not an error page. The search guarantees the alignment (spec `menu-search`); this only keeps a broken promise from reaching the screen.
+
+Each line gets a text for screen readers built by the same function as the chip's (`describeChip` in `search-view.ts`), followed by its detail, and its visible terms are hidden from them: the separators and the colours carry meaning a screen reader would lose. An excluded term also carries a minus, so the polarity is not told by colour alone (WCAG 1.4.1). `DishDto` names its day and meal with the types of the menu (`DayDto`, `lunch` or `dinner`), so the labels of the feature are checked by the compiler.
+
 For each card, `toEvidenceLines(chips, evidence)` pairs `evidence[i]` with `chips[i]`. A unit with no dish gives "no aparece en la semana" with a check when all its members are `exclude`, and "ningún plato" with a cross otherwise (spec `menu-planner`, "Candidate cards with evidence"). Day and meal labels ("Martes", "comida") come from a map local to the feature. `weekly-menu` has the meal labels, but it is another feature (Scope Rule).
 
 ### D5. Components ported, not imported
 
 As UI-design-system decides, the components are ported to TypeScript and Tailwind, and each one notes the design system version it comes from:
 
-- **`SearchBox`:** the form of the server action, with `name="request"`, a `maxLength` of 300 as a hint (the server decides), and the "Buscar" submit button.
+- **`SearchBox`:** the form of the server action, with `name="request"`, `required` and the "Buscar" submit button. `required` lets the browser refuse an empty box before any event, with or without JavaScript, so no client code repeats the server's check. A request of only spaces still reaches the server, which answers "Escribe qué te apetece." (D2). The box has no `maxLength`: the browser counts UTF-16 units where the server counts characters, and it cuts pasted text without a word, so the user would search a request they did not write and never see the "too long" message.
 - **`RestrictionChipList` and `RestrictionChip`:** the rules of `RestrictionChip.jsx`, with the colours as Tailwind classes of the tokens. The mixed chip uses `bg-ochre-100`, `text-ochre-700` and `border-ochre-300`; no colour is written by hand.
 - **`MenuCandidateCard`:** only the rank, "Menú N" and the evidence lines. The design system still colours the evidence of an `attribute` in `ochre-700`. The author decided `olive-600`, the colour of `include`, because the ochre is kept for mixes. The app follows the author, and the design system's card is updated apart.
 

@@ -1,5 +1,6 @@
 import type { DecomposeError } from '@/application/dto/decomposition';
 import type { SearchRequestDto, SearchRequestError } from '@/application/dto/search-request';
+import type { DayDto } from '@/application/dto/weekly-menu';
 
 /** How a term is matched against a dish: by its text, by its embedding, or by the mean of both. */
 export type SearchStrategy = 'lexical' | 'semantic' | 'hybrid';
@@ -27,7 +28,7 @@ type RankedMenuDto = { menu: number; score: number; evidence: EvidenceDto[] };
 /** For each unit of the request, the dish that gave its best score; none for a week-wide exclusion. */
 type EvidenceDto = { constraints: string[]; dish: DishDto | null };
 
-type DishDto = { day: string; meal: string; position: number; name: string };
+type DishDto = { day: DayDto; meal: 'lunch' | 'dinner'; position: number; name: string };
 
 type RemovedMenusDto = { constraints: string[]; menusRemoved: number };
 
