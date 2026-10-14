@@ -29,7 +29,7 @@ PR ──merge──▶ main ──(ci.yml: checks, e2e)──▶ commit verde
 | Production Branch | Vercel → Settings → Environments → Production → Branch Tracking | `production`: la única rama que Vercel publica |
 | `vercel.json` | Repo | `"**": false, "production": true`: ninguna otra rama despliega, ni como preview. Funciones en `fra1` |
 | Deployment Checks | Vercel → Settings → Build and Deployment | Retienen la publicación hasta que `checks`, `e2e` y `release` pasan en el commit |
-| Variables de entorno | Vercel → Settings → Environment Variables, solo Production | `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `GEMINI_API_KEY` |
+| Variables de entorno | Vercel → Settings → Environment Variables, solo Production | `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `GEMINI_API_KEY`, `LLM_DAILY_LIMIT` (opcional) |
 
 Vercel asocia los checks al commit y al nombre del job. Por eso cada check corre **una sola vez por commit**: `checks` y `e2e` en `main`, y `release` en `production`. Si un mismo commit tuviera dos resultados de un job, Vercel podría usar el que no toca.
 

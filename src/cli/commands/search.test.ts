@@ -158,4 +158,13 @@ describe('runSearch', () => {
     expect(text).toContain('The search failed: connect failed:');
     expect(text).not.toContain('s3cr3t');
   });
+
+  it('exits 1 and says the embedding service failed, with its reason', async () => {
+    const outcome = err({ kind: 'embedding-failed' as const, reason: 'quota exceeded' });
+
+    const { code, text } = await search(JSON.stringify(STRUCTURE), outcome);
+
+    expect(code).toBe(1);
+    expect(text).toBe('The embedding service failed: quota exceeded');
+  });
 });

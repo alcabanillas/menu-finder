@@ -104,6 +104,13 @@ describe('runSearchText', () => {
     expect(output).not.toContain('s3cr3t');
   });
 
+  it('says the embedding service failed, with its reason, and exits with 1', async () => {
+    const { exitCode, output } = await run('algo con pollo', 'semantic', err({ kind: 'embedding-failed', reason: 'quota exceeded' }));
+
+    expect(exitCode).toBe(1);
+    expect(output).toContain('The embedding service failed: quota exceeded');
+  });
+
   it('names the run of embed when the index is not loaded and exits with 1', async () => {
     const message = 'no recipe embeddings are stored: run `pnpm ingest embed` first';
     const { exitCode, output } = await run('algo con pollo', 'hybrid', err({ kind: 'index-not-loaded', message }));

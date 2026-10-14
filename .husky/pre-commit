@@ -1,3 +1,6 @@
-pnpm lint-staged
 pnpm knip
-pnpm test:run
+# Only the tests that import the staged files; the whole suite runs in the pre-push hook.
+# set -f: a path such as src/app/[id]/page.tsx must not be expanded as a glob.
+set -f
+files=$(git diff --cached --name-only --diff-filter=ACMR -- '*.ts' '*.tsx')
+[ -z "$files" ] || pnpm vitest related --run --passWithNoTests $files

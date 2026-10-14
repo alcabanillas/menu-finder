@@ -24,7 +24,8 @@ src/
     dto/             # formas de entrada/salida de los casos de uso
   infrastructure/    # implementaciones de los ports (BD, ficheros, LLM, embeddings)
   composition/       # composition roots: única capa que conoce implementaciones concretas
-    web-container.ts # para app/
+    web-container.ts # para app/: junta el enlace de cada área y cachea las dependencias
+    web/             # lo que construye web-container.ts: env, adaptadores, cabeceras y el enlace de los casos de uso por área
     cli-container.ts # para cli/
   cli/               # CLI = ADAPTADOR PRIMARIO: ingesta, alta de cuentas, evaluación
     commands/
@@ -78,7 +79,9 @@ Hay **dos adaptadores primarios sobre el mismo hexágono**: la web (`app/`) y la
 
 **Casos de uso y services (MF-59).** Un caso de uso es una operación que llama un adaptador; nunca llama a otro caso de uso. Si dos casos de uso comparten un paso con puertos, ese paso es un *service* (`application/services/`): lo llaman los casos de uso y otros services, nunca un adaptador (`app`, `cli`, `infrastructure`). Lo compartido sin puertos va a `domain/`, o junto a su DTO si usa una librería. Lo que tiene un solo llamante se queda dentro de su caso de uso. Un DTO es la forma de entrada o salida que ve el consumidor: no conoce los puertos, y el caso de uso traduce los errores de los puertos a los fallos del DTO. Al revés sí: un puerto puede importar DTOs, porque la forma no sabe nada del puerto (decidido por el autor el 2026-10-12, en MF-59.4). No hay ciclos entre módulos (`import/no-cycle`). Como `use-cases/` es un solo elemento para `eslint-plugin-boundaries`, la regla se comprueba con `checkInternals: true`, que revisa también los imports dentro de un elemento; los tests pueden importar el caso de uso que prueban.
 
-**Estas reglas se validan con ESLint (`import/no-restricted-paths` o `eslint-plugin-boundaries`) y se ejecutan en el hook de pre-commit (OPS-calidad) y en CI (OPS-ci-cd).** Una regla de arquitectura que no comprueba una herramienta acaba incumpliéndose sin que nadie lo note, sobre todo si el código lo generan agentes. Regla derivada: **no se adopta ninguna norma de arquitectura que no se pueda verificar automáticamente** — se queda en recomendación, no en norma.
+**Estas reglas se validan con ESLint (`import/no-restricted-paths` o `eslint-plugin-boundaries`) y se ejecutan con `pnpm lint` en el hook de pre-push (OPS-calidad) y en CI (OPS-ci-cd).** Una regla de arquitectura que no comprueba una herramienta acaba incumpliéndose sin que nadie lo note, sobre todo si el código lo generan agentes. Regla derivada: **no se adopta ninguna norma de arquitectura que no se pueda verificar automáticamente** — se queda en recomendación, no en norma.
+
+**Recomendación (sin herramienta): `composition` solo cablea.** Un composition root lee la configuración, construye los adaptadores y se los pasa a los casos de uso. No decide nada: ni límites, ni traducción de errores, ni reglas. Una regla que solo aplica a un adaptador primario, como el tope diario del LLM, que es solo de la web, va en un caso de uso propio de ese adaptador, no en su container. ESLint no puede comprobar la ausencia de lógica, así que se queda en recomendación (decidido por el autor el 2026-10-13, tras MF-22.3).
 
 ## 4. Qué merece un puerto y qué no
 
@@ -100,6 +103,7 @@ Ejemplo que fija el criterio — **el parser del menú (MF-11)**: leer el PDF (`
 - **En Vercel (OPS-vercel) no hay proceso de larga vida**: el contenedor puede recrearse en cada invocación. El acceso a BD usa el **pooler** de Neon; prohibido asumir un pool de conexiones persistente.
 - **Los route handlers y los comandos de la CLI son adaptadores finos**: parsear, autenticar y autorizar (la web), llamar a un caso de uso, mapear `Result` a HTTP o a código de salida. Cero lógica de negocio. Si un handler o un comando pasa de ~30 líneas, la lógica está en el sitio equivocado.
 - **Server Components y Server Actions son la trampa del patrón**: pueden importar cualquier cosa y hacerlo parecerá natural. Norma: **un Server Component solo puede invocar casos de uso a través del composition root**, nunca repositorios, clientes de BD o SDK del LLM. Toda escritura pasa por un caso de uso. Esto además es lo que exige `safety-first.md` P5 (las decisiones viven en el backend).
+- **Las cabeceras de la petición entran por un solo sitio.** Solo `composition/web/request-headers.ts` importa `next/headers` y `web-container.ts` se lo pasa a los adaptadores; los adaptadores que las necesitan (la sesión de Better Auth, la IP del cliente para el límite de login) reciben la función `headers` inyectada y la interpretan ellos. Lo comprueba ESLint (`no-restricted-imports`) (decidido por el autor el 2026-10-13).
 - **Solo `app/` toca el `web-container`.** Las features reciben los datos (DTO) y las server actions por props, y se limitan a pintar. Así se testean con Testing Library sin servidor ni BD, y la sesión y la autorización no se pueden saltar desde la UI.
 - **Errores:** `domain` y `application` devuelven `Result<T, E>`; los adaptadores de infraestructura pueden lanzar, y su propio adaptador captura y convierte a `Result` en la frontera. No se propagan excepciones de librerías hacia dentro.
 

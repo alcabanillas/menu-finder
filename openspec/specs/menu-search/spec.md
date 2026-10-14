@@ -221,11 +221,15 @@ The same structure, strategy and data SHALL always give the same result, and a s
 - **THEN** both results are identical
 
 ### Requirement: Failures
-A failure of the database or of the embedding service SHALL end the search with an error and SHALL NOT return a partial ranking. Error messages SHALL NOT contain the connection string or the key.
+A failure of the database or of the embedding service SHALL end the search with an error and SHALL NOT return a partial ranking. A failure of the embedding service SHALL be reported as `embedding-failed`, and a failure of the database as `search-failed`, each with its reason. Error messages SHALL NOT contain the connection string or the key.
 
 #### Scenario: Database unreachable
 - **WHEN** the database cannot be reached
-- **THEN** the search returns an error with no ranking and no credentials in the text
+- **THEN** the search returns a `search-failed` error with no ranking and no credentials in the text
+
+#### Scenario: Embedding service fails
+- **WHEN** the strategy is `semantic` and the embedding service fails
+- **THEN** the search returns an `embedding-failed` error with its reason, no ranking and no key in the text
 
 ### Requirement: Search command
 `pnpm ingest search <structure.json> [--strategy lexical|semantic|hybrid]` SHALL read the structure from the file, validate it (the file MAY be a request of the decomposer golden set: the command drops its `id`, `text` and `origin` before the search, and passes every other key on), run the search (default strategy `semantic`, the best strategy overall in `evals/search/results.md`, always over `DATABASE_URL_UNPOOLED`; `GEMINI_API_KEY` is required only with `semantic` and `hybrid`) and print the top five, the tie count and the menus each hard constraint removes. It SHALL exit with code 1 when the file is missing, is not JSON or is not a valid structure (naming the file and the field), and with code 2 and the usage when the arguments are wrong.

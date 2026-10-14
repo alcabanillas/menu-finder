@@ -89,7 +89,7 @@ async function semanticScores(
   { embeddings, recipeEmbeddings }: FindMenusDeps,
 ): Promise<Result<TermScores[], SearchMenusError>> {
   const vectors = await embeddings.embedQueries(terms);
-  if (!vectors.ok) return failed(vectors.error.reason);
+  if (!vectors.ok) return err({ kind: 'embedding-failed', reason: vectors.error.reason });
   if (vectors.value.length !== terms.length) {
     return failed(`the service returned ${vectors.value.length} vectors for ${terms.length} terms`);
   }

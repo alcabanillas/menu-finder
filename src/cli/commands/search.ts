@@ -95,6 +95,8 @@ function errorLines(file: string, error: SearchMenusError | MissingVariables): s
       return [`${file} is not a valid search structure:`, ...error.issues.map(issueLine)];
     case 'index-not-loaded':
       return [error.message];
+    case 'embedding-failed':
+      return [`The embedding service failed: ${error.reason}`];
     case 'search-failed':
       return [`The search failed: ${error.reason}`];
   }

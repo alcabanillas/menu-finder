@@ -1,8 +1,14 @@
 import { describe, expect, it } from 'vitest';
+import type { SearchFailureEvent } from '@/application/dto/search-failure-event';
 import type { SearchRequestDto } from '@/application/dto/search-request';
+import type { RateLimiter, RateLimitOptions } from '@/application/ports/rate-limiter';
 import type { DecomposerFailure, RequestDecomposer } from '@/application/ports/request-decomposer';
 import { findMenus, type FindMenusDeps } from '@/application/services/search/find-menus';
-import { searchByText } from '@/application/use-cases/search/search-by-text';
+import {
+  searchByText,
+  searchByTextWithinDailyLimit,
+  type DailyLimitedSearchDeps,
+} from '@/application/use-cases/search/search-by-text';
 import type { WeeklyMenu } from '@/domain/menu/weekly-menu';
 import { err, ok, type Result } from '@/shared/result';
 
@@ -174,6 +180,198 @@ describe('searchByText', () => {
 
       expect(outcome).toEqual(err({ kind: 'nothing-to-search' }));
       expect(totalCalls(calls)).toBe(0);
+    });
+  });
+});
+
+const DAY_SECONDS = 86_400;
+const API_KEY = 'AIza-secret-key-1234567890';
+const REQUEST = 'quiero menús con pollo sin gluten';
+
+/** A limiter that records every hit and allows the first `allowedHits` of them. */
+function fakeLimiter(allowedHits: number) {
+  const hits: { key: string; options: RateLimitOptions }[] = [];
+  const rateLimiter: RateLimiter = {
+    check: async () => {
+      throw new Error('the daily limit never only checks');
+    },
+    hit: async (key, options) => {
+      hits.push({ key, options });
+      return { allowed: hits.length <= allowedHits, remaining: 0, resetAt: new Date(0) };
+    },
+    reset: async () => {
+      throw new Error('the daily limit never resets');
+    },
+  };
+  return { rateLimiter, hits };
+}
+
+/** The web's dependencies over the counting ports, with a limiter, a fixed instant and a report that keeps events. */
+function webDeps({
+  answer = ok({ rejection: null, ...STRUCTURE }),
+  allowedHits = 100,
+  at = '2026-10-13T10:00:00Z',
+  ports = countingPorts(),
+}: {
+  answer?: Result<unknown, DecomposerFailure>;
+  allowedHits?: number;
+  at?: string;
+  ports?: ReturnType<typeof countingPorts>;
+} = {}) {
+  const { decomposer, calls: modelCalls } = fakeDecomposer(answer);
+  const { rateLimiter, hits } = fakeLimiter(allowedHits);
+  const events: SearchFailureEvent[] = [];
+  const deps: DailyLimitedSearchDeps = {
+    decomposer,
+    ...ports.deps,
+    rateLimiter,
+    failureReport: { report: (event) => events.push(event) },
+    now: () => new Date(at),
+    dailyLimit: 100,
+    decomposerModel: 'decomposer-model',
+    secrets: [API_KEY],
+  };
+  return { deps, hits, events, modelCalls, calls: ports.calls };
+}
+
+describe('searchByTextWithinDailyLimit', () => {
+  describe('the daily limit', () => {
+    it('records one hit on the bucket of the UTC day and runs the search under the limit', async () => {
+      const { deps, hits, events } = webDeps();
+
+      const outcome = await searchByTextWithinDailyLimit(REQUEST, 'lexical', deps);
+
+      expect(outcome.ok).toBe(true);
+      expect(hits).toEqual([{ key: 'llm:daily:2026-10-13', options: { limit: 100, windowSeconds: DAY_SECONDS } }]);
+      expect(events).toEqual([]);
+    });
+
+    it('answers llm-limit-reached with no call to the model or the search, and reports it as a warning', async () => {
+      const { deps, events, modelCalls, calls } = webDeps({ allowedHits: 0 });
+
+      const outcome = await searchByTextWithinDailyLimit(REQUEST, 'lexical', deps);
+
+      expect(outcome).toEqual(err({ kind: 'llm-limit-reached' }));
+      expect(modelCalls).toEqual([]);
+      expect(totalCalls(calls)).toBe(0);
+      expect(events).toEqual([{ kind: 'llm-limit-reached', level: 'warning' }]);
+    });
+
+    it('rolls over at midnight UTC: the days before and after it have different buckets', async () => {
+      const before = webDeps({ at: '2026-10-13T23:59:00Z' });
+      const after = webDeps({ at: '2026-10-14T00:01:00Z' });
+
+      await searchByTextWithinDailyLimit(REQUEST, 'lexical', before.deps);
+      await searchByTextWithinDailyLimit(REQUEST, 'lexical', after.deps);
+
+      expect([...before.hits, ...after.hits].map(({ key }) => key)).toEqual([
+        'llm:daily:2026-10-13',
+        'llm:daily:2026-10-14',
+      ]);
+    });
+
+    it('passes the configured limit to the limiter', async () => {
+      const { deps, hits } = webDeps();
+
+      await searchByTextWithinDailyLimit(REQUEST, 'lexical', { ...deps, dailyLimit: 2 });
+
+      expect(hits[0].options.limit).toBe(2);
+    });
+
+    it('with a limit of 2, lets two searches of the day run and stops the third', async () => {
+      const { deps, modelCalls } = webDeps();
+      const counted: string[] = [];
+      const rateLimiter: RateLimiter = {
+        ...deps.rateLimiter,
+        hit: async (key, { limit }) => {
+          counted.push(key);
+          return { allowed: counted.length <= limit, remaining: 0, resetAt: new Date(0) };
+        },
+      };
+      const limited = { ...deps, rateLimiter, dailyLimit: 2 };
+
+      const outcomes = [
+        await searchByTextWithinDailyLimit(REQUEST, 'lexical', limited),
+        await searchByTextWithinDailyLimit(REQUEST, 'lexical', limited),
+        await searchByTextWithinDailyLimit(REQUEST, 'lexical', limited),
+      ];
+
+      expect(outcomes.map((outcome) => outcome.ok)).toEqual([true, true, false]);
+      expect(outcomes[2]).toEqual(err({ kind: 'llm-limit-reached' }));
+      expect(modelCalls).toHaveLength(2);
+    });
+  });
+
+  describe('the failure report', () => {
+    it('reports a decomposer failure with the decomposer model and returns it unchanged', async () => {
+      const failure = err({ kind: 'decomposer-failed' as const, reason: 'quota exceeded' });
+      const { deps, events } = webDeps({ answer: failure });
+
+      const outcome = await searchByTextWithinDailyLimit(REQUEST, 'lexical', deps);
+
+      expect(outcome).toEqual(failure);
+      expect(events).toEqual([
+        { kind: 'decomposer-failed', level: 'error', model: 'decomposer-model', reason: 'quota exceeded' },
+      ]);
+    });
+
+    it('reports an embedding failure with the embedding model', async () => {
+      const { deps, events } = webDeps();
+
+      await searchByTextWithinDailyLimit(REQUEST, 'semantic', deps);
+
+      expect(events).toEqual([{ kind: 'embedding-failed', level: 'error', model: 'test-model', reason: 'not expected' }]);
+    });
+
+    it('reports a database failure with no model', async () => {
+      const { deps, events } = webDeps({ ports: countingPorts({ menusFailWith: 'connection lost' }) });
+
+      await searchByTextWithinDailyLimit(REQUEST, 'lexical', deps);
+
+      expect(events).toEqual([{ kind: 'search-failed', level: 'error', reason: 'connection lost' }]);
+    });
+
+    it('reports an index that is not loaded, with no model and no reason', async () => {
+      const ports = countingPorts();
+      ports.deps.embeddings.embedQueries = async (terms) => ok(terms.map(() => [0]));
+      const { deps, events } = webDeps({ ports });
+
+      await searchByTextWithinDailyLimit(REQUEST, 'semantic', deps);
+
+      expect(events).toEqual([{ kind: 'index-not-loaded', level: 'error' }]);
+    });
+
+    it('removes the secrets and the request from the reason', async () => {
+      const reason = `invalid key ${API_KEY} for prompt "${REQUEST}"`;
+      const { deps, events } = webDeps({ answer: err({ kind: 'decomposer-failed', reason }) });
+
+      await searchByTextWithinDailyLimit(REQUEST, 'lexical', deps);
+
+      expect(events[0].reason).toBe('invalid key *** for prompt "***"');
+    });
+
+    it.each<[string, Result<unknown, DecomposerFailure>, string]>([
+      ['rejected', ok({ rejection: 'gibberish', constraints: [], sameDish: [], anyOf: [] }), REQUEST],
+      ['invalid-answer', ok({ rejection: null, constraints: [{ ...POLLO, term: 'salmón' }], sameDish: [], anyOf: [] }), REQUEST],
+      ['nothing-to-search', ok({ rejection: null, constraints: [], sameDish: [], anyOf: [] }), REQUEST],
+      ['request-too-short', ok({ rejection: null, ...STRUCTURE }), '   '],
+      ['request-too-long', ok({ rejection: null, ...STRUCTURE }), 'a'.repeat(301)],
+    ])('does not report the user outcome %s', async (kind, answer, request) => {
+      const { deps, events } = webDeps({ answer });
+
+      const outcome = await searchByTextWithinDailyLimit(request, 'lexical', deps);
+
+      expect(outcome.ok || outcome.error.kind).toBe(kind);
+      expect(events).toEqual([]);
+    });
+
+    it('does not report a successful search', async () => {
+      const { deps, events } = webDeps();
+
+      const outcome = await searchByTextWithinDailyLimit(REQUEST, 'lexical', deps);
+
+      expect(outcome.ok).toBe(true);
+      expect(events).toEqual([]);
     });
   });
 });

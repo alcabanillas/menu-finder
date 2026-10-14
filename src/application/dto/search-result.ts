@@ -30,6 +30,7 @@ type RemovedMenusDto = { constraints: string[]; menusRemoved: number };
 export type SearchMenusError =
   | SearchRequestError
   | { kind: 'index-not-loaded'; message: string }
+  | { kind: 'embedding-failed'; reason: string }
   | { kind: 'search-failed'; reason: string };
 
 /** A search from the text of a request: the structure the decomposer returned and the ranking it gave. */
@@ -40,3 +41,6 @@ export type TextSearchDto = { structure: Required<SearchRequestDto>; result: Sea
  * decomposition the search cannot use, MF-22.1 design D2), or the search failed.
  */
 export type SearchByTextError = DecomposeError | { kind: 'nothing-to-search' } | SearchMenusError;
+
+/** The web's search can also stop at the global daily ceiling: nothing was sent to the model (spec rate-limiting). */
+export type DailyLimitedSearchError = SearchByTextError | { kind: 'llm-limit-reached' };
