@@ -153,7 +153,7 @@ LLM con schema Zod → restricciones: "arroz con pollo" (un mismo plato), "garba
 buscador → puntúa los 36 menús → muestra los 5 primeros
   ↓
 ¿las restricciones duras dejan menos de 5?  → el chip dice cuántos menús elimina cada una
-                                              y el usuario la afloja y relanza
+                                              y el usuario reescribe la petición y relanza
 ```
 
 Es una llamada con schema: traduce una vez y no decide nada sobre el resultado. El bucle lo cierra el usuario (human-in-the-loop).

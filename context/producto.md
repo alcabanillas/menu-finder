@@ -44,7 +44,7 @@ Sustituye el flujo actual del autor en Notion.
 - OCR, imágenes, nutrición avanzada, supermercados, precios, pedidos.
 - Multiidioma, social. Microservicios, Kubernetes.
 - **Batch cooking** en cualquier forma: reordenar los platos entre días, generar un plan de preparación del domingo o reescribir recetas. Descartado el 2026-09-20 porque no es evaluable. Diseño en [§5](#5-mejoras-futuras).
-- **Relajación automática de restricciones**: aplazada el 2026-09-30 para recortar plazo; de momento la afloja el usuario desde el chip. Diseño en [§5](#5-mejoras-futuras).
+- **Relajación automática de restricciones**: aplazada el 2026-09-30 para recortar plazo; de momento la afloja el usuario reescribiendo la petición, porque los chips solo orientan. Diseño en [§5](#5-mejoras-futuras).
 - **URL Shortener**: plan B de TFM si esta idea resulta inviable en plazo.
 
 ## 4. Pantallas previstas
@@ -54,7 +54,7 @@ Qué falta por hacer de cada pantalla está en [roadmap.md](roadmap.md).
 | Ruta | Pantalla |
 |---|---|
 | `/` | Sin sesión, home informativa; con sesión, dashboard (UI-home-sin-login): menú activo, "qué toca hoy", progreso de la compra |
-| `/planner` | **Buscador de menús**: petición en lenguaje natural → candidatos con explicación. Forma fijada por **BUS-superficie-consulta**: caja de texto que permanece, chips de restricciones editables que acumulan, los 5 mejores de los 36 menús puntuados, evidencia por chip y explicación. Modelo de datos: ARQ-modelo-datos |
+| `/planner` | **Buscador de menús**: petición en lenguaje natural → candidatos con explicación. Forma fijada por **BUS-superficie-consulta**: caja de texto que permanece, chips de restricciones solo orientativos (no se editan) que acumulan, los 5 mejores de los 36 menús puntuados, evidencia por chip y explicación. Modelo de datos: ARQ-modelo-datos |
 | `/menu` | Menú semanal activo, rejilla L–S / tabs en móvil. Card de receta desplegable al pulsar un plato (UI-card-receta) |
 | `/shopping-list` | Checklist agrupada por las 13 categorías del PDF ([datos.md §2](datos.md)) |
 
