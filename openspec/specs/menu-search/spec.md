@@ -179,7 +179,7 @@ Whether a hard unit is satisfied SHALL be decided with one rule for every unit: 
 - **THEN** the menu does not satisfy the group
 
 ### Requirement: Top five and ties
-A menu whose score, rounded to two decimals, is below 0.6 SHALL NOT be ranked: with two units both must count, with three two are enough. The minimum is the same for every strategy and was fixed before any golden-set result. The search SHALL return at most the five best menus, ordered by score from high to low and, for equal scores (compared to six decimals), by menu number from low to high. For every menu returned it SHALL give the menu number, the score and, for each unit, the dish that gave the best score (the first one in menu order on a tie; none when the best score is 0, because such a dish explains nothing; none for a week-wide exclusion, which no single dish satisfies). It SHALL also give the number of ranked menus that tie with the first one, and every ranked menu, in the same order, with its menu number and score, so that an evaluation can see the ties that go past the fifth menu.
+A menu whose score, rounded to two decimals, is below 0.6 SHALL NOT be ranked: with two units both must count, with three two are enough. The minimum is the same for every strategy and was fixed before any golden-set result. The search SHALL return at most the five best menus, ordered by score from high to low and, for equal scores (compared to six decimals), by menu number from low to high. For every menu returned it SHALL give the menu number, the score and, for each unit, the dish that gave the best score (the first one in menu order on a tie; none when the best score is 0, because such a dish explains nothing; none for a week-wide exclusion, which no single dish satisfies). It SHALL also give the units of the request, in the order of their first constraint, each with its kind (`constraint`, `sameDish` or `anyOf`) and the ids of its constraints, and the evidence of every returned menu SHALL follow that same order, one item per unit. It SHALL also give the number of ranked menus that tie with the first one, and every ranked menu, in the same order, with its menu number and score, so that an evaluation can see the ties that go past the fifth menu.
 
 #### Scenario: Five of many
 - **WHEN** 12 menus are ranked
@@ -212,6 +212,10 @@ A menu whose score, rounded to two decimals, is below 0.6 SHALL NOT be ranked: w
 #### Scenario: Whole ranking
 - **WHEN** 12 menus are ranked
 - **THEN** five are returned with their evidence, and the whole ranking lists the 12 menu numbers with their scores, in the same order
+
+#### Scenario: Units of the result
+- **WHEN** the constraints are `arroz`, the exclusion `marisco` and `pollo`, with `arroz` and `marisco` in a `sameDish` group
+- **THEN** the result gives two units, a `sameDish` with the ids of `arroz` and `marisco` and then a `constraint` with the id of `pollo`, and every returned menu has two evidence items in that order
 
 ### Requirement: Search is deterministic and read-only
 The same structure, strategy and data SHALL always give the same result, and a search SHALL NOT write to the database.
