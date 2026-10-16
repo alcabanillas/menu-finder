@@ -57,8 +57,9 @@ jobs:
 
       # The web container and the CLI need these (MF-20.3). A throwaway secret per run, never a real one. The database is
       # the Neon `ci` branch; where the secret is missing (forks) the URL points nowhere and the sign-in end-to-end
-      # tests are skipped: the rest never reach the database (no cookie, or a forged one).
-      - name: Set authentication and database variables
+      # tests are skipped: the rest never reach the database (no cookie, or a forged one). The search needs a Gemini
+      # key to start; this one is not valid, so a search that called the model would fail (MF-22.4, `e2e/planner.spec.ts`).
+      - name: Set authentication, database and model variables
         env:
           DATABASE_URL_TEST: ${{ secrets.DATABASE_URL_TEST }}
         run: |
@@ -67,6 +68,7 @@ jobs:
           {
             echo "BETTER_AUTH_SECRET=$secret"
             echo "DATABASE_URL_TEST=$DATABASE_URL_TEST"
+            echo "GEMINI_API_KEY=not-a-key-the-e2e-never-calls-the-model"
           } >> "$GITHUB_ENV"
 
       - run: pnpm exec playwright install --with-deps chromium
