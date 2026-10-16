@@ -6,8 +6,8 @@ const WEB_SEARCH_STRATEGY = 'semantic';
 /** The use cases of the search. Its dependencies are built on the first search, not on the first call of the web. */
 export function searchUseCases(lazySearch: () => DailyLimitedSearchDeps) {
   return {
-    // No session check here: the server action of MF-22.4 calls this only for a signed-in user.
-    searchByText: async (request: string) =>
-      searchByTextWithinDailyLimit(request, WEB_SEARCH_STRATEGY, lazySearch()),
+    // No session check here: the server action of MF-22.4 calls this only for a signed-in user, with its id.
+    searchByText: async (userId: string, request: string) =>
+      searchByTextWithinDailyLimit(userId, request, WEB_SEARCH_STRATEGY, lazySearch()),
   };
 }

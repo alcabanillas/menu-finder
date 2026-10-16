@@ -58,6 +58,19 @@ test.describe('without JavaScript', () => {
 
     await expectChoiceShown(page);
   });
+
+  // MF-22.4 tasks 8.6: the search posts and the server answers, with no model call. A request of only spaces passes
+  // `required` and is refused on the server before the daily limit. The search still needs `GEMINI_API_KEY` set to
+  // start; CI gives it one that is not valid, so a model call would fail this test (`.github/workflows/ci.yml`).
+  test('searching still works: the form posts, the server answers and the URL holds no text', async ({ page }) => {
+    await signInAs(page, account);
+
+    await page.getByRole('textbox', { name: 'Qué te apetece esta semana' }).fill('   ');
+    await page.getByRole('button', { name: 'Buscar' }).click();
+
+    await expect(page.getByRole('alert')).toHaveText('Escribe qué te apetece.');
+    expect(new URL(page.url()).search).toBe('');
+  });
 });
 
 async function expectChoiceShown(page: Page): Promise<void> {

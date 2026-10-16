@@ -1,0 +1,90 @@
+'use client';
+
+import * as Sentry from '@sentry/nextjs';
+import { useActionState, useEffect } from 'react';
+import { MenuCandidateCard } from '@/features/menu-planner/components/menu-candidate-card';
+import { RestrictionChipList } from '@/features/menu-planner/components/restriction-chip-list';
+import { SearchBox } from '@/features/menu-planner/components/search-box';
+import { IDLE_SEARCH, type PlannerSearchState } from '@/features/menu-planner/search-view';
+
+type PlannerSearchProps = {
+  action: (previous: PlannerSearchState, formData: FormData) => Promise<PlannerSearchState>;
+};
+
+const NO_MENU_FITS = 'Ningún menú encaja con lo que has pedido.';
+
+/**
+ * The planner's search: the box, the chips of the request and the five best menus (spec menu-planner). The layout is
+ * the design system's `PlannerScreen.jsx`: one column on a phone, and from an 800 px container with results the box
+ * and the chips on the left and the cards on the right. The form posts to the server action, so it works without
+ * JavaScript, and the text goes in the body of the POST, never in the URL.
+ */
+export function PlannerSearch({ action }: PlannerSearchProps) {
+  const [state, formAction, pending] = useActionState(action, IDLE_SEARCH);
+  useAnswerBreadcrumb(state);
+  // While a search runs, `state` is still the previous answer: a new search replaces it, so it is not shown.
+  const shown = !pending;
+  const hasResults = shown && state.status === 'ranking';
+  return (
+    <section
+      aria-label="Buscar menú"
+      className="@container w-full"
+    >
+      <div
+        className={`flex flex-col gap-4 @min-[800px]:grid @min-[800px]:items-start @min-[800px]:gap-12 ${
+          hasResults ? '@min-[800px]:grid-cols-[300px_minmax(0,1fr)]' : '@min-[800px]:grid-cols-[minmax(0,640px)]'
+        }`}
+      >
+        <div className="flex min-w-0 flex-col gap-4">
+          <form action={formAction} onSubmit={addSentBreadcrumb} className="flex flex-col gap-4">
+            <SearchBox pending={pending} />
+          </form>
+          {pending && (
+            <p role="status" className="text-text-muted">
+              Buscando…
+            </p>
+          )}
+          {shown && state.status === 'ranking' && <RestrictionChipList chips={state.chips} />}
+        </div>
+        {shown && <Results state={state} />}
+      </div>
+    </section>
+  );
+}
+
+function Results({ state }: { state: PlannerSearchState }) {
+  if (state.status === 'failed') {
+    // A new element on every answer (`attempt`), so a repeated message is announced again.
+    return (
+      <p key={state.attempt} role="alert" className="text-terracotta-700">
+        {state.message}
+      </p>
+    );
+  }
+  if (state.status === 'idle') return null;
+  if (state.cards.length === 0) return <p className="text-text-body">{NO_MENU_FITS}</p>;
+  return (
+    <div className="flex min-w-0 flex-col gap-4">
+      {state.cards.map((card) => (
+        <MenuCandidateCard key={card.menu} card={card} />
+      ))}
+    </div>
+  );
+}
+
+// Breadcrumbs carry counts and outcomes only: never the request, a term or a dish (spec error-reporting). An empty box
+// never gets here: the browser does not send a required field empty, so it fires no `submit` event.
+function addSentBreadcrumb(): void {
+  Sentry.addBreadcrumb({ category: 'planner', message: 'search sent' });
+}
+
+function useAnswerBreadcrumb(state: PlannerSearchState): void {
+  const { attempt, status } = state;
+  const outcome = status === 'failed' ? state.kind : status;
+  const chips = status === 'ranking' ? state.chips.length : 0;
+  const menus = status === 'ranking' ? state.cards.length : 0;
+  useEffect(() => {
+    if (status === 'idle') return;
+    Sentry.addBreadcrumb({ category: 'planner', message: 'search answered', data: { outcome, chips, menus } });
+  }, [attempt, status, outcome, chips, menus]);
+}

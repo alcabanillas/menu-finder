@@ -1,5 +1,6 @@
 import type { DecomposeError } from '@/application/dto/decomposition';
 import type { SearchRequestDto, SearchRequestError } from '@/application/dto/search-request';
+import type { DayDto } from '@/application/dto/weekly-menu';
 
 /** How a term is matched against a dish: by its text, by its embedding, or by the mean of both. */
 export type SearchStrategy = 'lexical' | 'semantic' | 'hybrid';
@@ -10,11 +11,15 @@ export type SearchStrategy = 'lexical' | 'semantic' | 'hybrid';
  */
 export type SearchResultDto = {
   strategy: SearchStrategy;
+  /** The units the menus are scored on; the `evidence` of every menu follows their order. */
+  units: UnitDto[];
   menus: RankedMenuDto[];
   tiedWithFirst: number;
   ranked: MenuScoreDto[];
   removedBy: RemovedMenusDto[];
 };
+
+type UnitDto = { kind: 'constraint' | 'sameDish' | 'anyOf'; constraints: string[] };
 
 type MenuScoreDto = { menu: number; score: number };
 
@@ -23,7 +28,7 @@ type RankedMenuDto = { menu: number; score: number; evidence: EvidenceDto[] };
 /** For each unit of the request, the dish that gave its best score; none for a week-wide exclusion. */
 type EvidenceDto = { constraints: string[]; dish: DishDto | null };
 
-type DishDto = { day: string; meal: string; position: number; name: string };
+type DishDto = { day: DayDto; meal: 'lunch' | 'dinner'; position: number; name: string };
 
 type RemovedMenusDto = { constraints: string[]; menusRemoved: number };
 
@@ -42,5 +47,5 @@ export type TextSearchDto = { structure: Required<SearchRequestDto>; result: Sea
  */
 export type SearchByTextError = DecomposeError | { kind: 'nothing-to-search' } | SearchMenusError;
 
-/** The web's search can also stop at the global daily ceiling: nothing was sent to the model (spec rate-limiting). */
+/** The web's search can also stop at the user's daily ceiling: nothing was sent to the model (spec rate-limiting). */
 export type DailyLimitedSearchError = SearchByTextError | { kind: 'llm-limit-reached' };
