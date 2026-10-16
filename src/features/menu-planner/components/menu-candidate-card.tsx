@@ -33,13 +33,14 @@ export function MenuCandidateCard({ card }: { card: CandidateCard }) {
 function EvidenceItem({ line }: { line: EvidenceLine }) {
   const mixed = new Set(line.terms.map(({ polarity }) => polarity)).size > 1;
   return (
-    <li className="flex items-baseline gap-2.5 text-sm">
+    // The terms keep their width beside the detail; with no room left, the detail moves under them.
+    <li className="flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5 text-sm">
       {/* The separators and colours carry meaning a screen reader would lose: it reads the chip's text instead. */}
       <span className="sr-only">{`${describeChip({ kind: line.kind, members: line.terms })}: ${line.detail}`}</span>
       <span
         aria-hidden="true"
         data-terms
-        className={`inline-flex min-w-0 flex-wrap items-baseline gap-1 font-semibold ${mixed ? MIXED_TERMS : ''}`}
+        className={`inline-flex max-w-full shrink-0 flex-wrap items-baseline gap-1 font-semibold ${mixed ? MIXED_TERMS : ''}`}
       >
         {/* The icon has no text baseline: centred on its own, so that the terms give the baseline of the line. */}
         <span className="flex-none self-center">
@@ -58,7 +59,7 @@ function EvidenceItem({ line }: { line: EvidenceLine }) {
           </Fragment>
         ))}
       </span>
-      <span aria-hidden="true" className="min-w-0 text-text-muted">
+      <span aria-hidden="true" className="min-w-0 flex-1 basis-40 text-text-muted">
         {line.detail}
       </span>
     </li>

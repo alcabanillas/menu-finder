@@ -151,5 +151,14 @@ describe('MenuCandidateCard', () => {
       expect(terms).toHaveClass('flex-wrap');
       expect(within(terms).getByText('arroz')).toHaveClass('wrap-anywhere');
     });
+
+    it('keeps the terms whole beside a long detail, which moves under them when there is no room', () => {
+      render(<MenuCandidateCard card={GROUP} />);
+
+      const terms = lines()[0].querySelector('[data-terms]') as HTMLElement;
+      expect(terms).toHaveClass('shrink-0', 'max-w-full');
+      expect(lines()[0]).toHaveClass('flex-wrap');
+      expect(terms.nextElementSibling).toHaveClass('flex-1', 'basis-40');
+    });
   });
 });
