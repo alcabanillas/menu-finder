@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next';
 import { withSentryConfig, type SentryBuildOptions } from '@sentry/nextjs/config';
 import { version } from './package.json';
+import { sentryEnvironment } from './src/app/sentry-environment';
 
 // Every path, pages, API routes and static assets alike (safety-first §2.4). The Content-Security-Policy is not here:
 // its nonce changes on every request, so `src/proxy.ts` sets it (MF-26 design D1, D2).
@@ -14,6 +15,8 @@ const nextConfig: NextConfig = {
     APP_VERSION: version,
     // The DSN for the browser, the same SENTRY_DSN the server reads: public by design (MF-22.2 design D3).
     SENTRY_DSN: process.env.SENTRY_DSN ?? '',
+    // The label of the build (production, preview), the one the server computes from the same variables.
+    SENTRY_ENVIRONMENT: sentryEnvironment(process.env),
   },
   poweredByHeader: false,
   headers: async () => [{ source: ALL_ROUTES, headers: fixedSecurityHeaders() }],
