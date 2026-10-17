@@ -1,0 +1,47 @@
+# Tasks
+
+Each test task is written first and seen failing before its implementation task (PROC-tdd). During `apply`, run only the affected tests (`pnpm exec vitest run <files>`) and `pnpm typecheck`; lint only touched files with `pnpm exec eslint <files> --rule "import/no-cycle: off"`.
+
+## 1. Sign-in destination (authentication)
+
+- [x] 1.1 Test: `src/app/_auth/actions.test.ts` expects `redirect('/')` after a correct sign-in, also when the form carries `next`/`callbackURL`/`redirect`/`returnTo`; `current-user.test.ts` expects `redirectIfSignedIn` to throw `redirect:/`. Seen failing
+- [x] 1.2 Add `SIGNED_IN_HOME = '/'` in `src/app/_auth/` and use it in `actions.ts` and `require-user.ts` (design D5). Tests of 1.1 green
+
+## 2. Informative home (home, app-shell)
+
+- [x] 2.1 Test `src/features/welcome/components/welcome-screen.test.tsx`: level-one heading, the description, a link "Acceder" to `/login`; no control to create an account or recover a password. Seen failing
+- [x] 2.2 Port `WelcomeScreen.jsx` (version `1792255497-a1ff`) to `src/features/welcome/components/welcome-screen.tsx` on the app's tokens, "Acceder" as a link (design D1). Test 2.1 green
+
+## 3. Dashboard pieces
+
+- [x] 3.1 Test `src/features/dashboard/components/active-menu-card.test.tsx`: with a menu, "Menú 12", the week's first and last date, links to `/menu` and `/planner`; without one, the "no menu this week" text and a link to `/planner`; failed, "No se ha podido cargar tu menú." with no detail. Seen failing
+- [x] 3.2 Implement `active-menu-card.tsx` after the mock's hero. Test 3.1 green
+- [x] 3.3 Test `src/features/weekly-menu/components/today-meals.test.tsx`: shows today's date and only today's lunch and dinner dishes under "Comida" and "Cena"; a dish with a recipe unfolds it (`aria-expanded`); a dish without one says "Sin receta". Seen failing
+- [x] 3.4 Implement `today-meals.tsx` reusing `RecipeCard` and `format-date` (design D1, D4). Test 3.3 green
+- [x] 3.5 Test `src/features/shopping-list/components/shopping-progress.test.tsx`: a progress bar "5 de 40" and a link "Abrir" to `/shopping-list`; with no list, the "no list yet" text and no progress bar; with total 0, the "not available" text and no "0 de 0"; failed, "No se ha podido cargar la lista. Inténtalo de nuevo.". Seen failing
+- [x] 3.6 Implement `shopping-progress.tsx` reusing `ProgressBar`. Test 3.5 green
+- [x] 3.7 Test `src/features/dashboard/components/dashboard-layout.test.tsx`: the heading "Hoy" with today's date and the three slots in the mock's order. Seen failing
+- [x] 3.8 Implement `dashboard-layout.tsx` with the mock's grid (one column; from an 800 px container, menu and shopping in the first row, today below). Test 3.7 green
+
+## 4. The page `/`
+
+- [x] 4.1 Test `src/app/page.test.tsx` (replacing the placeholder and sign-in cases): without a session, the welcome inside the shell's visitor variant, no version, no email, no catalogue name; with a session, the dashboard with the user id from the session only (a `userId` search param is ignored); a failed menu read keeps the shopping block, and a failed list read keeps the menu block. Seen failing
+- [x] 4.2 Rewrite `src/app/page.tsx`: session → `menuWeekPage({ userId, startsOn: undefined })` and `shoppingChecklist({ userId })` in parallel → layout slots; no session → `<AppShell>` without account + `WelcomeScreen` (design D2, D3). Remove `TodayPage`. Test 4.1 green
+
+## 5. E2E
+
+- [x] 5.1 `e2e/support/test-account.ts`: `signInAs` waits for `/`; update `sign-in.spec.ts` (correct credentials and `?next=` end on `/`; already signed in on `/login` goes to `/`), `access.spec.ts`, `app-shell.spec.ts`, `planner.spec.ts` and `weekly-flow.spec.ts` where they assume `/planner` after the sign-in. Run them against the test database
+- [x] 5.2 New e2e `e2e/home.spec.ts`: a visitor sees the welcome with the shell's "Acceder", follows it to `/login`, and the response has no version; a signed-in user with no menu sees the empty states; after choosing a menu for this week, sees "Menú N", today's dishes and the progress bar; ticking an item in `/shopping-list` moves the progress. Seen failing first, then green
+
+## 6. Docs and checks
+
+- [x] 6.1 `context/decisiones.md` UI-home-sin-login: remove the "Por ahora" sentence; `context/roadmap.md`: mark MF-25 done with the link to the change; remove the MF-51.1 warning from MF-25's line
+- [x] 6.2 Verify against the mock: screenshots of `/` with and without a session at 375 px and 1024 px compared with `HomeScreen.jsx` and `WelcomeScreen.jsx`; the deviations are those in design D6
+- [x] 6.3 `pnpm typecheck` and `pnpm test:coverage` pass before opening the PR
+
+## Workflow follow-up
+
+- On `archive`, point the link of MF-25 in `context/roadmap.md` to the archived folder.
+
+- Before `archive`, go through `context/safety-first.md` §4 and record the result.
+- Before `gh pr create`, ask the author whether the PR bumps `"version"` in `package.json`.

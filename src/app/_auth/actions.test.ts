@@ -17,7 +17,7 @@ describe('signInAction', () => {
     vi.clearAllMocks();
   });
 
-  it('redirects to /planner on successful sign-in', async () => {
+  it('redirects to the home on successful sign-in', async () => {
     const signInMock = vi.fn().mockResolvedValue(ok({ userId: 'u-1', name: 'Ana', email: 'ana@example.test' }));
     vi.mocked(webContainer).mockReturnValue({ signIn: signInMock } as unknown as ReturnType<typeof webContainer>);
 
@@ -27,7 +27,21 @@ describe('signInAction', () => {
 
     await signInAction({ message: null, attempt: 0 }, form);
 
-    expect(redirect).toHaveBeenCalledWith('/planner');
+    expect(redirect).toHaveBeenCalledWith('/');
+  });
+
+  it.each(['next', 'callbackURL', 'redirect', 'returnTo'])('ignores a %s field and still redirects to the home', async (field) => {
+    const signInMock = vi.fn().mockResolvedValue(ok({ userId: 'u-1', name: 'Ana', email: 'ana@example.test' }));
+    vi.mocked(webContainer).mockReturnValue({ signIn: signInMock } as unknown as ReturnType<typeof webContainer>);
+
+    const form = new FormData();
+    form.append('email', 'ana@example.test');
+    form.append('password', 'secret-password');
+    form.append(field, 'https://evil.example');
+
+    await signInAction({ message: null, attempt: 0 }, form);
+
+    expect(redirect).toHaveBeenCalledWith('/');
   });
 
   it('returns rate-limited message when rate limit is exceeded', async () => {

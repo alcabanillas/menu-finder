@@ -32,8 +32,10 @@ test.afterAll(async () => {
 });
 
 test.describe('with a session', () => {
+  // The sign-in lands on `/` (MF-25); these tests start on `/planner`.
   test.beforeEach(async ({ page }) => {
     await signInAs(page, account);
+    await page.goto('/planner');
   });
 
   test('choosing a random menu says which one and shows it in the week selector', async ({ page }) => {
@@ -103,6 +105,7 @@ test.describe('without JavaScript', () => {
 
   test('choosing a random menu still works: the form posts and the page shows the choice', async ({ page }) => {
     await signInAs(page, account);
+    await page.goto('/planner');
 
     await expectChoiceShown(page);
   });
@@ -112,6 +115,7 @@ test.describe('without JavaScript', () => {
   // start; CI gives it one that is not valid, so a model call would fail this test (`.github/workflows/ci.yml`).
   test('searching still works: the form posts, the server answers and the URL holds no text', async ({ page }) => {
     await signInAs(page, account);
+    await page.goto('/planner');
 
     await page.getByRole('textbox', { name: 'Qué te apetece' }).fill('   ');
     await page.getByRole('button', { name: 'Buscar' }).click();

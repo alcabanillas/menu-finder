@@ -2,7 +2,7 @@ import { useId } from 'react';
 import type { DayDto, WeekDayDto, WeekDishDto } from '@/application/dto/weekly-menu';
 import { MenuIcon } from '@/features/weekly-menu/components/menu-icon';
 import { daysShown } from '@/features/weekly-menu/days-shown';
-import { formatShortDate, formatWeekday } from '@/features/weekly-menu/format-date';
+import { formatShortDate, formatWeekday } from '@/shared/format-date';
 
 type MealDto = 'lunch' | 'dinner';
 

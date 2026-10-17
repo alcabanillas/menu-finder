@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatDayDate, formatShortDate, formatWeekday } from '@/features/weekly-menu/format-date';
+import { formatDayDate, formatShortDate, formatWeekday } from '@/shared/format-date';
 
 describe('formatShortDate', () => {
   it('writes the day and the month in Spanish', () => {

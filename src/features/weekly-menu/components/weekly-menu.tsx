@@ -7,7 +7,7 @@ import { RecipeCard } from '@/features/weekly-menu/components/recipe-card';
 import { RecipePanel, type PanelSide } from '@/features/weekly-menu/components/recipe-panel';
 import { WeekCards, type DishRef } from '@/features/weekly-menu/components/week-cards';
 import { WeekHeader } from '@/features/weekly-menu/components/week-header';
-import { formatDayDate, formatShortDate, formatWeekday } from '@/features/weekly-menu/format-date';
+import { formatDayDate, formatShortDate, formatWeekday } from '@/shared/format-date';
 
 type WeeklyMenuProps = { menu: WeeklyMenuDto; nav?: ReactNode };
 

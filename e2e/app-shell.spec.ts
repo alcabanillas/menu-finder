@@ -13,8 +13,10 @@ const TABS = ['Hoy', 'Buscar', 'Menú', 'Compra'];
 const account = registerTestAccount();
 
 test.describe('with a session', () => {
+  // The sign-in lands on `/` (MF-25); these tests start on a protected page.
   test.beforeEach(async ({ page }) => {
     await signInAs(page, account);
+    await page.goto('/planner');
   });
 
   test('a protected page has the shell: wordmark, navigation and one main landmark', async ({ page }) => {
@@ -141,6 +143,7 @@ test.describe('with JavaScript disabled', () => {
 
   test('the four links are in the page and the current route is marked', async ({ page }) => {
     await signInAs(page, account);
+    await page.goto('/planner');
 
     await expectTabs(page);
   });
