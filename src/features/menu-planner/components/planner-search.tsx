@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react';
 import type { Week, WeeksToChooseDto } from '@/application/dto/weeks-to-choose';
-import { cardChoice } from '@/features/menu-planner/choice-prompts';
+import type { ChoiceInputs } from '@/features/menu-planner/choice-prompts';
 import type { ChoiceState } from '@/features/menu-planner/choice-view';
 import { ChoiceMessage } from '@/features/menu-planner/components/choice-message';
 import { PlannerResults } from '@/features/menu-planner/components/planner-results';
@@ -36,16 +36,6 @@ export function PlannerSearch({ action, chooseAction, weeks, initialWeek }: Plan
   const choice = useMenuChoice(chooseAction, weeks, initialWeek);
   useAnswerBreadcrumb(state);
   const randomProps = { formId: choice.formId, disabled: choice.choosing, onAsk: choice.askRandom };
-  const choiceOf: ResultsAreaProps['choiceOf'] = (card) =>
-    cardChoice({
-      card,
-      weeks,
-      selected: choice.selected,
-      formId: choice.formId,
-      choosing: choice.choosing,
-      ask: choice.ask,
-      setAsk: choice.setAsk,
-    });
   return (
     <section aria-label="Buscar menú" className="@container flex w-full flex-col gap-5 @min-[800px]:gap-6">
       <form id={choice.formId} action={choice.formAction} onSubmit={choice.submitted} />
@@ -60,7 +50,7 @@ export function PlannerSearch({ action, chooseAction, weeks, initialWeek }: Plan
       <ChoiceMessage choice={choice.shownChoice} choosing={choice.choosing} />
       <SearchRow formAction={formAction} pending={pending} onSent={choice.dismiss} random={randomProps} />
       <RandomButton size="sm" {...randomProps} />
-      <ResultsArea state={state} pending={pending} choiceOf={choiceOf} />
+      <ResultsArea state={state} pending={pending} weeks={weeks} choice={choice} />
     </section>
   );
 }
@@ -96,11 +86,12 @@ function SearchRow({ formAction, pending, onSent, random }: SearchRowProps) {
 type ResultsAreaProps = {
   state: PlannerSearchState;
   pending: boolean;
-  choiceOf: Parameters<typeof PlannerResults>[0]['choiceOf'];
+  weeks: WeeksToChooseDto | null;
+  choice: ChoiceInputs;
 };
 
 // While a search runs, `state` is still the previous answer: a new search replaces it, so it is not shown.
-function ResultsArea({ state, pending, choiceOf }: ResultsAreaProps) {
+function ResultsArea({ state, pending, weeks, choice }: ResultsAreaProps) {
   const chips = !pending && state.status === 'ranking' ? state.chips : null;
   const hasResults = chips !== null;
   const columns = hasResults ? '@min-[800px]:grid-cols-[300px_minmax(0,1fr)]' : '@min-[800px]:grid-cols-[minmax(0,640px)]';
@@ -116,7 +107,7 @@ function ResultsArea({ state, pending, choiceOf }: ResultsAreaProps) {
           {chips && <RestrictionChipList chips={chips} />}
         </div>
       )}
-      {!pending && <PlannerResults state={state} choiceOf={choiceOf} />}
+      {!pending && <PlannerResults state={state} weeks={weeks} choice={choice} />}
     </div>
   );
 }

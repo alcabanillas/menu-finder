@@ -18,21 +18,15 @@ export function randomAsking(menu: number, startsOn: string, onCancel: () => voi
   return { text: `¿Cambiar el Menú ${menu} por uno al azar en la semana del ${formatDayMonth(startsOn)}?`, onCancel };
 }
 
-type CardChoiceInput = {
-  card: CandidateCard;
-  weeks: WeeksToChooseDto | null;
-  selected: Week;
-  formId: string;
-  choosing: boolean;
-  ask: Ask;
-  setAsk: (ask: Ask) => void;
-};
+/** What the buttons need from the choice: the selected week, the choose form, whether a choice runs and what waits for a yes. */
+export type ChoiceInputs = { selected: Week; formId: string; choosing: boolean; ask: Ask; setAsk: (ask: Ask) => void };
 
 // The button of a card names the week it goes to, and the card of the week's menu reads as chosen. A card that replaces
 // the week's menu asks first. Without weeks, no button.
 /** The choose button of a card for the selected week. */
-export function cardChoice({ card, weeks, selected, formId, choosing, ask, setAsk }: CardChoiceInput): CardChoice | undefined {
+export function cardChoice(card: CandidateCard, weeks: WeeksToChooseDto | null, choice: ChoiceInputs): CardChoice | undefined {
   if (!weeks) return undefined;
+  const { selected, formId, choosing, ask, setAsk } = choice;
   const target = weeks[selected];
   const date = formatDayMonth(target.startsOn);
   if (target.menuNumber === card.menu) {
