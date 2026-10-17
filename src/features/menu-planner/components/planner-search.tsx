@@ -35,9 +35,7 @@ export function PlannerSearch({ action, chooseAction, weeks, initialWeek }: Plan
   const [state, formAction, pending] = useActionState(action, IDLE_SEARCH);
   const choice = useMenuChoice(chooseAction, weeks, initialWeek);
   useAnswerBreadcrumb(state);
-  const random = (size: 'sm' | 'md') => (
-    <RandomButton size={size} formId={choice.formId} disabled={choice.choosing} onAsk={choice.askRandom} />
-  );
+  const randomProps = { formId: choice.formId, disabled: choice.choosing, onAsk: choice.askRandom };
   const choiceOf: ResultsAreaProps['choiceOf'] = (card) =>
     cardChoice({
       card,
@@ -60,8 +58,8 @@ export function PlannerSearch({ action, chooseAction, weeks, initialWeek }: Plan
         asking={choice.asking}
       />
       <ChoiceMessage choice={choice.shownChoice} choosing={choice.choosing} />
-      <SearchRow formAction={formAction} pending={pending} onSent={choice.dismiss} desktopRandom={random('md')} />
-      <div className="-mt-2 @min-[800px]:hidden">{random('sm')}</div>
+      <SearchRow formAction={formAction} pending={pending} onSent={choice.dismiss} desktopRandom={<RandomButton size="md" {...randomProps} />} />
+      <div className="-mt-2 @min-[800px]:hidden"><RandomButton size="sm" {...randomProps} /></div>
       <ResultsArea state={state} pending={pending} choiceOf={choiceOf} />
     </section>
   );
