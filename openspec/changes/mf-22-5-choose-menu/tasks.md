@@ -52,7 +52,7 @@
 
 - [x] 8.1 Update ARQ-modelo-datos in `context/decisiones.md`: the user chooses this week or next week, the server computes the Monday, and this week is locked once next week is chosen (decided by the author on 2026-10-16)
 - [x] 8.2 Run `pnpm test:run` on the affected folders (`src/domain/selection`, `src/application`, `src/composition`, `src/features/menu-planner`, `src/features/weekly-menu`, `src/shared`, `src/app/(signed-in)/planner`) and `pnpm typecheck`
-- [ ] 8.3 In the browser, with `pnpm dev`: search, choose for each week, check that the results stay after `revalidatePath` (design, Risks), that the selector and the buttons follow the new menu, that the lock shows once next week is chosen, and that "Ver semana" opens the week in `/menu`; repeat a choice with JavaScript disabled. Compare captures of the selector and of a selected and a not-selected card against `project/components/Planner/preview.html` (UI-design-system)
+- [x] 8.3 In the browser, with `pnpm dev`: search, choose for each week, check that the results stay after `revalidatePath` (design, Risks), that the selector and the buttons follow the new menu, that the lock shows once next week is chosen, and that "Ver semana" opens the week in `/menu`; repeat a choice with JavaScript disabled. Compare captures of the selector and of a selected and a not-selected card against `project/components/Planner/preview.html` (UI-design-system)
 - [x] 8.4 Before archive: update the Purpose of `openspec/specs/menu-planner/spec.md`, which still describes the provisional planner, and go through the checklist of `context/safety-first.md` §4
 
 ## 9. Design system 1792255497-a1ff
