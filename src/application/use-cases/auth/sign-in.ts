@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { AuditLog, SignInRefusal } from '@/application/ports/audit-log';
+import type { ClientIpSource } from '@/application/ports/client-ip-source';
 import type { RateLimiter } from '@/application/ports/rate-limiter';
 import {
   MAX_EMAIL_LENGTH,
@@ -11,7 +12,7 @@ import {
 import { err, ok, type Result } from '@/shared/result';
 
 /** What a form or a direct call sends: nothing about its shape is trusted. */
-export type SignInInput = { email?: unknown; password?: unknown; clientIp?: string };
+export type SignInInput = { email?: unknown; password?: unknown };
 
 /** `failed` is a fault of the system, not of the user, and is not logged as a refusal. */
 export type SignInFailure =
@@ -21,7 +22,12 @@ export type SignInFailure =
   | { kind: 'rate-limited'; resetAt: Date }
   | { kind: 'failed' };
 
-type Deps = { sessions: SessionManager; auditLog: AuditLog; rateLimiter: RateLimiter };
+type Deps = {
+  sessions: SessionManager;
+  auditLog: AuditLog;
+  rateLimiter: RateLimiter;
+  clientIp: ClientIpSource;
+};
 
 const WRONG_CREDENTIALS = { kind: 'wrong-credentials' } as const;
 const MAX_FAILED_ATTEMPTS = 5;
@@ -46,7 +52,8 @@ export async function signIn(
   const missing = missingField(input);
   if (missing) return err(missing);
 
-  const key = rateLimitKey(input.clientIp, input.email);
+  const ip = await deps.clientIp.clientIp();
+  const key = rateLimitKey(ip, input.email);
   const status = await deps.rateLimiter.check(key, MAX_FAILED_ATTEMPTS);
   if (!status.allowed) {
     deps.auditLog.record({ type: 'sign-in-refused', reason: 'rate-limited', at: new Date() });

@@ -35,7 +35,7 @@ export function createWebContainer(env: Env, requestHeaders: RequestHeaders, sea
   };
 
   return {
-    ...authUseCases(lazyDeps, requestHeaders),
+    ...authUseCases(lazyDeps),
     ...menuUseCases(lazyDeps),
     ...shoppingUseCases(lazyDeps),
     ...searchUseCases(lazySearch),
