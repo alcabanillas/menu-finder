@@ -9,11 +9,11 @@ const CHIP =
   'inline-flex max-w-full min-h-[34px] flex-wrap items-center gap-x-2 gap-y-1 rounded-[17px] border px-3.5 py-1.5 ' +
   'text-sm leading-[1.3] font-medium';
 const TONES: Record<Tone, string> = {
-  include: 'border-olive-300 bg-olive-100 text-olive-700',
-  exclude: 'border-terracotta-300 bg-terracotta-50 text-terracotta-700',
+  include: 'border-olive-300 bg-olive-100 text-include-on-tint',
+  exclude: 'border-terracotta-300 bg-terracotta-50 text-exclude-on-tint',
   mixed: 'border-ochre-300 bg-ochre-100 text-ochre-700',
 };
-const MEMBER_COLOURS = { include: 'text-olive-700', exclude: 'text-terracotta-700' };
+const MEMBER_COLOURS = { include: 'text-include-on-tint', exclude: 'text-exclude-on-tint' };
 const SOFT = 'underline decoration-dashed decoration-1 underline-offset-[3px]';
 const SLOT = 'font-normal whitespace-nowrap text-text-muted';
 const SLOT_LABELS = { lunch: 'comida', dinner: 'cena' };

@@ -71,8 +71,8 @@ describe('RestrictionChipList', () => {
     expect(items[0]).toHaveClass('bg-ochre-100', 'border-ochre-300');
     expect(srText(items[0])).toBe('En el mismo plato: arroz, preferencia y excluido: marisco, preferencia');
     const members = items[0].querySelectorAll('[data-member]');
-    expect(members[0]).toHaveClass('text-olive-700');
-    expect(members[1]).toHaveClass('text-terracotta-700');
+    expect(members[0]).toHaveClass('text-include-on-tint');
+    expect(members[1]).toHaveClass('text-exclude-on-tint');
     expect(items[0].querySelector('[data-separator="and"]')).toBeInTheDocument();
     expect(items[1]).toHaveClass('bg-olive-100');
   });
