@@ -46,7 +46,7 @@ Vercel asocia los checks al commit y al nombre del job. Por eso cada check corre
    - `checks` y `e2e` pasaron en ese commit: ni faltan ni siguen corriendo;
    - `production` no tiene commits que no estén en `main`.
 
-   Si algo falla, lo dice y no publica. Si cambió algo en `postgres/migrations/` desde la versión anterior, te lo lista y pregunta si ya está aplicado. Después pide confirmación, crea el tag, lo sube y mueve `production`. Necesita `gh` con sesión iniciada.
+   Si algo falla, lo dice y no publica. Si cambió algo en `postgres/migrations/` desde la versión anterior, te lo lista y pregunta si ya está aplicado. Después pide confirmación, crea el tag, lo sube y mueve `production`. Antes de cada paso escribe qué hace, y la salida de git llega a la terminal. Los dos push no ejecutan el pre-push (`--no-verify`): el commit ya está en `main` con `checks` y `e2e` en verde, y el hook solo repetiría la CI durante unos 5 minutos por push, sin mostrar nada (decidido por el autor el 2026-10-17, en MF-22.6). Necesita `gh` con sesión iniciada.
 4. **Comprueba en Vercel** que el deployment aparece como retenido hasta que `release` pasa, y que después se publica.
 5. **Comprueba la web:**
    - Cabeceras: `curl -sI https://menu-finder-mbs.vercel.app/login` debe mostrar `Content-Security-Policy` con `nonce-…`, `X-Frame-Options: DENY` y `X-Content-Type-Options: nosniff`, y no `X-Powered-By`.

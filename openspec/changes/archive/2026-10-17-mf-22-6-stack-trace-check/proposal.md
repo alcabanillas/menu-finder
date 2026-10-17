@@ -7,6 +7,7 @@ MF-22.6 (`context/roadmap.md`, item MF-22). MF-22.2 uploads the browser source m
 - **A temporary button in `/planner`** that throws an uncaught error with a fixed message when it is clicked. It lives in `features/menu-planner/` and the planner page renders it.
 - **A production check by the author:** after the release, a click on the button produces one Sentry event whose stack trace names the button's file in `src/` with its original lines.
 - **The button is removed** in this same change, with its test, and the removal is released too, so it does not stay in production.
+- **`pnpm release` says what it does:** added after the first release looked stuck (tasks.md, section 4). Each step prints a line before it runs, and the pushes skip the pre-push hook, because the commit already passed `checks` and `e2e` in CI (decided by the author on 2026-10-17).
 - Two pull requests and two releases: one that adds the button and one that removes it. The version of each is asked of the author before each PR (AGENTS.md, "Versión antes de abrir la PR").
 
 ## Capabilities

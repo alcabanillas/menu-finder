@@ -4,6 +4,7 @@
 import { spawnSync } from 'node:child_process';
 import { stdin, stdout } from 'node:process';
 import { createInterface } from 'node:readline/promises';
+import { publishSteps } from './publish-steps';
 import { releaseProblems, type CheckRun, type ReleaseState } from './release-problems';
 
 const MIGRATIONS = 'postgres/migrations';
@@ -68,10 +69,12 @@ function cancel() {
   console.log('Cancelled. Nothing was released.');
 }
 
+// Each step says what it does before it runs, and its output reaches the terminal.
 function publish(tag: string, commit: string) {
-  run('git', ['tag', tag, commit]);
-  run('git', ['push', '--quiet', 'origin', tag]);
-  run('git', ['push', '--quiet', 'origin', `${commit}:refs/heads/production`]);
+  for (const step of publishSteps(tag, commit)) {
+    console.log(step.label);
+    runVisibly(step.command, step.args);
+  }
   console.log(`✓ ${tag} pushed and production moved to ${commit.slice(0, 7)}.`);
   console.log('Vercel builds it and promotes it once the release check passes: gh run list --workflow release.yml');
 }
@@ -80,6 +83,11 @@ function run(command: string, args: string[]) {
   const result = spawnSync(command, args, { encoding: 'utf8' });
   if (result.status !== 0) throw new Error(`${command} ${args.join(' ')} failed:\n${result.stderr || result.error}`);
   return result.stdout.trim();
+}
+
+function runVisibly(command: string, args: string[]) {
+  const result = spawnSync(command, args, { stdio: 'inherit' });
+  if (result.status !== 0) throw new Error(`${command} ${args.join(' ')} failed${result.error ? `: ${result.error}` : ''}`);
 }
 
 function succeeds(command: string, args: string[]) {
