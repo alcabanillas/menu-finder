@@ -59,7 +59,7 @@ export function PlannerSearch({ action, chooseAction, weeks, initialWeek }: Plan
       />
       <ChoiceMessage choice={choice.shownChoice} choosing={choice.choosing} />
       <SearchRow formAction={formAction} pending={pending} onSent={choice.dismiss} random={randomProps} />
-      <div className="-mt-2 @min-[800px]:hidden"><RandomButton size="sm" {...randomProps} /></div>
+      <RandomButton size="sm" {...randomProps} />
       <ResultsArea state={state} pending={pending} choiceOf={choiceOf} />
     </section>
   );
@@ -87,7 +87,7 @@ function SearchRow({ formAction, pending, onSent, random }: SearchRowProps) {
         <div className="min-w-0 flex-1">
           <SearchBox pending={pending} />
         </div>
-        <div className="hidden flex-none @min-[800px]:block"><RandomButton size="md" {...random} /></div>
+        <RandomButton size="md" {...random} />
       </form>
     </div>
   );
