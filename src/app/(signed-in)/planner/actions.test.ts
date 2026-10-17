@@ -1,18 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { chooseRandomMenuAction, searchMenusAction } from '@/app/(signed-in)/planner/actions';
+import { chooseMenuAction, searchMenusAction } from '@/app/(signed-in)/planner/actions';
 
 const mocks = vi.hoisted(() => ({
   requireUser: vi.fn(),
   selectRandomMenu: vi.fn(),
+  chooseMenu: vi.fn(),
   searchByText: vi.fn(),
   revalidatePath: vi.fn(),
 }));
 
 vi.mock('@/app/_auth/require-user', () => ({ requireUser: mocks.requireUser }));
-vi.mock('@/composition/web-container', () => ({ webContainer: () => ({ selectRandomMenu: mocks.selectRandomMenu, searchByText: mocks.searchByText }) }));
+vi.mock('@/composition/web-container', () => ({ webContainer: () => ({ selectRandomMenu: mocks.selectRandomMenu, chooseMenu: mocks.chooseMenu, searchByText: mocks.searchByText }) }));
 vi.mock('next/cache', () => ({ revalidatePath: mocks.revalidatePath }));
 
-const PREVIOUS = { message: null, failed: false, attempt: 2 };
 const ANA = { userId: 'user-a', name: 'Ana', email: 'ana@example.test' };
 
 beforeEach(() => {
@@ -21,56 +21,6 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.resetAllMocks();
-});
-
-describe('chooseRandomMenuAction', () => {
-  it('chooses a menu for the session\'s user and says which one and its Monday', async () => {
-    mocks.selectRandomMenu.mockResolvedValue({ ok: true, value: { id: 'id-1', menuNumber: 12, startsOn: '2026-10-05' } });
-
-    const state = await chooseRandomMenuAction(PREVIOUS);
-
-    expect(state).toEqual({ message: 'Te ha tocado el menú 12: empieza el lunes 5 de octubre.', failed: false, attempt: 3 });
-    expect(mocks.revalidatePath).toHaveBeenCalledWith('/planner');
-  });
-
-  it('says there are no menus when none is stored', async () => {
-    mocks.selectRandomMenu.mockResolvedValue({ ok: false, error: { kind: 'no-menus' } });
-
-    await expect(chooseRandomMenuAction(PREVIOUS)).resolves.toEqual({
-      message: 'No hay menús para elegir.',
-      failed: true,
-      attempt: 3,
-    });
-  });
-
-  it('asks to try again when the database fails', async () => {
-    mocks.selectRandomMenu.mockResolvedValue({ ok: false, error: { kind: 'failed' } });
-
-    await expect(chooseRandomMenuAction(PREVIOUS)).resolves.toEqual({
-      message: 'No se ha podido elegir el menú. Inténtalo de nuevo.',
-      failed: true,
-      attempt: 3,
-    });
-  });
-
-  it('stores nothing without a session: requireUser redirects before the use case runs', async () => {
-    mocks.requireUser.mockRejectedValue(new Error('NEXT_REDIRECT /login'));
-
-    await expect(chooseRandomMenuAction(PREVIOUS)).rejects.toThrow('NEXT_REDIRECT /login');
-    expect(mocks.selectRandomMenu).not.toHaveBeenCalled();
-  });
-
-  it('ignores every field of the request: the user comes from the session and the menu from the server', async () => {
-    mocks.selectRandomMenu.mockResolvedValue({ ok: true, value: { id: 'id-1', menuNumber: 3, startsOn: '2026-10-05' } });
-    const form = new FormData();
-    form.set('userId', 'user-b');
-    form.set('menuNumber', '999');
-
-    // React passes the form as the second argument; the action takes only the state, so the form cannot reach it.
-    await (chooseRandomMenuAction as (previous: typeof PREVIOUS, form: FormData) => Promise<unknown>)(PREVIOUS, form);
-
-    expect(mocks.selectRandomMenu).toHaveBeenCalledExactlyOnceWith({ userId: 'user-a' });
-  });
 });
 
 describe('searchMenusAction', () => {
@@ -145,5 +95,152 @@ describe('searchMenusAction', () => {
     await searchMenusAction(IDLE, formWith('garbanzos', { userId: 'user-b', strategy: 'semantic' }));
 
     expect(mocks.searchByText).toHaveBeenCalledExactlyOnceWith('user-a', 'garbanzos');
+  });
+});
+
+describe('chooseMenuAction', () => {
+  const IDLE = { status: 'idle' as const, attempt: 4 };
+
+  function choiceForm(fields: Record<string, FormDataEntryValue>): FormData {
+    const form = new FormData();
+    for (const [key, value] of Object.entries(fields)) form.set(key, value);
+    return form;
+  }
+
+  it('chooses for an empty week: the menu and the week reach chooseMenu with the session’s user', async () => {
+    mocks.chooseMenu.mockResolvedValue({ ok: true, value: { id: 'id-1', menuNumber: 22, startsOn: '2026-10-12' } });
+
+    const state = await chooseMenuAction(IDLE, choiceForm({ menu: '22', week: 'next' }));
+
+    expect(mocks.chooseMenu).toHaveBeenCalledExactlyOnceWith({ userId: 'user-a', menuNumber: '22', week: 'next' });
+    expect(mocks.revalidatePath).toHaveBeenCalledWith('/planner');
+    expect(state).toEqual({
+      status: 'chosen',
+      menu: 22,
+      week: 'next',
+      message: 'Menú 22 para la semana del 12 oct.',
+      weekHref: '/menu?startsOn=2026-10-12',
+      attempt: 5,
+    });
+  });
+
+  it('chooses nothing without a session: requireUser redirects before the form is read', async () => {
+    mocks.requireUser.mockRejectedValue(new Error('NEXT_REDIRECT /login'));
+    const form = choiceForm({ menu: '22', week: 'next' });
+    const read = vi.spyOn(form, 'get');
+
+    await expect(chooseMenuAction(IDLE, form)).rejects.toThrow('NEXT_REDIRECT /login');
+
+    expect(read).not.toHaveBeenCalled();
+    expect(mocks.chooseMenu).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['a file', choiceForm({ menu: new File(['x'], 'menu.txt'), week: 'next' })],
+    ['a missing field', choiceForm({ week: 'next' })],
+  ])('passes a menu number that is %s as undefined and shows the failure', async (_name, form) => {
+    mocks.chooseMenu.mockResolvedValue({ ok: false, error: { kind: 'invalid-menu' } });
+
+    const state = await chooseMenuAction(IDLE, form);
+
+    expect(mocks.chooseMenu).toHaveBeenCalledExactlyOnceWith({ userId: 'user-a', menuNumber: undefined, week: 'next' });
+    expect(state).toEqual({ status: 'failed', kind: 'invalid-menu', message: 'Ese menú no existe.', attempt: 5 });
+    expect(mocks.revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['a file', choiceForm({ menu: '22', week: new File(['x'], 'week.txt') })],
+    ['a missing field', choiceForm({ menu: '22' })],
+  ])('passes a week that is %s as undefined and shows the failure', async (_name, form) => {
+    mocks.chooseMenu.mockResolvedValue({ ok: false, error: { kind: 'invalid-week' } });
+
+    const state = await chooseMenuAction(IDLE, form);
+
+    expect(mocks.chooseMenu).toHaveBeenCalledExactlyOnceWith({ userId: 'user-a', menuNumber: '22', week: undefined });
+    expect(state).toMatchObject({ status: 'failed', kind: 'invalid-week', message: 'Esa semana no se puede elegir.' });
+  });
+
+  it('says this week cannot be changed when a forged choice reaches a locked week', async () => {
+    mocks.chooseMenu.mockResolvedValue({ ok: false, error: { kind: 'week-locked' } });
+
+    const state = await chooseMenuAction(IDLE, choiceForm({ menu: '22', week: 'current' }));
+
+    expect(state).toMatchObject({
+      status: 'failed',
+      kind: 'week-locked',
+      message: 'Esta semana ya no se puede cambiar: ya has elegido la de la semana que viene.',
+    });
+    expect(mocks.revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it('ignores every other field of the request: the user comes from the session', async () => {
+    mocks.chooseMenu.mockResolvedValue({ ok: true, value: { id: 'id-1', menuNumber: 22, startsOn: '2026-10-05' } });
+
+    await chooseMenuAction(IDLE, choiceForm({ menu: '22', week: 'current', userId: 'user-b', startsOn: '2026-10-19' }));
+
+    expect(mocks.chooseMenu).toHaveBeenCalledExactlyOnceWith({ userId: 'user-a', menuNumber: '22', week: 'current' });
+  });
+
+  it('asks to try again when the database fails, without refreshing the page', async () => {
+    mocks.chooseMenu.mockResolvedValue({ ok: false, error: { kind: 'failed' } });
+
+    const state = await chooseMenuAction(IDLE, choiceForm({ menu: '22', week: 'next' }));
+
+    expect(state).toMatchObject({ status: 'failed', kind: 'failed', message: 'No se ha podido elegir el menú. Inténtalo de nuevo.' });
+    expect(mocks.revalidatePath).not.toHaveBeenCalled();
+  });
+
+  describe('with the random button', () => {
+    it('chooses a random menu for the selected week and says where it went', async () => {
+      mocks.selectRandomMenu.mockResolvedValue({ ok: true, value: { id: 'id-1', menuNumber: 7, startsOn: '2026-10-12' } });
+
+      const state = await chooseMenuAction(IDLE, choiceForm({ random: '1', week: 'next' }));
+
+      expect(mocks.selectRandomMenu).toHaveBeenCalledExactlyOnceWith({ userId: 'user-a', week: 'next' });
+      expect(mocks.chooseMenu).not.toHaveBeenCalled();
+      expect(mocks.revalidatePath).toHaveBeenCalledWith('/planner');
+      expect(state).toMatchObject({ status: 'chosen', menu: 7, week: 'next', message: 'Menú 7 para la semana del 12 oct.', attempt: 5 });
+    });
+
+    it('chooses nothing without a session: requireUser redirects before the form is read', async () => {
+      mocks.requireUser.mockRejectedValue(new Error('NEXT_REDIRECT /login'));
+      const form = choiceForm({ random: '1', week: 'next' });
+      const read = vi.spyOn(form, 'get');
+
+      await expect(chooseMenuAction(IDLE, form)).rejects.toThrow('NEXT_REDIRECT /login');
+
+      expect(read).not.toHaveBeenCalled();
+      expect(mocks.selectRandomMenu).not.toHaveBeenCalled();
+    });
+
+    it('passes a missing week as undefined and ignores every other field', async () => {
+      mocks.selectRandomMenu.mockResolvedValue({ ok: false, error: { kind: 'invalid-week' } });
+
+      const state = await chooseMenuAction(IDLE, choiceForm({ random: '1', userId: 'user-b', menu: '999' }));
+
+      expect(mocks.selectRandomMenu).toHaveBeenCalledExactlyOnceWith({ userId: 'user-a', week: undefined });
+      expect(state).toMatchObject({ status: 'failed', kind: 'invalid-week' });
+      expect(mocks.revalidatePath).not.toHaveBeenCalled();
+    });
+
+    it('says there are no menus when none is stored', async () => {
+      mocks.selectRandomMenu.mockResolvedValue({ ok: false, error: { kind: 'no-menus' } });
+
+      await expect(chooseMenuAction(IDLE, choiceForm({ random: '1', week: 'current' }))).resolves.toEqual({
+        status: 'failed',
+        kind: 'no-menus',
+        message: 'No hay menús para elegir.',
+        attempt: 5,
+      });
+    });
+
+    it('takes any other value of the field as a normal choice', async () => {
+      mocks.chooseMenu.mockResolvedValue({ ok: true, value: { id: 'id-1', menuNumber: 22, startsOn: '2026-10-05' } });
+
+      await chooseMenuAction(IDLE, choiceForm({ random: '0', menu: '22', week: 'current' }));
+
+      expect(mocks.selectRandomMenu).not.toHaveBeenCalled();
+      expect(mocks.chooseMenu).toHaveBeenCalledOnce();
+    });
   });
 });

@@ -185,7 +185,7 @@ test('another user, with no menu of their own, does not see this one', async ({ 
   await page.goto('/menu');
 
   await expect(page.getByText('Todavía no has elegido menú para esta semana.')).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Elegir menú' })).toHaveAttribute('href', '/planner');
+  await expect(page.getByRole('link', { name: 'Elegir menú' })).toHaveAttribute('href', '/planner?week=current');
   await expect(page.getByText('Lentejas ficticias')).toHaveCount(0);
 });
 
