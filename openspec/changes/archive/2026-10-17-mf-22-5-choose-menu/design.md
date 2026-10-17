@@ -5,7 +5,7 @@
 Visual source: the design system "Menu Finder Design System" (<https://claude.ai/code/artifact/2b9c8f4b-b06b-4b2d-a22a-221b23edc61a>), version `1792178100-1406`:
 
 - `project/ui_kits/app/PlannerScreen.jsx` (`WeekTarget` and `PlannerScreen`) and `project/components/Planner/preview.html`: the fieldset "Eligiendo menú para" with two radio cards (`.mf-wt__opt`, the selected one with a 2 px olive border on `olive-50`), the hint under them (`.mf-wt__hint`, ochre when the week is full), the done line (`.mf-wt__done`, olive, a check and a ghost "Ver semana" with an arrow); the default week is the first empty one, otherwise next week.
-- `project/components/recipe/MenuCandidateCard.jsx` and its README: `chooseLabel` ("Elegir para el 12 oct"), `chooseVariant` (`secondary` for "Cambiar el menú del 5 oct"), `selected` with `selectedLabel` ("Menú del 5 oct", a check, the olive double border), and `confirm` (MF-22.8).
+- `project/components/recipe/MenuCandidateCard.jsx` and its README: `chooseLabel` ("Elegir para el 12 oct"), `chooseVariant` (`secondary` for "Cambiar el menú del 5 oct"), `selected` with `selectedLabel` ("Menú del 5 oct", a check, the olive double border), and `confirm`.
 - `project/components/core/Button.jsx`: the `sm` size (36 px, 14 px padding, 14 px text) and the `ghost` variant.
 
 ## Goals / Non-Goals
@@ -18,7 +18,7 @@ Visual source: the design system "Menu Finder Design System" (<https://claude.ai
 
 **Non-Goals:**
 
-- The warning about lost ticks (MF-22.8) and the polarity tokens (MF-22.9).
+- The polarity tokens (MF-22.8). No warning about lost ticks (decided by the author on 2026-10-17).
 - The E2E of the full weekly flow (MF-22.7).
 - Keeping the results when choosing without JavaScript (D7).
 
@@ -41,11 +41,11 @@ Alternative: send the Monday from the browser and check it is one of the two. Re
 
 ### D2. `selectMenu` stays a service; the web calls a new use case
 
-The roadmap planned to move `selectMenu` to `use-cases/` once the random button went. The button stays until MF-22.9 and still calls `selectMenu`, and a use case never calls another use case (ADR-001, "Casos de uso y services"). So `selectMenu` stays in `services/selection/`, and the web calls a new use case, `use-cases/menu/choose-menu.ts`, which only delegates to it. A thin use case is the price of keeping the rule; it also gives the web an entry with its own input type.
+The roadmap planned to move `selectMenu` to `use-cases/` once the random button went. The button stays and still calls `selectMenu`, and a use case never calls another use case (ADR-001, "Casos de uso y services"). So `selectMenu` stays in `services/selection/`, and the web calls a new use case, `use-cases/menu/choose-menu.ts`, which only delegates to it. A thin use case is the price of keeping the rule; it also gives the web an entry with its own input type.
 
 `selectMenu` takes `{ userId, menuNumber?: unknown, week?: unknown }`. In order: the menu with `positiveIntegerInput` (`invalid-menu`), the week with a `weekInput` schema in `application/dto/` (`z.enum(['current', 'next'])`, `invalid-week`), `listFrom(userId, thisMonday)` (`failed`), `isLocked` (`week-locked`), then `replace` with `mondayOfWeek` (`unknown-menu` or `failed`).
 
-`selectRandomMenu` reads the selections from this Monday, takes `suggestedWeek` and passes it to `selectMenu`, which reads them again. One extra read on a button that changes in MF-22.9 is simpler than threading the selections through the service.
+`selectRandomMenu` reads the selections from this Monday, takes `suggestedWeek` and passes it to `selectMenu`, which reads them again. One extra read on that button is simpler than threading the selections through the service.
 
 ### D3. The weeks of the selector
 
@@ -121,10 +121,9 @@ As the search (MF-22.4 D8): `{ category: 'planner', message: 'menu chosen', data
 
 ## Risks / Trade-offs
 
-- [Replacing a week's menu without asking until MF-22.8] → The hint under the selector says it will replace it; the release is manual, so MF-22.8 lands before any release.
 - [`revalidatePath` could reset `PlannerSearch`] → Checked in the browser during `apply`; if it resets, `router.refresh()` from the client after a `chosen` answer refreshes the weeks instead.
 - [The `form` attribute] → Supported by every current browser; a control outside its form is posted with it, with or without JavaScript. The component tests check the attributes; the browser check of the post is in the last task.
-- [Two reads in `selectRandomMenu`] → Accepted until MF-22.9.
+- [Two reads in `selectRandomMenu`] → Accepted.
 
 ## Migration Plan
 

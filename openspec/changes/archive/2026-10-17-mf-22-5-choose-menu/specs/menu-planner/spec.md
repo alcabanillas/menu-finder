@@ -214,3 +214,7 @@ Each menu of the ranking SHALL be shown as a card with its rank, "Menú N" and o
 ### Requirement: Candidate cards with evidence
 **Reason**: The cards gain their one action, the choose button, so the scenario "Cards have no actions" no longer holds. The requirement is replaced whole, with the same evidence rules.
 **Migration**: "Candidate cards with evidence and a choose button".
+
+### Requirement: Choosing needs a session and trusts only the session
+**Reason**: The random button is now one more submit of the choose form and sends the week, so the action reads fields of the request. The requirement is replaced whole by "Choosing needs a session and trusts only the session, the menu and the week".
+**Migration**: "Choosing needs a session and trusts only the session, the menu and the week".
