@@ -1,12 +1,12 @@
 'use client';
 
-import { useActionState, type ReactNode } from 'react';
+import { useActionState } from 'react';
 import type { Week, WeeksToChooseDto } from '@/application/dto/weeks-to-choose';
 import { cardChoice } from '@/features/menu-planner/choice-prompts';
 import type { ChoiceState } from '@/features/menu-planner/choice-view';
 import { ChoiceMessage } from '@/features/menu-planner/components/choice-message';
 import { PlannerResults } from '@/features/menu-planner/components/planner-results';
-import { RandomButton } from '@/features/menu-planner/components/random-button';
+import { RandomButton, type RandomProps } from '@/features/menu-planner/components/random-button';
 import { RestrictionChipList } from '@/features/menu-planner/components/restriction-chip-list';
 import { SearchBox } from '@/features/menu-planner/components/search-box';
 import { WeekSelector } from '@/features/menu-planner/components/week-selector';
@@ -58,7 +58,7 @@ export function PlannerSearch({ action, chooseAction, weeks, initialWeek }: Plan
         asking={choice.asking}
       />
       <ChoiceMessage choice={choice.shownChoice} choosing={choice.choosing} />
-      <SearchRow formAction={formAction} pending={pending} onSent={choice.dismiss} desktopRandom={<RandomButton size="md" {...randomProps} />} />
+      <SearchRow formAction={formAction} pending={pending} onSent={choice.dismiss} random={randomProps} />
       <div className="-mt-2 @min-[800px]:hidden"><RandomButton size="sm" {...randomProps} /></div>
       <ResultsArea state={state} pending={pending} choiceOf={choiceOf} />
     </section>
@@ -69,11 +69,11 @@ type SearchRowProps = {
   formAction: (formData: FormData) => void;
   pending: boolean;
   onSent: () => void;
-  desktopRandom: ReactNode;
+  random: RandomProps;
 };
 
 // On a phone only the box stays at the top when the page scrolls; the random button goes under it (`PlannerScreen.jsx`).
-function SearchRow({ formAction, pending, onSent, desktopRandom }: SearchRowProps) {
+function SearchRow({ formAction, pending, onSent, random }: SearchRowProps) {
   return (
     <div className="sticky top-0 z-[4] -mx-5 -mt-3 bg-surface-page px-5 py-3 @min-[800px]:static @min-[800px]:m-0 @min-[800px]:max-w-[760px] @min-[800px]:p-0">
       <form
@@ -87,7 +87,7 @@ function SearchRow({ formAction, pending, onSent, desktopRandom }: SearchRowProp
         <div className="min-w-0 flex-1">
           <SearchBox pending={pending} />
         </div>
-        <div className="hidden flex-none @min-[800px]:block">{desktopRandom}</div>
+        <div className="hidden flex-none @min-[800px]:block"><RandomButton size="md" {...random} /></div>
       </form>
     </div>
   );

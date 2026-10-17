@@ -3,7 +3,10 @@ import { Button } from '@/shared/ui/button';
 
 const DICE_SIZE = { sm: 17, md: 18 };
 
-type RandomButtonProps = { size: 'sm' | 'md'; formId: string; disabled: boolean; onAsk?: () => void };
+/** What the button needs from the choice: the form it posts to, whether a choice runs and, if a menu would be replaced, how to ask. */
+export type RandomProps = { formId: string; disabled: boolean; onAsk?: () => void };
+
+type RandomButtonProps = RandomProps & { size: 'sm' | 'md' };
 
 // A secondary button that submits the choose form with `random`: the server picks the menu for the selected week. When the
 // week has a menu, with JavaScript the question comes first (`onAsk`); without it the button posts.
