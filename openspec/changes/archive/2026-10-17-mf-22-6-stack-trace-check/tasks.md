@@ -17,7 +17,7 @@
 - [x] 3.1 Delete `stack-trace-check-button.tsx` and its test, and the line in `page.tsx`. Verify `git diff 7a392d1 -- src/app/(signed-in)/planner/page.tsx src/features/menu-planner/components/` shows nothing of the button, and `page.test.tsx` and `pnpm typecheck` pass
 - [x] 3.2 Mark MF-22.6 done in `context/roadmap.md`
 - [x] 3.3 Go through `context/safety-first.md` §4 and record the result below
-- [ ] 3.4 Run `pnpm test:coverage`, ask the author for the version of PR 2, archive the change and open PR 2
+- [x] 3.4 Run `pnpm test:coverage`, ask the author for the version of PR 2, archive the change and open PR 2
 - [ ] 3.5 Author, after merging PR 2: `pnpm release`, and verify `/planner` in production has no "Lanzar error de prueba" button
 
 ## 4. Release script (PR 2)
