@@ -38,7 +38,6 @@ Sustituye el flujo actual del autor en Notion.
 - **Integración con Google Drive** en cualquier forma (Service Account, OAuth, adaptador). Los ficheros se descargan a mano (ING-cli-local).
 - Subida manual de ficheros; detección automática de cambios en origen; versionado del índice (ING-sin-subida).
 - **Usuario anónimo** y registro de usuarios (SEG-sistema-cerrado).
-- **"Sorpréndeme" / menú aleatorio**. El único camino para elegir menú es el buscador de `/planner`.
 - Multi-tenant, perfiles premium, pagos, gestión de usuarios.
 - App nativa, notificaciones, PWA offline.
 - OCR, imágenes, nutrición avanzada, supermercados, precios, pedidos.
@@ -54,7 +53,7 @@ Qué falta por hacer de cada pantalla está en [roadmap.md](roadmap.md).
 | Ruta | Pantalla |
 |---|---|
 | `/` | Sin sesión, home informativa; con sesión, dashboard (UI-home-sin-login): menú activo, "qué toca hoy", progreso de la compra |
-| `/planner` | **Buscador de menús**: petición en lenguaje natural → candidatos con explicación. Forma fijada por **BUS-superficie-consulta**: caja de texto que permanece, chips de restricciones solo orientativos (no se editan ni acumulan: cada búsqueda empieza de cero), los 5 mejores de los 36 menús puntuados, evidencia por chip y explicación. Modelo de datos: ARQ-modelo-datos |
+| `/planner` | **Buscador de menús**: petición en lenguaje natural → candidatos con explicación. Forma fijada por **BUS-superficie-consulta**: caja de texto que permanece, chips de restricciones solo orientativos (no se editan ni acumulan: cada búsqueda empieza de cero), los 5 mejores de los 36 menús puntuados, evidencia por chip y explicación. También "Elegir uno al azar", para la semana elegida (decidido por el autor el 2026-10-16). Modelo de datos: ARQ-modelo-datos |
 | `/menu` | Menú semanal activo, rejilla L–S / tabs en móvil. Card de receta desplegable al pulsar un plato (UI-card-receta) |
 | `/shopping-list` | Checklist agrupada por las 13 categorías del PDF ([datos.md §2](datos.md)) |
 

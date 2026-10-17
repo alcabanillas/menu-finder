@@ -9,7 +9,7 @@ import { Button } from '@/shared/ui/button';
 // terms of an attribute ochre; the author decided olive, the colour of `include` (MF-22.4 design D5).
 // A group that mixes include and exclude has the ochre background of its chip (`RestrictionChip.jsx`).
 const MIXED_TERMS = 'rounded-pill bg-ochre-100 px-2.5 py-0.5';
-const TERM_COLOURS = { include: 'text-olive-600', exclude: 'text-terracotta-600' };
+const TERM_COLOURS = { include: 'text-include', exclude: 'text-exclude' };
 
 /**
  * The choose button of a card: it submits the choose form `formId` with the menu number, whatever its place in the page.

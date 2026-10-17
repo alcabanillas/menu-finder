@@ -52,9 +52,9 @@ describe('MenuCandidateCard', () => {
   it('colours the terms: olive for include and attribute, terracotta for exclude', () => {
     render(<MenuCandidateCard card={CARD} />);
 
-    expect(within(lines()[0]).getByText('garbanzos')).toHaveClass('text-olive-600');
-    expect(within(lines()[1]).getByText('cerdo')).toHaveClass('text-terracotta-600');
-    expect(within(lines()[3]).getByText('sencillas')).toHaveClass('text-olive-600');
+    expect(within(lines()[0]).getByText('garbanzos')).toHaveClass('text-include');
+    expect(within(lines()[1]).getByText('cerdo')).toHaveClass('text-exclude');
+    expect(within(lines()[3]).getByText('sencillas')).toHaveClass('text-include');
   });
 
   it('separates the terms of a same-dish group with a rule and those of an any-of group with an "o"', () => {
