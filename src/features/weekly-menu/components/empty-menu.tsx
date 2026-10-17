@@ -67,7 +67,8 @@ function NextStep({ status }: { status: WeekStatusDto }) {
         </p>
       </div>
       {past ? null : (
-        <Link href="/planner" className={BUTTON}>
+        // Buscar opens on the week that is empty: this week, or the next one, the only other week the window has.
+        <Link href={`/planner?week=${status === 'current' ? 'current' : 'next'}`} className={BUTTON}>
           Elegir menú
         </Link>
       )}

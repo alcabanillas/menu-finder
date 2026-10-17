@@ -11,7 +11,8 @@ test.skip(!testDatabaseUrl(process.env, readEnvFile()), 'needs the test database
 // database, so the tests check the shape of the answer, not a fixed number.
 // A number of this run only, so a parallel run never deletes it (MF-62).
 const MENU = newFixtureRun().menuNumber(0);
-const CHOSEN = /Te ha tocado el menú (\d+): empieza el lunes \d+ de \p{L}+\./u;
+const CHOSEN = /Menú (\d+) para la semana del \d+ \p{L}+\./u;
+const RANDOM = 'Elegir uno al azar';
 
 const account = registerTestAccount();
 
@@ -35,15 +36,62 @@ test.describe('with a session', () => {
     await signInAs(page, account);
   });
 
-  test('choosing a random menu says which one and shows it in the summary', async ({ page }) => {
+  test('choosing a random menu says which one and shows it in the week selector', async ({ page }) => {
     await expectChoiceShown(page);
   });
 
+  // The random button chooses for the week the selector shows, so a click fills this week and a click on the other week
+  // fills next week; the lock needs no search (MF-22.5, spec menu-selection "This week is locked once next week is chosen").
+  test('choosing for both weeks fills them and closes this week', async ({ page }) => {
+    await clearSelectionsOf(account);
+    await page.goto('/planner');
+    const thisWeek = page.getByRole('radio', { name: /Esta semana/ });
+    const nextWeek = page.getByRole('radio', { name: /La que viene/ });
+    await expect(thisWeek).toBeChecked();
+    await expect(thisWeek).toBeEnabled();
+
+    await page.getByRole('button', { name: RANDOM }).click();
+    await expect(thisWeek).toHaveAccessibleName(/Menú \d+/);
+    await expect(nextWeek).toHaveAccessibleName(/Sin menú/);
+
+    await nextWeek.check();
+    await page.getByRole('button', { name: RANDOM }).click();
+    await expect(nextWeek).toHaveAccessibleName(/Menú \d+/);
+    await expect(nextWeek).toBeChecked();
+    await expect(thisWeek).toBeDisabled();
+    await expect(thisWeek).toHaveAccessibleName(/Cerrada/);
+  });
+
+  test('a week that has a menu asks before a random one replaces it', async ({ page }) => {
+    await clearSelectionsOf(account);
+    await page.goto('/planner');
+    await page.getByRole('button', { name: RANDOM }).click();
+    await expect(page.getByRole('radio', { name: /Esta semana/ })).toHaveAccessibleName(/Si eliges otro, lo sustituye/);
+
+    await page.getByRole('button', { name: RANDOM }).click();
+
+    await expect(page.getByRole('group', { name: 'Confirmar cambio' })).toContainText('por uno al azar en la semana del');
+    await page.getByRole('button', { name: 'Cancelar' }).click();
+    await expect(page.getByRole('group', { name: 'Confirmar cambio' })).toHaveCount(0);
+  });
+
+  test('the link of an empty week in Menú opens Buscar on that week', async ({ page }) => {
+    await clearSelectionsOf(account);
+    await page.goto('/menu');
+
+    await page.getByRole('link', { name: 'Elegir menú' }).click();
+
+    await expect(page).toHaveURL('/planner?week=current');
+    await expect(page.getByRole('radio', { name: /Esta semana/ })).toBeChecked();
+  });
+
   test('choosing without a session stores nothing and goes to the sign-in page', async ({ page, context }) => {
+    await clearSelectionsOf(account);
+    await page.goto('/planner');
     const before = await selectionsOf(account);
     await context.clearCookies();
 
-    await page.getByRole('button', { name: 'Elegir un menú al azar' }).click();
+    await page.getByRole('button', { name: RANDOM }).click();
 
     await expect(page).toHaveURL('/login');
     expect(await selectionsOf(account)).toBe(before);
@@ -65,7 +113,7 @@ test.describe('without JavaScript', () => {
   test('searching still works: the form posts, the server answers and the URL holds no text', async ({ page }) => {
     await signInAs(page, account);
 
-    await page.getByRole('textbox', { name: 'Qué te apetece esta semana' }).fill('   ');
+    await page.getByRole('textbox', { name: 'Qué te apetece' }).fill('   ');
     await page.getByRole('button', { name: 'Buscar' }).click();
 
     await expect(page.getByRole('alert')).toHaveText('Escribe qué te apetece.');
@@ -74,12 +122,21 @@ test.describe('without JavaScript', () => {
 });
 
 async function expectChoiceShown(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'Elegir un menú al azar' }).click();
+  await clearSelectionsOf(account);
+  await page.goto('/planner');
+  await page.getByRole('button', { name: RANDOM }).click();
 
   const message = page.getByText(CHOSEN);
   await expect(message).toBeVisible();
   const menuNumber = CHOSEN.exec((await message.textContent())!)![1];
-  await expect(page.getByText(new RegExp(`^Menú ${menuNumber} · desde el lunes`))).toBeVisible();
+  // The random menu goes to the selected week: "Esta semana" now reads its number.
+  await expect(page.getByRole('radio', { name: new RegExp(String.raw`Menú ${menuNumber}\b`) }).first()).toBeAttached();
+}
+
+async function clearSelectionsOf({ email }: TestAccount): Promise<void> {
+  await withDatabase((client) =>
+    client.query('DELETE FROM selection WHERE user_id = (SELECT id FROM "user" WHERE email = $1)', [email]),
+  );
 }
 
 async function selectionsOf({ email }: TestAccount): Promise<number> {

@@ -38,4 +38,20 @@ describe('Button', () => {
 
     expect(screen.getByRole('button', { name: 'Entrar' })).toHaveClass('w-full');
   });
+
+  it('is a borderless transparent button when ghost', () => {
+    render(<Button variant="ghost">Ver semana</Button>);
+
+    const button = screen.getByRole('button', { name: 'Ver semana' });
+    expect(button).toHaveClass('border-transparent');
+    expect(button).toHaveClass('bg-transparent');
+  });
+
+  it('is 36 px high with 14 px text when small', () => {
+    render(<Button size="sm">Elegir</Button>);
+
+    const button = screen.getByRole('button', { name: 'Elegir' });
+    expect(button).toHaveClass('h-9');
+    expect(button).toHaveClass('text-sm');
+  });
 });

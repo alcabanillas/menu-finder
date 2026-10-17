@@ -1,37 +1,43 @@
 import type { Clock } from '@/application/ports/clock';
 import type { SelectionRepository, SelectionWriteError } from '@/application/ports/selection-repository';
 import { positiveIntegerInput } from '@/application/dto/positive-integer-input';
+import type { ChooseMenuFailure } from '@/application/dto/choose-menu-failure';
+import { weekInput } from '@/application/dto/week-input';
 import { mondayOf } from '@/domain/selection/local-date';
 import type { Selection } from '@/domain/selection/selection';
-import { startsOnFor } from '@/domain/selection/week';
+import { isLocked, mondayOfWeek } from '@/domain/selection/week';
 import { err, ok, type Result } from '@/shared/result';
 
 /** What a form or a direct call sends: the menu number is not trusted, the user id comes from the session. */
-export type SelectMenuInput = { userId: string; menuNumber?: unknown };
+export type SelectMenuInput = { userId: string; menuNumber?: unknown; week?: unknown };
 
-/** `invalid-menu`: not a positive integer; `unknown-menu`: no menu has that number; `failed`: a fault of the system. */
-export type SelectMenuFailure = { kind: 'invalid-menu' } | { kind: 'unknown-menu' } | { kind: 'failed' };
+export type SelectMenuFailure = ChooseMenuFailure;
 
 type Deps = { selections: SelectionRepository; clock: Clock };
 
 /**
- * Stores the user's choice of a menu. The start date is computed here from today, never read from the request:
- * this week's Monday if the user has no menu on it, otherwise next Monday, replacing a choice already made for it.
+ * Stores the user's choice of a menu for this week or next. The start date is computed here from today, never read
+ * from the request, and replaces a choice already made for that Monday. This week is refused once next week has a menu.
  */
 export async function selectMenu(
   { selections, clock }: Deps,
-  { userId, menuNumber }: SelectMenuInput,
+  { userId, menuNumber, week }: SelectMenuInput,
 ): Promise<Result<Selection, SelectMenuFailure>> {
   const parsed = positiveIntegerInput.safeParse(menuNumber);
   if (!parsed.success) return err({ kind: 'invalid-menu' });
+
+  const parsedWeek = weekInput.safeParse(week);
+  if (!parsedWeek.success) return err({ kind: 'invalid-week' });
 
   const today = clock.today();
   const fromThisMonday = await selections.listFrom(userId, mondayOf(today));
   if (!fromThisMonday.ok) return err({ kind: 'failed' });
 
+  if (isLocked(parsedWeek.data, fromThisMonday.value, today)) return err({ kind: 'week-locked' });
+
   const stored = await selections.replace(userId, {
     menuNumber: parsed.data,
-    startsOn: startsOnFor(today, fromThisMonday.value),
+    startsOn: mondayOfWeek(today, parsedWeek.data),
   });
   return stored.ok ? ok(stored.value) : err(toFailure(stored.error));
 }

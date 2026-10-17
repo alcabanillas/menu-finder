@@ -3,10 +3,25 @@ import type { CurrentSelections, Selection } from '@/domain/selection/selection'
 
 const DAYS_PER_WEEK = 7;
 
-/** The Monday a new choice starts on: this week's if the user has no menu on it, otherwise next week's. */
-export function startsOnFor(today: LocalDate, selectionsFromThisMonday: Selection[]): LocalDate {
-  const thisMonday = mondayOf(today);
-  return startingOn(selectionsFromThisMonday, thisMonday) ? nextMonday(today) : thisMonday;
+/** The week a user chooses a menu for: the one that holds today, or the next one. */
+export type Week = 'current' | 'next';
+
+/** The Monday a choice for `week` starts on. */
+export function mondayOfWeek(today: LocalDate, week: Week): LocalDate {
+  return week === 'current' ? mondayOf(today) : nextMonday(today);
+}
+
+/** This week cannot take a choice once next week has a menu: the current shopping list would change under the user. */
+export function isLocked(week: Week, selectionsFromThisMonday: Selection[], today: LocalDate): boolean {
+  return week === 'current' && startingOn(selectionsFromThisMonday, nextMonday(today)) !== null;
+}
+
+/** This week when it is empty and not locked, otherwise next week. */
+export function suggestedWeek(selectionsFromThisMonday: Selection[], today: LocalDate): Week {
+  const thisWeekIsFree =
+    !isLocked('current', selectionsFromThisMonday, today) &&
+    startingOn(selectionsFromThisMonday, mondayOf(today)) === null;
+  return thisWeekIsFree ? 'current' : 'next';
 }
 
 /** The active menu (this week's) and the shopping list (next week's if chosen, otherwise this week's). */

@@ -20,10 +20,10 @@ const fakeMenus = (numbers: number[], fails = false): Pick<MenuRepository, 'list
     fails ? err({ kind: 'read-failed', reason: 'connection refused' }) : ok(numbers.map((number) => ({ number, meals: [] }))),
 });
 
-const fakeSelections = (failure: 'none' | 'read' | 'unknown-menu' = 'none') => {
+const fakeSelections = (failure: 'none' | 'read' | 'unknown-menu' = 'none', existing: Selection[] = []) => {
   const stored: Stored[] = [];
   const selections: SelectionRepository = {
-    listFrom: async () => (failure === 'read' ? err({ kind: 'read-failed', reason: 'connection refused' }) : ok([])),
+    listFrom: async () => (failure === 'read' ? err({ kind: 'read-failed', reason: 'connection refused' }) : ok(existing)),
     replace: async (userId, choice) => {
       if (failure === 'unknown-menu') return err({ kind: 'unknown-menu' });
       const selection = { id: `id-${stored.length + 1}`, ...choice };
@@ -64,6 +64,55 @@ describe('selectRandomMenu', () => {
     const result = await selectRandomMenu(deps, { userId: ANA });
 
     expect(result.ok && result.value.menuNumber).toBe(menuNumber);
+  });
+
+  it('chooses next week when only next week is chosen, because this week is locked', async () => {
+    const existing: Selection = { id: 'sel-12', menuNumber: 12, startsOn: '2026-10-12' };
+    const { deps, stored } = depsWith({ random: () => 0, selections: fakeSelections('none', [existing]) });
+
+    const result = await selectRandomMenu(deps, { userId: ANA });
+
+    expect(result).toEqual({ ok: true, value: { id: 'id-1', menuNumber: 3, startsOn: '2026-10-12' } });
+    expect(stored).toEqual([{ userId: ANA, id: 'id-1', menuNumber: 3, startsOn: '2026-10-12' }]);
+  });
+
+  it('chooses next week when this week already has a menu', async () => {
+    const existing: Selection = { id: 'sel-3', menuNumber: 3, startsOn: MONDAY };
+    const { deps } = depsWith({ selections: fakeSelections('none', [existing]) });
+
+    const result = await selectRandomMenu(deps, { userId: ANA });
+
+    expect(result.ok && result.value.startsOn).toBe('2026-10-12');
+  });
+
+  it('chooses for the week the user selected, whatever the suggested one', async () => {
+    const { deps, stored } = depsWith({ random: () => 0 });
+
+    const result = await selectRandomMenu(deps, { userId: ANA, week: 'next' });
+
+    expect(result).toEqual({ ok: true, value: { id: 'id-1', menuNumber: 3, startsOn: '2026-10-12' } });
+    expect(stored).toHaveLength(1);
+  });
+
+  it('refuses this week once next week is chosen, as a locked week, and stores nothing', async () => {
+    const existing: Selection = { id: 'sel-12', menuNumber: 12, startsOn: '2026-10-12' };
+    const { deps, stored } = depsWith({ selections: fakeSelections('none', [existing]) });
+
+    await expect(selectRandomMenu(deps, { userId: ANA, week: 'current' })).resolves.toEqual({
+      ok: false,
+      error: { kind: 'week-locked' },
+    });
+    expect(stored).toEqual([]);
+  });
+
+  it('refuses a week that is not current or next', async () => {
+    const { deps, stored } = depsWith();
+
+    await expect(selectRandomMenu(deps, { userId: ANA, week: '2026-10-19' })).resolves.toEqual({
+      ok: false,
+      error: { kind: 'invalid-week' },
+    });
+    expect(stored).toEqual([]);
   });
 
   it('stores nothing when no menu is stored', async () => {

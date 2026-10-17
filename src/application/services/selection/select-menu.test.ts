@@ -56,7 +56,7 @@ describe('selectMenu', () => {
 
     const result = await selectMenu(
       { selections: fake.selections, clock: fixedClock('2026-10-07') },
-      { userId: ANA, menuNumber: 12 },
+      { userId: ANA, menuNumber: 12, week: 'current' },
     );
 
     expect(result).toEqual(ok({ id: 'new-1', menuNumber: 12, startsOn: '2026-10-05' }));
@@ -68,18 +68,18 @@ describe('selectMenu', () => {
 
     const result = await selectMenu(
       { selections: fake.selections, clock: fixedClock('2026-10-05') },
-      { userId: ANA, menuNumber: 12 },
+      { userId: ANA, menuNumber: 12, week: 'current' },
     );
 
     expect(result).toEqual(ok({ id: 'new-1', menuNumber: 12, startsOn: '2026-10-05' }));
   });
 
-  it('starts next Monday when choosing while a menu is active, and keeps the active one', async () => {
+  it('starts next Monday when choosing next week while a menu is active, and keeps the active one', async () => {
     const fake = fakeSelections([row(ANA, 'sel-3', 3, '2026-10-05')]);
 
     const result = await selectMenu(
       { selections: fake.selections, clock: fixedClock('2026-10-09') },
-      { userId: ANA, menuNumber: 12 },
+      { userId: ANA, menuNumber: 12, week: 'next' },
     );
 
     expect(result).toEqual(ok({ id: 'new-1', menuNumber: 12, startsOn: '2026-10-12' }));
@@ -91,7 +91,7 @@ describe('selectMenu', () => {
 
     const result = await selectMenu(
       { selections: fake.selections, clock: fixedClock('2026-10-10') },
-      { userId: ANA, menuNumber: 20 },
+      { userId: ANA, menuNumber: 20, week: 'next' },
     );
 
     expect(result).toEqual(ok({ id: 'new-1', menuNumber: 20, startsOn: '2026-10-12' }));
@@ -101,7 +101,7 @@ describe('selectMenu', () => {
   it('keeps past selections', async () => {
     const fake = fakeSelections([row(ANA, 'sel-old', 3, '2026-09-28')]);
 
-    await selectMenu({ selections: fake.selections, clock: fixedClock('2026-10-07') }, { userId: ANA, menuNumber: 12 });
+    await selectMenu({ selections: fake.selections, clock: fixedClock('2026-10-07') }, { userId: ANA, menuNumber: 12, week: 'current' });
 
     expect(fake.rowsOf(ANA)).toEqual([row(ANA, 'sel-old', 3, '2026-09-28'), row(ANA, 'new-1', 12, '2026-10-05')]);
   });
@@ -111,7 +111,7 @@ describe('selectMenu', () => {
 
     const result = await selectMenu(
       { selections: fake.selections, clock: fixedClock('2026-10-07') },
-      { userId: ANA, menuNumber: '12' },
+      { userId: ANA, menuNumber: '12', week: 'current' },
     );
 
     expect(result).toEqual(ok({ id: 'new-1', menuNumber: 12, startsOn: '2026-10-05' }));
@@ -124,7 +124,7 @@ describe('selectMenu', () => {
 
       const result = await selectMenu(
         { selections: fake.selections, clock: fixedClock('2026-10-07') },
-        { userId: ANA, menuNumber },
+        { userId: ANA, menuNumber, week: 'current' },
       );
 
       expect(result).toEqual(err({ kind: 'invalid-menu' }));
@@ -137,7 +137,7 @@ describe('selectMenu', () => {
 
     const result = await selectMenu(
       { selections: fake.selections, clock: fixedClock('2026-10-07') },
-      { userId: ANA, menuNumber: 999 },
+      { userId: ANA, menuNumber: 999, week: 'current' },
     );
 
     expect(result).toEqual(err({ kind: 'unknown-menu' }));
@@ -149,7 +149,7 @@ describe('selectMenu', () => {
 
     const result = await selectMenu(
       { selections: fake.selections, clock: fixedClock('2026-10-07') },
-      { userId: ANA, menuNumber: 12 },
+      { userId: ANA, menuNumber: 12, week: 'current' },
     );
 
     expect(result).toEqual(err({ kind: 'failed' }));
@@ -161,7 +161,7 @@ describe('selectMenu', () => {
 
     const result = await selectMenu(
       { selections: fake.selections, clock: fixedClock('2026-10-07') },
-      { userId: ANA, menuNumber: 12 },
+      { userId: ANA, menuNumber: 12, week: 'current' },
     );
 
     expect(result).toEqual(err({ kind: 'failed' }));
@@ -172,10 +172,97 @@ describe('selectMenu', () => {
 
     const result = await selectMenu(
       { selections: fake.selections, clock: fixedClock('2026-10-07') },
-      { userId: BEA, menuNumber: 12 },
+      { userId: BEA, menuNumber: 12, week: 'current' },
     );
 
     expect(result).toEqual(ok({ id: 'new-1', menuNumber: 12, startsOn: '2026-10-05' }));
     expect(fake.rowsOf(ANA)).toEqual([row(ANA, 'sel-3', 3, '2026-10-05')]);
+  });
+
+  it('starts next Monday when choosing next week with this week empty', async () => {
+    const fake = fakeSelections();
+
+    const result = await selectMenu(
+      { selections: fake.selections, clock: fixedClock('2026-10-07') },
+      { userId: ANA, menuNumber: 12, week: 'next' },
+    );
+
+    expect(result).toEqual(ok({ id: 'new-1', menuNumber: 12, startsOn: '2026-10-12' }));
+    expect(fake.rowsOf(ANA)).toEqual([row(ANA, 'new-1', 12, '2026-10-12')]);
+  });
+
+  it('replaces this week’s menu when choosing this week again', async () => {
+    const fake = fakeSelections([row(ANA, 'sel-3', 3, '2026-10-05')]);
+
+    const result = await selectMenu(
+      { selections: fake.selections, clock: fixedClock('2026-10-07') },
+      { userId: ANA, menuNumber: 20, week: 'current' },
+    );
+
+    expect(result).toEqual(ok({ id: 'new-1', menuNumber: 20, startsOn: '2026-10-05' }));
+    expect(fake.rowsOf(ANA)).toEqual([row(ANA, 'new-1', 20, '2026-10-05')]);
+  });
+
+  it.each([['2026-10-19'], ['last'], ['CURRENT'], [1], [undefined]])(
+    'refuses the week %j as an invalid week without storing anything',
+    async (week) => {
+      const fake = fakeSelections();
+
+      const result = await selectMenu(
+        { selections: fake.selections, clock: fixedClock('2026-10-07') },
+        { userId: ANA, menuNumber: 12, week },
+      );
+
+      expect(result).toEqual(err({ kind: 'invalid-week' }));
+      expect(fake.replaced).toEqual([]);
+    },
+  );
+
+  it('refuses this week as locked once next week is chosen, with a menu on this week', async () => {
+    const fake = fakeSelections([row(ANA, 'sel-3', 3, '2026-10-05'), row(ANA, 'sel-12', 12, '2026-10-12')]);
+
+    const result = await selectMenu(
+      { selections: fake.selections, clock: fixedClock('2026-10-08') },
+      { userId: ANA, menuNumber: 20, week: 'current' },
+    );
+
+    expect(result).toEqual(err({ kind: 'week-locked' }));
+    expect(fake.replaced).toEqual([]);
+    expect(fake.rowsOf(ANA)).toEqual([row(ANA, 'sel-3', 3, '2026-10-05'), row(ANA, 'sel-12', 12, '2026-10-12')]);
+  });
+
+  it('refuses this week as locked once next week is chosen, with this week empty', async () => {
+    const fake = fakeSelections([row(ANA, 'sel-12', 12, '2026-10-12')]);
+
+    const result = await selectMenu(
+      { selections: fake.selections, clock: fixedClock('2026-10-08') },
+      { userId: ANA, menuNumber: 20, week: 'current' },
+    );
+
+    expect(result).toEqual(err({ kind: 'week-locked' }));
+    expect(fake.replaced).toEqual([]);
+  });
+
+  it('still accepts next week once it is chosen', async () => {
+    const fake = fakeSelections([row(ANA, 'sel-12', 12, '2026-10-12')]);
+
+    const result = await selectMenu(
+      { selections: fake.selections, clock: fixedClock('2026-10-08') },
+      { userId: ANA, menuNumber: 20, week: 'next' },
+    );
+
+    expect(result).toEqual(ok({ id: 'new-1', menuNumber: 20, startsOn: '2026-10-12' }));
+    expect(fake.rowsOf(ANA)).toEqual([row(ANA, 'new-1', 20, '2026-10-12')]);
+  });
+
+  it('does not lock this week because of another user’s next week', async () => {
+    const fake = fakeSelections([row(ANA, 'sel-12', 12, '2026-10-12')]);
+
+    const result = await selectMenu(
+      { selections: fake.selections, clock: fixedClock('2026-10-07') },
+      { userId: BEA, menuNumber: 3, week: 'current' },
+    );
+
+    expect(result).toEqual(ok({ id: 'new-1', menuNumber: 3, startsOn: '2026-10-05' }));
   });
 });

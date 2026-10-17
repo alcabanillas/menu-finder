@@ -18,7 +18,7 @@ test.describe('sign-in', () => {
       await signIn(page, path, email, password);
 
       await expect(page).toHaveURL('/planner');
-      await expect(page.getByRole('heading', { name: 'Hola, E2E' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Buscar menú' })).toBeAttached();
       const cookie = (await page.context().cookies()).find(({ name }) => name === SESSION_COOKIE);
       expect(cookie?.httpOnly).toBe(true);
     });
