@@ -31,8 +31,6 @@ export function sentryBuildOptions(env: Env): SentryBuildOptions {
   return {
     sourcemaps: env.SENTRY_AUTH_TOKEN ? { deleteSourcemapsAfterUpload: true } : { disable: true },
     telemetry: false,
-    // Errors only, with no navigation tracing: the router-transition hook has nothing to do (design D1).
-    suppressOnRouterTransitionStartWarning: true,
   };
 }
 
