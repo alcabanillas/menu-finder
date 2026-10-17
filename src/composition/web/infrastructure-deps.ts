@@ -4,6 +4,7 @@ import { BetterAuthSessionManager } from '@/infrastructure/auth/better-auth-sess
 import { createAuth } from '@/infrastructure/auth/create-auth';
 import { SystemClock } from '@/infrastructure/clock/system-clock';
 import { StdoutAuditLog } from '@/infrastructure/logging/stdout-audit-log';
+import { ForwardedClientIpSource } from '@/infrastructure/http/forwarded-client-ip-source';
 import { PostgresMenuRepository } from '@/infrastructure/postgres/postgres-menu-repository';
 import { PostgresRateLimiter } from '@/infrastructure/postgres/postgres-rate-limiter';
 import { PostgresRecipeRepository } from '@/infrastructure/postgres/postgres-recipe-repository';
@@ -24,6 +25,7 @@ export function buildDeps(env: Env, requestHeaders: RequestHeaders, rateLimiter?
   return {
     pool,
     sessions: new BetterAuthSessionManager(createAuth({ pool, secret, baseUrl }), requestHeaders),
+    clientIp: new ForwardedClientIpSource(requestHeaders),
     auditLog: new StdoutAuditLog(),
     rateLimiter: rateLimiter ?? new PostgresRateLimiter(pool),
     selections: new PostgresSelectionRepository(pool),
