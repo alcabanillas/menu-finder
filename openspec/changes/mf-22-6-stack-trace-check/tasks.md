@@ -20,6 +20,14 @@
 - [ ] 3.4 Run `pnpm test:coverage`, ask the author for the version of PR 2, archive the change and open PR 2
 - [ ] 3.5 Author, after merging PR 2: `pnpm release`, and verify `/planner` in production has no "Lanzar error de prueba" button
 
+## 4. Release script (PR 2)
+
+Found in task 2.1: `pnpm release` pushed the tag `v0.4.1` and showed nothing while the pre-push hook ran, about 5 minutes per push, so it looked stuck and the push of `production` was cut. `production` was moved to `d1bf6e9` by hand with `--no-verify`, and the `release` check passed.
+
+- [x] 4.1 RED: in `scripts/release/publish-steps.test.ts`, write that `publishSteps` tags the commit, pushes the tag and moves `production`, in that order, each with a label, and that both pushes carry `--no-verify`. See it fail
+- [x] 4.2 GREEN: write `scripts/release/publish-steps.ts`, and make `publish` in `scripts/release/index.ts` print each label and run each step with its output in the terminal. Verify 4.1 and `release-problems.test.ts` pass, and `pnpm typecheck` and `pnpm knip`
+- [x] 4.3 Explain in `context/despliegue.md` ("Publicar una versión") that the script says what each step does and that the pushes skip the pre-push hook, decided by the author on 2026-10-17
+
 ## Workflow follow-up
 
 - Archive (`/opsx:archive`) goes in PR 2, after task 2.2 is recorded.
