@@ -73,3 +73,18 @@ test.describe('no authentication endpoint is exposed', () => {
     });
   }
 });
+
+// Spec error-reporting: telemetry failure never breaks the page (MF-67 task 5.2).
+test.describe('when Sentry ingest is blocked', () => {
+  test('/login renders and protected routes redirect as usual', async ({ page }) => {
+    await page.route('**/*.ingest.sentry.io/**', (route) => route.abort());
+
+    await page.goto('/login');
+    await expect(page.getByLabel('Correo electrónico')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Entrar' })).toBeVisible();
+
+    await page.goto('/planner');
+    await expect(page).toHaveURL('/login');
+  });
+});
+
