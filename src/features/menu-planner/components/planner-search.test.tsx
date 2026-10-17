@@ -79,6 +79,15 @@ describe('PlannerSearch', () => {
     expect(screen.queryByRole('article')).not.toBeInTheDocument();
   });
 
+  it('keeps the search box under the header of the shell when the page scrolls: it sticks at the height of the header', () => {
+    render(<Planner />);
+
+    const row = screen.getByRole('textbox').closest('form')?.parentElement as HTMLElement;
+    // The header is `sticky top-0` and 56 px high, 64 px from 640 px; at `top-0` the box would hide behind it.
+    expect(row).toHaveClass('sticky', 'top-14', 'sm:top-16');
+    expect(row).not.toHaveClass('top-0');
+  });
+
   it('posts the form to the server action itself, not as a GET: the text never reaches the URL', async () => {
     const action = answering(ranking(1));
     render(<Planner action={action} />);
@@ -294,6 +303,14 @@ describe('PlannerSearch', () => {
       expect(radio.form).not.toBeNull();
       expect(radio.form).not.toBe(box.closest('form'));
       expect(radio.form?.children).toHaveLength(0);
+    });
+
+    it('hides the empty choose form, so that it adds no gap above the selector', () => {
+      render(<Planner />);
+
+      const form = (screen.getAllByRole('radio')[0] as HTMLInputElement).form as HTMLFormElement;
+      expect(form).toHaveClass('hidden');
+      expect(form.nextElementSibling).toBe(screen.getByRole('group', { name: 'Eligiendo menú para' }));
     });
 
     it('starts on the suggested week', () => {

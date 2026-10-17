@@ -61,5 +61,5 @@
 - [x] 9.2 Cards: confirmation box in the card; random button as a submit of the choose form with the week (`selectRandomMenu` takes `week`), its confirmation under the options
 - [x] 9.3 Page: no greeting, heading for screen readers, "¿Qué te apetece?", search row with the random button, `?week=` and the link of an empty week in Menú
 - [x] 9.4 Radios checked again after the form resets (key by `attempt`); E2E updated to the new button, messages and the heading
-- [ ] 9.5 Check with the author the case "confirmation open in a result card" at 390 and 1280 px (it needs a search, which needs a valid `GEMINI_API_KEY`)
+- [x] 9.5 Check with the author the case "confirmation open in a result card" at 390 and 1280 px (it needs a search, which needs a valid `GEMINI_API_KEY`)
 - [x] 9.6 Refactor with no change of behaviour: `PlannerSearch` split into `useMenuChoice`, `choice-prompts.ts`, `planner-breadcrumbs.ts`, `RandomButton`, `ChoiceMessage` and `PlannerResults`; its tests did not change

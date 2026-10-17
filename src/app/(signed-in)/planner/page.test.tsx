@@ -97,4 +97,12 @@ describe('PlannerPage', () => {
     expect(box.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getByRole('group', { name: 'Eligiendo menú para' }).compareDocumentPosition(box) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
+
+  it('has the padding of the design system: 20 px on a phone and 32 px from a 640 px container', async () => {
+    mocks.weeksToChoose.mockResolvedValue(NOTHING_CHOSEN);
+    const { container } = render(await PlannerPage({ searchParams: Promise.resolve({}) }));
+
+    expect(container.firstElementChild).toHaveClass('py-5', '@min-[640px]:py-8');
+    expect(container.firstElementChild).not.toHaveClass('py-8');
+  });
 });

@@ -38,7 +38,8 @@ export function PlannerSearch({ action, chooseAction, weeks, initialWeek }: Plan
   const randomProps = { formId: choice.formId, disabled: choice.choosing, onAsk: choice.askRandom };
   return (
     <section aria-label="Buscar menú" className="@container flex w-full flex-col gap-5 @min-[800px]:gap-6">
-      <form id={choice.formId} action={choice.formAction} onSubmit={choice.submitted} />
+      {/* Hidden: an empty flex item would still add a gap. The controls join it with the `form` attribute. */}
+      <form id={choice.formId} action={choice.formAction} onSubmit={choice.submitted} className="hidden" />
       <WeekSelector
         weeks={weeks}
         selected={choice.selected}
@@ -62,10 +63,11 @@ type SearchRowProps = {
   random: RandomProps;
 };
 
-// On a phone only the box stays at the top when the page scrolls; the random button goes under it (`PlannerScreen.jsx`).
+// On a phone only the box stays at the top when the page scrolls, under the header of the shell, which is sticky too
+// (56 px, 64 px from 640 px); the random button goes under it (`PlannerScreen.jsx`).
 function SearchRow({ formAction, pending, onSent, random }: SearchRowProps) {
   return (
-    <div className="sticky top-0 z-[4] -mx-5 -mt-3 bg-surface-page px-5 py-3 @min-[800px]:static @min-[800px]:m-0 @min-[800px]:max-w-[760px] @min-[800px]:p-0">
+    <div className="sticky top-14 z-[4] -mx-5 -mt-3 sm:top-16 bg-surface-page px-5 py-3 @min-[800px]:static @min-[800px]:m-0 @min-[800px]:max-w-[760px] @min-[800px]:p-0">
       <form
         action={formAction}
         onSubmit={() => {

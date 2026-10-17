@@ -16,7 +16,7 @@ export default async function PlannerPage({ searchParams }: PlannerPageProps) {
   const [weeks, { week }] = await Promise.all([webContainer().weeksToChoose({ userId: user.userId }), searchParams]);
   const asked = weekInput.safeParse(week);
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-5 py-8">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-5 py-5 @min-[640px]:py-8">
       <h1 className="sr-only">Buscar menú</h1>
       <PlannerSearch
         action={searchMenusAction}
