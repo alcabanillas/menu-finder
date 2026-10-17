@@ -15,7 +15,7 @@ The Node.js server SHALL start Sentry with neither `tracesSampleRate` nor `trace
 - **THEN** its options contain neither `tracesSampleRate` nor `tracesSampler`
 
 ### Requirement: Browser errors reach Sentry
-The web application SHALL start Sentry in the browser, before the application becomes interactive, with the value of `SENTRY_DSN` inlined into the browser bundle at build time, so that uncaught exceptions and unhandled promise rejections in the browser are reported. The server, the CSP and the browser SHALL read the DSN from that one variable. The browser SHALL also send one performance transaction for each page load and each navigation, with the Core Web Vitals LCP, INP, CLS and FCP, at a `tracesSampleRate` above 0 and at most 1. It SHALL start with no Session Replay and with every `dataCollection` field off. Without a DSN, the SDK sends nothing.
+The web application SHALL start Sentry in the browser, before the application becomes interactive, with the value of `SENTRY_DSN` inlined into the browser bundle at build time, so that uncaught exceptions and unhandled promise rejections in the browser are reported. The server, the CSP and the browser SHALL read the DSN from that one variable. The browser SHALL also send performance transactions: one for each initial page load carrying document Web Vitals (LCP, INP, CLS, FCP, TTFB), and one for each client-side navigation carrying route transition duration, INP and CLS, at a `tracesSampleRate` above 0 and at most 1. It SHALL start with no Session Replay and with every `dataCollection` field off. Without a DSN, the SDK sends nothing.
 
 #### Scenario: DSN available to the browser
 - **WHEN** the Next.js configuration is built with `SENTRY_DSN` set
@@ -44,19 +44,19 @@ The web application SHALL start Sentry in the browser, before the application be
 ## ADDED Requirements
 
 ### Requirement: Web Vitals without request data
-A browser transaction SHALL carry the route of the page, its timings and the Core Web Vitals, and SHALL NOT carry the query string of the URL, the text of a request, the terms of a chip, the name of a dish or of a menu, cookies, headers, an IP address or user information.
+A browser transaction or span SHALL carry the route of the page, its timings and applicable Web Vitals, and SHALL NOT carry the query string of the URL, the text of a request, the terms of a chip, the name of a dish or of a menu, cookies, headers, an IP address or user information.
 
 #### Scenario: Transaction of a page with a query string
 - **WHEN** a signed-in user opens `/menu?startsOn=2026-10-12` and the browser sends its page-load transaction
-- **THEN** the transaction's name is the route `/menu` and no field of the transaction contains "startsOn" or "2026-10-12"
+- **THEN** the transaction's name is the route `/menu` and no field or attribute contains "startsOn" or "2026-10-12"
 
-#### Scenario: Transaction fields checked before sending
-- **WHEN** a transaction is about to be sent with a query string in its URL or with a user, cookie or header field
-- **THEN** the event that is sent has none of them
+#### Scenario: Transaction and span fields checked before sending
+- **WHEN** a transaction or span is about to be sent with a query string in its URL or with a user, cookie or header field
+- **THEN** the event or span that is sent has none of them
 
 #### Scenario: Navigation transaction
 - **WHEN** a signed-in user navigates from `/planner` to `/menu`
-- **THEN** one transaction named `/menu` is sent, with the Core Web Vitals that the browser has measured
+- **THEN** one navigation transaction named `/menu` is sent, carrying transition duration, CLS and INP, without pageload-only metrics like LCP or FCP
 
 ### Requirement: Trace headers stay on the app's own origin
 The browser SHALL add Sentry trace headers (`sentry-trace` and `baggage`) only to requests to the app's own origin, so that no third party receives them.

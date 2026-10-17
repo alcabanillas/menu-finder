@@ -14,7 +14,7 @@ No port is needed: this is configuration of the Sentry SDK at the web entry poin
 ## Goals / Non-Goals
 
 **Goals:**
-- Page-load and navigation transactions from the browser with LCP, INP, CLS and FCP.
+- Page-load transactions with document Web Vitals (LCP, INP, CLS, FCP, TTFB) and client navigation transactions with SPA route transition timing, INP, and CLS.
 - No new field about the visitor or the request in any event.
 - The change is reversible by one option.
 
@@ -27,9 +27,9 @@ No port is needed: this is configuration of the Sentry SDK at the web entry poin
 
 These are technical, and they follow from the specs. The four choices that are the author's are in `proposal.md`, "Decisions of the author".
 
-**D1. A shared function cleans each transaction before it is sent.** `beforeSendTransaction` removes the query string from the transaction's URL fields and drops any user, cookie or header field, in a pure function next to `NOTHING_FROM_REQUESTS` in `src/app/`, with unit tests. Alternative: trust `dataCollection` alone. Rejected: `dataCollection` is documented for request data of errors; a transaction is a different event type, and the spec scenario "Transaction fields checked before sending" needs a check we can test.
+**D1. A shared function cleans each span before it is sent.** `@sentry/nextjs` 11.6.0 defaults to span streaming (`traceLifecycle: 'stream'`), under which `beforeSendTransaction` is deprecated and ignored by the SDK. The cleaning hook uses `beforeSendSpan` (or `beforeSendTransaction` with explicit `traceLifecycle: 'static'`), stripping the query string from URL attributes and ensuring no user, cookie or header field is attached, in a pure function next to `NOTHING_FROM_REQUESTS` in `src/app/`, with unit tests. Alternative: trust `dataCollection` alone. Rejected: `dataCollection` is documented for request data of errors; a span/transaction is a different event type, and the spec scenario "Span and transaction fields checked before sending" needs a check we can test.
 
-**D2. Trace headers only on the app's own origin.** Set `tracePropagationTargets` to same-origin patterns (the SDK default is `localhost` plus same-origin paths, so it is made explicit). Alternative: leave the default. Rejected: the default can change between SDK versions, and the spec requires that no third party gets the headers. The app calls Gemini and Neon from the server only, so no browser request goes to them; the rule protects against a future change.
+**D2. Trace headers only on the app's own origin.** Set `tracePropagationTargets: ['localhost', /^\//]` (explicit same-origin patterns). Alternative: leave the default. Rejected: the default can change between SDK versions, and the spec requires that no third party gets the headers. The app calls Gemini and Neon from the server only, so no browser request goes to them; the rule protects against a future change.
 
 **D3. Navigation transactions need the router hook.** Export `onRouterTransitionStart = Sentry.captureRouterTransitionStart` from `src/instrumentation-client.ts` and remove `suppressOnRouterTransitionStartWarning` from `sentryBuildOptions`, with the test in `next.config.test.ts` that asserts it. Alternative: page loads only. The author chose page loads and navigations (2026-10-16).
 

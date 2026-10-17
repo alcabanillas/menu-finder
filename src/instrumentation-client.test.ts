@@ -2,7 +2,7 @@ import * as Sentry from '@sentry/nextjs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { NOTHING_FROM_REQUESTS } from '@/app/sentry-data-collection';
 
-vi.mock('@sentry/nextjs', () => ({ init: vi.fn() }));
+vi.mock('@sentry/nextjs', () => ({ init: vi.fn(), captureRouterTransitionStart: vi.fn() }));
 
 const DSN = 'https://public@o0.ingest.sentry.io/0';
 
@@ -20,13 +20,30 @@ describe('instrumentation-client', () => {
     expect(options.dsn).toBe(DSN);
   });
 
-  it('sends errors only: no traces and no session replay', async () => {
+  it('enables tracing with same-origin targets, cleaning and no session replay', async () => {
     const options = await startedOptions();
+    const { cleanTelemetrySpan: expectedCleaner } = await import('@/app/sentry-clean-span');
 
-    for (const option of ['tracesSampleRate', 'tracesSampler', 'replaysSessionSampleRate', 'replaysOnErrorSampleRate']) {
+    expect(options.tracesSampleRate).toBeGreaterThan(0);
+    expect(options.tracesSampleRate).toBeLessThanOrEqual(1);
+    expect(options.tracePropagationTargets).toEqual(['localhost', /^\//]);
+    expect(options.beforeSendSpan).toBe(expectedCleaner);
+    for (const option of ['replaysSessionSampleRate', 'replaysOnErrorSampleRate']) {
       expect(options).not.toHaveProperty(option);
     }
     expect(integrationNames(options)).not.toContainEqual(expect.stringMatching(/replay/i));
+  });
+
+  it('passes no DSN to Sentry when SENTRY_DSN is unset', async () => {
+    vi.stubEnv('SENTRY_DSN', '');
+    await import('./instrumentation-client');
+    const options = vi.mocked(Sentry.init).mock.calls[0]![0] as Sentry.BrowserOptions;
+    expect(options.dsn).toBeFalsy();
+  });
+
+  it('exports onRouterTransitionStart as Sentry.captureRouterTransitionStart', async () => {
+    const { onRouterTransitionStart } = await import('./instrumentation-client');
+    expect(onRouterTransitionStart).toBe(Sentry.captureRouterTransitionStart);
   });
 
   it('collects no request data, with the same rules as the server', async () => {

@@ -28,7 +28,7 @@ describe('register', () => {
     expect(Sentry.init).not.toHaveBeenCalled();
   });
 
-  it('sends errors only, never traces', async () => {
+  it('has no server tracing: neither tracesSampleRate nor tracesSampler', async () => {
     const options = await startedOptions();
 
     expect(options).not.toHaveProperty('tracesSampleRate');

@@ -4,16 +4,16 @@
 
 The deployed app has no per-metric Core Web Vitals. Vercel Speed Insights on the Hobby plan shows only the Real Experience Score; LCP, INP, CLS, FCP, per-route and per-country data need Speed Insights Plus, which exists only on the Pro plan (seen on the Vercel dashboard on 2026-10-16). Sentry can show those four metrics from real browser sessions, but the archived spec `openspec/specs/error-reporting/spec.md` forbids it: Sentry starts "errors only", with no `tracesSampleRate` or `tracesSampler`, on the server and in the browser.
 
-This change implements MF-67, **proposed here and not yet in `context/roadmap.md`**: the author confirms the item and its estimate (~2 h, under the 2 h split threshold of `AGENTS.md`) before `apply`.
+This change implements MF-67, as itemized in `context/roadmap.md` (~2 h estimate, under the 2 h split threshold of `AGENTS.md`).
 
 ## What Changes
 
-- The browser SDK starts with tracing on at `tracesSampleRate` 1.0, so each page load and each navigation sends one Sentry transaction with LCP, INP, CLS, FCP and TTFB as measurements.
+- The browser SDK starts with tracing on at `tracesSampleRate` 1.0. In an SPA (Next.js App Router), initial page loads send a transaction with document-level Web Vitals (LCP, INP, CLS, FCP, TTFB), while client-side navigations send a transaction with route transition duration, INP, and CLS.
 - The server SDK stays as it is: no `tracesSampleRate`, so no server transaction or span is sent (MF-40.5 and `context/decisiones.md` §1.2, OPS-observabilidad: Genkit spans carry the text of the request).
-- `dataCollection` stays entirely off, from the one shared definition in `src/app/sentry-data-collection.ts`. A new check removes from each transaction the fields that could carry request data (see "Data touched").
+- `dataCollection` stays entirely off, from the one shared definition in `src/app/sentry-data-collection.ts`. A new check removes from each transaction/span the fields that could carry request data (see "Data touched").
 - Tests that today assert "no traces in the browser" now assert the new rule. Tests that assert it on the server stay.
 - Vercel Speed Insights is removed (`@vercel/speed-insights` and `<SpeedInsights />` in `src/app/layout.tsx`, PR #51). On Hobby it gives only the Real Experience Score, and Sentry now gives the metrics, so one third party receives performance data instead of two.
-- **Contradiction with a decision, resolved by the author's choices below:** `context/decisiones.md` §1.2, OPS-observabilidad, says "sin trazas de rendimiento" and that Vercel Speed Insights "mide las Core Web Vitals de cada ruta". This change replaces both sentences (task 6.1).
+- **Contradiction with a decision, resolved by the author's choices below:** `context/decisiones.md` §1.2, OPS-observabilidad, says "sin trazas de rendimiento" and that Vercel Speed Insights "mide las Core Web Vitals de cada ruta". This change replaces both sentences (task 7.1).
 
 ## Decisions of the author (2026-10-16)
 
@@ -28,8 +28,8 @@ This change implements MF-67, **proposed here and not yet in `context/roadmap.md
 |---|---|---|
 | Error message, stack trace, route | Yes | Yes |
 | Route of the page (`/planner`, `/menu`) | In errors | In every visit, as the transaction name |
-| Full URL | In errors | In the transaction. Query parameters stay off (`urlQueryParams: false`) |
-| Timings and Web Vitals | No | Yes: LCP, INP, CLS, FCP, TTFB, plus the SDK's own spans |
+| Full URL | In errors | In the transaction/span. Query parameters stay off (`urlQueryParams: false`) |
+| Timings and Web Vitals | No | Yes: pageload carries LCP, INP, CLS, FCP, TTFB; navigations carry transition duration, INP, and CLS |
 | Browser, OS, viewport | In errors | In every visit |
 | Request text, chip terms, dish names | No | Must stay out: no span, breadcrumb or tag carries them |
 | IP, cookies, headers, user | No | Must stay out (`dataCollection` off) |

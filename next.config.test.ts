@@ -84,6 +84,10 @@ describe('sentryBuildOptions', () => {
   it('sends no telemetry of its own to Sentry', () => {
     expect(sentryBuildOptions({}).telemetry).toBe(false);
   });
+
+  it('does not suppress the router transition start warning so client navigations are traced', () => {
+    expect(sentryBuildOptions({})).not.toHaveProperty('suppressOnRouterTransitionStartWarning');
+  });
 });
 
 async function header(key: string): Promise<string | undefined> {
