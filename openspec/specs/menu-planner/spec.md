@@ -1,7 +1,7 @@
 # menu-planner Specification
 
 ## Purpose
-The provisional `/planner`: a signed-in user gets a menu chosen at random and sees which weeks it covers. The search of MF-22 replaces it.
+`/planner` (Buscar): a signed-in user searches the menus with free text, sees the five that fit best with the evidence for each, and chooses one for this week or next week, from a card or at random. The week selector shows what each week has and closes this week once next week is chosen.
 
 ## Requirements
 

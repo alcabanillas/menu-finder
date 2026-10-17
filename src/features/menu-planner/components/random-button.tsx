@@ -1,0 +1,34 @@
+import { PlannerIcon } from '@/features/menu-planner/components/planner-icon';
+import { Button } from '@/shared/ui/button';
+
+const DICE_SIZE = { sm: 17, md: 18 };
+
+type RandomButtonProps = { size: 'sm' | 'md'; formId: string; disabled: boolean; onAsk?: () => void };
+
+// A secondary button that submits the choose form with `random`: the server picks the menu for the selected week. When the
+// week has a menu, with JavaScript the question comes first (`onAsk`); without it the button posts.
+/** "Elegir uno al azar". */
+export function RandomButton({ size, formId, disabled, onAsk }: RandomButtonProps) {
+  return (
+    <Button
+      type="submit"
+      variant="secondary"
+      size={size}
+      name="random"
+      value="1"
+      form={formId}
+      disabled={disabled}
+      onClick={
+        onAsk
+          ? (event) => {
+              event.preventDefault();
+              onAsk();
+            }
+          : undefined
+      }
+    >
+      <PlannerIcon name="dices" size={DICE_SIZE[size]} />
+      Elegir uno al azar
+    </Button>
+  );
+}

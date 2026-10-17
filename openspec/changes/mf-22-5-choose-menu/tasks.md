@@ -53,7 +53,7 @@
 - [x] 8.1 Update ARQ-modelo-datos in `context/decisiones.md`: the user chooses this week or next week, the server computes the Monday, and this week is locked once next week is chosen (decided by the author on 2026-10-16)
 - [x] 8.2 Run `pnpm test:run` on the affected folders (`src/domain/selection`, `src/application`, `src/composition`, `src/features/menu-planner`, `src/features/weekly-menu`, `src/shared`, `src/app/(signed-in)/planner`) and `pnpm typecheck`
 - [ ] 8.3 In the browser, with `pnpm dev`: search, choose for each week, check that the results stay after `revalidatePath` (design, Risks), that the selector and the buttons follow the new menu, that the lock shows once next week is chosen, and that "Ver semana" opens the week in `/menu`; repeat a choice with JavaScript disabled. Compare captures of the selector and of a selected and a not-selected card against `project/components/Planner/preview.html` (UI-design-system)
-- [ ] 8.4 Before archive: update the Purpose of `openspec/specs/menu-planner/spec.md`, which still describes the provisional planner, and go through the checklist of `context/safety-first.md` §4
+- [x] 8.4 Before archive: update the Purpose of `openspec/specs/menu-planner/spec.md`, which still describes the provisional planner, and go through the checklist of `context/safety-first.md` §4
 
 ## 9. Design system 1792255497-a1ff
 
@@ -62,3 +62,4 @@
 - [x] 9.3 Page: no greeting, heading for screen readers, "¿Qué te apetece?", search row with the random button, `?week=` and the link of an empty week in Menú
 - [x] 9.4 Radios checked again after the form resets (key by `attempt`); E2E updated to the new button, messages and the heading
 - [ ] 9.5 Check with the author the case "confirmation open in a result card" at 390 and 1280 px (it needs a search, which needs a valid `GEMINI_API_KEY`)
+- [x] 9.6 Refactor with no change of behaviour: `PlannerSearch` split into `useMenuChoice`, `choice-prompts.ts`, `planner-breadcrumbs.ts`, `RandomButton`, `ChoiceMessage` and `PlannerResults`; its tests did not change
