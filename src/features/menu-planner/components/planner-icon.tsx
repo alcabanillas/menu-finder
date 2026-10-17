@@ -1,4 +1,4 @@
-type PlannerIconName = 'plus' | 'minus' | 'sparkles' | 'check' | 'x' | 'search' | 'arrow-up';
+type PlannerIconName = 'plus' | 'minus' | 'sparkles' | 'check' | 'x' | 'search' | 'arrow-up' | 'arrow-right' | 'lock' | 'repeat' | 'dices';
 
 const DEFAULT_STROKE_WIDTH = 1.5;
 
@@ -22,6 +22,16 @@ const PATHS: Record<PlannerIconName, string[]> = {
   x: ['M18 6 6 18', 'm6 6 12 12'],
   search: ['m21 21-4.3-4.3'],
   'arrow-up': ['m5 12 7-7 7 7', 'M12 19V5'],
+  'arrow-right': ['M5 12h14', 'm12 5 7 7-7 7'],
+  lock: ['M7 11V7a5 5 0 0 1 10 0v4'],
+  repeat: ['m17 2 4 4-4 4', 'M3 11v-1a4 4 0 0 1 4-4h14', 'm7 22-4-4 4-4', 'M21 13v1a4 4 0 0 1-4 4H3'],
+  dices: [
+    'm17.92 14 3.5-3.5a2.24 2.24 0 0 0 0-3l-5-4.92a2.24 2.24 0 0 0-3 0L10 6',
+    'M6 18h.01',
+    'M10 14h.01',
+    'M15 6h.01',
+    'M18 9h.01',
+  ],
 };
 
 /** A decorative 24-unit stroke icon: the text next to it carries the meaning. */
@@ -41,6 +51,8 @@ export function PlannerIcon({ name, size, strokeWidth = DEFAULT_STROKE_WIDTH }: 
       strokeLinejoin="round"
     >
       {name === 'search' && <circle cx="11" cy="11" r="8" />}
+      {name === 'lock' && <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />}
+      {name === 'dices' && <rect width="12" height="12" x="2" y="10" rx="2" ry="2" />}
       {PATHS[name].map((d) => (
         <path key={d} d={d} />
       ))}

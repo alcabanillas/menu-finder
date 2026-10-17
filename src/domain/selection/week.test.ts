@@ -1,25 +1,61 @@
 import { describe, expect, it } from 'vitest';
 import type { Selection } from '@/domain/selection/selection';
-import { currentOf, startsOnFor, weekDates } from '@/domain/selection/week';
+import { currentOf, isLocked, mondayOfWeek, suggestedWeek, weekDates } from '@/domain/selection/week';
 
 const MENU_3: Selection = { id: 'sel-3', menuNumber: 3, startsOn: '2026-10-05' };
 const MENU_12: Selection = { id: 'sel-12', menuNumber: 12, startsOn: '2026-10-12' };
 
-describe('startsOnFor', () => {
-  it('gives this Monday when choosing in a week with no menu', () => {
-    expect(startsOnFor('2026-10-07', [])).toBe('2026-10-05');
+describe('mondayOfWeek', () => {
+  it('gives this Monday for the current week', () => {
+    expect(mondayOfWeek('2026-10-07', 'current')).toBe('2026-10-05');
   });
 
-  it('gives the same day when choosing on a Monday with no menu', () => {
-    expect(startsOnFor('2026-10-05', [])).toBe('2026-10-05');
+  it('gives the same day for the current week on a Monday', () => {
+    expect(mondayOfWeek('2026-10-05', 'current')).toBe('2026-10-05');
   });
 
-  it('gives next Monday when choosing while a menu is active', () => {
-    expect(startsOnFor('2026-10-09', [MENU_3])).toBe('2026-10-12');
+  it('gives next Monday for the next week', () => {
+    expect(mondayOfWeek('2026-10-07', 'next')).toBe('2026-10-12');
   });
 
-  it('gives next Monday when next week is already chosen too', () => {
-    expect(startsOnFor('2026-10-10', [MENU_3, MENU_12])).toBe('2026-10-12');
+  it('gives next Monday for the next week on a Sunday', () => {
+    expect(mondayOfWeek('2026-10-11', 'next')).toBe('2026-10-12');
+  });
+});
+
+describe('isLocked', () => {
+  it('locks this week once next week is chosen, with a menu on this week', () => {
+    expect(isLocked('current', [MENU_3, MENU_12], '2026-10-08')).toBe(true);
+  });
+
+  it('locks this week once next week is chosen, with this week empty', () => {
+    expect(isLocked('current', [MENU_12], '2026-10-08')).toBe(true);
+  });
+
+  it('does not lock this week while next week is empty', () => {
+    expect(isLocked('current', [MENU_3], '2026-10-08')).toBe(false);
+  });
+
+  it('never locks next week', () => {
+    expect(isLocked('next', [MENU_3, MENU_12], '2026-10-08')).toBe(false);
+  });
+});
+
+describe('suggestedWeek', () => {
+  it('suggests this week when nothing is chosen', () => {
+    expect(suggestedWeek([], '2026-10-07')).toBe('current');
+  });
+
+  it('suggests next week when this week is chosen', () => {
+    expect(suggestedWeek([MENU_3], '2026-10-07')).toBe('next');
+  });
+
+  it('suggests next week when only next week is chosen, because this week is locked', () => {
+    expect(suggestedWeek([MENU_12], '2026-10-07')).toBe('next');
+  });
+
+  it('suggests next week when both weeks are chosen', () => {
+    expect(suggestedWeek([MENU_3, MENU_12], '2026-10-07')).toBe('next');
   });
 });
 

@@ -90,7 +90,7 @@ describe('MenuPage', () => {
     await renderPage();
 
     expect(screen.getByText('Todavía no has elegido menú para esta semana.')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Elegir menú' })).toHaveAttribute('href', '/planner');
+    expect(screen.getByRole('link', { name: 'Elegir menú' })).toHaveAttribute('href', '/planner?week=current');
   });
 
   it('says no menu was chosen for a past week, and offers no search', async () => {

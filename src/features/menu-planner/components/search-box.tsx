@@ -24,8 +24,8 @@ export function SearchBox({ pending }: SearchBoxProps) {
       <input
         type="text"
         name="request"
-        aria-label="Qué te apetece esta semana"
-        placeholder="¿Qué te apetece esta semana?"
+        aria-label="Qué te apetece"
+        placeholder="¿Qué te apetece?"
         required
         autoComplete="off"
         className="min-w-0 flex-1 border-0 bg-transparent py-2 text-base text-text-strong outline-0 placeholder:text-text-muted"

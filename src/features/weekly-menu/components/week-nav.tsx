@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { WeekNavigationDto } from '@/application/dto/week-navigation';
-import { formatWeekRange } from '@/features/weekly-menu/format-date';
+import { formatWeekRange } from '@/shared/format-week';
 
 // After the design system's `MenuScreen.jsx` (`.mf-seg`, `.mf-mh__nav`): a pill with two chevrons around the range.
 const FIRST_DAY = 0;

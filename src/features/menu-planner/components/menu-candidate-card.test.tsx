@@ -1,6 +1,7 @@
-import { render, screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { fireEvent, render, screen, within } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { MenuCandidateCard } from '@/features/menu-planner/components/menu-candidate-card';
+import type { CardChoice } from '@/features/menu-planner/components/menu-candidate-card';
 import type { CandidateCard, ChipMember } from '@/features/menu-planner/search-view';
 
 function member(term: string, overrides: Partial<ChipMember> = {}): ChipMember {
@@ -102,7 +103,7 @@ describe('MenuCandidateCard', () => {
     expect(screen.getByText('Lunes, comida · <b>Arroz</b>')).toBeInTheDocument();
   });
 
-  it('has no title, no explanation and no button', () => {
+  it('has no title, no explanation and no button without the weeks', () => {
     render(<MenuCandidateCard card={CARD} />);
 
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
@@ -159,6 +160,104 @@ describe('MenuCandidateCard', () => {
       expect(terms).toHaveClass('shrink-0', 'max-w-full');
       expect(lines()[0]).toHaveClass('flex-wrap');
       expect(terms.nextElementSibling).toHaveClass('flex-1', 'basis-40');
+    });
+  });
+});
+
+describe('MenuCandidateCard choose button', () => {
+  const CHOICE: CardChoice = { formId: 'choose-form', label: 'Elegir para el 12 oct', variant: 'primary', selected: false, disabled: false };
+
+  it('is a submit button of the choose form that posts the menu number', () => {
+    render(<MenuCandidateCard card={CARD} choice={CHOICE} />);
+
+    const button = screen.getByRole('button');
+    expect(button).toHaveAttribute('type', 'submit');
+    expect(button).toHaveAttribute('name', 'menu');
+    expect(button).toHaveAttribute('value', '12');
+    expect(button).toHaveAttribute('form', 'choose-form');
+  });
+
+  it('reads the week it goes to, with an accessible name that starts with it and names the menu', () => {
+    render(<MenuCandidateCard card={CARD} choice={CHOICE} />);
+
+    const button = screen.getByRole('button', { name: 'Elegir para el 12 oct (Menú 12)' });
+    expect(button).toHaveTextContent('Elegir para el 12 oct');
+    expect(button).toHaveClass('bg-olive-600');
+  });
+
+  it('is secondary when it replaces a menu', () => {
+    render(<MenuCandidateCard card={CARD} choice={{ ...CHOICE, label: 'Cambiar el menú del 5 oct', variant: 'secondary' }} />);
+
+    const button = screen.getByRole('button', { name: 'Cambiar el menú del 5 oct (Menú 12)' });
+    expect(button).toHaveClass('border-border-ink');
+    expect(button).not.toHaveClass('bg-olive-600');
+  });
+
+  it('shows the card of the week’s menu as selected: a check, disabled, with the olive double border', () => {
+    render(<MenuCandidateCard card={CARD} choice={{ ...CHOICE, label: 'Menú del 5 oct', selected: true }} />);
+
+    const button = screen.getByRole('button', { name: 'Menú del 5 oct (Menú 12)' });
+    expect(button).toBeDisabled();
+    expect(button.querySelector('svg[data-icon="check"]')).toBeInTheDocument();
+    expect(screen.getByRole('article')).toHaveClass('border-olive-500', 'outline-olive-500');
+  });
+
+  it('keeps the plain border when it is not selected', () => {
+    render(<MenuCandidateCard card={CARD} choice={CHOICE} />);
+
+    expect(screen.getByRole('article')).not.toHaveClass('border-olive-500');
+  });
+
+  it('is disabled while a choice runs', () => {
+    render(<MenuCandidateCard card={CARD} choice={{ ...CHOICE, disabled: true }} />);
+
+    expect(screen.getByRole('button')).toBeDisabled();
+  });
+
+  it('has no "Ver semana" button: the selector holds the link', () => {
+    render(<MenuCandidateCard card={CARD} choice={CHOICE} />);
+
+    expect(screen.queryByText('Ver semana')).not.toBeInTheDocument();
+  });
+
+  describe('replacing the menu of a week', () => {
+    const REPLACE: CardChoice = {
+      ...CHOICE,
+      label: 'Cambiar el menú del 5 oct',
+      variant: 'secondary',
+      replacing: { text: '¿Cambiar el Menú 31 por el Menú 12 en la semana del 5 oct?', open: false, onAsk: vi.fn(), onCancel: vi.fn() },
+    };
+
+    it('asks for the confirmation instead of posting when the button is pressed', () => {
+      const onAsk = vi.fn();
+      render(<MenuCandidateCard card={CARD} choice={{ ...REPLACE, replacing: { ...REPLACE.replacing!, onAsk } }} />);
+
+      const posted = fireEvent.click(screen.getByRole('button', { name: 'Cambiar el menú del 5 oct (Menú 12)' }));
+
+      expect(onAsk).toHaveBeenCalledOnce();
+      expect(posted).toBe(false);
+    });
+
+    it('swaps the buttons for the question with Cambiar and Cancelar when it is open', () => {
+      const onCancel = vi.fn();
+      render(
+        <MenuCandidateCard
+          card={CARD}
+          choice={{ ...REPLACE, replacing: { ...REPLACE.replacing!, open: true, onCancel } }}
+        />,
+      );
+
+      expect(screen.getByRole('group', { name: 'Confirmar cambio' })).toHaveTextContent(
+        '¿Cambiar el Menú 31 por el Menú 12 en la semana del 5 oct?',
+      );
+      expect(screen.queryByRole('button', { name: /Cambiar el menú del 5 oct/ })).not.toBeInTheDocument();
+      const change = screen.getByRole('button', { name: 'Cambiar' });
+      expect(change).toHaveAttribute('type', 'submit');
+      expect(change).toHaveAttribute('name', 'menu');
+      expect(change).toHaveAttribute('value', '12');
+      expect(change).toHaveAttribute('form', 'choose-form');
+      fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+      expect(onCancel).toHaveBeenCalledOnce();
     });
   });
 });

@@ -1,18 +1,39 @@
 import { Fragment } from 'react';
+import { ConfirmChange } from '@/features/menu-planner/components/confirm-change';
 import { PlannerIcon } from '@/features/menu-planner/components/planner-icon';
 import { describeChip, type CandidateCard, type EvidenceLine } from '@/features/menu-planner/search-view';
+import { Button } from '@/shared/ui/button';
 
-// Ported from the design system's `components/recipe/MenuCandidateCard.jsx` (version 1791992191-0fd0): the rank, the
-// number and the evidence lines. No title, explanation or action (spec menu-planner). The design system colours the
+// Ported from the design system's `components/recipe/MenuCandidateCard.jsx` (version 1792178100-1406): the rank, the
+// number, the evidence lines and the choose button. No title or explanation (spec menu-planner). The design system colours the
 // terms of an attribute ochre; the author decided olive, the colour of `include` (MF-22.4 design D5).
 // A group that mixes include and exclude has the ochre background of its chip (`RestrictionChip.jsx`).
 const MIXED_TERMS = 'rounded-pill bg-ochre-100 px-2.5 py-0.5';
 const TERM_COLOURS = { include: 'text-olive-600', exclude: 'text-terracotta-600' };
 
-/** A menu of the ranking: how well it answers each unit of the request. */
-export function MenuCandidateCard({ card }: { card: CandidateCard }) {
+/**
+ * The choose button of a card: it submits the choose form `formId` with the menu number, whatever its place in the page.
+ * `label` is its visible text, "Elegir para el 12 oct", "Cambiar el menú del 5 oct" or, `selected`, "Menú del 5 oct".
+ */
+export type CardChoice = {
+  formId: string;
+  label: string;
+  variant: 'primary' | 'secondary';
+  selected: boolean;
+  disabled: boolean;
+  /** Present when the button replaces the menu of the week: it asks first (`onAsk`), and `open` shows the question. */
+  replacing?: { text: string; open: boolean; onAsk: () => void; onCancel: () => void };
+};
+
+const PLAIN_BORDER = 'border-border-hairline';
+const SELECTED_BORDER = 'border-olive-500 outline outline-olive-500';
+
+/** A menu of the ranking: how well it answers each unit of the request, and, with the weeks, a button to choose it. */
+export function MenuCandidateCard({ card, choice }: { card: CandidateCard; choice?: CardChoice }) {
   return (
-    <article className="rounded-md border border-border-hairline bg-surface-card p-5 shadow-card">
+    <article
+      className={`rounded-md border bg-surface-card p-5 shadow-card ${choice?.selected ? SELECTED_BORDER : PLAIN_BORDER}`}
+    >
       <div className="flex items-start gap-3.5">
         <div
           className={`w-[26px] flex-none text-[40px] leading-[0.9] font-extrabold italic ${card.rank === 1 ? 'text-olive-500' : 'text-text-faint'}`}
@@ -26,7 +47,43 @@ export function MenuCandidateCard({ card }: { card: CandidateCard }) {
           <EvidenceItem key={index} line={line} />
         ))}
       </ul>
+      {choice && <ChooseButton menu={card.menu} choice={choice} />}
     </article>
+  );
+}
+
+function ChooseButton({ menu, choice }: { menu: number; choice: CardChoice }) {
+  const { replacing } = choice;
+  if (replacing?.open) {
+    return (
+      <ConfirmChange
+        text={replacing.text}
+        formId={choice.formId}
+        field={{ name: 'menu', value: menu }}
+        onCancel={replacing.onCancel}
+        className="mt-4"
+      />
+    );
+  }
+  return (
+    <div className="mt-4 flex flex-wrap gap-2">
+      <Button
+        type="submit"
+        size="sm"
+        name="menu"
+        value={menu}
+        form={choice.formId}
+        variant={choice.selected ? 'primary' : choice.variant}
+        disabled={choice.selected || choice.disabled}
+        // With JavaScript the question comes first; without it the button posts, as it always did.
+        onClick={replacing && !choice.selected ? (event) => { event.preventDefault(); replacing.onAsk(); } : undefined}
+        // The visible text first, then the menu, so that "Elegir para el 12 oct" says which card it belongs to.
+        aria-label={`${choice.label} (Menú ${menu})`}
+      >
+        {choice.selected && <PlannerIcon name="check" size={17} strokeWidth={2.2} />}
+        {choice.label}
+      </Button>
+    </div>
   );
 }
 

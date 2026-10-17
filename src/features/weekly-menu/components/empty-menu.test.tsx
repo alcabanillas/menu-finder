@@ -10,7 +10,13 @@ describe('EmptyMenu', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: 'Menú' })).toBeInTheDocument();
     expect(screen.getByText('Todavía no has elegido menú para esta semana.')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Elegir menú' })).toHaveAttribute('href', '/planner');
+    expect(screen.getByRole('link', { name: 'Elegir menú' })).toHaveAttribute('href', '/planner?week=current');
+  });
+
+  it('opens Buscar on next week from the empty next week', () => {
+    render(<EmptyMenu status="future" days={WEEK} />);
+
+    expect(screen.getByRole('link', { name: 'Elegir menú' })).toHaveAttribute('href', '/planner?week=next');
   });
 
   it('says no menu was chosen for a past week, and offers no search', () => {

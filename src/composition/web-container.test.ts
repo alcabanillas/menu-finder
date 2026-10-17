@@ -52,7 +52,7 @@ describe('createWebContainer', () => {
     const container = createWebContainer(COMPLETE_ENV, noCookies);
 
     await container.currentUser();
-    const result = await container.currentSelections({ userId: 'user-1' });
+    const result = await container.weeksToChoose({ userId: 'user-1' });
 
     expect(result).toEqual({ ok: false, error: { kind: 'failed' } });
     expect(poolSpy).toHaveBeenCalledTimes(1);
@@ -69,12 +69,23 @@ describe('createWebContainer', () => {
     expect(poolSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('reads the active menu on the same pool, and reports an unreachable database as failed', async () => {
+  it('reads the weeks to choose on the same pool, and reports an unreachable database as failed', async () => {
     const poolSpy = vi.spyOn(pg, 'Pool');
     const container = createWebContainer(COMPLETE_ENV, noCookies);
 
     await container.currentUser();
-    const result = await container.currentSelections({ userId: 'user-1' });
+    const result = await container.weeksToChoose({ userId: 'user-1' });
+
+    expect(result).toEqual({ ok: false, error: { kind: 'failed' } });
+    expect(poolSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('chooses a menu on the same pool, and reports an unreachable database as failed', async () => {
+    const poolSpy = vi.spyOn(pg, 'Pool');
+    const container = createWebContainer(COMPLETE_ENV, noCookies);
+
+    await container.currentUser();
+    const result = await container.chooseMenu({ userId: 'user-1', menuNumber: 12, week: 'current' });
 
     expect(result).toEqual({ ok: false, error: { kind: 'failed' } });
     expect(poolSpy).toHaveBeenCalledTimes(1);

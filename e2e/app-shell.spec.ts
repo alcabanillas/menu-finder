@@ -21,7 +21,7 @@ test.describe('with a session', () => {
     await expect(page.getByRole('banner').getByRole('link', { name: 'Menu Finder' })).toHaveAttribute('href', '/');
     await expect(page.getByRole('navigation', { name: 'Principal' })).toHaveCount(1);
     await expect(page.getByRole('main')).toHaveCount(1);
-    await expect(page.getByRole('main').getByRole('heading', { name: 'Hola, E2E' })).toBeVisible();
+    await expect(page.getByRole('main').getByRole('heading', { level: 1, name: 'Buscar menú' })).toBeAttached();
   });
 
   test('the four links are in order and only the current route is marked', async ({ page }) => {
@@ -43,7 +43,7 @@ test.describe('with a session', () => {
     await expect(navigation).toHaveCount(1);
     await expect(page.getByRole('banner').getByRole('navigation')).toHaveCount(0);
     for (const tab of TABS) await expect(navigation.getByRole('link', { name: tab })).toBeVisible();
-    const heading = await page.getByRole('heading', { name: 'Hola, E2E' }).boundingBox();
+    const heading = await page.getByRole('heading', { name: 'Buscar menú' }).boundingBox();
     const bar = await navigation.boundingBox();
     expect(bar!.y).toBeGreaterThan(heading!.y);
   });
@@ -113,7 +113,7 @@ test.describe('with a session', () => {
   test('a click outside closes the panel', async ({ page }) => {
     await accountButton(page).click();
 
-    await page.getByRole('heading', { name: 'Hola, E2E' }).click();
+    await page.getByRole('main').click({ position: { x: 2, y: 2 } });
 
     await expect(page.getByRole('button', { name: 'Cerrar sesión' })).toHaveCount(0);
   });
