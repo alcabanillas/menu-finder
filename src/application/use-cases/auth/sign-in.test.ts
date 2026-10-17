@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { AuditEvent, AuditLog } from '@/application/ports/audit-log';
+import type { ClientIpSource } from '@/application/ports/client-ip-source';
 import type { RateLimiter } from '@/application/ports/rate-limiter';
 import type { Credentials, SessionManager, SignedInUser, SignInError } from '@/application/ports/session-manager';
 import { signIn } from '@/application/use-cases/auth/sign-in';
@@ -9,8 +10,9 @@ const PASSWORD = 'a-long-enough-pass';
 const ANA: SignedInUser = { userId: 'user-1', name: 'Ana', email: 'ana@example.test' };
 // eslint-disable-next-line sonarjs/no-hardcoded-ip
 const CLIENT_IP = '192.168.1.50';
+const OTHER_CLIENT_IP = '203.0.113.10';
 
-const fakes = (answer: Result<SignedInUser, SignInError> = ok(ANA)) => {
+const fakes = (answer: Result<SignedInUser, SignInError> = ok(ANA), clientIpAddress = CLIENT_IP) => {
   const sent: Credentials[] = [];
   const events: AuditEvent[] = [];
   const rateLimitHits: string[] = [];
@@ -42,25 +44,34 @@ const fakes = (answer: Result<SignedInUser, SignInError> = ok(ANA)) => {
       blockedKeys.delete(key);
     },
   };
+  const clientIp: ClientIpSource = { clientIp: async () => clientIpAddress };
 
-  return { deps: { sessions, auditLog, rateLimiter }, sent, events, rateLimitHits, rateLimitResets, blockedKeys };
+  return { deps: { sessions, auditLog, rateLimiter, clientIp }, sent, events, rateLimitHits, rateLimitResets, blockedKeys };
 };
 
 describe('signIn', () => {
   it('returns the user, resets the rate limit bucket and logs the sign-in with the user id', async () => {
     const { deps, events, rateLimitResets } = fakes();
 
-    const result = await signIn(deps, { email: 'ana@example.test', password: PASSWORD, clientIp: CLIENT_IP });
+    const result = await signIn(deps, { email: 'ana@example.test', password: PASSWORD });
 
     expect(result).toEqual(ok(ANA));
     expect(events).toEqual([{ type: 'sign-in', userId: 'user-1', at: expect.any(Date) }]);
     expect(rateLimitResets).toEqual(['login:failed:192.168.1.50:ana@example.test']);
   });
 
+  it('resolves client IP from the injected port into the rate limit key', async () => {
+    const { deps, rateLimitResets } = fakes(ok(ANA), OTHER_CLIENT_IP);
+
+    await signIn(deps, { email: 'ana@example.test', password: PASSWORD });
+
+    expect(rateLimitResets).toEqual(['login:failed:203.0.113.10:ana@example.test']);
+  });
+
   it('records a rate limit hit, returns wrong-credentials and logs the refusal when credentials fail', async () => {
     const { deps, events, rateLimitHits } = fakes(err({ kind: 'wrong-credentials' }));
 
-    const result = await signIn(deps, { email: 'ana@example.test', password: 'wrong-password', clientIp: CLIENT_IP });
+    const result = await signIn(deps, { email: 'ana@example.test', password: 'wrong-password' });
 
     expect(result).toEqual(err({ kind: 'wrong-credentials' }));
     expect(events).toEqual([{ type: 'sign-in-refused', reason: 'wrong-credentials', at: expect.any(Date) }]);
@@ -70,7 +81,7 @@ describe('signIn', () => {
   it('records a rate limit hit for invalid input and does not ask the port', async () => {
     const { deps, sent, events, rateLimitHits } = fakes();
 
-    const result = await signIn(deps, { email: 'ana\u0000@example.test', password: PASSWORD, clientIp: CLIENT_IP });
+    const result = await signIn(deps, { email: 'ana\u0000@example.test', password: PASSWORD });
 
     expect(result).toEqual(err({ kind: 'wrong-credentials' }));
     expect(sent).toEqual([]);
@@ -83,7 +94,7 @@ describe('signIn', () => {
     const key = `login:failed:${CLIENT_IP}:ana@example.test`;
     blockedKeys.add(key);
 
-    const result = await signIn(deps, { email: 'ana@example.test', password: PASSWORD, clientIp: CLIENT_IP });
+    const result = await signIn(deps, { email: 'ana@example.test', password: PASSWORD });
 
     expect(result).toEqual(err({ kind: 'rate-limited', resetAt: expect.any(Date) }));
     expect(sent).toEqual([]);
@@ -94,7 +105,7 @@ describe('signIn', () => {
     const { deps, sent, blockedKeys } = fakes();
     blockedKeys.add(`login:failed:${CLIENT_IP}:ana@example.test`);
 
-    const result = await signIn(deps, { email: 'bruno@example.test', password: PASSWORD, clientIp: CLIENT_IP });
+    const result = await signIn(deps, { email: 'bruno@example.test', password: PASSWORD });
 
     expect(result).toEqual(ok(ANA));
     expect(sent).toEqual([{ email: 'bruno@example.test', password: PASSWORD }]);
