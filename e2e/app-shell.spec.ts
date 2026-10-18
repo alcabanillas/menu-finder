@@ -55,7 +55,7 @@ test.describe('with a session', () => {
     await page.goto('/');
 
     await expect(page).toHaveURL('/');
-    await expect(page.getByRole('main').getByRole('heading', { name: 'Hoy' })).toBeVisible();
+    await expect(page.getByRole('main').getByRole('heading', { level: 1, name: 'Qué toca hoy' })).toBeVisible();
     const links = page.getByRole('navigation', { name: 'Principal' }).getByRole('link');
     await expect(links.nth(0)).toHaveAttribute('aria-current', 'page');
     for (const index of [1, 2, 3]) await expect(links.nth(index)).not.toHaveAttribute('aria-current');

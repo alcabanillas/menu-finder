@@ -27,6 +27,7 @@ const ITEMS = [
 ];
 // This week's Monday in Madrid, where "today" is (menu-selection spec).
 const THIS_MONDAY = "date_trunc('week', now() AT TIME ZONE 'Europe/Madrid')::date";
+const NEXT_MONDAY = `(${THIS_MONDAY} + 7)`;
 
 const account = registerTestAccount();
 
@@ -114,20 +115,40 @@ test.describe('with a session', () => {
     await clearSelectionsOf(account);
     await signInAs(page, account);
 
-    await expect(page.getByRole('main').getByRole('heading', { level: 1, name: 'Hoy' })).toBeVisible();
-    await expect(page.getByText('Aún no has elegido menú para esta semana.')).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Elegir menú' })).toHaveAttribute('href', '/planner');
-    await expect(page.getByText('Aún no tienes lista de la compra.')).toBeVisible();
+    await expect(page.getByRole('main').getByRole('heading', { level: 1, name: 'Qué toca hoy' })).toBeVisible();
+    await expect(page.getByRole('status')).toContainText('Esta semana aún no tiene menú');
+    await expect(page.getByRole('link', { name: 'Elegir menú para esta semana' })).toHaveAttribute(
+      'href',
+      '/planner?week=current',
+    );
+    await expect(page.getByRole('link', { name: 'Ver menú' })).toHaveCount(0);
+    await expect(page.getByText('Aún no hay lista: aparece al elegir un menú.')).toBeVisible();
+  });
+
+  test("with only next week's menu, this week is locked and the notice leads to next week", async ({ page }) => {
+    await chooseWeek(account, MENU, NEXT_MONDAY);
+    await signInAs(page, account);
+
+    await expect(page.getByRole('status')).toContainText('Esta semana no tiene menú');
+    await expect(page.getByRole('status')).toContainText(`(Menú ${MENU})`);
+    await expect(page.getByRole('link', { name: 'Elegir menú para esta semana' })).toHaveCount(0);
+    await page.getByRole('link', { name: 'Ver el menú de la semana que viene' }).click();
+    await expect(page).toHaveURL(/\/menu\?startsOn=\d{4}-\d{2}-\d{2}$/);
+    await expect(page.getByRole('main')).toContainText('Comida ficticia e2e');
   });
 
   test("with a menu this week, it shows the menu, today's dishes and the progress, which follows the ticks", async ({
     page,
   }) => {
-    await chooseThisWeek(account, MENU);
+    await chooseWeek(account, MENU, THIS_MONDAY);
     await signInAs(page, account);
 
-    await expect(page.getByRole('heading', { name: `Menú ${MENU}` })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Ver la semana' })).toHaveAttribute('href', '/menu');
+    await expect(page.getByRole('region', { name: 'Semanas' }).getByText(`Menú ${MENU}`)).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Semanas' }).getByRole('link', { name: 'Elegir' })).toHaveAttribute(
+      'href',
+      '/planner?week=next',
+    );
+    await expect(page.getByRole('link', { name: 'Ver menú' })).toHaveAttribute('href', '/menu');
     await expect(page.getByRole('region', { name: 'Comida' }).getByText('Comida ficticia e2e')).toBeVisible();
     await expect(page.getByRole('region', { name: 'Cena' }).getByText('Cena ficticia e2e')).toBeVisible();
     await expect(progress(page)).toHaveAttribute('aria-valuetext', '0 de 2');
@@ -146,7 +167,7 @@ test.describe('with a session', () => {
 });
 
 function progress(page: Page) {
-  return page.getByRole('progressbar', { name: 'Ítems marcados' });
+  return page.getByRole('progressbar', { name: 'Marcados' });
 }
 
 async function clearSelectionsOf({ email }: TestAccount): Promise<void> {
@@ -155,12 +176,12 @@ async function clearSelectionsOf({ email }: TestAccount): Promise<void> {
   );
 }
 
-async function chooseThisWeek({ email }: TestAccount, menuNumber: number): Promise<void> {
+async function chooseWeek({ email }: TestAccount, menuNumber: number, monday: string): Promise<void> {
   await withDatabase(async (client) => {
     await client.query('DELETE FROM selection WHERE user_id = (SELECT id FROM "user" WHERE email = $1)', [email]);
     await client.query(
       `INSERT INTO selection (user_id, menu_number, starts_on)
-       SELECT id, $2, ${THIS_MONDAY} FROM "user" WHERE email = $1`,
+       SELECT id, $2, ${monday} FROM "user" WHERE email = $1`,
       [email, menuNumber],
     );
   });

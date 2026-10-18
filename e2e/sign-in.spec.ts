@@ -17,7 +17,7 @@ test.describe('sign-in', () => {
     await signIn(page, '/login', email, password);
 
     await expect(page).toHaveURL('/');
-    await expect(page.getByRole('main').getByRole('heading', { level: 1, name: 'Hoy' })).toBeVisible();
+    await expect(page.getByRole('main').getByRole('heading', { level: 1, name: 'Qué toca hoy' })).toBeVisible();
     const cookie = (await page.context().cookies()).find(({ name }) => name === SESSION_COOKIE);
     expect(cookie?.httpOnly).toBe(true);
   });
@@ -58,7 +58,7 @@ test.describe('sign-in', () => {
     await page.goto('/planner');
     await page.goto('/login');
     await expect(page).toHaveURL('/');
-    await expect(page.getByRole('main').getByRole('heading', { level: 1, name: 'Hoy' })).toBeVisible();
+    await expect(page.getByRole('main').getByRole('heading', { level: 1, name: 'Qué toca hoy' })).toBeVisible();
   });
 });
 
