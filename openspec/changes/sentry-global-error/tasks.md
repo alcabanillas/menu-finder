@@ -14,7 +14,7 @@
 ## 3. Root layout error boundary (TDD)
 
 - [x] 3.1 Test `src/app/global-error.test.tsx` with the same cases, plus that it renders its own `<html>` and `<body>`
-- [x] 3.2 Implement `src/app/global-error.tsx` with inline styles; try `import '@/app/globals.css'` in a production build and keep it only if it works under the CSP (design open question); note the result here. Result: not tried in a production build yet; kept inline styles (no import) until task 6.2 shows whether it is worth it
+- [x] 3.2 Implement `src/app/global-error.tsx` with inline styles; try `import '@/app/globals.css'` in a production build and keep it only if it works under the CSP (design open question); note the result here. Result (production build, 2026-10-18): the stylesheet loads with no CSP violation (`style-src 'self'`), but it only adds Tailwind's preflight (the `h1` drops to 16px) and not the Archivo font, which needs the layout's `<html>` class; kept inline styles, no import
 
 ## 4. Knip and coverage
 
@@ -28,5 +28,5 @@
 ## 6. Verification
 
 - [x] 6.1 `pnpm typecheck` and `pnpm test:run` on the touched files; `pnpm exec eslint <files> --rule "import/no-cycle: off"`
-- [ ] 6.2 `next build` and `next start`: force a render error in a page and see the `error.tsx` fallback; the event reaches Sentry with `environment` (author, on a Vercel preview)
+- [ ] 6.2 `next build` and `next start`: force a render error in a page and see the `error.tsx` fallback; the event reaches Sentry with `environment` (author, on a Vercel preview). Local result (2026-10-18): a throwing page shows the `error.tsx` fallback and a throwing root layout shows `global-error.tsx`; no Sentry event locally because the worktree has no `SENTRY_DSN`. Pending: the event on the Vercel preview
 - [ ] 6.3 Before `gh pr create`: ask the author whether the PR bumps `"version"`, run `pnpm test:coverage`
