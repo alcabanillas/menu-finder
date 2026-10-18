@@ -1,6 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
+import { SIGNED_IN_HOME } from '@/app/_auth/signed-in-home';
 import type { SignInFailure } from '@/application/use-cases/auth/sign-in';
 import { webContainer } from '@/composition/web-container';
 import type { LoginFormState } from '@/features/auth/components/login-form';
@@ -15,14 +16,14 @@ const MESSAGES: Record<SignInFailure['kind'], string> = {
 };
 
 /**
- * The sign-in form's action. On success it always goes to `/planner`: no redirect target is read from the request, so
+ * The sign-in form's action. On success it always goes to the home: no redirect target is read from the request, so
  * there is no open redirect.
  */
 export async function signInAction(previous: LoginFormState, form: FormData): Promise<LoginFormState> {
   const result = await webContainer().signIn({ email: fieldOf(form, 'email'), password: fieldOf(form, 'password') });
   // The attempt number gives the form a new alert on every answer, so a repeated message is announced again (MF-47.2).
   if (!result.ok) return { message: MESSAGES[result.error.kind], attempt: previous.attempt + 1 };
-  redirect('/planner');
+  redirect(SIGNED_IN_HOME);
 }
 
 /** The account menu's sign-out action: revokes the session and goes back to the home. */

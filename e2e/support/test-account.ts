@@ -24,13 +24,13 @@ export function registerTestAccount(): TestAccount {
   return account;
 }
 
-/** Signs in through `/login`, as a user does, and waits for the page it lands on. */
+/** Signs in through `/login`, as a user does, and waits for the home it lands on (MF-25). */
 export async function signInAs(page: Page, { email, password }: TestAccount): Promise<void> {
   await page.goto('/login');
   await page.getByLabel('Correo electrónico').fill(email);
   await page.getByLabel('Contraseña').fill(password);
   await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.waitForURL('/planner');
+  await page.waitForURL('/');
 }
 
 function createAccount({ email, password }: TestAccount): void {

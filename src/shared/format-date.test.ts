@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatDayDate, formatShortDate, formatWeekday } from '@/features/weekly-menu/format-date';
+import { formatDayDate, formatShortDate, formatWeekday, formatWeekdayAndDay } from '@/shared/format-date';
 
 describe('formatShortDate', () => {
   it('writes the day and the month in Spanish', () => {
@@ -19,5 +19,12 @@ describe('formatWeekday', () => {
   it('writes the weekday alone, capitalised', () => {
     expect(formatWeekday('2026-10-07')).toBe('Miércoles');
     expect(formatWeekday('2026-10-11')).toBe('Domingo');
+  });
+});
+
+describe('formatWeekdayAndDay', () => {
+  it('writes the weekday in lower case and the day of the month', () => {
+    expect(formatWeekdayAndDay('2026-10-17')).toBe('sábado 17');
+    expect(formatWeekdayAndDay('2026-10-05')).toBe('lunes 5');
   });
 });

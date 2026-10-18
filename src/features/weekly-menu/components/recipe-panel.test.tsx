@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { RecipeDto } from '@/application/dto/weekly-menu';
-import { RecipePanel } from '@/features/weekly-menu/components/recipe-panel';
+import { RecipePanel, sideAwayFrom } from '@/features/weekly-menu/components/recipe-panel';
 
 const RECIPE: RecipeDto = {
   title: 'Lentejas estofadas',
@@ -61,5 +61,20 @@ describe('RecipePanel', () => {
     renderPanel(() => {}, 'left');
 
     expect(screen.getByRole('dialog')).toHaveAttribute('data-side', 'left');
+  });
+});
+
+describe('sideAwayFrom', () => {
+  const at = (left: number, width = 100) => {
+    const button = document.createElement('button');
+    vi.spyOn(button, 'getBoundingClientRect').mockReturnValue({ left, width } as DOMRect);
+    return button;
+  };
+
+  it('puts the panel on the side of the page away from the dish', () => {
+    vi.spyOn(document.documentElement, 'clientWidth', 'get').mockReturnValue(1280);
+
+    expect(sideAwayFrom(at(100))).toBe('right');
+    expect(sideAwayFrom(at(900))).toBe('left');
   });
 });

@@ -56,8 +56,16 @@ describe('menuWeekPage', () => {
           days: WEEK_OF_THIS_MONDAY,
         },
         menu: null,
+        today: TODAY,
       }),
     );
+  });
+
+  it("carries the clock's date also when the week has a menu", async () => {
+    const selection: Selection = { id: 'sel-3', menuNumber: 3, startsOn: THIS_MONDAY };
+    const page = await menuWeekPage(fakes([selection]), { userId: 'user-a', startsOn: undefined });
+
+    expect(page.ok && page.value.today).toBe(TODAY);
   });
 
   it('shows the validated past week with its menu, and says the week is past', async () => {
