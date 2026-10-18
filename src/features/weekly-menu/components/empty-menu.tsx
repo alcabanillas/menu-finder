@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import type { WeekStatusDto } from '@/application/dto/week-navigation';
 import { WeekHeader } from '@/features/weekly-menu/components/week-header';
-import { formatShortDate, formatWeekday } from '@/features/weekly-menu/format-date';
+import { formatShortDate, formatWeekday } from '@/shared/format-date';
 
 // After the design system's `MenuScreen.jsx` (`.mf-empty`, `.mf-ghost`): a grey card with the next step, and the seven
 // days of the week as dashed placeholders below it.

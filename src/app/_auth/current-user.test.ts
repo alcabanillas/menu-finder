@@ -46,7 +46,7 @@ describe('the session read of a request', () => {
   });
 
   it('is shared by requireUser and redirectIfSignedIn', async () => {
-    await expect(redirectIfSignedIn()).rejects.toThrow('redirect:/planner');
+    await expect(redirectIfSignedIn()).rejects.toThrow(/^redirect:\/$/);
     await requireUser();
 
     expect(container.currentUser).toHaveBeenCalledTimes(1);

@@ -13,16 +13,14 @@ const HOSTILE_VALUES = ["' OR 1=1; --", '🍅@example.test', 'a'.repeat(10_000),
 const { email, password } = registerTestAccount();
 
 test.describe('sign-in', () => {
-  for (const path of ['/login', '/']) {
-    test(`from ${path}, correct credentials land on /planner with an HttpOnly session cookie`, async ({ page }) => {
-      await signIn(page, path, email, password);
+  test('correct credentials land on the dashboard of / with an HttpOnly session cookie', async ({ page }) => {
+    await signIn(page, '/login', email, password);
 
-      await expect(page).toHaveURL('/planner');
-      await expect(page.getByRole('heading', { name: 'Buscar menú' })).toBeAttached();
-      const cookie = (await page.context().cookies()).find(({ name }) => name === SESSION_COOKIE);
-      expect(cookie?.httpOnly).toBe(true);
-    });
-  }
+    await expect(page).toHaveURL('/');
+    await expect(page.getByRole('main').getByRole('heading', { level: 1, name: 'Qué toca hoy' })).toBeVisible();
+    const cookie = (await page.context().cookies()).find(({ name }) => name === SESSION_COOKIE);
+    expect(cookie?.httpOnly).toBe(true);
+  });
 
   test('a wrong password and an unknown email show the same message', async ({ page }) => {
     await signIn(page, '/login', email, 'a-wrong-password');
@@ -40,7 +38,7 @@ test.describe('sign-in', () => {
     await page.goto('/login?next=https://evil.example&callbackURL=https://evil.example&returnTo=https://evil.example');
     await fillAndSubmit(page, email, password);
 
-    await expect(page).toHaveURL('/planner');
+    await expect(page).toHaveURL('/');
   });
 
   test('the same message twice in a row comes in a new alert, so it is announced again', async ({ page }) => {
@@ -54,14 +52,13 @@ test.describe('sign-in', () => {
     await expect(formAlert(page)).not.toHaveAttribute('data-first-answer');
   });
 
-  test('/login sends a signed-in user to /planner, and / shows them the page "Hoy"', async ({ page }) => {
+  test('/login sends a signed-in user to the dashboard of /', async ({ page }) => {
     await signIn(page, '/login', email, password);
 
+    await page.goto('/planner');
     await page.goto('/login');
-    await expect(page).toHaveURL('/planner');
-    await page.goto('/');
     await expect(page).toHaveURL('/');
-    await expect(page.getByRole('main').getByRole('heading', { name: 'Hoy' })).toBeVisible();
+    await expect(page.getByRole('main').getByRole('heading', { level: 1, name: 'Qué toca hoy' })).toBeVisible();
   });
 });
 
@@ -90,6 +87,8 @@ test.describe('sign-out', () => {
 
     await page.getByRole('button', { name: 'Cuenta' }).click();
     await page.getByRole('button', { name: 'Cerrar sesión' }).click();
+    // The sign-in lands on `/` too (MF-25): the visitor's "Acceder" shows the sign-out is done, not only the URL.
+    await expect(page.getByRole('banner').getByRole('link', { name: 'Acceder' })).toBeVisible();
     await expect(page).toHaveURL('/');
 
     await context.addCookies(oldCookies);
@@ -97,6 +96,12 @@ test.describe('sign-out', () => {
     expect(refused.status()).toBe(307);
     expect(refused.headers().location).toContain('/login');
     expect(await refused.text()).not.toContain(email);
+    // Spec home, "A forged or revoked session gives the informative home" (MF-25).
+    const home = await page.request.get('/', { maxRedirects: 0 });
+    expect(home.status()).toBe(200);
+    const homeBody = await home.text();
+    expect(homeBody).toContain('Acceder');
+    expect(homeBody).not.toContain(email);
     await page.goto('/planner');
     await expect(page).toHaveURL('/login');
   });

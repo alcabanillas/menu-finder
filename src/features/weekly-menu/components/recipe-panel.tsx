@@ -62,6 +62,14 @@ export function RecipePanel({ name, eyebrow, recipe, side, onClose }: RecipePane
   );
 }
 
+// The dish has no fixed column, neither in `/menu`'s day cards nor in the dashboard: its place on the screen decides
+// (design D2 of MF-56, design D9 of MF-25). The page box is centred, so the viewport's centre is the page's.
+/** The side of the page away from the dish that opens the panel. */
+export function sideAwayFrom(button: HTMLButtonElement): PanelSide {
+  const { left, width } = button.getBoundingClientRect();
+  return left + width / 2 > document.documentElement.clientWidth / 2 ? 'left' : 'right';
+}
+
 function closeOnEscape(onClose: () => void): () => void {
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.key === 'Escape') onClose();
