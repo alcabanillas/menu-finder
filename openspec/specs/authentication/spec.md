@@ -159,11 +159,11 @@ The command SHALL read the password from a prompt that does not echo it when std
 
 ### Requirement: Sign-in from the browser
 
-The system SHALL offer a page at `/login` with an email field, a password field and a submit button, and SHALL start a session when the email and password match an account. On success it SHALL go to `/planner`. On failure it SHALL stay on `/login` and show one message that is the same for an unknown email and a wrong password. The page SHALL NOT offer sign-up or password recovery (SEG-sistema-cerrado).
+The system SHALL offer a page at `/login` with an email field, a password field and a submit button, and SHALL start a session when the email and password match an account. On success it SHALL go to `/`. On failure it SHALL stay on `/login` and show one message that is the same for an unknown email and a wrong password. The page SHALL NOT offer sign-up or password recovery (SEG-sistema-cerrado).
 
 #### Scenario: Correct credentials
 - **WHEN** a user submits the email and password of an existing account on `/login`
-- **THEN** the browser ends on `/planner`, a session row exists for that user, and the browser holds a session cookie marked `HttpOnly`
+- **THEN** the browser ends on `/` with the dashboard, a session row exists for that user, and the browser holds a session cookie marked `HttpOnly`
 
 #### Scenario: Wrong password and unknown email look the same
 - **WHEN** a user submits an existing email with a wrong password, and then an email that has no account
@@ -175,7 +175,7 @@ The system SHALL offer a page at `/login` with an email field, a password field 
 
 #### Scenario: Already signed in
 - **WHEN** a user with a valid session opens `/login`
-- **THEN** the browser is sent to `/planner`
+- **THEN** the browser is sent to `/`
 
 ### Requirement: The sign-in input is validated on the server
 
@@ -259,11 +259,11 @@ The web SHALL reach the authentication only through its own sign-in and sign-out
 
 ### Requirement: The sign-in sends the user to a fixed place
 
-After a successful sign-in the system SHALL go to `/planner`, whatever the request carries. It SHALL NOT read a redirect target from the URL, the form or a header.
+After a successful sign-in the system SHALL go to `/`, whatever the request carries. It SHALL NOT read a redirect target from the URL, the form or a header.
 
 #### Scenario: A redirect target in the URL is ignored
 - **WHEN** a user opens `/login?next=https://evil.example` (or `callbackURL`, `redirect`, `returnTo`) and signs in correctly
-- **THEN** the browser ends on `/planner` of the app
+- **THEN** the browser ends on `/` of the app
 
 ### Requirement: Sign-out from the browser
 
@@ -296,22 +296,6 @@ Every route other than `/` and `/login` SHALL be protected. A protected route SH
 #### Scenario: A valid session
 - **WHEN** a request for `/planner` carries the cookie of a valid session
 - **THEN** the page renders inside the app shell and shows the name of the signed-in user, and the sign-out control is in the account menu of the shell
-
-### Requirement: The home shows the sign-in until the dashboard exists
-
-`/` SHALL be reachable without a session. The server SHALL decide what it shows from the session: without one, the same sign-in form as `/login`, with no catalogue or user data and no sign-up or recovery; with one, a minimal page "Hoy" inside the app shell, a placeholder for the dashboard. The informative home and the dashboard of UI-home-sin-login come in later changes.
-
-#### Scenario: Home without a session
-- **WHEN** `/` is requested with no valid session
-- **THEN** it renders the sign-in form, and no menu, recipe or user data and no sign-up or recovery control
-
-#### Scenario: Sign-in from the home
-- **WHEN** a user submits correct credentials on `/`
-- **THEN** the browser ends on `/planner` and a session row exists for that user
-
-#### Scenario: Home with a session
-- **WHEN** `/` is requested with a valid session
-- **THEN** the page renders inside the app shell with the heading "Hoy", and the browser stays on `/`
 
 ### Requirement: Sign-ins and sign-outs are logged
 

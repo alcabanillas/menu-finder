@@ -7,7 +7,7 @@ Two gaps in the Sentry setup, found by comparing it with the example project `mb
 1. **No error boundary reports render errors.** `src/app` has no `error.tsx` or `global-error.tsx`. A React render error in the browser (a component that throws, or the root layout) reaches Next.js's default error screen and is not sent to Sentry: Next.js catches it in its own boundary, so the global `window.onerror` handler never sees it. The user also gets Next.js's generic page, not the app's.
 2. **Events carry no `environment`.** Both `Sentry.init` calls omit it, so errors from a Vercel preview, production and a local `next dev` with a DSN all land in one stream.
 
-Size: about 1.5 h, under the 2 h split threshold of `AGENTS.md`. It has no roadmap ID yet; the author assigns one.
+Size: about 1.5 h, under the 2 h split threshold of `AGENTS.md`. Roadmap ID: MF-70, given by the author on 2026-10-18.
 
 ## What Changes
 
