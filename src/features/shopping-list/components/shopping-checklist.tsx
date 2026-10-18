@@ -48,7 +48,7 @@ export function ShoppingChecklist({ checklist, view, action }: ShoppingChecklist
       </header>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-12 @min-[800px]:border-b @min-[800px]:border-border-hairline @min-[800px]:pb-4">
         <div className="min-w-0 flex-1">
-          <ProgressBar value={shown.checkedCount} max={shown.total} label="Marcados" />
+          <ProgressBar value={shown.checkedCount} max={shown.total} label="Comprado" />
         </div>
         <ViewFilter view={view} />
       </div>

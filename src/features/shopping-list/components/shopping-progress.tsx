@@ -15,7 +15,7 @@ type ShoppingProgressProps = { list: ListProgress };
 // After "Compra" of the design system's `ui_kits/app/HomeScreen.jsx` (version 1792319321-0ddf), with `ProgressBar`. The
 // week in the title is the list's own `startsOn`, so it never disagrees with `/shopping-list` (design D2 of MF-25).
 const CARD = 'rounded-[12px] border border-border-hairline bg-surface-card px-5 py-4';
-const TITLE = 'text-eyebrow font-semibold uppercase tracking-[var(--text-eyebrow--letter-spacing)] text-text-muted';
+const TITLE = 'whitespace-nowrap text-eyebrow font-semibold uppercase tracking-[var(--text-eyebrow--letter-spacing)] text-text-muted';
 
 /** How much of the current shopping list is ticked, and the way to it. */
 export function ShoppingProgress({ list }: ShoppingProgressProps) {
@@ -45,5 +45,5 @@ function ProgressBody({ list }: ShoppingProgressProps) {
   if (list.kind === 'failed') return <p>No se ha podido cargar la lista. Inténtalo de nuevo.</p>;
   if (list.kind === 'none') return <p className="text-small text-text-muted">Aún no hay lista: aparece al elegir un menú.</p>;
   if (list.total === 0) return <p>La lista de este menú no está disponible.</p>;
-  return <ProgressBar label="Marcados" value={list.checkedCount} max={list.total} />;
+  return <ProgressBar label="Comprado" value={list.checkedCount} max={list.total} />;
 }

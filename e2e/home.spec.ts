@@ -167,7 +167,7 @@ test.describe('with a session', () => {
 });
 
 function progress(page: Page) {
-  return page.getByRole('progressbar', { name: 'Marcados' });
+  return page.getByRole('progressbar', { name: 'Comprado' });
 }
 
 async function clearSelectionsOf({ email }: TestAccount): Promise<void> {

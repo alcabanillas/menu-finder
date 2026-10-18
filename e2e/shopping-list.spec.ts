@@ -201,8 +201,9 @@ function row(page: Page, name: string) {
 }
 
 // The tick shows at once (optimistic); wait for the server action's answer before reloading, or the reload cancels it.
+// Only the action's own answer counts: the browser also POSTs to Sentry, which may answer first (as in home.spec.ts).
 async function tick(page: Page, checkbox: Locator): Promise<void> {
-  const answered = page.waitForResponse((response) => response.request().method() === 'POST');
+  const answered = page.waitForResponse((response) => response.request().headers()['next-action'] !== undefined);
   await checkbox.click();
   await answered;
 }
@@ -212,7 +213,7 @@ function index(page: Page) {
 }
 
 function progress(page: Page) {
-  return page.getByRole('progressbar', { name: 'Marcados' });
+  return page.getByRole('progressbar', { name: 'Comprado' });
 }
 
 // A fresh selection of this week replaces the account's earlier one, so its ticks go with it (ON DELETE CASCADE).

@@ -92,7 +92,7 @@ describe('Home with a session', () => {
     expect(screen.getByText('Lentejas estofadas')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Ver menú' })).toHaveAttribute('href', '/menu');
     expect(screen.getByRole('heading', { name: 'Compra · semana del 5 oct' })).toBeInTheDocument();
-    expect(screen.getByRole('progressbar', { name: 'Marcados' })).toHaveAttribute('aria-valuetext', '5 de 40');
+    expect(screen.getByRole('progressbar', { name: 'Comprado' })).toHaveAttribute('aria-valuetext', '5 de 40');
   });
 
   it('reads this week, the two weeks and the current list of the user of the session only', async () => {
@@ -138,7 +138,7 @@ describe('Home with a session', () => {
 
     expect(screen.getByText('No se ha podido cargar tu menú.')).toBeInTheDocument();
     expect(within(screen.getByRole('region', { name: 'Semanas' })).getByText('Menú 12')).toBeInTheDocument();
-    expect(screen.getByRole('progressbar', { name: 'Marcados' })).toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: 'Comprado' })).toBeInTheDocument();
   });
 
   it("keeps today's dishes and the shopping when the weeks cannot be read", async () => {
@@ -148,7 +148,7 @@ describe('Home with a session', () => {
 
     expect(within(screen.getByRole('region', { name: 'Semanas' })).getByText('No se ha podido cargar tu menú.')).toBeInTheDocument();
     expect(screen.getByText('Lentejas estofadas')).toBeInTheDocument();
-    expect(screen.getByRole('progressbar', { name: 'Marcados' })).toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: 'Comprado' })).toBeInTheDocument();
   });
 
   it('shows no notice when this week has no menu and the weeks cannot be read', async () => {
