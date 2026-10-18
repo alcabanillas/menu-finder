@@ -70,7 +70,7 @@ describe('ShoppingChecklist', () => {
   it('shows the progress over all the items', () => {
     show([1]);
 
-    expect(screen.getByText('Marcados')).toBeInTheDocument();
+    expect(screen.getByText('Comprado')).toBeInTheDocument();
     expect(progress()).toHaveAttribute('aria-valuetext', '1 de 4');
   });
 

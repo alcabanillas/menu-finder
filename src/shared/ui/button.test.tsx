@@ -33,6 +33,12 @@ describe('Button', () => {
     expect(screen.getByRole('button', { name: 'Cerrar sesión' })).toHaveClass('border-border-ink');
   });
 
+  it('is oil yellow with ink text when warm', () => {
+    render(<Button variant="warm">Acceder</Button>);
+
+    expect(screen.getByRole('button', { name: 'Acceder' })).toHaveClass('bg-aceite-500', 'text-ink');
+  });
+
   it('takes the full width when asked', () => {
     render(<Button fullWidth>Entrar</Button>);
 

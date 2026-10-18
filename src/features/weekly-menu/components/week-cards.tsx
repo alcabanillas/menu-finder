@@ -1,8 +1,9 @@
 import { useId } from 'react';
 import type { DayDto, WeekDayDto, WeekDishDto } from '@/application/dto/weekly-menu';
+import { DAY_BARS } from '@/features/weekly-menu/components/day-bar';
 import { MenuIcon } from '@/features/weekly-menu/components/menu-icon';
 import { daysShown } from '@/features/weekly-menu/days-shown';
-import { formatShortDate, formatWeekday } from '@/features/weekly-menu/format-date';
+import { formatShortDate, formatWeekday } from '@/shared/format-date';
 
 type MealDto = 'lunch' | 'dinner';
 
@@ -24,16 +25,6 @@ const MEALS: [MealDto, string][] = [
   ['lunch', 'Comida'],
   ['dinner', 'Cena'],
 ];
-const BARS: Record<DayDto, string> = {
-  monday: 'bg-day-mon',
-  tuesday: 'bg-day-tue',
-  wednesday: 'bg-day-wed',
-  thursday: 'bg-day-thu',
-  friday: 'bg-day-fri',
-  saturday: 'bg-day-sat',
-  sunday: 'bg-day-sun border border-border-strong',
-};
-
 const EYEBROW = 'text-eyebrow font-semibold uppercase tracking-[var(--text-eyebrow--letter-spacing)]';
 const CARD = 'min-w-0 rounded-[12px] border bg-surface-card px-5 pb-4 pt-3.5';
 const TODAY_TAG = `${EYEBROW} ml-auto self-center rounded-xs bg-aceite-500 px-2 py-1 leading-none text-ink`;
@@ -64,7 +55,7 @@ function DayCard({ day, isToday, open, onOpen }: DayCardProps) {
       className={`${CARD} ${isToday ? 'border-olive-500' : 'border-border-hairline'}`}
     >
       <div className="flex items-baseline gap-2.5 border-b border-border-ink pb-2.5">
-        <span aria-hidden="true" className={`h-1 w-6 flex-none self-center rounded-[2px] ${BARS[day.day]}`} />
+        <span aria-hidden="true" className={`h-1 w-6 flex-none self-center rounded-[2px] ${DAY_BARS[day.day]}`} />
         <h2 id={headingId} className="text-[19px] font-extrabold leading-[1.1] tracking-[-0.02em] text-text-strong">
           {formatWeekday(day.date)}
         </h2>

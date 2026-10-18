@@ -26,6 +26,11 @@ export function formatWeekday(date: string): string {
   return capitalise(WEEKDAY.format(toUtc(date)));
 }
 
+/** A `YYYY-MM-DD` date as its weekday in lower case and its day of the month, "sábado 17". */
+export function formatWeekdayAndDay(date: string): string {
+  return `${WEEKDAY.format(toUtc(date))} ${toUtc(date).getUTCDate()}`;
+}
+
 function capitalise(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }

@@ -50,16 +50,15 @@ test.describe('without a session', () => {
     });
   }
 
-  for (const path of ['/', '/login']) {
-    test(`${path} shows the sign-in form, with no sign-up or recovery`, async ({ page }) => {
-      await page.goto(path);
+  // `/` without a session is the informative home since MF-25: its e2e is in home.spec.ts.
+  test('/login shows the sign-in form, with no sign-up or recovery', async ({ page }) => {
+    await page.goto('/login');
 
-      await expect(page.getByLabel('Correo electrónico')).toBeVisible();
-      await expect(page.getByLabel('Contraseña')).toBeVisible();
-      await expect(page.getByRole('button', { name: 'Entrar' })).toBeVisible();
-      await expect(page.getByText(/registr|crear cuenta|olvid|recuperar/i)).toHaveCount(0);
-    });
-  }
+    await expect(page.getByLabel('Correo electrónico')).toBeVisible();
+    await expect(page.getByLabel('Contraseña')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Entrar' })).toBeVisible();
+    await expect(page.getByText(/registr|crear cuenta|olvid|recuperar/i)).toHaveCount(0);
+  });
 });
 
 test.describe('no authentication endpoint is exposed', () => {

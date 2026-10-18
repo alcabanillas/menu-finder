@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import type { SignedInUser } from '@/application/dto/signed-in-user';
+import { SIGNED_IN_HOME } from '@/app/_auth/signed-in-home';
 import { sessionUser } from '@/app/_auth/session-user';
 
 /**
@@ -14,5 +15,5 @@ export async function requireUser(): Promise<SignedInUser> {
 
 /** For the pages that show the sign-in form: a signed-in user has nothing to do there. */
 export async function redirectIfSignedIn(): Promise<void> {
-  if (await sessionUser()) redirect('/planner');
+  if (await sessionUser()) redirect(SIGNED_IN_HOME);
 }
