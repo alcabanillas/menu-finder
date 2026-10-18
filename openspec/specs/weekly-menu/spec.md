@@ -1,7 +1,7 @@
 # weekly-menu Specification
 
 ## Purpose
-`/menu` shows a signed-in user the menu they chose for this week, one day at a time, with the recipe of each dish as a card that unfolds in place (UI-card-receta).
+`/menu` shows a signed-in user the menu they chose for this week, with every day in one vertical scroll on narrow screens and one card per day from 800 px, with the recipe of each dish as a card that unfolds in place (UI-card-receta).
 
 ## Requirements
 
@@ -114,7 +114,7 @@ When the user has no active menu, the page SHALL have the heading "Menú", SHALL
 
 ### Requirement: From 800 px the page shows the week as day cards
 
-When the content is 800 px wide or wider, the page SHALL show the active menu's week as one card per day instead of the day tabs: Monday to Saturday, and Sunday only when the menu has dishes for it, in the order of the week. Each card SHALL be headed by its weekday and its date ("7 de octubre"). Today's card SHALL be highlighted and SHALL say "Hoy" in text, not only by colour. Under the labels "Comida" and "Cena", each card SHALL show the dishes of that meal in the menu's order; a meal with no dishes SHALL be left out, and a day with no dishes SHALL say "El menú no incluye platos para este día". A dish with a recipe SHALL show its total time in minutes when known and SHALL be a control that opens its recipe; a dish without one SHALL be plain text. Without JavaScript, the cards SHALL still show every day's dishes.
+When the content is 800 px wide or wider, the page SHALL show the active menu's week as one card per day instead of the vertical scroll of days: Monday to Saturday, and Sunday only when the menu has dishes for it, in the order of the week. Each card SHALL be headed by its weekday and its date ("7 de octubre"). Today's card SHALL be highlighted and SHALL say "Hoy" in text, not only by colour. Under the labels "Comida" and "Cena", each card SHALL show the dishes of that meal in the menu's order; a meal with no dishes SHALL be left out, and a day with no dishes SHALL say "El menú no incluye platos para este día". A dish with a recipe SHALL show its total time in minutes when known and SHALL be a control that opens its recipe; a dish without one SHALL be plain text. Without JavaScript, the cards SHALL still show every day's dishes.
 
 #### Scenario: The week as day cards
 - **WHEN** a signed-in user whose active menu is 3, from Monday 2026-10-05, with dishes on every day, opens `/menu` on Wednesday 2026-10-07 on a screen 800 px wide or wider
