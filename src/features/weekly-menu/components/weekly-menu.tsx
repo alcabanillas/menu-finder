@@ -2,12 +2,13 @@
 
 import { useCallback, useId, useRef, useState, type ReactNode } from 'react';
 import type { WeekDayDto, WeekDishDto, WeeklyMenuDto } from '@/application/dto/weekly-menu';
-import { DayTabs, tabIdOf } from '@/features/weekly-menu/components/day-tabs';
+import { DayTabs } from '@/features/weekly-menu/components/day-tabs';
 import { RecipeCard } from '@/features/weekly-menu/components/recipe-card';
 import { RecipePanel, type PanelSide } from '@/features/weekly-menu/components/recipe-panel';
 import { WeekCards, type DishRef } from '@/features/weekly-menu/components/week-cards';
 import { WeekHeader } from '@/features/weekly-menu/components/week-header';
 import { formatDayDate, formatShortDate, formatWeekday } from '@/features/weekly-menu/format-date';
+import { daySectionId, useDayScroll } from '@/features/weekly-menu/use-day-scroll';
 
 type WeeklyMenuProps = { menu: WeeklyMenuDto; nav?: ReactNode };
 
@@ -27,16 +28,13 @@ const MEALS = [
 const MEAL_LABELS = Object.fromEntries(MEALS);
 
 /**
- * The menu of the week, one day at a time: a heading, seven day tabs and the selected day's dishes. It opens on today,
- * so the page rendered on the server, before any script runs, already shows today's dishes.
+ * The menu of the week. Below 800 px, a sticky day bar over all seven days in one scroll, which opens on today and
+ * marks the day in view (MF-69); from 800 px, the day cards and the recipe panel.
  */
 export function WeeklyMenu({ menu, nav }: WeeklyMenuProps) {
-  const todays = menu.days.find(({ date }) => date === menu.today) ?? menu.days[0];
-  const [selected, setSelected] = useState(todays.day);
+  const { active, goTo } = useDayScroll(menu.days, menu.today);
   const [open, setOpen] = useState<OpenDish | null>(null);
   const trigger = useRef<HTMLButtonElement | null>(null);
-  const panelId = useId();
-  const day = menu.days.find((candidate) => candidate.day === selected) ?? todays;
 
   const openDish = (ref: DishRef, button: HTMLButtonElement) => {
     trigger.current = button;
@@ -55,10 +53,15 @@ export function WeeklyMenu({ menu, nav }: WeeklyMenuProps) {
         nav={nav}
       />
       <div className="@min-[800px]:hidden">
-        <div className="sticky top-0 z-[2] bg-surface-page px-3 pb-2">
-          <DayTabs days={menu.days} selected={selected} today={menu.today} panelId={panelId} onSelect={setSelected} />
+        {/* Under the shell's header, which is sticky too, 56 px high and 64 px from 640 px. */}
+        <div className="sticky top-14 z-[2] bg-surface-page px-3 pb-2 sm:top-16">
+          <DayTabs days={menu.days} active={active} today={menu.today} onSelect={goTo} />
         </div>
-        <DayPanel id={panelId} labelledBy={tabIdOf(panelId, selected)} day={day} />
+        <div className="flex flex-col">
+          {menu.days.map((d) => (
+            <DaySection key={d.day} day={d} />
+          ))}
+        </div>
       </div>
       <div className="hidden px-8 pb-14 pt-2 @min-[800px]:block">
         <WeekCards days={menu.days} today={menu.today} open={open} onOpen={openDish} />
@@ -68,17 +71,21 @@ export function WeeklyMenu({ menu, nav }: WeeklyMenuProps) {
   );
 }
 
-function DayPanel({ id, labelledBy, day }: { id: string; labelledBy: string; day: WeekDayDto }) {
+function DaySection({ day }: { day: WeekDayDto }) {
+  const headingId = useId();
   const empty = day.meals.lunch.length === 0 && day.meals.dinner.length === 0;
   return (
-    <div
-      role="tabpanel"
-      id={id}
-      aria-labelledby={labelledBy}
-      tabIndex={0}
-      className="flex flex-col gap-7 px-gutter-mobile pb-8 pt-4 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ink"
+    <section
+      id={daySectionId(day.day)}
+      aria-labelledby={headingId}
+      // Room for the header and the day bar above the section the page scrolls to: 128 px, 136 px from 640 px. The last
+      // day is at least the rest of the viewport high, so however short it is it reaches the top and the bar marks it.
+      className={
+        'flex scroll-mt-32 flex-col gap-7 px-gutter-mobile pb-10 pt-4 sm:scroll-mt-34 ' +
+        'last:min-h-[calc(100dvh-8rem)] sm:last:min-h-[calc(100dvh-8.5rem)]'
+      }
     >
-      <h2 className="text-h2 font-extrabold">{formatDayDate(day.date)}</h2>
+      <h2 id={headingId} className="text-h2 font-extrabold">{formatDayDate(day.date)}</h2>
       {empty ? (
         <p className="border-t border-border-ink pt-3 text-[15px] text-text-muted">
           El menú no incluye platos para este día.
@@ -86,7 +93,7 @@ function DayPanel({ id, labelledBy, day }: { id: string; labelledBy: string; day
       ) : (
         MEALS.map(([type, label]) => <Meal key={type} label={label} dishes={day.meals[type]} />)
       )}
-    </div>
+    </section>
   );
 }
 
