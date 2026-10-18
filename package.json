@@ -18,6 +18,7 @@
     "evals:literal-candidates": "node scripts/evaluacion/literal-candidates.js",
     "evals:golden-set": "node scripts/evaluacion/build-golden-set.js",
     "evals:similarity-floor": "tsx scripts/evaluacion/similarity-floor.ts",
+    "evals:exclusion-strategies": "tsx scripts/evaluacion/exclusion-strategies.ts",
     "evals:term-variants": "tsx scripts/evaluacion/term-variants.ts",
     "roadmap": "tsx scripts/roadmap/index.ts",
     "ds:tokens": "tsx scripts/design-system/index.ts",

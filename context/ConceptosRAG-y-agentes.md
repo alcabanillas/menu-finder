@@ -147,7 +147,7 @@ Por qué importa para el TFM: si llamas "agente" a cada llamada al LLM, quien ev
 entrada: "arroz con pollo y garbanzos, nada de cerdo"
   ↓
 LLM con schema Zod → restricciones: "arroz con pollo" (un mismo plato), "garbanzos"
-                      exclusión global: cerdo (penalización blanda)
+                      exclusión global: cerdo (filtro léxico)
   ↓
 buscador → puntúa los 36 menús → muestra los 5 primeros
   ↓
