@@ -7,4 +7,4 @@ export type Selection = { id: string; menuNumber: number; startsOn: LocalDate };
  * The menu of the week that holds today, and the menu whose shopping list is current: next Monday's if chosen,
  * otherwise this week's. Either may be missing.
  */
-export type CurrentSelections = { activeMenu: Selection | null; shoppingList: Selection | null };
+export type CurrentSelections = { activeMenu: Selection | null; shoppingSelection: Selection | null };

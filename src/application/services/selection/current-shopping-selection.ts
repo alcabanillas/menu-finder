@@ -15,5 +15,5 @@ export async function currentShoppingSelection(
 ): Promise<Result<Selection | null, RepositoryReadError>> {
   const today = clock.today();
   const fromThisMonday = await selections.listFrom(userId, mondayOf(today));
-  return fromThisMonday.ok ? ok(currentOf(fromThisMonday.value, today).shoppingList) : fromThisMonday;
+  return fromThisMonday.ok ? ok(currentOf(fromThisMonday.value, today).shoppingSelection) : fromThisMonday;
 }

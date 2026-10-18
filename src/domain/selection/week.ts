@@ -27,8 +27,8 @@ export function suggestedWeek(selectionsFromThisMonday: Selection[], today: Loca
 /** The active menu (this week's) and the shopping list (next week's if chosen, otherwise this week's). */
 export function currentOf(selectionsFromThisMonday: Selection[], today: LocalDate): CurrentSelections {
   const activeMenu = startingOn(selectionsFromThisMonday, mondayOf(today));
-  const shoppingList = startingOn(selectionsFromThisMonday, nextMonday(today)) ?? activeMenu;
-  return { activeMenu, shoppingList };
+  const shoppingSelection = startingOn(selectionsFromThisMonday, nextMonday(today)) ?? activeMenu;
+  return { activeMenu, shoppingSelection };
 }
 
 /** The seven dates of the week that starts on `monday`, Monday to Sunday. */
