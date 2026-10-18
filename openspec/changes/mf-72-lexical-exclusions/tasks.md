@@ -15,6 +15,8 @@
 - [x] 3.1 Test (`find-menus.test.ts`, red): "A week-wide exclusion is lexical with the semantic strategy" (semantic score 1 for `caviar`, no lexical match → no menu removed, `removedBy` 0); with `semantic`, a lexical match of the exclusion removes the menu; the lexical port is called once per distinct excluded term; a failure of the lexical port ends the search with `search-failed` and no partial ranking
 - [x] 3.2 `findMenus`: query the lexical scores of the week-wide exclusion terms with every strategy (only they are matched by text with `semantic`, and they are no longer embedded) and give them to those constraint ids in `toScoredMenu`
 
+- [x] 3.3 Refactor, no behaviour change: `findMenus` keeps the term scores in maps keyed by term and gives `toScoredMenu` the scores of each constraint (`scoreConstraints`), instead of parallel lists matched by index
+
 ## 4. CLI prints filters (D2)
 
 - [x] 4.1 Test (`search.test.ts`, red): "A week-wide exclusion is printed as a filter" (`Filter c2 removes 15 menus.`) and `No constraint filters the menus.` with no filtering unit; adapt the tests that expect "Hard constraint"
