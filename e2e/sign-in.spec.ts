@@ -96,6 +96,12 @@ test.describe('sign-out', () => {
     expect(refused.status()).toBe(307);
     expect(refused.headers().location).toContain('/login');
     expect(await refused.text()).not.toContain(email);
+    // Spec home, "A forged or revoked session gives the informative home" (MF-25).
+    const home = await page.request.get('/', { maxRedirects: 0 });
+    expect(home.status()).toBe(200);
+    const homeBody = await home.text();
+    expect(homeBody).toContain('Acceder');
+    expect(homeBody).not.toContain(email);
     await page.goto('/planner');
     await expect(page).toHaveURL('/login');
   });

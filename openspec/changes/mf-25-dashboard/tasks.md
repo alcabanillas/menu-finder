@@ -39,6 +39,20 @@ Each test task is written first and seen failing before its implementation task 
 - [x] 6.2 Verify against the mock: screenshots of `/` with and without a session at 375 px and 1024 px compared with `HomeScreen.jsx` and `WelcomeScreen.jsx`; the deviations are those in design D6
 - [x] 6.3 `pnpm typecheck` and `pnpm test:coverage` pass before opening the PR
 
+## Safety review (`context/safety-first.md` §4)
+
+- Business and security decisions in the backend: `/` decides its state on the server from the session (`sessionUser`); the welcome page is static and takes no data.
+- New endpoint: none. The sign-in server action only changes its fixed destination to `SIGNED_IN_HOME = '/'`.
+- User and permissions from the session: the dashboard reads with the session's `userId` only; `page.test.tsx` checks that a `userId` search param is ignored.
+- Negative tests: forged cookie on `/` (`e2e/home.spec.ts`), revoked cookie on `/` (`e2e/sign-in.spec.ts`, sign-out), `?next=` and the other redirect targets ignored (`actions.test.ts`, `sign-in.spec.ts`); they run in CI.
+- Minimum data returned: the dashboard shows the menu number, dates, today's dishes and two counts; the visitor response has no version, email or catalogue name (tested). Failures show a fixed text, no error detail.
+- Secrets: none in the diff.
+- New dependencies: none.
+- Database queries: none new; the page reuses `menuWeekPage` and `shoppingChecklist`.
+- Unexpected input: no new input. Nothing reaches the LLM.
+- Sensitive actions logged: the sign-in and its logging are unchanged.
+- Deviation from a rule: none.
+
 ## Workflow follow-up
 
 - On `archive`, point the link of MF-25 in `context/roadmap.md` to the archived folder.
