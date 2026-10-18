@@ -57,7 +57,7 @@ Each test task is written first and seen failing before its implementation task 
 - [x] 7.13 Update `src/app/page.test.tsx`: three reads with the session's user id; the notice open and locked; each read failing alone (design D3). Seen failing
 - [x] 7.14 Update `src/app/page.tsx` (design D2, D3). Test 7.13 green
 - [x] 7.15 Update `e2e/home.spec.ts` and `e2e/app-shell.spec.ts` for the new heading and texts; add the locked notice. Run them against the test database
-- [ ] 7.16 Verify against the mock at 375 px and 1280 px, with the server clock on a weekday with dishes, and on a Sunday; then remove the temporary clock in `src/composition/web/infrastructure-deps.ts`
+- [x] 7.16 Verify against the mock at 375 px and 1280 px, with the server clock on a weekday with dishes, and on a Sunday; then remove the temporary clock in `src/composition/web/infrastructure-deps.ts`
 - [x] 7.17 `pnpm typecheck` and `pnpm test:coverage` pass
 
 ## 8. Today on desktop and tomorrow (mock `HomeScreen.jsx` version `1792323100-d95a`, design D9)
