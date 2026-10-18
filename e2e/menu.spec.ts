@@ -1,5 +1,5 @@
 import pg from 'pg';
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { currentE2eEnvironment, readEnvFile, testDatabaseUrl } from './support/e2e-environment';
 import { newFixtureRun } from './support/fixture-run';
 import { registerTestAccount, signInAs } from './support/test-account';
@@ -18,7 +18,8 @@ const MENU = run.menuNumber(0);
 const RECIPE = run.key('e2e-lentejas-ficticias');
 const PLAIN = run.key('dish:Fruta ficticia e2e');
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-const TAB_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+const DAY_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+const WEEKDAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 const MS_PER_DAY = 86_400_000;
 
 const account = registerTestAccount();
@@ -78,27 +79,34 @@ test.describe('with an active menu', () => {
     await page.goto('/menu');
   });
 
-  test("shows the week of the menu, opened on today's tab", async ({ page }) => {
+  test("shows the week of the menu, opened on today's day", async ({ page }) => {
     await expect(page.getByRole('heading', { level: 1, name: `Menú ${MENU}` })).toBeVisible();
     await expect(page.getByText(/^Semana del \d+ de \p{L}+$/u)).toBeVisible();
-    await expect(page.getByRole('tab')).toHaveCount(7);
-    await expect(page.getByRole('tab', { selected: true })).toHaveAccessibleName(new RegExp(`^${todayLabel()} \\d+ hoy$`));
-    await expect(page.getByRole('tabpanel').getByText('Lentejas ficticias')).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Días de la semana' }).getByRole('button')).toHaveCount(7);
+    await expect(currentDay(page)).toHaveAccessibleName(new RegExp(`^${DAY_LABELS[todayIndex()]} \\d+ hoy$`));
+    await expect(dayHeading(page, todayIndex())).toBeInViewport();
+    await expect(daySection(page, todayIndex()).getByText('Lentejas ficticias')).toBeVisible();
   });
 
-  test('shows another day when its tab is selected', async ({ page }) => {
+  test('takes the page to a day when its button is pressed', async ({ page }) => {
     const other = (todayIndex() + 1) % DAYS.length;
-    const dayHeading = page.getByRole('tabpanel').getByRole('heading', { level: 2 });
-    const todayHeading = await dayHeading.textContent();
 
-    await page.getByRole('tab', { name: new RegExp(`^${TAB_LABELS[other]} `) }).click();
+    await page.getByRole('button', { name: new RegExp(`^${DAY_LABELS[other]} `) }).click();
 
-    await expect(page.getByRole('tab', { selected: true })).toHaveAccessibleName(new RegExp(`^${TAB_LABELS[other]} `));
-    await expect(dayHeading).not.toHaveText(todayHeading!);
+    await expect(currentDay(page)).toHaveAccessibleName(new RegExp(`^${DAY_LABELS[other]} `));
+    await expect(dayHeading(page, other)).toBeInViewport();
+  });
+
+  test('marks the day in view while the page scrolls', async ({ page }) => {
+    const other = (todayIndex() + 2) % DAYS.length;
+
+    await daySection(page, other).evaluate((section) => section.scrollIntoView({ block: 'start' }));
+
+    await expect(currentDay(page)).toHaveAccessibleName(new RegExp(`^${DAY_LABELS[other]} `));
   });
 
   test('unfolds a recipe and folds it again', async ({ page }) => {
-    const dish = page.getByRole('tabpanel').getByRole('button', { name: /Lentejas ficticias/ });
+    const dish = daySection(page, todayIndex()).getByRole('button', { name: /Lentejas ficticias/ });
 
     await dish.click();
 
@@ -113,7 +121,7 @@ test.describe('with an active menu', () => {
   });
 
   test('shows a dish without a recipe as "Sin receta", not as a control', async ({ page }) => {
-    const panel = page.getByRole('tabpanel');
+    const panel = daySection(page, todayIndex());
 
     await expect(panel.getByText('Fruta ficticia e2e')).toBeVisible();
     await expect(panel.getByText('Sin receta')).toBeVisible();
@@ -124,12 +132,13 @@ test.describe('with an active menu', () => {
 test.describe('without JavaScript', () => {
   test.use({ javaScriptEnabled: false });
 
-  test("shows today's dishes", async ({ page }) => {
+  test("shows every day's dishes in one scroll, with today's button marked", async ({ page }) => {
     await signInAs(page, account);
     await page.goto('/menu');
 
-    await expect(page.getByRole('tab', { selected: true })).toHaveAccessibleName(/ hoy$/);
-    await expect(page.getByRole('tabpanel').getByText('Lentejas ficticias')).toBeVisible();
+    await expect(currentDay(page)).toHaveAccessibleName(/ hoy$/);
+    await expect(page.getByRole('heading', { level: 2 })).toHaveCount(DAYS.length);
+    await expect(page.getByRole('button', { name: /Lentejas ficticias/ })).toHaveCount(DAYS.length);
   });
 });
 
@@ -142,14 +151,14 @@ test.describe('on a desktop screen', () => {
     await page.goto('/menu');
   });
 
-  test('shows the whole week as day cards, with today saying "Hoy", and no day tabs', async ({ page }) => {
+  test('shows the whole week as day cards, with today saying "Hoy", and no day bar', async ({ page }) => {
     const cards = page.getByRole('region');
 
     await expect(cards).toHaveCount(DAYS.length);
     await expect(cards.nth(todayIndex())).toContainText('Hoy');
     // In the page, not the shell, whose first tab is also "Hoy".
     await expect(page.getByRole('main').getByText('Hoy', { exact: true })).toHaveCount(1);
-    await expect(page.getByRole('tab')).toHaveCount(0);
+    await expect(page.getByRole('navigation', { name: 'Días de la semana' })).toHaveCount(0);
   });
 
   test('opens a recipe in a dialog and closes it with Escape, giving the focus back to the dish', async ({ page }) => {
@@ -205,8 +214,18 @@ function todayIndex(): number {
   return (todayInMadrid().getUTCDay() + 6) % DAYS.length;
 }
 
-function todayLabel(): string {
-  return TAB_LABELS[todayIndex()];
+// The day bar's button marked as the day in view (MF-69).
+function currentDay(page: Page): Locator {
+  return page.getByRole('navigation', { name: 'Días de la semana' }).locator('button[aria-current="true"]');
+}
+
+// A day of the mobile scroll, by its index from Monday: its heading ("Miércoles 7 de octubre") names its section.
+function dayHeading(page: Page, index: number): Locator {
+  return page.getByRole('heading', { level: 2, name: new RegExp(`^${WEEKDAYS[index]} `) });
+}
+
+function daySection(page: Page, index: number): Locator {
+  return page.getByRole('region', { name: new RegExp(`^${WEEKDAYS[index]} `) });
 }
 
 function thisMonday(): string {

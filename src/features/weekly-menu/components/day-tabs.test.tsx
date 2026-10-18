@@ -15,19 +15,20 @@ const DAYS: { day: DayDto; date: string }[] = [
 ];
 
 function Week({ initial = 'wednesday' as DayDto }) {
-  const [selected, setSelected] = useState<DayDto>(initial);
-  return <DayTabs days={DAYS} selected={selected} today="2026-10-07" panelId="panel" onSelect={setSelected} />;
+  const [active, setActive] = useState<DayDto>(initial);
+  return <DayTabs days={DAYS} active={active} today="2026-10-07" onSelect={setActive} />;
 }
 
-const tab = (name: RegExp) => screen.getByRole('tab', { name });
-const selectedTabs = () => screen.getAllByRole('tab', { selected: true });
+const day = (name: RegExp) => screen.getByRole('button', { name });
+const currentDays = () => screen.getAllByRole('button').filter((button) => button.getAttribute('aria-current') === 'true');
 
 describe('DayTabs', () => {
-  it('shows seven tabs, Monday to Sunday, each with its weekday and day of the month', () => {
+  it('shows seven day buttons, Monday to Sunday, in a navigation landmark, each with its weekday and day of the month', () => {
     render(<Week />);
 
-    expect(screen.getByRole('tablist', { name: 'Días de la semana' })).toBeInTheDocument();
-    expect(screen.getAllByRole('tab').map((item) => item.textContent)).toEqual([
+    expect(screen.getByRole('navigation', { name: 'Días de la semana' })).toBeInTheDocument();
+    expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button').map((item) => item.textContent)).toEqual([
       'Lun5',
       'Mar6',
       'Mié7hoy',
@@ -38,28 +39,32 @@ describe('DayTabs', () => {
     ]);
   });
 
-  it('selects one tab, the only one reachable with Tab, and points it at the panel', () => {
+  it('marks one day as the current one', () => {
     render(<Week />);
 
-    expect(selectedTabs()).toEqual([tab(/Mié/)]);
-    expect(tab(/Mié/)).toHaveAttribute('tabindex', '0');
-    expect(tab(/Lun/)).toHaveAttribute('tabindex', '-1');
-    expect(tab(/Mié/)).toHaveAttribute('aria-controls', 'panel');
+    expect(currentDays()).toEqual([day(/Mié/)]);
   });
 
   it('marks today for assistive technology too, not only with a dot', () => {
     render(<Week initial="monday" />);
 
-    expect(tab(/Mié/)).toHaveAccessibleName('Mié 7 hoy');
-    expect(tab(/Lun/)).toHaveAccessibleName('Lun 5');
+    expect(day(/Mié/)).toHaveAccessibleName('Mié 7 hoy');
+    expect(day(/Lun/)).toHaveAccessibleName('Lun 5');
+  });
+
+  it("keeps today's dot clear of the day of the month, 1 px from the bottom of the button", () => {
+    render(<Week initial="monday" />);
+
+    // The design system's 5 px leaves the dot touching the number (seen in the browser, MF-69).
+    expect(day(/Mié/).querySelector('.absolute')).toHaveClass('bottom-px');
   });
 
   it('selects the day pressed', () => {
     render(<Week />);
 
-    fireEvent.click(tab(/Lun/));
+    fireEvent.click(day(/Lun/));
 
-    expect(selectedTabs()).toEqual([tab(/Lun/)]);
+    expect(currentDays()).toEqual([day(/Lun/)]);
   });
 
   it.each([
@@ -70,19 +75,19 @@ describe('DayTabs', () => {
   ])('moves the focus and the selection with %s', (key, expected) => {
     render(<Week />);
 
-    fireEvent.keyDown(tab(/Mié/), { key });
+    fireEvent.keyDown(day(/Mié/), { key });
 
-    expect(selectedTabs()).toEqual([tab(expected)]);
-    expect(tab(expected)).toHaveFocus();
+    expect(currentDays()).toEqual([day(expected)]);
+    expect(day(expected)).toHaveFocus();
   });
 
   it('wraps around at both ends', () => {
     render(<Week initial="sunday" />);
 
-    fireEvent.keyDown(tab(/Dom/), { key: 'ArrowRight' });
-    expect(tab(/Lun/)).toHaveFocus();
+    fireEvent.keyDown(day(/Dom/), { key: 'ArrowRight' });
+    expect(day(/Lun/)).toHaveFocus();
 
-    fireEvent.keyDown(tab(/Lun/), { key: 'ArrowLeft' });
-    expect(tab(/Dom/)).toHaveFocus();
+    fireEvent.keyDown(day(/Lun/), { key: 'ArrowLeft' });
+    expect(day(/Dom/)).toHaveFocus();
   });
 });
