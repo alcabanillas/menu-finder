@@ -20,8 +20,8 @@ function dish(name: string, scores: Record<string, number>, meal: MealType = 'lu
   return { day: 'monday', meal, position, name, scores };
 }
 
-function score(req: SearchRequest, dishes: ScoredDish[], strategy: 'lexical' | 'hybrid' = 'lexical') {
-  return scoreMenu({ menu: 1, dishes }, toUnits(req), strategy);
+function score(req: SearchRequest, dishes: ScoredDish[]) {
+  return scoreMenu({ menu: 1, dishes }, toUnits(req));
 }
 
 describe('toUnits', () => {
@@ -68,27 +68,22 @@ describe('scoreMenu', () => {
     expect(score(req, [dish('Lentejas', { garbanzos: 0, lentejas: 1 })]).score).toBe(1);
   });
 
-  it('scores a week-wide exclusion 1 / (1 + n), with n the dishes that match its term', () => {
-    const dishes = [
-      dish('Lomo', { cerdo: 1 }),
-      dish('Chorizo', { cerdo: 1 }, 'lunch', 2),
-      dish('Jamón', { cerdo: 1 }, 'dinner'),
-      dish('Merluza', { cerdo: 0 }, 'dinner', 2),
-    ];
+  it('leaves a week-wide exclusion out of the menu score', () => {
+    const req = request([include('pollo'), exclude('cerdo')]);
 
-    expect(score(request([exclude('cerdo')]), dishes).score).toBe(0.25);
+    expect(score(req, [dish('Pollo dudoso', { pollo: 0.7, cerdo: 0 })]).score).toBeCloseTo(0.7);
   });
 
-  it('counts n with the hybrid threshold under the hybrid strategy', () => {
-    const dishes = [dish('Lomo', { cerdo: 0.75 }), dish('Pavo', { cerdo: 0.5 }, 'dinner')];
+  it('gives a week-wide exclusion the unit score 1 with no evidence', () => {
+    const req = request([include('pollo'), exclude('cerdo')]);
 
-    expect(score(request([exclude('cerdo')]), dishes, 'hybrid').score).toBe(0.5);
+    expect(score(req, [dish('Pollo asado', { pollo: 1, cerdo: 0 })]).units[1]).toEqual({ score: 1, evidence: null });
   });
 
-  it('counts n only among the dishes of the slot of the exclusion', () => {
-    const dishes = [dish('Lomo', { cerdo: 1 }), dish('Jamón', { cerdo: 1 }, 'dinner')];
+  it('scores 1 a menu when every unit of the request is a week-wide exclusion', () => {
+    const req = request([exclude('cerdo'), exclude('queso')]);
 
-    expect(score(request([exclude('cerdo', { slot: 'dinner' })]), dishes).score).toBe(0.5);
+    expect(score(req, [dish('Merluza', { cerdo: 0, queso: 0 })]).score).toBe(1);
   });
 
   it('scores 0 a constraint whose only matching dish is in another slot', () => {

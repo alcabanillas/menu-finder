@@ -62,15 +62,18 @@ function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-/** The lines of a ranking: the top five with their evidence, the tie count and the menus each hard constraint removes. */
+/**
+ * The lines of a ranking: the top five with their evidence, the tie count and the menus each filter removes, a hard
+ * unit or a week-wide exclusion.
+ */
 export function rankingLines({ strategy, menus, tiedWithFirst, removedBy }: SearchResultDto): string[] {
   return [
     `Search with the ${strategy} strategy: ${menus.length} menus.`,
     ...(menus.length === 0 ? ['No menu is ranked.'] : menus.flatMap(menuLines)),
     `Menus tied with the first: ${tiedWithFirst}`,
     ...(removedBy.length === 0
-      ? ['No hard constraint.']
-      : removedBy.map(({ constraints, menusRemoved }) => `Hard constraint ${constraints.join('+')} removes ${menuCount(menusRemoved)}.`)),
+      ? ['No constraint filters the menus.']
+      : removedBy.map(({ constraints, menusRemoved }) => `Filter ${constraints.join('+')} removes ${menuCount(menusRemoved)}.`)),
   ];
 }
 

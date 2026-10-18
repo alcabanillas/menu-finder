@@ -5,7 +5,7 @@ import type { EmbeddingsPort } from '@/application/ports/embeddings-port';
 import type { MenuRepository } from '@/application/ports/menu-repository';
 import type { RecipeEmbeddingRepository } from '@/application/ports/recipe-embedding-repository';
 import type { Meal, MenuDish, WeeklyMenu } from '@/domain/menu/weekly-menu';
-import { toUnits, type ScoredDish, type ScoredMenu, type Unit } from '@/domain/search/constraint-unit';
+import { isWeekWideExclusion, toUnits, type ScoredDish, type ScoredMenu, type Unit } from '@/domain/search/constraint-unit';
 import { EMBEDDING_VARIANT } from '@/domain/search/embedding-text';
 import { filterByHardUnits, type HardFilter } from '@/domain/search/hard-constraints';
 import { rankMenus, type Ranking } from '@/domain/search/rank-menus';
@@ -24,6 +24,9 @@ export type FindMenusDeps = {
 /** The score of every dish for one term, keyed by dish address; a dish that is not there scores 0. */
 type TermScores = Map<string, number>;
 
+/** The terms scored with the strategy, and those of the week-wide exclusions, always matched by text. */
+type Terms = { scored: string[]; excluded: string[]; excludedIds: Set<string> };
+
 const INDEX_NOT_LOADED: SearchMenusError = {
   kind: 'index-not-loaded',
   message: 'no recipe embeddings are stored: run `pnpm ingest embed` first',
@@ -31,8 +34,9 @@ const INDEX_NOT_LOADED: SearchMenusError = {
 
 /**
  * Scores the menus against a typed structure with one strategy and returns the five best, the ties with the first
- * one and the menus each hard constraint removes (spec menu-search). Read only; the only model call is the
- * embedding of the terms, once per distinct term, and never with the lexical strategy.
+ * one and the menus each filter removes (spec menu-search). A week-wide exclusion is always matched by text, whatever
+ * the strategy (BUS-superficie-consulta (b)). Read only; the only model call is the embedding of the scored terms, once
+ * per distinct term, and never with the lexical strategy.
  */
 export async function findMenus(
   dto: SearchRequestDto,
@@ -43,11 +47,34 @@ export async function findMenus(
   if (!request.ok) return request;
   const catalog = await deps.menus.list();
   if (!catalog.ok) return failed(catalog.error.reason);
-  const terms = distinctTerms(request.value);
-  const scores = await scoreTerms(terms, strategy, deps);
+  const units = toUnits(request.value);
+  const terms = splitTerms(request.value, units);
+  const scores = await scoreTerms(terms.scored, strategy, deps);
   if (!scores.ok) return scores;
-  const menus = catalog.value.map((menu) => toScoredMenu(menu, request.value.constraints, terms, scores.value));
-  return ok(rank(menus, toUnits(request.value), strategy));
+  const exclusions = await lexicalScores(terms.excluded, deps.dishText);
+  if (!exclusions.ok) return exclusions;
+  const scoresOf = scoresByConstraint(terms, scores.value, exclusions.value);
+  const menus = catalog.value.map((menu) => toScoredMenu(menu, request.value.constraints, scoresOf));
+  return ok(rank(menus, units, strategy));
+}
+
+// A term in two constraints is matched and embedded once.
+function splitTerms({ constraints }: SearchRequest, units: Unit[]): Terms {
+  const excludedIds = new Set(units.filter(isWeekWideExclusion).map(({ members: [member] }) => member.id));
+  return {
+    scored: distinctTerms(constraints.filter(({ id }) => !excludedIds.has(id))),
+    excluded: distinctTerms(constraints.filter(({ id }) => excludedIds.has(id))),
+    excludedIds,
+  };
+}
+
+function distinctTerms(constraints: Constraint[]): string[] {
+  return [...new Set(constraints.map(({ term }) => term))];
+}
+
+function scoresByConstraint({ scored, excluded, excludedIds }: Terms, scores: TermScores[], exclusions: TermScores[]) {
+  return ({ id, term }: Constraint): TermScores =>
+    excludedIds.has(id) ? exclusions[excluded.indexOf(term)] : scores[scored.indexOf(term)];
 }
 
 // A failure of any port ends the search: there is never a partial ranking.
@@ -55,18 +82,14 @@ function failed(reason: string): Result<never, SearchMenusError> {
   return err({ kind: 'search-failed', reason });
 }
 
-// A term in two constraints is matched and embedded once.
-function distinctTerms({ constraints }: SearchRequest): string[] {
-  return [...new Set(constraints.map((constraint) => constraint.term))];
-}
-
-// Each strategy calls only the ports it needs: the lexical one never reaches the embedding service.
+// Each strategy calls only the ports it needs: the lexical one never reaches the embedding service, and no strategy
+// does when every term is a week-wide exclusion.
 async function scoreTerms(
   terms: string[],
   strategy: SearchStrategy,
   deps: FindMenusDeps,
 ): Promise<Result<TermScores[], SearchMenusError>> {
-  if (strategy === 'lexical') return lexicalScores(terms, deps.dishText);
+  if (strategy === 'lexical' || terms.length === 0) return lexicalScores(terms, deps.dishText);
   const semantic = await semanticScores(terms, deps);
   if (strategy === 'semantic' || !semantic.ok) return semantic;
   const lexical = await lexicalScores(terms, deps.dishText);
@@ -120,10 +143,9 @@ function scoreAt(scores: TermScores, key: string): number {
 function toScoredMenu(
   { number, meals }: WeeklyMenu,
   constraints: Constraint[],
-  terms: string[],
-  scores: TermScores[],
+  scoresOf: (constraint: Constraint) => TermScores,
 ): ScoredMenu {
-  const byConstraint = constraints.map(({ id, term }) => [id, scores[terms.indexOf(term)]] as const);
+  const byConstraint = constraints.map((constraint) => [constraint.id, scoresOf(constraint)] as const);
   return { menu: number, dishes: meals.flatMap((meal) => meal.dishes.map((dish) => toScoredDish(number, meal, dish, byConstraint))) };
 }
 
@@ -140,7 +162,7 @@ function toScoredDish(
 
 function rank(menus: ScoredMenu[], units: Unit[], strategy: SearchStrategy): SearchResultDto {
   const filter = filterByHardUnits(menus, units, strategy);
-  const ranking = rankMenus(filter.kept.map((menu) => scoreMenu(menu, units, strategy)));
+  const ranking = rankMenus(filter.kept.map((menu) => scoreMenu(menu, units)));
   return toResultDto(strategy, units, ranking, filter);
 }
 
