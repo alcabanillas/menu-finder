@@ -154,29 +154,29 @@ describe('TodayMeals, tomorrow', () => {
     expect(within(tomorrow()).getByText('Mañana · jueves 8')).toBeInTheDocument();
     expect(within(tomorrow()).queryByRole('button')).not.toBeInTheDocument();
     expect(within(tomorrow()).queryByText(/min/)).not.toBeInTheDocument();
-    expect(tomorrow().compareDocumentPosition(screen.getByRole('link', { name: 'Ver menú' }))).toBe(
+    expect(screen.getByRole('link', { name: 'Ver menú' }).compareDocumentPosition(tomorrow())).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
   });
 
-  it('on a phone, a line per meal with its dishes; from 800 px, a box per meal with a dish per line', () => {
+  it('is a box per meal with a dish per line: one column on a phone, two from 800 px', () => {
     render(<TodayMeals menu={{ ...MENU, today: '2026-10-05' }} />);
 
-    const [lines, boxes] = tomorrow().querySelectorAll(':scope > div');
-    expect(lines).toHaveClass('@min-[800px]:hidden');
-    expect(lines).toHaveTextContent(/^Comida\s*Arroz al hornoCena\s*Tortilla francesa$/);
-    expect(boxes).toHaveClass('hidden', '@min-[800px]:grid');
-    expect([...boxes.querySelectorAll('p')].map((line) => line.textContent)).toEqual([
-      'Arroz al horno',
-      'Tortilla francesa',
+    const [boxes, ...others] = tomorrow().querySelectorAll(':scope > div');
+    expect(others).toHaveLength(0);
+    expect(boxes).toHaveClass('grid', 'grid-cols-1', '@min-[800px]:grid-cols-2');
+    expect([...boxes.children].map((box) => [...box.querySelectorAll('p')].map((line) => line.textContent))).toEqual([
+      ['Arroz al horno'],
+      ['Tortilla francesa'],
     ]);
   });
 
-  it('joins the dishes of a meal with a dot on a phone, and leaves out a meal with none', () => {
+  it('leaves out a meal with no dishes', () => {
     render(<TodayMeals menu={MENU} />);
 
-    const [lines] = tomorrow().querySelectorAll(':scope > div');
-    expect(lines).toHaveTextContent(/^Cena\s*Crema de calabacín · Yogur natural$/);
+    const [boxes] = tomorrow().querySelectorAll(':scope > div');
+    expect(boxes.children).toHaveLength(1);
+    expect(boxes).toHaveTextContent(/^Cena\s*Crema de calabacínYogur natural$/);
   });
 
   it('is not shown when tomorrow has no dishes', () => {

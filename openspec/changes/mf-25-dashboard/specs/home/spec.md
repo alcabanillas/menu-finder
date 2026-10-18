@@ -68,7 +68,7 @@ The dashboard's level-one heading SHALL be "Qué toca hoy", with today's date ab
 
 ### Requirement: The dashboard shows the names of tomorrow's dishes
 
-With a menu for this week, below today's dishes and above "Ver menú", the dashboard SHALL show "Mañana" with tomorrow's weekday and day number, and only the names of tomorrow's lunch and dinner dishes: no times, no recipes and no controls. A meal with no dishes SHALL NOT be shown. When tomorrow has no dishes, or falls outside this week's menu, the block SHALL NOT be shown.
+With a menu for this week, after today's dishes and the link "Ver menú", the dashboard SHALL show "Mañana" with tomorrow's weekday and day number, and only the names of tomorrow's lunch and dinner dishes, one per line, under "Comida" and "Cena": no times, no recipes and no controls. A meal with no dishes SHALL NOT be shown. When tomorrow has no dishes, or falls outside this week's menu, the block SHALL NOT be shown.
 
 #### Scenario: Tomorrow's dishes
 - **WHEN** a signed-in user whose menu has, for tomorrow (Saturday 17), "Arroz al horno" for lunch and "Tortilla francesa" for dinner opens `/`

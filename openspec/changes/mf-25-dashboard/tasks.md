@@ -71,6 +71,12 @@ Each test task is written first and seen failing before its implementation task 
 - [x] 8.7 Update `e2e/home.spec.ts`: at 1280 px the recipe opens in the panel; at 390 px the meals unfold in place; tomorrow's names, none on Sunday. Run it against the test database (the tomorrow test, and two of `e2e/menu.spec.ts`, need the temporary clock gone: task 7.16)
 - [x] 8.8 Compare with the mock at 1280 px, 1536 px and 390 px; on a Saturday, no "Mañana"
 
+## 9. Tomorrow as boxes at every width (mock `HomeScreen.jsx` version `1792337560-ff39`, design D9)
+
+- [x] 9.1 Update `today-meals.test.tsx`: "Ver menú" comes before "Mañana"; tomorrow is one piece, a box per meal with a dish per line, one column on a phone and two from 800 px. Seen failing
+- [x] 9.2 Update `today-meals.tsx`. Test 9.1 green
+- [x] 9.3 Check at 390 px and 1280 px
+
 ## Safety review (`context/safety-first.md` §4)
 
 - Business and security decisions in the backend: `/` decides its state on the server from the session (`sessionUser`); the welcome page is static and takes no data.
