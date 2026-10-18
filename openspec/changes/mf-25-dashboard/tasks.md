@@ -60,6 +60,17 @@ Each test task is written first and seen failing before its implementation task 
 - [ ] 7.16 Verify against the mock at 375 px and 1280 px, with the server clock on a weekday with dishes, and on a Sunday; then remove the temporary clock in `src/composition/web/infrastructure-deps.ts`
 - [x] 7.17 `pnpm typecheck` and `pnpm test:coverage` pass
 
+## 8. Today on desktop and tomorrow (mock `HomeScreen.jsx` version `1792323100-d95a`, design D9)
+
+- [x] 8.1 Test `src/features/weekly-menu/components/recipe-panel.test.tsx`: `sideAwayFrom` puts the panel away from the dish. Seen failing
+- [x] 8.2 Move `sideAwayFrom` from `weekly-menu.tsx` to `recipe-panel.tsx`. Test 8.1 and `weekly-menu.test.tsx` green
+- [x] 8.3 Update `today-meals.test.tsx`: from 800 px, dish rows with their time; a recipe dish opens `RecipePanel` (dialog, `aria-expanded`), Escape closes it and the focus returns; the phone view keeps `RecipeCard`. Seen failing
+- [x] 8.4 Update `today-meals.tsx` (design D9). Test 8.3 green
+- [x] 8.5 Test `today-meals.test.tsx`: "Mañana · sábado 17" with the names of tomorrow's dishes, no controls; no "Mañana" when tomorrow has no dishes or today is Sunday. Seen failing
+- [x] 8.6 Implement tomorrow in `today-meals.tsx`. Test 8.5 green
+- [x] 8.7 Update `e2e/home.spec.ts`: at 1280 px the recipe opens in the panel; at 390 px the meals unfold in place; tomorrow's names, none on Sunday. Run it against the test database (the tomorrow test, and two of `e2e/menu.spec.ts`, need the temporary clock gone: task 7.16)
+- [x] 8.8 Compare with the mock at 1280 px, 1536 px and 390 px; on a Saturday, no "Mañana"
+
 ## Safety review (`context/safety-first.md` §4)
 
 - Business and security decisions in the backend: `/` decides its state on the server from the session (`sessionUser`); the welcome page is static and takes no data.

@@ -17,8 +17,9 @@ test.describe.configure({ mode: 'serial' });
 // today, and a two-item list.
 const run = newFixtureRun();
 const MENU = run.menuNumber(0);
-// A dish with no recipe still has a key: `dish:<name>` with no file, as the ingestion stores it (see menu.spec.ts).
-const LUNCH = run.key('dish:Comida ficticia e2e');
+// Lunch has a recipe; dinner has none and still has a key: `dish:<name>` with no file, as the ingestion stores it
+// (see menu.spec.ts).
+const LUNCH = run.key('recipe:Comida ficticia e2e');
 const DINNER = run.key('dish:Cena ficticia e2e');
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 const ITEMS = [
@@ -35,10 +36,10 @@ test.beforeAll(async () => {
   await withDatabase(async (client) => {
     await client.query(
       `INSERT INTO recipe (key, file, source_menu, title, total_min, preparation_min, cooking_min, resting_min, preparation)
-       VALUES ($1, NULL, NULL, 'Comida ficticia e2e', NULL, NULL, NULL, NULL, NULL),
+       VALUES ($1, $1, $3, 'Comida ficticia e2e', 45, 10, 35, NULL, $4),
               ($2, NULL, NULL, 'Cena ficticia e2e', NULL, NULL, NULL, NULL, NULL)
        ON CONFLICT DO NOTHING`,
-      [LUNCH, DINNER],
+      [LUNCH, DINNER, MENU, ['Cocer la comida ficticia.']],
     );
     await client.query('INSERT INTO menu (number) VALUES ($1) ON CONFLICT DO NOTHING', [MENU]);
     for (const day of DAYS) {
@@ -165,6 +166,59 @@ test.describe('with a session', () => {
     await expect(page).toHaveURL('/shopping-list');
   });
 });
+
+test.describe('today with a menu', () => {
+  test.beforeEach(async ({ page }) => {
+    await chooseWeek(account, MENU, THIS_MONDAY);
+    await signInAs(page, account);
+  });
+
+  // The project's viewport is 1280 px wide: the meals side by side and the recipe in Menú's panel (design D9).
+  test('from 800 px a dish opens its recipe in the side panel, and Escape gives the focus back', async ({ page }) => {
+    const dish = page.getByRole('button', { name: 'Comida ficticia e2e', exact: true });
+
+    await dish.click();
+
+    const dialog = page.getByRole('dialog', { name: 'Comida ficticia e2e' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByText('Cocer la comida ficticia.')).toBeVisible();
+    // Only the panel has the recipe: nothing unfolded in the page.
+    await expect(page.getByText('Cocer la comida ficticia.')).toHaveCount(1);
+    await expect(dish).toHaveAttribute('aria-expanded', 'true');
+
+    await page.keyboard.press('Escape');
+
+    await expect(dialog).toHaveCount(0);
+    await expect(dish).toBeFocused();
+  });
+
+  test('on a phone the dish unfolds its recipe in the page, with no panel', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    const dish = page.getByRole('main').getByRole('button', { name: /Comida ficticia e2e/ });
+    await dish.click();
+
+    await expect(dish).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.getByRole('main').getByText('Cocer la comida ficticia.')).toBeVisible();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+  });
+
+  test("names tomorrow's dishes, except on Sunday, when tomorrow is in another week", async ({ page }) => {
+    const tomorrow = page.getByRole('region', { name: /^Mañana/ });
+
+    if (isSundayInMadrid()) {
+      await expect(tomorrow).toHaveCount(0);
+      return;
+    }
+    await expect(tomorrow.getByText('Comida ficticia e2e')).toBeVisible();
+    await expect(tomorrow.getByRole('button')).toHaveCount(0);
+  });
+});
+
+// The clock of the server is Madrid's (menu-selection spec).
+function isSundayInMadrid(): boolean {
+  return new Intl.DateTimeFormat('en-GB', { weekday: 'long', timeZone: 'Europe/Madrid' }).format(new Date()) === 'Sunday';
+}
 
 function progress(page: Page) {
   return page.getByRole('progressbar', { name: 'Comprado' });

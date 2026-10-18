@@ -4,7 +4,7 @@ import { useCallback, useId, useRef, useState, type ReactNode } from 'react';
 import type { WeekDayDto, WeekDishDto, WeeklyMenuDto } from '@/application/dto/weekly-menu';
 import { DayTabs, tabIdOf } from '@/features/weekly-menu/components/day-tabs';
 import { RecipeCard } from '@/features/weekly-menu/components/recipe-card';
-import { RecipePanel, type PanelSide } from '@/features/weekly-menu/components/recipe-panel';
+import { RecipePanel, sideAwayFrom, type PanelSide } from '@/features/weekly-menu/components/recipe-panel';
 import { WeekCards, type DishRef } from '@/features/weekly-menu/components/week-cards';
 import { WeekHeader } from '@/features/weekly-menu/components/week-header';
 import { formatDayDate, formatShortDate, formatWeekday } from '@/shared/format-date';
@@ -117,11 +117,4 @@ function OpenRecipe({ menu, open, onClose }: { menu: WeeklyMenuDto; open: OpenDi
       onClose={onClose}
     />
   );
-}
-
-// With two or three cards a row, a day has no fixed column: the dish's place on the screen decides (design D2 of
-// MF-56). The page box is centred, so the viewport's centre is the page's.
-function sideAwayFrom(button: HTMLButtonElement): PanelSide {
-  const { left, width } = button.getBoundingClientRect();
-  return left + width / 2 > document.documentElement.clientWidth / 2 ? 'left' : 'right';
 }

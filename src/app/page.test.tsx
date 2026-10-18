@@ -89,7 +89,7 @@ describe('Home with a session', () => {
     expect(within(main).getByText('Miércoles 7 de octubre')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cuenta' })).toHaveAttribute('aria-expanded', 'false');
     expect(within(screen.getByRole('region', { name: 'Semanas' })).getByText('Menú 12')).toBeInTheDocument();
-    expect(screen.getByText('Lentejas estofadas')).toBeInTheDocument();
+    expect(screen.getAllByText('Lentejas estofadas')).not.toHaveLength(0);
     expect(screen.getByRole('link', { name: 'Ver menú' })).toHaveAttribute('href', '/menu');
     expect(screen.getByRole('heading', { name: 'Compra · semana del 5 oct' })).toBeInTheDocument();
     expect(screen.getByRole('progressbar', { name: 'Comprado' })).toHaveAttribute('aria-valuetext', '5 de 40');
@@ -147,7 +147,7 @@ describe('Home with a session', () => {
     render(await Home());
 
     expect(within(screen.getByRole('region', { name: 'Semanas' })).getByText('No se ha podido cargar tu menú.')).toBeInTheDocument();
-    expect(screen.getByText('Lentejas estofadas')).toBeInTheDocument();
+    expect(screen.getAllByText('Lentejas estofadas')).not.toHaveLength(0);
     expect(screen.getByRole('progressbar', { name: 'Comprado' })).toBeInTheDocument();
   });
 
