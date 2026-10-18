@@ -6,8 +6,10 @@ describe('ShoppingProgress', () => {
   it('names the week of the list, shows the ticked items out of the total and links to the list', () => {
     render(<ShoppingProgress list={{ kind: 'list', startsOn: '2026-10-19', checkedCount: 5, total: 40 }} />);
 
-    // One line in the 340 px column: "OCT" must not wrap alone.
-    expect(screen.getByRole('heading', { level: 2, name: 'Compra · semana del 19 oct' })).toHaveClass('whitespace-nowrap');
+    const title = screen.getByRole('heading', { level: 2, name: 'Compra · semana del 19 oct' });
+    // The week never breaks across lines: if it does not fit, it moves whole to the next one.
+    expect(title).not.toHaveClass('whitespace-nowrap');
+    expect(screen.getByText('semana del 19 oct')).toHaveClass('whitespace-nowrap');
     expect(screen.getByRole('progressbar', { name: 'Comprado' })).toHaveAttribute('aria-valuetext', '5 de 40');
     expect(screen.getByRole('link', { name: 'Abrir' })).toHaveAttribute('href', '/shopping-list');
   });

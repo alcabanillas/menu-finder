@@ -15,7 +15,7 @@ type ShoppingProgressProps = { list: ListProgress };
 // After "Compra" of the design system's `ui_kits/app/HomeScreen.jsx` (version 1792319321-0ddf), with `ProgressBar`. The
 // week in the title is the list's own `startsOn`, so it never disagrees with `/shopping-list` (design D2 of MF-25).
 const CARD = 'rounded-[12px] border border-border-hairline bg-surface-card px-5 py-4';
-const TITLE = 'whitespace-nowrap text-eyebrow font-semibold uppercase tracking-[var(--text-eyebrow--letter-spacing)] text-text-muted';
+const TITLE = 'text-eyebrow font-semibold uppercase tracking-[var(--text-eyebrow--letter-spacing)] text-text-muted';
 
 /** How much of the current shopping list is ticked, and the way to it. */
 export function ShoppingProgress({ list }: ShoppingProgressProps) {
@@ -24,7 +24,14 @@ export function ShoppingProgress({ list }: ShoppingProgressProps) {
     <section aria-labelledby="compra" className={CARD}>
       <div className="mb-2.5 flex items-center justify-between gap-3">
         <h2 id="compra" className={TITLE}>
-          {list.kind === 'list' ? `Compra · semana del ${formatDayMonth(list.startsOn)}` : 'Compra'}
+          Compra
+          {list.kind === 'list' && (
+            <>
+              {' · '}
+              {/* The week never breaks across lines: if it does not fit, it moves whole to the next one. */}
+              <span className="whitespace-nowrap">semana del {formatDayMonth(list.startsOn)}</span>
+            </>
+          )}
         </h2>
         {ready && (
           <Link
