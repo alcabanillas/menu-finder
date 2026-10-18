@@ -9,6 +9,8 @@ export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
+  // Inlined by next.config.ts from the same definition the server uses (error-reporting spec, "Events carry their environment").
+  environment: process.env.SENTRY_ENVIRONMENT,
   dataCollection: NOTHING_FROM_REQUESTS,
   tracesSampleRate: 1.0,
   tracePropagationTargets: ['localhost', /^\//],

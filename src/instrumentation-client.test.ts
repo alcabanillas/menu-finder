@@ -41,6 +41,14 @@ describe('instrumentation-client', () => {
     expect(options.dsn).toBeFalsy();
   });
 
+  it('tags its events with the environment inlined at build time', async () => {
+    vi.stubEnv('SENTRY_ENVIRONMENT', 'preview');
+
+    const options = await startedOptions();
+
+    expect(options.environment).toBe('preview');
+  });
+
   it('exports onRouterTransitionStart as Sentry.captureRouterTransitionStart', async () => {
     const { onRouterTransitionStart } = await import('./instrumentation-client');
     expect(onRouterTransitionStart).toBe(Sentry.captureRouterTransitionStart);

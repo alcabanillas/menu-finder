@@ -20,6 +20,23 @@ describe('register', () => {
     expect(options.dsn).toBe(DSN);
   });
 
+  it('tags its events with the Vercel environment', async () => {
+    vi.stubEnv('VERCEL_ENV', 'preview');
+
+    const options = await startedOptions();
+
+    expect(options.environment).toBe('preview');
+  });
+
+  it('tags its events with NODE_ENV outside Vercel', async () => {
+    vi.stubEnv('VERCEL_ENV', '');
+    vi.stubEnv('NODE_ENV', 'development');
+
+    const options = await startedOptions();
+
+    expect(options.environment).toBe('development');
+  });
+
   it('does not start Sentry in the edge runtime', async () => {
     vi.stubEnv('NEXT_RUNTIME', 'edge');
 
