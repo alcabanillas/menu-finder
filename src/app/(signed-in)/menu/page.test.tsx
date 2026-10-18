@@ -63,7 +63,8 @@ describe('MenuPage', () => {
 
     expect(mocks.menuWeekPage).toHaveBeenCalledWith({ userId: 'user-1', startsOn: undefined });
     expect(screen.getByRole('heading', { level: 1, name: 'Menú 3' })).toBeInTheDocument();
-    expect(within(screen.getByRole('tabpanel')).getByText('Lentejas estofadas')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Mié 7 hoy' })).toHaveAttribute('aria-current', 'true');
+    expect(within(screen.getByRole('region', { name: 'Miércoles 7 de octubre' })).getByText('Lentejas estofadas')).toBeInTheDocument();
   });
 
   it('passes the raw startsOn to the use case, which validates it', async () => {
