@@ -10,7 +10,7 @@ Every protected page SHALL render inside a shell made of a header with the produ
 
 #### Scenario: The home of a signed-in user has the shell
 - **WHEN** a signed-in user opens `/`
-- **THEN** the page is inside the shell, with a heading "Hoy" in the main landmark, and "Hoy" is the link marked as the current page
+- **THEN** the page is inside the shell, with the level-one heading "Qué toca hoy" in the main landmark, and "Hoy" is the link marked as the current page
 
 #### Scenario: The sign-in screens have no shell
 - **WHEN** `/` or `/login` is requested with no session

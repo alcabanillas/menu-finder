@@ -42,50 +42,70 @@ Without a session, `/` SHALL show a page inside the shell's variant for a visito
 - **WHEN** `/` is requested with no valid session
 - **THEN** the response contains no dish or menu name from the catalogue, no email, no version and no control to create an account or recover a password
 
-### Requirement: The dashboard shows the menu of this week
-
-With a session, the dashboard SHALL show the menu the user chose for the current week (Monday to Sunday of today): its number, its first and last date, a link to `/menu` and a link to `/planner` to change it. When the user has no menu for this week, it SHALL say so and link to `/planner` to choose one.
-
-#### Scenario: A menu chosen for this week
-- **WHEN** a signed-in user who chose menu 12 for this week opens `/`
-- **THEN** the dashboard shows "Menú 12", the dates of this week, a link to `/menu` and a link to `/planner`
-
-#### Scenario: No menu this week
-- **WHEN** a signed-in user with no menu for this week opens `/`
-- **THEN** the dashboard says there is no menu for this week and links to `/planner`, and shows no dishes of today
-
 ### Requirement: The dashboard shows what is on today
 
-With a menu for this week, the dashboard SHALL show today's date and the dishes of today's lunch and dinner, each labelled with its meal. A dish with a recipe SHALL unfold its recipe in place; a dish without one SHALL say it has no recipe.
+The dashboard's level-one heading SHALL be "Qué toca hoy", with today's date above it. With a menu for this week, it SHALL show the dishes of today's lunch and dinner, each meal under its label, one below the other, and a link "Ver menú" to `/menu`. A meal with no dishes SHALL NOT be shown; when today has no dishes at all, it SHALL say that the menu has no dishes for today. A dish with a recipe SHALL unfold its recipe in place; a dish without one SHALL say it has no recipe.
 
 #### Scenario: Today's lunch and dinner
 - **WHEN** a signed-in user whose menu of this week has dishes for today's lunch and dinner opens `/`
-- **THEN** the dashboard shows today's date and those dishes under "Comida" and "Cena", and no dish of another day
+- **THEN** the page has the heading "Qué toca hoy" with today's date, those dishes under "Comida" and "Cena", no dish of another day, and a link "Ver menú" to `/menu`
+
+#### Scenario: A day with no dishes
+- **WHEN** a signed-in user whose menu of this week has no dishes for today opens `/`
+- **THEN** the page says "El menú no incluye platos para hoy." and shows neither "Comida" nor "Cena"
 
 #### Scenario: A dish unfolds its recipe
 - **WHEN** the user activates a dish of today that has a recipe
 - **THEN** its recipe is shown in place and the control is marked as expanded
 
+### Requirement: The dashboard says what to do when this week has no menu
+
+When the user has no menu for this week, the dashboard SHALL show, instead of today's dishes, a notice that this week has no menu, and SHALL NOT show "Ver menú". While this week can still take a menu, the notice SHALL link to `/planner?week=current` to choose one. When this week is locked because next week already has a menu (the shopping list is already next week's), the notice SHALL say so, name next week's menu, and link to `/menu` on next week.
+
+#### Scenario: This week can still take a menu
+- **WHEN** a signed-in user with no menu for this week and none for next week opens `/`
+- **THEN** the page says "Esta semana aún no tiene menú" and has a link "Elegir menú para esta semana" to `/planner?week=current`, and no link "Ver menú"
+
+#### Scenario: This week is locked by next week's menu
+- **WHEN** a signed-in user with no menu for this week who chose menu 31 for next week opens `/`
+- **THEN** the page says "Esta semana no tiene menú", names "Menú 31", and has a link "Ver el menú de la semana que viene" to `/menu?startsOn=<next Monday>`, and no link to choose a menu for this week
+
+### Requirement: The dashboard shows this week and next week
+
+The dashboard SHALL show one card with this week and next week. This week: its dates and "Menú N" when it has a menu. Next week, below: with a menu, its dates and "Menú N"; without one, "Sin elegir" and a link "Elegir" to `/planner?week=next`. When this week has no menu, the card SHALL say "Sin menú" for it and SHALL be shown only from an 800 px container (on a phone the notice of today already says it).
+
+#### Scenario: Both weeks with a menu
+- **WHEN** a signed-in user with menu 26 this week and menu 31 next week opens `/`
+- **THEN** the card shows this week's dates with "Menú 26" and next week's dates with "Menú 31", and no link "Elegir"
+
+#### Scenario: Next week without a menu
+- **WHEN** a signed-in user with menu 26 this week and no menu next week opens `/`
+- **THEN** the card shows "Menú 26", "Sin elegir" for next week and a link "Elegir" to `/planner?week=next`
+
 ### Requirement: The dashboard shows the progress of the shopping list
 
-The dashboard SHALL show how many items of the user's current shopping list are ticked out of the total, as a progress bar with "N de M", and a link to `/shopping-list`. When the user has no current list, it SHALL say so; when the list of the menu is not available, it SHALL say that instead of showing "0 de 0".
+The dashboard SHALL show how many items of the user's current shopping list are ticked out of the total, as a progress bar with "N de M", under a title that names the week of the list ("Compra · semana del 19 oct"), taken from the list itself, and a link "Abrir" to `/shopping-list`. When the user has no current list, it SHALL say that the list appears when a menu is chosen, with no link "Abrir"; when the list of the menu is not available, it SHALL say that instead of showing "0 de 0".
 
 #### Scenario: Progress of the current list
-- **WHEN** a signed-in user who ticked 5 of the 40 items of the current list opens `/`
-- **THEN** the dashboard shows a progress bar with "5 de 40" and a link to `/shopping-list`
+- **WHEN** a signed-in user who ticked 5 of the 40 items of the current list, which is the list of the week of 19 October, opens `/`
+- **THEN** the dashboard shows "Compra · semana del 19 oct", a progress bar with "5 de 40" and a link "Abrir" to `/shopping-list`
 
 #### Scenario: No current list
 - **WHEN** a signed-in user with no current shopping list opens `/`
-- **THEN** the dashboard says there is no list yet and shows no progress bar
+- **THEN** the dashboard says "Aún no hay lista: aparece al elegir un menú." and shows no progress bar and no link "Abrir"
 
 ### Requirement: A failed read does not break the dashboard
 
-When the menu or the shopping list cannot be read, the dashboard SHALL show a message in the block that failed and keep the rest of the page, the shell and the navigation working. It SHALL NOT show the error's detail.
+When today's menu, the weeks or the shopping list cannot be read, the dashboard SHALL show a message in the block that failed and keep the rest of the page, the shell and the navigation working. It SHALL NOT show the error's detail.
 
 #### Scenario: The menu cannot be read
 - **WHEN** reading the menu of this week fails for a signed-in user
-- **THEN** the menu block shows that it could not be loaded, the shopping block is still shown, and the page contains no stack trace or error detail
+- **THEN** the block of today shows that the menu could not be loaded, the shopping block is still shown, and the page contains no stack trace or error detail
+
+#### Scenario: The weeks cannot be read
+- **WHEN** reading this week's and next week's selections fails for a signed-in user
+- **THEN** the card of the weeks shows that it could not be loaded, and the shopping block is still shown
 
 #### Scenario: The list cannot be read
 - **WHEN** reading the current shopping list fails for a signed-in user
-- **THEN** the shopping block shows that it could not be loaded and the menu block is still shown
+- **THEN** the shopping block shows that it could not be loaded and the card of the weeks is still shown

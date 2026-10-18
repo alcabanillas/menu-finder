@@ -5,9 +5,9 @@ Roadmap item **MF-25** (`context/roadmap.md`), done as one change by the author'
 ## What Changes
 
 - **`/` without a session shows the informative home** (mock `WelcomeScreen.jsx`) inside the shell's visitor variant (`<AppShell>` with no account, "Acceder" to `/login`), built by MF-51.1 and mounted by no route until now. It describes the product and shows no catalogue or user data, no version and no sign-up (SEG-sistema-cerrado). **BREAKING** for the spec: `/` no longer renders the sign-in form; the sign-in lives only at `/login`.
-- **`/` with a session shows the dashboard** (mock `HomeScreen.jsx`) instead of the minimal "Hoy" page: the menu of this week with its dates and links to `/menu` and `/planner`, the lunch and dinner dishes of today with their recipes, and the progress of the current shopping list with a link to `/shopping-list`. Each block has its empty state (no menu this week, no current list) and a failure message.
+- **`/` with a session shows the dashboard** (mock `HomeScreen.jsx`) instead of the minimal "Hoy" page. First "Qué toca hoy": the lunch and dinner dishes of today with their recipes and a link to `/menu`. Beside it, one card with this week's and next week's menu (and a way to choose next week's), and the progress of the current shopping list, named by its week, with a link to `/shopping-list`. When this week has no menu, a notice replaces today's dishes: it offers to choose one, or, when next week's menu already locks this week, says so and links to next week. Each block has its empty state and a failure message.
 - **The sign-in destination moves from `/planner` to `/`**, after a sign-in and for a signed-in user who opens `/login`. It stays fixed: never read from the URL, the form or a header (open redirect, OWASP A01), and the test that ignores `?next=…` stays.
-- No new port, use case or table: the page reads the two use cases `/menu` and `/shopping-list` already use (`menuWeekPage` for this week, `shoppingChecklist`).
+- No new port, use case or table: the page reads three use cases other pages already use (`menuWeekPage` for this week, `weeksToChoose`, `shoppingChecklist`). `menuWeekPage` gains `today` in its result, for the heading's date when the week has no menu.
 
 ## Capabilities
 
