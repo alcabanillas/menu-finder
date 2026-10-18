@@ -61,27 +61,27 @@ describe('suggestedWeek', () => {
 
 describe('currentOf', () => {
   it('gives this week’s menu for both when it is the only one', () => {
-    expect(currentOf([MENU_3], '2026-10-08')).toEqual({ activeMenu: MENU_3, shoppingSelection: MENU_3 });
+    expect(currentOf([MENU_3], '2026-10-08')).toEqual({ thisWeekSelection: MENU_3, shoppingSelection: MENU_3 });
   });
 
   it('gives next week’s menu as the shopping list once it is chosen', () => {
-    expect(currentOf([MENU_3, MENU_12], '2026-10-09')).toEqual({ activeMenu: MENU_3, shoppingSelection: MENU_12 });
+    expect(currentOf([MENU_3, MENU_12], '2026-10-09')).toEqual({ thisWeekSelection: MENU_3, shoppingSelection: MENU_12 });
   });
 
   it('gives no active menu when only next week is chosen', () => {
-    expect(currentOf([MENU_12], '2026-10-09')).toEqual({ activeMenu: null, shoppingSelection: MENU_12 });
+    expect(currentOf([MENU_12], '2026-10-09')).toEqual({ thisWeekSelection: null, shoppingSelection: MENU_12 });
   });
 
   it('keeps a menu active until its Sunday', () => {
-    expect(currentOf([MENU_3], '2026-10-11')).toEqual({ activeMenu: MENU_3, shoppingSelection: MENU_3 });
+    expect(currentOf([MENU_3], '2026-10-11')).toEqual({ thisWeekSelection: MENU_3, shoppingSelection: MENU_3 });
   });
 
   it('gives nothing on the Monday after a menu ends', () => {
-    expect(currentOf([MENU_3], '2026-10-12')).toEqual({ activeMenu: null, shoppingSelection: null });
+    expect(currentOf([MENU_3], '2026-10-12')).toEqual({ thisWeekSelection: null, shoppingSelection: null });
   });
 
   it('gives nothing to a user who never chose', () => {
-    expect(currentOf([], '2026-10-07')).toEqual({ activeMenu: null, shoppingSelection: null });
+    expect(currentOf([], '2026-10-07')).toEqual({ thisWeekSelection: null, shoppingSelection: null });
   });
 });
 

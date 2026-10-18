@@ -38,7 +38,7 @@ Each test task is written first and seen failing before its implementation task 
 - [x] 6.1 `context/decisiones.md` UI-home-sin-login: remove the "Por ahora" sentence; `context/roadmap.md`: mark MF-25 done with the link to the change; remove the MF-51.1 warning from MF-25's line
 - [x] 6.2 Verify against the mock: screenshots of `/` with and without a session at 375 px and 1024 px compared with `HomeScreen.jsx` and `WelcomeScreen.jsx`; the deviations are those in design D6
 - [x] 6.3 `pnpm typecheck` and `pnpm test:coverage` pass before opening the PR
-- [x] 6.4 Refactor (no behaviour change, PROC-sdd): `CurrentSelections.shoppingList` is renamed `shoppingSelection` in `src/domain/selection/`, because it holds the selection the current list comes from, not a list. `week.test.ts` and `current-shopping-selection.ts` follow
+- [x] 6.4 Refactor (no behaviour change, PROC-sdd): `CurrentSelections.shoppingList` is renamed `shoppingSelection` in `src/domain/selection/`, because it holds the selection the current list comes from, not a list. `week.test.ts` and `current-shopping-selection.ts` follow. In the same refactor, `activeMenu` becomes `thisWeekSelection`, `currentOf` names `nextWeekSelection` so the fallback reads `nextWeekSelection ?? thisWeekSelection`, and `thisWeekIsFree` in `suggestedWeek` becomes `thisWeekIsOpenAndEmpty`
 
 ## Safety review (`context/safety-first.md` §4)
 
