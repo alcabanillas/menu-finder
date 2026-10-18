@@ -25,6 +25,8 @@ const CONTROL_TERMS = [
   'ancas de rana',
   'jabalí',
   'canguro',
+  'pastel de carne',
+  'pastel de limón',
   'ordenador portátil',
   'neumático',
   'tornillo',

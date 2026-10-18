@@ -18,7 +18,7 @@
 |---|---|---|
 | Sprint 1 | semana 1 · 2026-09-24 → 10-01 | Datos, golden sets, buscador y evaluación de recuperación |
 | Sprint 2 | semana 2 · 10-01 → 10-08 | Frontend y app desplegada |
-| Sprint 3 | semana 3 · 10-08 → 10-15 | Evaluación del flujo LLM y observabilidad |
+| Sprint 3 | semana 3 · 10-08 → 10-15 | Explicación del ranking |
 | Sprint 4 | semana 4 · 10-15 → 10-25 | Entregables: diapositivas, vídeo y README |
 
 **Fecha límite:** 2026-10-25
@@ -132,18 +132,15 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 - ✅ **MF-26** (~2,5 h · H→A) Despliegue en Vercel con CI test → build → deploy (OPS-vercel, OPS-ci-cd), revisando [safety-first §2.4](safety-first.md). **Resultado:** `pnpm release` publica la versión de `package.json`; Vercel la construye desde la rama `production` y la publica cuando pasan `checks`, `e2e` y `release`, con CSP con nonce y cabeceras de seguridad. Proceso en [despliegue.md](despliegue.md) [Cambio archivado](../openspec/changes/archive/2026-10-11-mf-26-vercel-deployment/)
 - ⬜ **MF-46** (~0,5 h · A · tras MF-20, MF-44, MF-26) Autenticación en producción: aplicar la migración `002-auth-schema.sql` con `pnpm ingest migrate` apuntando `DATABASE_URL_UNPOOLED` a `production` (solo cuando MF-20 esté archivada entera, como dejó dicho MF-20.1) y crear la cuenta del autor y la de demo con `pnpm ingest account`. `BETTER_AUTH_SECRET` ya está en Vercel (comprobado el 2026-10-11, en MF-26). La contraseña de la cuenta de demo va solo en el formulario de entrega del máster (SEG-sistema-cerrado, SEG-auth). **Resultado:** en la web desplegada inicias sesión con la cuenta de demo y entras en una ruta protegida; tras recargar, el menú de cuenta muestra la versión desplegada ("Versión v0.1.0" o la que esté en producción), la comprobación que MF-26 no pudo hacer sin sesión
 
-## Sprint 3 — Evaluación del flujo LLM
+## Sprint 3 — Explicación del ranking
 
-**Sale del sprint:** están todas las cifras que necesitan las diapositivas y el vídeo.
+**Sale del sprint:** cada tarjeta del top 5 de `/planner` dice por qué aparece su menú, con los datos del buscador.
 
-- ⬜ **MF-61** (~2,5 h · A · tras MF-22) Explicador LLM: generación de texto anclado con Gemini Flash en las tarjetas del top 5 de `/planner` explicando por qué encaja cada menú candidato (UI-planner-buscador, IA-criterio-agente). Separado de MF-22 para des-arriesgar la entrega (decidido por el autor el 2026-10-12)
-- ⬜ **MF-29** (~4,5 h · A · tras MF-61) Faithfulness de la explicación con juez de otra familia (EVAL-estrategia, IA-proveedor)
-- ⬜ **MF-30** (~4 h · A · tras MF-14, MF-40) Ablaciones: frase entera vs. descomponer y agregar; tres variantes del texto vectorizado (EVAL-golden-sets)
-- ⬜ **MF-32** (~3 h · H→A · tras MF-26) Observabilidad: latencia y coste por llamada al LLM en producción (OPS-observabilidad; qué se mide y dónde se muestra, [decisiones.md §2](decisiones.md), punto 1). No puede salir de trazas: Genkit no arranca OpenTelemetry en producción (MF-40.4), y Sentry va sin `tracesSampleRate` porque los spans de Genkit llevan el texto de la petición (MF-40.5). El mecanismo se decide aquí, sin texto de la petición (SEG-datos-nutricionista). Hasta entonces, la latencia la mide la evaluación ([`evals/decomposer/results.md`](../evals/decomposer/results.md))
+- ⬜ **MF-61** (~2,5 h · A · tras MF-22) Explicación determinista en las tarjetas del top 5 de `/planner` (UI-planner-buscador). Una plantilla arma, con lo que ya devuelve el buscador, cuántas restricciones cubre el menú y qué plato cubre cada una, en qué día y en qué comida. Sin LLM: no puede inventar nada, así que no hay faithfulness que medir. La redacción es prudente: solo presenta un plato como lo pedido si el término aparece tal cual en él (búsqueda léxica); si solo lo encuentra la semántica, dice «lo más parecido», porque la similitud no distingue lo que existe de lo que no (trabajo futuro «Decir "no hay" cuando lo pedido no está en los menús»). Sustituye al explicador LLM: el descomponedor ya es la parte de IA del buscador (decidido por el autor el 2026-10-18)
 
 ## Sprint 4 — Entregables
 
-- ⬜ **MF-33** (~3 h · H) Guion de la presentación y criterios de éxito ([decisiones.md §2](decisiones.md), punto 2). Semillas: [enfoque-academico.md](enfoque-academico.md) y [presentacion/](presentacion/)
+- ⬜ **MF-33** (~3 h · H) Guion de la presentación y criterios de éxito ([decisiones.md §2](decisiones.md), punto 1). Semillas: [enfoque-academico.md](enfoque-academico.md) y [presentacion/](presentacion/)
 - ⬜ **MF-34** (~2 h · A) El proceso SDD con agentes, contado en las diapositivas y el vídeo (PROC-sdd-memoria)
 - ⬜ **MF-35** (~9 h · H · tras MF-33) Diapositivas y vídeo explicativo
 - ⬜ **MF-36** (~2 h · A · tras MF-26) README expresivo: qué hace el producto, cómo instalarlo y ejecutarlo en local (incluidos los tests y la generación de datos), cómo acceder a la app desplegada con la cuenta de demo (sin publicar sus credenciales, SEG-sistema-cerrado) y qué revisar en la UI
@@ -162,6 +159,10 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 * **Interpretación de los términos** (BUS-superficie-consulta (d)): "rápido" como menos de 30 minutos de `total_min`, "fácil" equivalente a "rápido" y cada término excluido resuelto a su grupo de alimentos. No existe la tabla de grupos por ingrediente de BUS-superficie-consulta (c), y generarla y medirla no cabe en MF-22. Mientras tanto, los atributos y las exclusiones los resuelve la estrategia del buscador, sin garantía: "cenas rápidas" puede devolver una cena de más de 30 minutos. En MF-14, la semántica dio nDCG@5 0,44 en atributo ([`evals/search/results.md`](../evals/search/results.md)). Se declara como limitación en la presentación (decidido por el autor el 2026-10-13).
 * **Buscar sin un término inválido.** Hoy, si un término de la respuesta del descomponedor no está en la petición, se rechaza la respuesta entera (`safety-first.md` §2.6, "no se repara"); con "pollo con arroz sin cerdo ni gluten" la búsqueda sería posible sin él. La propuesta era buscar sin el término, con un aviso genérico que nunca lo muestra, solo si es una única inclusión blanda que no está en ningún grupo, y registrar cuántos se descartan y de qué tipo, sin el texto. Contradice `safety-first.md` §2.6 y pasa a trabajo futuro (decidido por el autor el 2026-10-13).
 * **Editar los chips y acumular la petición.** Quitar un chip o cambiar si una restricción es dura, y relanzar la búsqueda desde ahí; o añadir las restricciones de un texto nuevo a los chips existentes. En los dos casos la estructura volvería del navegador, que es entrada no confiable, y habría que validarla de nuevo en el servidor. En MF-22 los chips solo orientan: muestran cómo se ha interpretado la petición, y para refinar se reescribe la petición (`context/decisiones.md` BUS-superficie-consulta (e); decidido por el autor el 2026-10-14).
+* **Decir "no hay" cuando lo pedido no está en los menús.** Hoy el buscador nunca responde "no hay nada": reescala la similitud de cada término (mín-máx), así que el plato más parecido del catálogo siempre vale 1, y la tarjeta lo marca con ✓. "Pastel de limón", que no existe, devuelve "Pastel de verduras" como acierto. Un umbral sobre la similitud sin reescalar no lo arregla: medido el 2026-10-18 con `pnpm evals:similarity-floor`, "pastel de carne" (no existe) saca 0,705 y "marisco" (existe) 0,705. La léxica tampoco basta: "sardinas en lata" (L14) no aparece tal cual y la semántica la acierta (nDCG@5 1,0 en [`evals/search/results.md`](../evals/search/results.md)). El golden set de recuperación no tiene consultas sin respuesta, así que MF-14 no lo midió. Mejora propuesta, en tres piezas: (1) el descomponedor rechaza lo que el catálogo no puede tener, porque solo hay comidas y cenas sin postres (una categoría de rechazo más, como las de MF-40.1); (2) un verificador LLM con schema decide sí, parcial o no para cada candidato recuperado, medido contra las etiquetas de `evals/retrieval/` y contra consultas nuevas de cosas que no existen; (3) la tarjeta muestra el porcentaje de restricciones que cumple el menú y, si no cumple ninguna, "lo más parecido". Se declara como limitación en la presentación y pasa a trabajo futuro (decidido por el autor el 2026-10-18).
+* **MF-29** (~4,5 h) Faithfulness de la explicación. Sin explicador LLM no hay texto generado que comprobar: MF-61 pasa a ser una plantilla determinista (decidido por el autor el 2026-10-18).
+* **MF-32** (~3 h) Observabilidad: latencia y coste por llamada al LLM en producción. Es innecesaria y abriría un frente nuevo: Genkit no arranca OpenTelemetry en producción (MF-40.4) y Sentry va sin trazas (MF-40.5). La latencia la sigue midiendo la evaluación ([`evals/decomposer/results.md`](../evals/decomposer/results.md)) (decidido por el autor el 2026-10-18).
+* **MF-30** (~4 h) Ablaciones: frase entera frente a descomponer y agregar, y tres variantes del texto vectorizado. El pilar 2, la comparativa léxica, semántica e híbrida, ya está medido en MF-14 ([`evals/search/results.md`](../evals/search/results.md)); las ablaciones solo lo ampliaban (decidido por el autor el 2026-10-18).
 
 ---
 
@@ -169,9 +170,7 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 
 > **Propuesta, pendiente de validar por el autor.** Nada de esta lista está decidido.
 
-De lo más prescindible a lo menos:
-
-1. Ablación (b): de tres variantes del texto vectorizado a dos
+La lista está vacía: su único punto, la ablación (b), se descartó con MF-30 (decidido por el autor el 2026-10-18).
 
 La temporada ya no está en la lista: cuesta ~1–2 h y queda pendiente para enriquecer el buscador (ING-temporada).
 

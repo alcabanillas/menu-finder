@@ -89,13 +89,12 @@ Desarrolla OWASP A03 para este stack. `pnpm audit` y Dependabot solo detectan vu
 - CI PUEDE generar un SBOM (CycloneDX o SPDX) como artefacto de cada build.
 
 
-### 2.6 LLM (descomponedor y explicador)
+### 2.6 LLM (descomponedor)
 
-El prompt es un intérprete más: aquí la inyección entra por el texto del buscador (directa) y por el texto de las recetas que llega al explicador (indirecta).
+El prompt es un intérprete más: aquí la inyección entra por el texto del buscador.
 
 - El LLM NO DEBE generar consultas, HTML ni decisiones de permisos. El descomponedor devuelve una estructura tipada, Zod la valida y el SQL se construye desde ella (BUS-superficie-consulta (f)). Una salida que no valida se rechaza; no se repara a mano.
-- La petición del usuario y el texto de las recetas DEBEN ir en el prompt como datos delimitados, nunca como instrucciones. Los delimitadores ayudan, pero no bastan: la barrera real es el esquema.
-- La explicación del LLM DEBE mostrarse como texto. Si se renderiza Markdown, sin HTML crudo ni enlaces o imágenes externas.
+- La petición del usuario DEBE ir en el prompt como dato delimitado, nunca como instrucción. Los delimitadores ayudan, pero no bastan: la barrera real es el esquema.
 - NO DEBEN insertarse secretos ni datos de otros usuarios en el prompt.
 - Cada llamada DEBE tener límite de tamaño de entrada, timeout y pasar por SEG-rate-limit.
 

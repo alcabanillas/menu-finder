@@ -89,7 +89,7 @@ El mayor riesgo de plazo de esta decisión es el boilerplate: entidad + port + c
 
 **Hay puerto solo donde hay una frontera externa real:**
 
-`MenuRepository`, `RecipeRepository`, `ShoppingListRepository`, `DocumentSource` (sistema de ficheros local, ING-cli-local), un puerto para los flujos LLM (descomponedor y explicador; Genkit queda detrás, ING-trazabilidad), `EmbeddingsPort`, `VectorSearchPort`, `ClockPort`, `RateLimiter` (SEG-rate-limit).
+`MenuRepository`, `RecipeRepository`, `ShoppingListRepository`, `DocumentSource` (sistema de ficheros local, ING-cli-local), un puerto para el flujo LLM (el descomponedor; Genkit queda detrás, ING-trazabilidad), `EmbeddingsPort`, `VectorSearchPort`, `ClockPort`, `RateLimiter` (SEG-rate-limit).
 
 **No hay puerto para lógica interna.** Un servicio de dominio es una función, no una interfaz con una única implementación.
 
