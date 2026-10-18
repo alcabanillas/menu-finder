@@ -5,16 +5,16 @@ import type { DayDto } from '@/application/dto/weekly-menu';
 
 type DayTabsProps = {
   days: { day: DayDto; date: string }[];
-  selected: DayDto;
-  /** `YYYY-MM-DD`; the tab of that date carries a mark. */
+  /** The day in view, marked with `aria-current`. */
+  active: DayDto;
+  /** `YYYY-MM-DD`; the button of that date carries a mark. */
   today: string;
-  /** The id of the panel the tabs control; each tab's id is derived from it with `tabIdOf`. */
-  panelId: string;
   onSelect: (day: DayDto) => void;
 };
 
-// Ported from the design system's `navigation/DayTabs.jsx` (version 1791384225-1eab), with the ARIA tab pattern the mock
-// lacks: roving `tabIndex`, arrow keys, Home and End, and "hoy" in the accessible name (design D5).
+// Ported from the design system's `navigation/DayTabs.jsx` (version 1791384225-1eab). Since MF-69 every day is on the
+// page, so the buttons are an in-page navigation with `aria-current`, not a tab list (design D1 of MF-69). They keep the
+// arrow keys, Home and End, and "hoy" in the accessible name.
 const LABELS: Record<DayDto, string> = {
   monday: 'Lun',
   tuesday: 'Mar',
@@ -44,13 +44,8 @@ const TAB =
   'transition-colors duration-[var(--dur-base)] ease-out focus-visible:outline-2 focus-visible:outline-offset-2 ' +
   'focus-visible:outline-ink';
 
-/** The id of the tab of `day`, so the panel can be labelled by it. */
-export function tabIdOf(panelId: string, day: DayDto): string {
-  return `${panelId}-${day}`;
-}
-
-/** Seven tabs, Monday to Sunday, that choose the day the panel shows. */
-export function DayTabs({ days, selected, today, panelId, onSelect }: DayTabsProps) {
+/** Seven day buttons, Monday to Sunday, that take the page to a day and mark the day in view. */
+export function DayTabs({ days, active, today, onSelect }: DayTabsProps) {
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const select = (index: number) => {
@@ -67,9 +62,9 @@ export function DayTabs({ days, selected, today, panelId, onSelect }: DayTabsPro
   };
 
   return (
-    <div role="tablist" aria-label="Días de la semana" className="flex gap-1">
+    <nav aria-label="Días de la semana" className="flex gap-1">
       {days.map(({ day, date }, index) => {
-        const isSelected = day === selected;
+        const isActive = day === active;
         const isToday = date === today;
         const dayOfMonth = Number(date.slice(DAY_OF_MONTH_AT));
         return (
@@ -79,26 +74,23 @@ export function DayTabs({ days, selected, today, panelId, onSelect }: DayTabsPro
               tabs.current[index] = element;
             }}
             type="button"
-            role="tab"
-            id={tabIdOf(panelId, day)}
-            aria-selected={isSelected}
-            aria-controls={panelId}
+            aria-current={isActive ? 'true' : undefined}
             aria-label={`${LABELS[day]} ${dayOfMonth}${isToday ? ' hoy' : ''}`}
-            tabIndex={isSelected ? 0 : -1}
             onClick={() => onSelect(day)}
             onKeyDown={(event) => onKeyDown(event, index)}
-            className={`${TAB} ${isSelected ? 'border-ink bg-ink text-white' : 'border-transparent bg-transparent text-text-body'}`}
+            className={`${TAB} ${isActive ? 'border-ink bg-ink text-white' : 'border-transparent bg-transparent text-text-body'}`}
           >
             <span aria-hidden="true" className={`mb-0.5 h-1 w-[18px] rounded-[2px] ${BARS[day]}`} />
             <span
-              className={`text-[11px] font-semibold uppercase tracking-[0.08em] ${isSelected ? 'text-gray-200' : 'text-text-muted'}`}
+              className={`text-[11px] font-semibold uppercase tracking-[0.08em] ${isActive ? 'text-gray-200' : 'text-text-muted'}`}
             >
               {LABELS[day]}
             </span>
             <span className="text-[20px] font-extrabold leading-none">{dayOfMonth}</span>
+            {/* 1 px from the bottom, not the mock's 5 px, which leaves it touching the number (MF-69). */}
             {isToday && (
               <span
-                className={`absolute bottom-[5px] size-1 rounded-[2px] bg-olive-500 ${isSelected ? 'opacity-0' : ''}`}
+                className={`absolute bottom-px size-1 rounded-[2px] bg-olive-500 ${isActive ? 'opacity-0' : ''}`}
               >
                 <span className="sr-only">hoy</span>
               </span>
@@ -106,7 +98,7 @@ export function DayTabs({ days, selected, today, panelId, onSelect }: DayTabsPro
           </button>
         );
       })}
-    </div>
+    </nav>
   );
 }
 

@@ -3,7 +3,6 @@ import { requireUser } from '@/app/_auth/require-user';
 import { weekInput } from '@/application/dto/week-input';
 import { webContainer } from '@/composition/web-container';
 import { PlannerSearch } from '@/features/menu-planner/components/planner-search';
-import { StackTraceCheckButton } from '@/features/menu-planner/components/stack-trace-check-button';
 
 type PlannerPageProps = { searchParams: Promise<{ week?: string | string[] }> };
 
@@ -25,7 +24,6 @@ export default async function PlannerPage({ searchParams }: PlannerPageProps) {
         weeks={weeks.ok ? weeks.value : null}
         initialWeek={asked.success ? asked.data : undefined}
       />
-      <StackTraceCheckButton />
     </div>
   );
 }
