@@ -62,6 +62,25 @@ describe('browser error reporting', () => {
 
     expect(config.env?.SENTRY_DSN).toBe(dsn);
   });
+
+  it('builds the Vercel environment into the browser bundle, the label the server reads', async () => {
+    vi.stubEnv('VERCEL_ENV', 'preview');
+    vi.resetModules();
+
+    const { default: config } = await import('./next.config');
+
+    expect(config.env?.SENTRY_ENVIRONMENT).toBe('preview');
+  });
+
+  it('builds NODE_ENV into the browser bundle when VERCEL_ENV is empty', async () => {
+    vi.stubEnv('VERCEL_ENV', '');
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.resetModules();
+
+    const { default: config } = await import('./next.config');
+
+    expect(config.env?.SENTRY_ENVIRONMENT).toBe('production');
+  });
 });
 
 // Source maps only where they can be uploaded, and never served (MF-22.2 design D5).
