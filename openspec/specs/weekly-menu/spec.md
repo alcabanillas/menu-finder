@@ -1,46 +1,69 @@
 # weekly-menu Specification
 
 ## Purpose
-`/menu` shows a signed-in user the menu they chose for this week, one day at a time, with the recipe of each dish as a card that unfolds in place (UI-card-receta).
+`/menu` shows a signed-in user the menu they chose for this week, with every day in one vertical scroll on narrow screens and one card per day from 800 px, with the recipe of each dish as a card that unfolds in place (UI-card-receta).
 
 ## Requirements
 
 ### Requirement: The page shows the active menu's week
 
-`/menu` SHALL show to a signed-in user their active menu: the menu of their selection that starts on the Monday of the week that holds today, with "today" being the date in Europe/Madrid. The page SHALL have a heading "Menú N", with N the menu number, and above it "Semana del D de MES", with the Monday it starts on. When the content is narrower than 800 px, it SHALL show seven day tabs, Monday to Sunday, each with its weekday and the day of the month of that week. Today's tab SHALL carry a mark and SHALL be the selected tab when the page opens.
+`/menu` SHALL show to a signed-in user their active menu: the menu of their selection that starts on the Monday of the week that holds today, with "today" being the date in Europe/Madrid. The page SHALL have a heading "Menú N", with N the menu number, and above it "Semana del D de MES", with the Monday it starts on. When the content is narrower than 800 px, it SHALL show a sticky day navigation bar with buttons for all seven days of that week, Monday to Sunday, each with its weekday and the day of the month. Today's button SHALL carry a distinctive mark. The bar SHALL stay below the app's sticky header. On initial load, when the week holds today, the page SHALL position the viewport at today's day section; otherwise it SHALL open at the top.
 
 #### Scenario: The week of the active menu
 - **WHEN** a signed-in user whose active menu is 3, from Monday 2026-10-05, opens `/menu` on Wednesday 2026-10-07 on a screen narrower than 800 px
-- **THEN** the heading reads "Menú 3", the line above it reads "Semana del 5 de octubre", the tabs show the days 5 to 11, and the Wednesday 7 tab is marked as today and selected
+- **THEN** the heading reads "Menú 3", the line above it reads "Semana del 5 de octubre", the sticky bar shows the days 5 to 11, Wednesday 7 is marked as today, and the view is anchored at Wednesday's section
 
 #### Scenario: Next week's menu is not the active one
 - **WHEN** a signed-in user whose only selection starts on the next Monday opens `/menu`
 - **THEN** the page shows no menu and says there is no menu for this week
 
+#### Scenario: A week without today opens at the top
+- **WHEN** the user opens on a screen narrower than 800 px a week that does not hold today
+- **THEN** the page does not scroll and the heading and the week navigation stay in view
+
+#### Scenario: The bar stays under the header
+- **WHEN** the user scrolls the page on a screen narrower than 800 px
+- **THEN** the day navigation bar stays visible right below the app's header, not behind it
+
 ### Requirement: The selected day shows its dishes
 
-When the content is narrower than 800 px, the page SHALL show the selected day as its weekday and date, written in Spanish ("Miércoles 7 de octubre"), and its dishes under "Comida" and "Cena", in the menu's order. Selecting another tab SHALL show that day. The tabs SHALL behave as a tab list for assistive technology: one tab selected at a time, and the arrow keys move between tabs. A day with no dishes SHALL say "El menú no incluye platos para este día" instead of the meals. Without JavaScript, the page SHALL show today's day.
+When the content is narrower than 800 px, the page SHALL show all days of the week in sequential vertical scroll order. Each day SHALL display its weekday and date written in Spanish ("Miércoles 7 de octubre"), followed by its dishes under "Comida" and "Cena" in the menu's order. Activating a day button in the sticky navigation bar SHALL scroll the page so that day's section starts right below the bar, without animation when the user prefers reduced motion. The arrow keys, Home and End SHALL move the focus among the day buttons and activate the day they reach. As the user scrolls through the days, the sticky day navigation bar SHALL detect the day currently in view and update the active day indicator accordingly. A day with no dishes SHALL state "El menú no incluye platos para este día". Without JavaScript, all days of the week SHALL remain rendered in vertical order.
 
 #### Scenario: Today's dishes
 - **WHEN** the page opens on Wednesday and the menu has two dishes for Wednesday's lunch and one for its dinner
-- **THEN** the page shows "Miércoles 7 de octubre", the two dishes under "Comida" and the one under "Cena", in the menu's order
+- **THEN** the page anchors at Wednesday's section showing "Miércoles 7 de octubre", the two dishes under "Comida" and the one under "Cena", in the menu's order
 
 #### Scenario: Selecting another day
-- **WHEN** the user selects the Monday tab
-- **THEN** the Monday tab is the only one selected and the page shows Monday's dishes
+- **WHEN** the user selects the Monday button in the sticky bar
+- **THEN** the page scrolls to Monday's section and the Monday button becomes the active one
 
 #### Scenario: Moving with the keyboard
-- **WHEN** the Wednesday tab has the focus and the user presses the right arrow
-- **THEN** the Thursday tab gets the focus and is selected
+- **WHEN** the Wednesday button has the focus and the user presses the right arrow
+- **THEN** the Thursday button gets the focus and becomes the active one, and the page scrolls to Thursday's section
+
+#### Scenario: Reduced motion
+- **WHEN** a user who prefers reduced motion selects the Monday button
+- **THEN** the page jumps to Monday's section without a smooth scroll
 
 #### Scenario: A day with no dishes
-- **WHEN** the user selects a day for which the menu has no dishes
-- **THEN** the page says "El menú no incluye platos para este día" and shows no "Comida" or "Cena"
+- **WHEN** the menu has no dishes for a day in the weekly menu
+- **THEN** that day's section says "El menú no incluye platos para este día" and shows no "Comida" or "Cena"
 
 #### Scenario: Without JavaScript
 - **WHEN** a signed-in user with JavaScript disabled opens `/menu` on a screen narrower than 800 px
-- **THEN** the page shows today's dishes
+- **THEN** the page renders all seven days and their dishes in the document
 
+#### Scenario: All days rendered in continuous scroll
+- **WHEN** the user opens `/menu` on mobile with a menu that has dishes across multiple weekdays
+- **THEN** all seven days are present in the DOM in sequence without requiring tab clicks to reveal subsequent days
+
+#### Scenario: A short last day
+- **WHEN** today is Sunday and the menu has no dishes for Sunday
+- **THEN** the page opens with Sunday's section right below the bar and the Sunday button is the active one, not Saturday's
+
+#### Scenario: Scrolling updates active day in sticky bar
+- **WHEN** the user scrolls past Monday's section into Tuesday's section
+- **THEN** the sticky navigation bar highlights Tuesday as the active day
 ### Requirement: A dish unfolds into its recipe
 
 When the content is narrower than 800 px, each dish SHALL be shown as a card with its name. A dish with a recipe SHALL show its total time when known and the mark "Receta", and SHALL be a control that unfolds and folds the recipe in place, announcing whether it is unfolded. The unfolded recipe SHALL show the total, preparation and cooking times in minutes, with a dash for an unknown time; the ingredients in the recipe's order, each with its household measure and its quantity and unit when known, and "opcional" when it is optional; and the preparation steps, numbered, in order. A dish without a recipe SHALL say "Sin receta" and SHALL NOT be a control.
@@ -91,7 +114,7 @@ When the user has no active menu, the page SHALL have the heading "Menú", SHALL
 
 ### Requirement: From 800 px the page shows the week as day cards
 
-When the content is 800 px wide or wider, the page SHALL show the active menu's week as one card per day instead of the day tabs: Monday to Saturday, and Sunday only when the menu has dishes for it, in the order of the week. Each card SHALL be headed by its weekday and its date ("7 de octubre"). Today's card SHALL be highlighted and SHALL say "Hoy" in text, not only by colour. Under the labels "Comida" and "Cena", each card SHALL show the dishes of that meal in the menu's order; a meal with no dishes SHALL be left out, and a day with no dishes SHALL say "El menú no incluye platos para este día". A dish with a recipe SHALL show its total time in minutes when known and SHALL be a control that opens its recipe; a dish without one SHALL be plain text. Without JavaScript, the cards SHALL still show every day's dishes.
+When the content is 800 px wide or wider, the page SHALL show the active menu's week as one card per day instead of the vertical scroll of days: Monday to Saturday, and Sunday only when the menu has dishes for it, in the order of the week. Each card SHALL be headed by its weekday and its date ("7 de octubre"). Today's card SHALL be highlighted and SHALL say "Hoy" in text, not only by colour. Under the labels "Comida" and "Cena", each card SHALL show the dishes of that meal in the menu's order; a meal with no dishes SHALL be left out, and a day with no dishes SHALL say "El menú no incluye platos para este día". A dish with a recipe SHALL show its total time in minutes when known and SHALL be a control that opens its recipe; a dish without one SHALL be plain text. Without JavaScript, the cards SHALL still show every day's dishes.
 
 #### Scenario: The week as day cards
 - **WHEN** a signed-in user whose active menu is 3, from Monday 2026-10-05, with dishes on every day, opens `/menu` on Wednesday 2026-10-07 on a screen 800 px wide or wider
