@@ -14,7 +14,8 @@ import { err, ok, type Result } from '@/shared/result';
 /** Whose week is asked for; `startsOn` is the raw query value and is validated here, never trusted. */
 export type MenuWeekPageInput = { userId: string; startsOn: unknown };
 
-export type MenuWeekPage = { navigation: WeekNavigationDto; menu: MenuWeek | null };
+/** The week on show, its menu if any, and today's date (the dashboard's heading shows it also with no menu). */
+export type MenuWeekPage = { navigation: WeekNavigationDto; menu: MenuWeek | null; today: LocalDate };
 
 /** The menu could not be read: a fault of the system. */
 export type WeekFailure = { kind: 'failed' };
@@ -37,7 +38,7 @@ export async function menuWeekPage(deps: Deps, input: MenuWeekPageInput): Promis
   const shown = resolveStartsOn(input.startsOn, today);
   const menu = await weekMenu(deps, { userId: input.userId, startsOn: shown });
   if (!menu.ok) return err(FAILED);
-  return ok({ navigation: navigationOf(shown, today), menu: menu.value });
+  return ok({ navigation: navigationOf(shown, today), menu: menu.value, today });
 }
 
 /** The user's menu for the week that starts on `startsOn`; `null` when that week has no selection. */

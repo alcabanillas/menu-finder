@@ -31,6 +31,7 @@ MENU.days[2].meals = {
   lunch: [cooked('Lentejas estofadas'), plain('Fruta de temporada')],
   dinner: [plain('Sepia a la plancha')],
 };
+MENU.days[3].meals = { lunch: [], dinner: [plain('Crema de calabacín')] };
 
 const dishesUnder = (meal: string) =>
   within(screen.getByRole('region', { name: meal }))
@@ -38,10 +39,26 @@ const dishesUnder = (meal: string) =>
     .map((card) => card.querySelector('p, button span span')?.textContent);
 
 describe('TodayMeals', () => {
-  it('heads the block with what is on today', () => {
+  it('has no heading of its own, and links to the whole week', () => {
     render(<TodayMeals menu={MENU} />);
 
-    expect(screen.getByRole('heading', { level: 2, name: 'Qué toca hoy' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Qué toca hoy' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Ver menú' })).toHaveAttribute('href', '/menu');
+  });
+
+  it('hides a meal with no dishes', () => {
+    render(<TodayMeals menu={{ ...MENU, today: '2026-10-08' }} />);
+
+    expect(screen.queryByRole('region', { name: 'Comida' })).not.toBeInTheDocument();
+    expect(dishesUnder('Cena')).toEqual(['Crema de calabacín']);
+  });
+
+  it('says the menu has no dishes for today when both meals are empty', () => {
+    render(<TodayMeals menu={{ ...MENU, today: '2026-10-11' }} />);
+
+    expect(screen.getByText('El menú no incluye platos para hoy.')).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Comida' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Cena' })).not.toBeInTheDocument();
   });
 
   it("shows every dish of today's lunch and dinner under Comida and Cena, and none of another day", () => {

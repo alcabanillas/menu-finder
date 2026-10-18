@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ShoppingChecklistDto } from '@/application/dto/shopping-checklist';
 import type { SignedInUser } from '@/application/dto/signed-in-user';
+import type { WeeksToChooseDto } from '@/application/dto/weeks-to-choose';
 import type { DayDto, WeeklyMenuDto } from '@/application/dto/weekly-menu';
 import Home from '@/app/page';
 import { err, ok } from '@/shared/result';
@@ -15,6 +16,7 @@ const navigation = vi.hoisted(() => ({
 const container = vi.hoisted(() => ({
   currentUser: vi.fn<() => Promise<SignedInUser | null>>(),
   menuWeekPage: vi.fn(),
+  weeksToChoose: vi.fn(),
   shoppingChecklist: vi.fn(),
 }));
 vi.mock('next/navigation', () => navigation);
@@ -35,6 +37,11 @@ const MENU: WeeklyMenuDto = {
 MENU.days[2].meals = { lunch: [{ name: 'Lentejas estofadas', recipe: null }], dinner: [{ name: 'Sepia', recipe: null }] };
 
 const NAVIGATION = { shown: '2026-10-05', current: '2026-10-05', status: 'current', days: DATES };
+const WEEKS = (thisWeek: number | null, nextWeek: number | null): WeeksToChooseDto => ({
+  current: { startsOn: '2026-10-05', endsOn: '2026-10-11', menuNumber: thisWeek, locked: nextWeek !== null },
+  next: { startsOn: '2026-10-12', endsOn: '2026-10-18', menuNumber: nextWeek, locked: false },
+  suggested: 'next',
+});
 const LIST = { menuNumber: 12, startsOn: '2026-10-05', checkedCount: 5, total: 40, categories: [] } as ShoppingChecklistDto;
 
 describe('Home without a session', () => {
@@ -59,6 +66,7 @@ describe('Home without a session', () => {
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     expect(page.textContent).not.toContain('9.8.7');
     expect(container.menuWeekPage).not.toHaveBeenCalled();
+    expect(container.weeksToChoose).not.toHaveBeenCalled();
     expect(container.shoppingChecklist).not.toHaveBeenCalled();
   });
 });
@@ -67,7 +75,8 @@ describe('Home with a session', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     container.currentUser.mockResolvedValue(ANA);
-    container.menuWeekPage.mockResolvedValue(ok({ navigation: NAVIGATION, menu: MENU }));
+    container.menuWeekPage.mockResolvedValue(ok({ navigation: NAVIGATION, menu: MENU, today: '2026-10-07' }));
+    container.weeksToChoose.mockResolvedValue(ok(WEEKS(12, null)));
     container.shoppingChecklist.mockResolvedValue(ok(LIST));
   });
 
@@ -75,46 +84,89 @@ describe('Home with a session', () => {
     render(await Home());
 
     expect(navigation.redirect).not.toHaveBeenCalled();
-    expect(within(screen.getByRole('main')).getByRole('heading', { level: 1, name: 'Hoy' })).toBeInTheDocument();
+    const main = screen.getByRole('main');
+    expect(within(main).getByRole('heading', { level: 1, name: 'Qué toca hoy' })).toBeInTheDocument();
+    expect(within(main).getByText('Miércoles 7 de octubre')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cuenta' })).toHaveAttribute('aria-expanded', 'false');
-    expect(screen.getByRole('heading', { name: 'Menú 12' })).toBeInTheDocument();
+    expect(within(screen.getByRole('region', { name: 'Semanas' })).getByText('Menú 12')).toBeInTheDocument();
     expect(screen.getByText('Lentejas estofadas')).toBeInTheDocument();
-    expect(screen.getByRole('progressbar', { name: 'Ítems marcados' })).toHaveAttribute('aria-valuetext', '5 de 40');
+    expect(screen.getByRole('link', { name: 'Ver menú' })).toHaveAttribute('href', '/menu');
+    expect(screen.getByRole('heading', { name: 'Compra · semana del 5 oct' })).toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: 'Marcados' })).toHaveAttribute('aria-valuetext', '5 de 40');
   });
 
-  it('reads this week and the current list of the user of the session only', async () => {
+  it('reads this week, the two weeks and the current list of the user of the session only', async () => {
     render(await Home());
 
     expect(container.menuWeekPage).toHaveBeenCalledWith({ userId: 'user-1', startsOn: undefined });
+    expect(container.weeksToChoose).toHaveBeenCalledWith({ userId: 'user-1' });
     expect(container.shoppingChecklist).toHaveBeenCalledWith({ userId: 'user-1' });
   });
 
-  it('says there is no menu this week and shows no dishes of today', async () => {
-    container.menuWeekPage.mockResolvedValue(ok({ navigation: NAVIGATION, menu: null }));
+  it('offers to choose a menu for this week when it has none and can still take one', async () => {
+    container.menuWeekPage.mockResolvedValue(ok({ navigation: NAVIGATION, menu: null, today: '2026-10-07' }));
+    container.weeksToChoose.mockResolvedValue(ok(WEEKS(null, null)));
     container.shoppingChecklist.mockResolvedValue(ok(null));
 
     render(await Home());
 
-    expect(screen.getByText('Aún no has elegido menú para esta semana.')).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Qué toca hoy' })).not.toBeInTheDocument();
-    expect(screen.getByText('Aún no tienes lista de la compra.')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Esta semana aún no tiene menú');
+    expect(screen.getByRole('link', { name: 'Elegir menú para esta semana' })).toHaveAttribute('href', '/planner?week=current');
+    expect(screen.getByText('Miércoles 7 de octubre')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Ver menú' })).not.toBeInTheDocument();
+    expect(screen.getByText('Aún no hay lista: aparece al elegir un menú.')).toBeInTheDocument();
   });
 
-  it('keeps the shopping block when the menu cannot be read', async () => {
+  it("says this week is locked by next week's menu and links to next week", async () => {
+    container.menuWeekPage.mockResolvedValue(ok({ navigation: NAVIGATION, menu: null, today: '2026-10-07' }));
+    container.weeksToChoose.mockResolvedValue(ok(WEEKS(null, 31)));
+
+    render(await Home());
+
+    expect(screen.getByRole('status')).toHaveTextContent('Esta semana no tiene menú');
+    expect(screen.getByRole('link', { name: 'Ver el menú de la semana que viene' })).toHaveAttribute(
+      'href',
+      '/menu?startsOn=2026-10-12',
+    );
+    expect(screen.queryByRole('link', { name: 'Elegir menú para esta semana' })).not.toBeInTheDocument();
+  });
+
+  it('keeps the weeks and the shopping when the menu cannot be read', async () => {
     container.menuWeekPage.mockResolvedValue(err({ kind: 'failed' }));
 
     render(await Home());
 
     expect(screen.getByText('No se ha podido cargar tu menú.')).toBeInTheDocument();
-    expect(screen.getByRole('progressbar', { name: 'Ítems marcados' })).toBeInTheDocument();
+    expect(within(screen.getByRole('region', { name: 'Semanas' })).getByText('Menú 12')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: 'Marcados' })).toBeInTheDocument();
   });
 
-  it('keeps the menu block when the list cannot be read', async () => {
+  it("keeps today's dishes and the shopping when the weeks cannot be read", async () => {
+    container.weeksToChoose.mockResolvedValue(err({ kind: 'failed' }));
+
+    render(await Home());
+
+    expect(within(screen.getByRole('region', { name: 'Semanas' })).getByText('No se ha podido cargar tu menú.')).toBeInTheDocument();
+    expect(screen.getByText('Lentejas estofadas')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: 'Marcados' })).toBeInTheDocument();
+  });
+
+  it('shows no notice when this week has no menu and the weeks cannot be read', async () => {
+    container.menuWeekPage.mockResolvedValue(ok({ navigation: NAVIGATION, menu: null, today: '2026-10-07' }));
+    container.weeksToChoose.mockResolvedValue(err({ kind: 'failed' }));
+
+    render(await Home());
+
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(screen.getAllByText('No se ha podido cargar tu menú.')).toHaveLength(2);
+  });
+
+  it('keeps the weeks when the list cannot be read', async () => {
     container.shoppingChecklist.mockResolvedValue(err({ kind: 'failed' }));
 
     render(await Home());
 
     expect(screen.getByText('No se ha podido cargar la lista. Inténtalo de nuevo.')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Menú 12' })).toBeInTheDocument();
+    expect(within(screen.getByRole('region', { name: 'Semanas' })).getByText('Menú 12')).toBeInTheDocument();
   });
 });

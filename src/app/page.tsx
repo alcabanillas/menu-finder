@@ -3,14 +3,17 @@ import { sessionUser } from '@/app/_auth/session-user';
 import { APP_VERSION } from '@/app/app-version';
 import { webContainer } from '@/composition/web-container';
 import { AppShell } from '@/features/app-shell/components/app-shell';
-import { ActiveMenuCard, type ActiveMenu } from '@/features/dashboard/components/active-menu-card';
 import { DashboardLayout } from '@/features/dashboard/components/dashboard-layout';
+import { NoMenuNotice, type EmptyWeek } from '@/features/dashboard/components/no-menu-notice';
+import { WeeksCard, type DashboardWeeks } from '@/features/dashboard/components/weeks-card';
 import { ShoppingProgress, type ListProgress } from '@/features/shopping-list/components/shopping-progress';
 import { TodayMeals } from '@/features/weekly-menu/components/today-meals';
 import { WelcomeScreen } from '@/features/welcome/components/welcome-screen';
 import type { SignedInUser } from '@/application/dto/signed-in-user';
+import type { WeeksToChooseDto } from '@/application/dto/weeks-to-choose';
 
 type WeekRead = Awaited<ReturnType<ReturnType<typeof webContainer>['menuWeekPage']>>;
+type WeeksRead = Awaited<ReturnType<ReturnType<typeof webContainer>['weeksToChoose']>>;
 type ListRead = Awaited<ReturnType<ReturnType<typeof webContainer>['shoppingChecklist']>>;
 
 /**
@@ -30,36 +33,45 @@ export default async function Home() {
   return dashboardOf(user);
 }
 
-/** This week's menu and the current list, read in parallel; each block shows its own failure (design D2, D3 of MF-25). */
+/** This week's menu, the two weeks and the current list, read in parallel; each block shows its own failure (design D2, D3 of MF-25). */
 async function dashboardOf(user: SignedInUser) {
   const container = webContainer();
-  const [week, list] = await Promise.all([
+  const [week, weeks, list] = await Promise.all([
     container.menuWeekPage({ userId: user.userId, startsOn: undefined }),
+    container.weeksToChoose({ userId: user.userId }),
     container.shoppingChecklist({ userId: user.userId }),
   ]);
-  const menu = week.ok ? week.value.menu : null;
   return (
     <AppShell account={{ email: user.email, version: APP_VERSION, signOutAction }}>
       <DashboardLayout
-        today={menu?.today}
-        menu={<ActiveMenuCard menu={activeMenuOf(week)} />}
-        meals={menu && <TodayMeals menu={menu} />}
+        today={week.ok ? week.value.today : undefined}
+        weeks={<WeeksCard weeks={dashboardWeeksOf(weeks)} />}
+        meals={<TodayBlock week={week} weeks={weeks} />}
         shopping={<ShoppingProgress list={listProgressOf(list)} />}
       />
     </AppShell>
   );
 }
 
-function activeMenuOf(week: WeekRead): ActiveMenu {
-  if (!week.ok) return { kind: 'failed' };
-  const { menu, navigation } = week.value;
-  if (!menu) return { kind: 'none' };
-  const [firstDate] = navigation.days;
-  return { kind: 'chosen', menuNumber: menu.menuNumber, firstDate, lastDate: navigation.days.at(-1) ?? firstDate };
+/** Today's dishes; with no menu this week, what the user can do instead; or the failure of a read it needs. */
+function TodayBlock({ week, weeks }: { week: WeekRead; weeks: WeeksRead }) {
+  if (week.ok && week.value.menu) return <TodayMeals menu={week.value.menu} />;
+  if (week.ok && weeks.ok) return <NoMenuNotice week={emptyWeekOf(weeks.value)} />;
+  return <p className="mt-4">No se ha podido cargar tu menú.</p>;
+}
+
+function dashboardWeeksOf(weeks: WeeksRead): DashboardWeeks {
+  return weeks.ok ? { kind: 'read', weeks: weeks.value } : { kind: 'failed' };
+}
+
+function emptyWeekOf({ current, next }: WeeksToChooseDto): EmptyWeek {
+  if (!current.locked || next.menuNumber === null) return { kind: 'open' };
+  return { kind: 'locked', nextMenuNumber: next.menuNumber, nextStartsOn: next.startsOn };
 }
 
 function listProgressOf(list: ListRead): ListProgress {
   if (!list.ok) return { kind: 'failed' };
   if (!list.value) return { kind: 'none' };
-  return { kind: 'list', checkedCount: list.value.checkedCount, total: list.value.total };
+  const { startsOn, checkedCount, total } = list.value;
+  return { kind: 'list', startsOn, checkedCount, total };
 }

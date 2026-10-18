@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ArrowRight } from '@/shared/ui/arrow-right';
 import { buttonClasses } from '@/shared/ui/button';
 
 // Ported from the design system's `ui_kits/app/WelcomeScreen.jsx` (version 1792255497-a1ff). "Acceder" is a link, not
@@ -43,14 +44,5 @@ export function WelcomeScreen() {
         Menu Finder no inventa menús ni recetas: solo encuentra y ordena los que ya existen.
       </p>
     </div>
-  );
-}
-
-function ArrowRight() {
-  return (
-    <svg aria-hidden="true" width={19} height={19} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M5 12h14" />
-      <path d="m12 5 7 7-7 7" />
-    </svg>
   );
 }

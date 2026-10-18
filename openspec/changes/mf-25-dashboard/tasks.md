@@ -42,20 +42,20 @@ Each test task is written first and seen failing before its implementation task 
 
 ## 7. Redesign after the manual check (mock `HomeScreen.jsx` version `1792319321-0ddf`)
 
-- [ ] 7.1 Test `src/application/use-cases/menu/menu-week-page.test.ts`: the result carries `today`, the clock's date, with and without a menu. Seen failing
-- [ ] 7.2 Add `today` to `MenuWeekPage` (design D2). Test 7.1 green
-- [ ] 7.3 Test `src/features/dashboard/components/weeks-card.test.tsx`: both weeks with a menu (dates, "Menú 26", "Menú 31", no "Elegir"); next week empty ("Sin elegir", link "Elegir" to `/planner?week=next`); this week empty ("Sin menú", hidden below 800 px); failed ("No se ha podido cargar tu menú."). Seen failing
-- [ ] 7.4 Implement `weeks-card.tsx`; remove `active-menu-card.tsx` and its test. Test 7.3 green
-- [ ] 7.5 Test `src/features/dashboard/components/no-menu-notice.test.tsx`: open ("Esta semana aún no tiene menú", link to `/planner?week=current`); locked ("Esta semana no tiene menú", "Menú 31", link to `/menu?startsOn=<next Monday>`). Seen failing
-- [ ] 7.6 Implement `no-menu-notice.tsx`. Test 7.5 green
-- [ ] 7.7 Update `today-meals.test.tsx`: no heading of its own; empty meals hidden; "El menú no incluye platos para hoy." when today has no dishes; link "Ver menú" to `/menu`. Seen failing
-- [ ] 7.8 Update `today-meals.tsx` (design D1). Test 7.7 green
-- [ ] 7.9 Update `shopping-progress.test.tsx`: title "Compra · semana del 19 oct" from the list's `startsOn`, "Marcados", no list says "Aún no hay lista: aparece al elegir un menú." without "Abrir". Seen failing
-- [ ] 7.10 Update `shopping-progress.tsx`. Test 7.9 green
-- [ ] 7.11 Update `dashboard-layout.test.tsx`: heading "Qué toca hoy" with the date and the day's colour, no heading "Hoy"; slots in the mock's order (weeks, today, shopping). Seen failing
-- [ ] 7.12 Update `dashboard-layout.tsx` with the mock's grid (design D1). Test 7.11 green
-- [ ] 7.13 Update `src/app/page.test.tsx`: three reads with the session's user id; the notice open and locked; each read failing alone (design D3). Seen failing
-- [ ] 7.14 Update `src/app/page.tsx` (design D2, D3). Test 7.13 green
+- [x] 7.1 Test `src/application/use-cases/menu/menu-week-page.test.ts`: the result carries `today`, the clock's date, with and without a menu. Seen failing
+- [x] 7.2 Add `today` to `MenuWeekPage` (design D2). Test 7.1 green
+- [x] 7.3 Test `src/features/dashboard/components/weeks-card.test.tsx`: both weeks with a menu (dates, "Menú 26", "Menú 31", no "Elegir"); next week empty ("Sin elegir", link "Elegir" to `/planner?week=next`); this week empty ("Sin menú", hidden below 800 px); failed ("No se ha podido cargar tu menú."). Seen failing
+- [x] 7.4 Implement `weeks-card.tsx`; remove `active-menu-card.tsx` and its test. The arrow of the mock's buttons moves from `welcome-screen.tsx` to `src/shared/ui/arrow-right.tsx`, now used by four features (Scope Rule). Test 7.3 green
+- [x] 7.5 Test `src/features/dashboard/components/no-menu-notice.test.tsx`: open ("Esta semana aún no tiene menú", link to `/planner?week=current`); locked ("Esta semana no tiene menú", "Menú 31", link to `/menu?startsOn=<next Monday>`). Seen failing
+- [x] 7.6 Implement `no-menu-notice.tsx`. Test 7.5 green
+- [x] 7.7 Update `today-meals.test.tsx`: no heading of its own; empty meals hidden; "El menú no incluye platos para hoy." when today has no dishes; link "Ver menú" to `/menu`. Seen failing
+- [x] 7.8 Update `today-meals.tsx` (design D1). Test 7.7 green
+- [x] 7.9 Update `shopping-progress.test.tsx`: title "Compra · semana del 19 oct" from the list's `startsOn`, "Marcados", no list says "Aún no hay lista: aparece al elegir un menú." without "Abrir". Seen failing
+- [x] 7.10 Update `shopping-progress.tsx`. Test 7.9 green
+- [x] 7.11 Update `dashboard-layout.test.tsx`: heading "Qué toca hoy" with the date and the day's colour, no heading "Hoy"; slots in the mock's order (weeks, today, shopping). Seen failing
+- [x] 7.12 Update `dashboard-layout.tsx` with the mock's grid (design D1). Test 7.11 green
+- [x] 7.13 Update `src/app/page.test.tsx`: three reads with the session's user id; the notice open and locked; each read failing alone (design D3). Seen failing
+- [x] 7.14 Update `src/app/page.tsx` (design D2, D3). Test 7.13 green
 - [ ] 7.15 Update `e2e/home.spec.ts` and `e2e/app-shell.spec.ts` for the new heading and texts; add the locked notice. Run them against the test database
 - [ ] 7.16 Verify against the mock at 375 px and 1280 px, with the server clock on a weekday with dishes, and on a Sunday; then remove the temporary clock in `src/composition/web/infrastructure-deps.ts`
 - [ ] 7.17 `pnpm typecheck` and `pnpm test:coverage` pass
