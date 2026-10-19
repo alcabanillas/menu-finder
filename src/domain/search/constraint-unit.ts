@@ -2,13 +2,17 @@ import type { Day, MealType } from '@/domain/menu/weekly-menu';
 import type { Constraint, SearchRequest } from '@/domain/search/search-request';
 import { matchesTerm, type Strategy } from '@/domain/search/term-score';
 
-/** A dish of a menu as the search scores it: where it is and its term score in [0, 1] for each constraint id. */
+/**
+ * A dish of a menu as the search scores it: where it is, its term score in [0, 1] for each constraint id, and whether
+ * it has each constraint's term word for word, as the lexical strategy matches it (MF-61 design D2).
+ */
 export type ScoredDish = {
   day: Day;
   meal: MealType;
   position: number;
   name: string;
   scores: Readonly<Record<string, number>>;
+  literal: Readonly<Record<string, boolean>>;
 };
 
 export type ScoredMenu = { menu: number; dishes: ScoredDish[] };
@@ -55,6 +59,23 @@ export function matchesConstraint(constraint: Constraint, dish: ScoredDish, stra
 export function keepsConstraint(constraint: Constraint, dish: ScoredDish, strategy: Strategy): boolean {
   const matches = matchesTerm(dish.scores[constraint.id], strategy);
   return inSlot(constraint, dish) && (constraint.polarity === 'include' ? matches : !matches);
+}
+
+/**
+ * Whether a dish holds a unit word for word (spec menu-search, "Literal dish of a unit"): every include member of a
+ * "con", any include member of an "o", in its slot. The exclusions of a "con" are kept as the hard filter keeps them.
+ */
+export function holdsLiterally(unit: Unit, dish: ScoredDish, strategy: Strategy): boolean {
+  const includes = unit.members.filter(({ polarity }) => polarity === 'include');
+  if (includes.length === 0) return false;
+  if (unit.kind === 'anyOf') return includes.some((member) => hasLiterally(member, dish));
+  const excludes = unit.members.filter(({ polarity }) => polarity === 'exclude');
+  const inEverySlot = unit.members.every((member) => inSlot(member, dish));
+  return inEverySlot && includes.every((member) => hasLiterally(member, dish)) && excludes.every((member) => keepsConstraint(member, dish, strategy));
+}
+
+function hasLiterally(constraint: Constraint, dish: ScoredDish): boolean {
+  return inSlot(constraint, dish) && dish.literal[constraint.id] === true;
 }
 
 function groupsById(request: SearchRequest): Map<string, Unit> {

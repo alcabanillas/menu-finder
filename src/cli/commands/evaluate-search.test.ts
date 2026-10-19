@@ -45,7 +45,7 @@ const REPORT: EvaluationReport = {
 const RESULT: SearchResultDto = {
   strategy: 'hybrid',
   units: [{ kind: 'constraint', constraints: ['c1'] }],
-  menus: [{ menu: 3, score: 1, evidence: [{ constraints: ['c1'], dish: { day: 'monday', meal: 'lunch', position: 1, name: DISH_NAME } }] }],
+  menus: [{ menu: 3, score: 1, evidence: [{ constraints: ['c1'], dish: { day: 'monday', meal: 'lunch', position: 1, name: DISH_NAME }, match: 'literal' }] }],
   tiedWithFirst: 1,
   ranked: [{ menu: 3, score: 1 }],
   removedBy: [],

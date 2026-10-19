@@ -2,7 +2,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { MenuCandidateCard } from '@/features/menu-planner/components/menu-candidate-card';
 import type { CardChoice } from '@/features/menu-planner/components/menu-candidate-card';
-import type { CandidateCard, ChipMember } from '@/features/menu-planner/search-view';
+import type { CandidateCard, ChipMember, EvidenceLine } from '@/features/menu-planner/search-view';
 
 function member(term: string, overrides: Partial<ChipMember> = {}): ChipMember {
   return { term, polarity: 'include', type: 'literal', hard: false, slot: undefined, ...overrides };
@@ -11,11 +11,12 @@ function member(term: string, overrides: Partial<ChipMember> = {}): ChipMember {
 const CARD: CandidateCard = {
   rank: 2,
   menu: 12,
+  summary: 'Cumple las 2 cosas que pides.',
   lines: [
-    { kind: 'constraint', terms: [member('garbanzos')], found: true, detail: 'Martes, comida · Garbanzos con espinacas' },
-    { kind: 'constraint', terms: [member('cerdo', { polarity: 'exclude', type: 'exclusion' })], found: true, detail: 'no aparece en la semana' },
-    { kind: 'constraint', terms: [member('salmón')], found: false, detail: 'ningún plato' },
-    { kind: 'constraint', terms: [member('sencillas', { type: 'attribute' })], found: true, detail: 'Lunes, cena · Crema' },
+    { kind: 'constraint', terms: [member('garbanzos')], state: 'met', detail: 'Martes, comida · Garbanzos con espinacas' },
+    { kind: 'constraint', terms: [member('cerdo', { polarity: 'exclude', type: 'exclusion' })], state: 'met', detail: 'no aparece en la semana' },
+    { kind: 'constraint', terms: [member('salmón')], state: 'unmet', detail: 'ningún plato' },
+    { kind: 'constraint', terms: [member('sencillas', { type: 'attribute' })], state: 'met', detail: 'Lunes, cena · Crema' },
   ],
 };
 
@@ -24,11 +25,34 @@ function lines(): HTMLElement[] {
 }
 
 describe('MenuCandidateCard', () => {
-  it('shows the rank and "Menú N"', () => {
+  it('shows the rank, "Menú N" as the heading of the card with no badge, and the summary under it', () => {
     render(<MenuCandidateCard card={CARD} />);
 
     expect(screen.getByText('2')).toBeInTheDocument();
-    expect(screen.getByText('Menú 12')).toBeInTheDocument();
+    const heading = screen.getByRole('heading', { level: 3, name: 'Menú 12' });
+    expect(heading).not.toHaveClass('bg-ink');
+    expect(screen.getByText('Cumple las 2 cosas que pides.')).toBeInTheDocument();
+  });
+
+  it('shows no rank and no summary when the request has only week-wide exclusions', () => {
+    render(<MenuCandidateCard card={{ ...CARD, rank: null, summary: null }} />);
+
+    expect(screen.queryByText('2')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Cumple/)).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 3, name: 'Menú 12' })).toBeInTheDocument();
+  });
+
+  it('starts each line with its state, ✓ olive, ≈ ochre or ✕ terracotta, hidden from screen readers', () => {
+    const similar: EvidenceLine = { kind: 'constraint', terms: [member('pescado al horno')], state: 'similar', detail: 'parecido: Jueves, cena · Merluza' };
+    render(<MenuCandidateCard card={{ ...CARD, lines: [...CARD.lines, similar] }} />);
+
+    const symbols = lines().map((line) => line.querySelector('[data-state]'));
+    expect(symbols.map((symbol) => symbol?.textContent)).toEqual(['✓', '✓', '✕', '✓', '≈']);
+    expect(symbols[0]).toHaveClass('text-olive-600');
+    expect(symbols[2]).toHaveClass('text-terracotta-600');
+    expect(symbols[4]).toHaveClass('text-ochre-700');
+    expect(symbols.every((symbol) => symbol?.closest('[aria-hidden="true"]'))).toBe(true);
+    expect(lines()[4]).toHaveTextContent('parecido: Jueves, cena · Merluza');
   });
 
   it('shows one line per unit with its terms and its detail', () => {
@@ -38,15 +62,6 @@ describe('MenuCandidateCard', () => {
     expect(lines()[0]).toHaveTextContent('garbanzos');
     expect(lines()[0]).toHaveTextContent('Martes, comida · Garbanzos con espinacas');
     expect(lines()[1]).toHaveTextContent('no aparece en la semana');
-  });
-
-  it('shows a check when the unit is answered and a cross when no dish covers it', () => {
-    render(<MenuCandidateCard card={CARD} />);
-
-    expect(lines()[0].querySelector('svg[data-icon="check"]')).toBeInTheDocument();
-    expect(lines()[1].querySelector('svg[data-icon="check"]')).toBeInTheDocument();
-    expect(lines()[2].querySelector('svg[data-icon="x"]')).toBeInTheDocument();
-    expect(lines()[2]).toHaveTextContent('ningún plato');
   });
 
   it('colours the terms: olive for include and attribute, terracotta for exclude', () => {
@@ -61,9 +76,10 @@ describe('MenuCandidateCard', () => {
     const card: CandidateCard = {
       rank: 1,
       menu: 3,
+      summary: 'Cumple las 2 cosas que pides.',
       lines: [
-        { kind: 'sameDish', terms: [member('arroz'), member('marisco', { polarity: 'exclude' })], found: true, detail: 'Lunes, comida · Arroz' },
-        { kind: 'anyOf', terms: [member('lubina'), member('dorada')], found: true, detail: 'Martes, cena · Lubina' },
+        { kind: 'sameDish', terms: [member('arroz'), member('marisco', { polarity: 'exclude' })], state: 'met', detail: 'Lunes, comida · Arroz' },
+        { kind: 'anyOf', terms: [member('lubina'), member('dorada')], state: 'met', detail: 'Martes, cena · Lubina' },
       ],
     };
     render(<MenuCandidateCard card={card} />);
@@ -77,10 +93,11 @@ describe('MenuCandidateCard', () => {
     const card: CandidateCard = {
       rank: 1,
       menu: 3,
+      summary: 'Cumple las 2 cosas que pides.',
       lines: [
-        { kind: 'sameDish', terms: [member('arroz'), member('marisco', { polarity: 'exclude' })], found: true, detail: 'Lunes, comida · Arroz' },
-        { kind: 'sameDish', terms: [member('pollo'), member('verduras')], found: true, detail: 'Martes, cena · Pollo' },
-        { kind: 'constraint', terms: [member('salmón')], found: false, detail: 'ningún plato' },
+        { kind: 'sameDish', terms: [member('arroz'), member('marisco', { polarity: 'exclude' })], state: 'met', detail: 'Lunes, comida · Arroz' },
+        { kind: 'sameDish', terms: [member('pollo'), member('verduras')], state: 'met', detail: 'Martes, cena · Pollo' },
+        { kind: 'constraint', terms: [member('salmón')], state: 'unmet', detail: 'ningún plato' },
       ],
     };
     render(<MenuCandidateCard card={card} />);
@@ -94,7 +111,8 @@ describe('MenuCandidateCard', () => {
     const card: CandidateCard = {
       rank: 1,
       menu: 3,
-      lines: [{ kind: 'constraint', terms: [member('<img src=x onerror=alert(1)>')], found: true, detail: 'Lunes, comida · <b>Arroz</b>' }],
+      summary: 'Cumple las 2 cosas que pides.',
+      lines: [{ kind: 'constraint', terms: [member('<img src=x onerror=alert(1)>')], state: 'met', detail: 'Lunes, comida · <b>Arroz</b>' }],
     };
     render(<MenuCandidateCard card={card} />);
 
@@ -103,24 +121,25 @@ describe('MenuCandidateCard', () => {
     expect(screen.getByText('Lunes, comida · <b>Arroz</b>')).toBeInTheDocument();
   });
 
-  it('has no title, no explanation and no button without the weeks', () => {
+  it('has "Menú N" as its only heading, the summary as its only text besides the lines, and no button without the weeks', () => {
     render(<MenuCandidateCard card={CARD} />);
 
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
-    expect(screen.queryByRole('heading')).not.toBeInTheDocument();
-    expect(screen.getByRole('article').querySelectorAll('p')).toHaveLength(0);
+    expect(screen.getAllByRole('heading').map((heading) => heading.textContent)).toEqual(['Menú 12']);
+    expect([...screen.getByRole('article').querySelectorAll('p')].map((p) => p.textContent)).toEqual(['Cumple las 2 cosas que pides.']);
   });
 
   describe('for a screen reader and without colour', () => {
     const GROUP: CandidateCard = {
       rank: 1,
       menu: 3,
+      summary: 'Cumple las 2 cosas que pides.',
       lines: [
         {
           kind: 'sameDish',
           terms: [member('arroz'), member('marisco', { polarity: 'exclude', type: 'exclusion' })],
-          found: true,
+          state: 'met',
           detail: 'Martes, comida · Arroz con verduras',
         },
       ],

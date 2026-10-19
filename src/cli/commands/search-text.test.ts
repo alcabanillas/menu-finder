@@ -18,7 +18,7 @@ function ranking(strategy: SearchStrategy): SearchResultDto {
   return {
     strategy,
     units: [{ kind: 'constraint', constraints: ['c1'] }],
-    menus: [{ menu: 7, score: 1, evidence: [{ constraints: ['c1'], dish: { day: 'monday', meal: 'dinner', position: 1, name: 'Crema de calabaza' } }] }],
+    menus: [{ menu: 7, score: 1, evidence: [{ constraints: ['c1'], dish: { day: 'monday', meal: 'dinner', position: 1, name: 'Crema de calabaza' }, match: 'literal' }] }],
     tiedWithFirst: 1,
     ranked: [{ menu: 7, score: 1 }],
     removedBy: [],

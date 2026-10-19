@@ -3,6 +3,7 @@ import type { MealType } from '@/domain/menu/weekly-menu';
 import { toUnits, type ScoredDish } from '@/domain/search/constraint-unit';
 import { scoreMenu } from '@/domain/search/score-menu';
 import type { Constraint, SearchRequest } from '@/domain/search/search-request';
+import type { Strategy } from '@/domain/search/term-score';
 
 function include(id: string, overrides: Partial<Constraint> = {}): Constraint {
   return { id, type: 'literal', term: id, polarity: 'include', hard: false, ...overrides };
@@ -16,12 +17,18 @@ function request(constraints: Constraint[], groups: Partial<SearchRequest> = {})
   return { constraints, sameDish: [], anyOf: [], ...groups };
 }
 
-function dish(name: string, scores: Record<string, number>, meal: MealType = 'lunch', position = 1): ScoredDish {
-  return { day: 'monday', meal, position, name, scores };
+function dish(
+  name: string,
+  scores: Record<string, number>,
+  meal: MealType = 'lunch',
+  position = 1,
+  literal: Record<string, boolean> = {},
+): ScoredDish {
+  return { day: 'monday', meal, position, name, scores, literal };
 }
 
-function score(req: SearchRequest, dishes: ScoredDish[]) {
-  return scoreMenu({ menu: 1, dishes }, toUnits(req));
+function score(req: SearchRequest, dishes: ScoredDish[], strategy: Strategy = 'semantic') {
+  return scoreMenu({ menu: 1, dishes }, toUnits(req), strategy);
 }
 
 describe('toUnits', () => {
@@ -77,7 +84,7 @@ describe('scoreMenu', () => {
   it('gives a week-wide exclusion the unit score 1 with no evidence', () => {
     const req = request([include('pollo'), exclude('cerdo')]);
 
-    expect(score(req, [dish('Pollo asado', { pollo: 1, cerdo: 0 })]).units[1]).toEqual({ score: 1, evidence: null });
+    expect(score(req, [dish('Pollo asado', { pollo: 1, cerdo: 0 })]).units[1]).toEqual({ score: 1, evidence: null, match: 'none' });
   });
 
   it('scores 1 a menu when every unit of the request is a week-wide exclusion', () => {
@@ -98,27 +105,68 @@ describe('scoreMenu', () => {
     expect(score(req, [dish('Pollo asado', { pollo: 1, brocoli: 0 })]).score).toBe(0.5);
   });
 
-  it('gives as evidence the dish with the highest score for the unit, the first one on a tie', () => {
+  it('gives as similar evidence the dish with the highest score for the unit, the first one on a tie', () => {
     const dishes = [
       dish('Arroz', { pollo: 0.2 }),
       dish('Pollo asado', { pollo: 0.9 }, 'lunch', 2),
       dish('Pollo al curry', { pollo: 0.9 }, 'dinner'),
     ];
 
-    expect(score(request([include('pollo')]), dishes).units[0].evidence?.name).toBe('Pollo asado');
+    expect(score(request([include('pollo')]), dishes).units[0]).toMatchObject({ evidence: { name: 'Pollo asado' }, match: 'similar' });
+  });
+
+  it('gives as literal evidence the first dish with the term word for word, over a more similar one', () => {
+    const dishes = [
+      dish('Lentejas estofadas', { garbanzos: 0.9 }),
+      dish('Garbanzos con espinacas', { garbanzos: 0.8 }, 'lunch', 2, { garbanzos: true }),
+      dish('Potaje de garbanzos', { garbanzos: 0.7 }, 'dinner', 1, { garbanzos: true }),
+    ];
+
+    expect(score(request([include('garbanzos')]), dishes).units[0]).toMatchObject({
+      evidence: { name: 'Garbanzos con espinacas' },
+      match: 'literal',
+    });
+  });
+
+  it('keeps the best score for the unit when the literal dish scores lower, so the ranking does not move', () => {
+    const dishes = [
+      dish('Lentejas estofadas', { garbanzos: 0.9 }),
+      dish('Garbanzos con espinacas', { garbanzos: 0.8 }, 'lunch', 2, { garbanzos: true }),
+    ];
+
+    expect(score(request([include('garbanzos')]), dishes)).toMatchObject({ score: 0.9, units: [{ score: 0.9, match: 'literal' }] });
+  });
+
+  it('gives no evidence for a unit whose best dish does not reach the matching threshold', () => {
+    const result = score(request([include('pollo')]), [dish('Merluza', { pollo: 0.15 })]);
+
+    expect(result.units[0]).toEqual({ score: 0.15, evidence: null, match: 'none' });
+  });
+
+  it('compares the best score with the threshold at two decimals', () => {
+    const result = score(request([include('pollo')]), [dish('Pavo', { pollo: 0.4999999999999999 })]);
+
+    expect(result.units[0]).toMatchObject({ evidence: { name: 'Pavo' }, match: 'similar' });
+  });
+
+  it('gives literal evidence or none with the lexical strategy', () => {
+    const literal = [dish('Salmón al horno', { salmon: 1 }, 'lunch', 1, { salmon: true })];
+
+    expect(score(request([include('salmon')]), literal, 'lexical').units[0].match).toBe('literal');
+    expect(score(request([include('salmon')]), [dish('Merluza', { salmon: 0 })], 'lexical').units[0].match).toBe('none');
   });
 
   it('gives no evidence for a week-wide exclusion', () => {
-    expect(score(request([exclude('cerdo')]), [dish('Lomo', { cerdo: 1 })]).units[0].evidence).toBeNull();
+    expect(score(request([exclude('cerdo')]), [dish('Lomo', { cerdo: 1 })]).units[0]).toMatchObject({ evidence: null, match: 'none' });
   });
 
   it('gives no evidence for a unit whose best score is 0', () => {
     const dishes = [dish('Lentejas', { pollo: 0 }), dish('Merluza', { pollo: 0 }, 'dinner')];
 
-    expect(score(request([include('pollo')]), dishes).units[0]).toEqual({ score: 0, evidence: null });
+    expect(score(request([include('pollo')]), dishes).units[0]).toEqual({ score: 0, evidence: null, match: 'none' });
   });
 
   it('scores 0 with no evidence a unit of a menu with no dish', () => {
-    expect(score(request([include('pollo')]), []).units[0]).toEqual({ score: 0, evidence: null });
+    expect(score(request([include('pollo')]), []).units[0]).toEqual({ score: 0, evidence: null, match: 'none' });
   });
 });

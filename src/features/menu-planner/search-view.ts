@@ -14,10 +14,17 @@ export type ChipMember = Pick<Constraint, 'term' | 'polarity' | 'type' | 'hard' 
 /** One unit of the request: a constraint in no group, a `sameDish` group or an `anyOf` group (spec menu-planner). */
 export type Chip = { kind: SearchResultDto['units'][number]['kind']; members: ChipMember[] };
 
-/** What a card says about one unit: its kind (how its terms are separated), its terms, whether the menu answers it, and the dish or the reason. */
-export type EvidenceLine = { kind: Chip['kind']; terms: ChipMember[]; found: boolean; detail: string };
+/**
+ * What a card says about one unit: its kind (how its terms are separated), its terms, whether the menu meets it with a
+ * literal dish, only with a similar one, or not at all (✓, ≈, ✕), and the dish or the reason (MF-61 design D4).
+ */
+export type EvidenceLine = { kind: Chip['kind']; terms: ChipMember[]; state: 'met' | 'similar' | 'unmet'; detail: string };
 
-export type CandidateCard = { rank: number; menu: number; lines: EvidenceLine[] };
+/**
+ * A menu of the ranking. `rank` and `summary` are null when the request has only week-wide exclusions: every card
+ * meets it alike, and the cards come by menu number.
+ */
+export type CandidateCard = { rank: number | null; menu: number; summary: string | null; lines: EvidenceLine[] };
 
 /**
  * What the planner shows for a search, built on the server (MF-22.4 design D1). `attempt` counts the answers: it tells
@@ -25,7 +32,7 @@ export type CandidateCard = { rank: number; menu: number; lines: EvidenceLine[] 
  */
 export type PlannerSearchState =
   | { status: 'idle'; attempt: number }
-  | { status: 'ranking'; chips: Chip[]; cards: CandidateCard[]; attempt: number }
+  | { status: 'ranking'; chips: Chip[]; cards: CandidateCard[]; onlyExclusions: boolean; attempt: number }
   | { status: 'failed'; kind: DailyLimitedSearchError['kind']; message: string; attempt: number };
 
 export const IDLE_SEARCH: PlannerSearchState = { status: 'idle', attempt: 0 };
@@ -59,18 +66,23 @@ const DAYS: Record<DayDto, string> = {
 
 const MEALS: Record<Dish['meal'], string> = { lunch: 'comida', dinner: 'cena' };
 
+/** The counts of similar dishes up to ten are written in words, as the mock does; above, in digits. */
+const NUMBER_WORDS = ['', 'una', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez'];
+
 /** The view of a search: a ranking with its chips and cards, or the message of the outcome that gave none. */
 export function toSearchState(result: Result<TextSearchDto, DailyLimitedSearchError>, attempt: number): PlannerSearchState {
   if (!result.ok) return toFailedState(result.error.kind, attempt);
   const { structure, result: ranking } = result.value;
   if (!isAligned(structure, ranking)) return toFailedState('search-failed', attempt);
   const chips = toChips(structure, ranking.units);
-  const cards = ranking.menus.map(({ menu, evidence }, index) => ({
-    rank: index + 1,
-    menu,
-    lines: toEvidenceLines(chips, evidence),
-  }));
-  return { status: 'ranking', chips, cards, attempt };
+  const onlyExclusions = chips.every(isWeekWideExclusion);
+  const cards = ranking.menus.map(({ menu, evidence }, index) => {
+    const lines = toEvidenceLines(chips, evidence);
+    return onlyExclusions
+      ? { rank: null, menu, summary: null, lines }
+      : { rank: index + 1, menu, summary: summarize(lines), lines };
+  });
+  return { status: 'ranking', chips, cards, onlyExclusions, attempt };
 }
 
 /** One chip per unit, in the order of the units. The search already grouped the constraints: this only looks them up. */
@@ -85,6 +97,17 @@ export function toChips(structure: Structure, units: SearchResultDto['units']): 
 /** The evidence of a menu is aligned with the chips by index (MF-22.4 design D4). */
 export function toEvidenceLines(chips: Chip[], evidence: Evidence[]): EvidenceLine[] {
   return chips.map((chip, index) => toLine(chip, evidence[index]));
+}
+
+/**
+ * The fixed sentence of a card, built only from the counts of its lines, never from a term or a dish (spec
+ * menu-planner, "Candidate cards with evidence and a choose button"; safety-first §2.6).
+ */
+export function summarize(lines: EvidenceLine[]): string {
+  const total = lines.length;
+  const met = lines.filter(({ state }) => state !== 'unmet').length;
+  const similar = lines.filter(({ state }) => state === 'similar').length;
+  return `${metSentence(met, total)}${similarClause(similar)}`;
 }
 
 /** What a screen reader says for a chip, and for the terms of an evidence line (spec menu-planner). */
@@ -109,14 +132,33 @@ function toMember({ term, polarity, type, hard, slot }: Constraint): ChipMember 
   return { term, polarity, type, hard, slot };
 }
 
-function toLine({ kind, members }: Chip, { dish }: Evidence): EvidenceLine {
+function toLine({ kind, members }: Chip, { dish, match }: Evidence): EvidenceLine {
   if (dish) {
-    return { kind, terms: members, found: true, detail: `${DAYS[dish.day]}, ${MEALS[dish.meal]} · ${dish.name}` };
+    const where = `${DAYS[dish.day]}, ${MEALS[dish.meal]} · ${dish.name}`;
+    return match === 'literal'
+      ? { kind, terms: members, state: 'met', detail: where }
+      : { kind, terms: members, state: 'similar', detail: `parecido: ${where}` };
   }
   const onlyExclusions = members.every(({ polarity }) => polarity === 'exclude');
   return onlyExclusions
-    ? { kind, terms: members, found: true, detail: 'no aparece en la semana' }
-    : { kind, terms: members, found: false, detail: 'ningún plato' };
+    ? { kind, terms: members, state: 'met', detail: 'no aparece en la semana' }
+    : { kind, terms: members, state: 'unmet', detail: 'ningún plato' };
+}
+
+// An exclusion in no group filters the whole week (BUS-superficie-consulta (b)).
+function isWeekWideExclusion({ kind, members }: Chip): boolean {
+  return kind === 'constraint' && members[0].polarity === 'exclude';
+}
+
+function metSentence(met: number, total: number): string {
+  if (met === total) return total === 1 ? 'Cumple lo que pides' : `Cumple las ${total} cosas que pides`;
+  return `Cumple ${met} de las ${total} cosas que pides`;
+}
+
+function similarClause(similar: number): string {
+  if (similar === 0) return '.';
+  const count = NUMBER_WORDS[similar] ?? String(similar);
+  return similar === 1 ? `, ${count} con un plato parecido.` : `, ${count} con platos parecidos.`;
 }
 
 function describeMember({ polarity, type, term, hard, slot }: ChipMember): string {

@@ -27,8 +27,11 @@ type TermScores = Map<string, number>;
 /** The term scores of each term, keyed by the term. */
 type ScoresByTerm = Map<string, TermScores>;
 
-/** The term scores of each constraint, keyed by the constraint id. */
-type ScoresByConstraint = Map<string, TermScores>;
+/** The term scores of each term with the strategy, and its text match (1 or 0), which tells the literal dishes. */
+type TermEvidence = { scores: ScoresByTerm; literal: ScoresByTerm };
+
+/** The term scores and the text match of each constraint, keyed by the constraint id. */
+type ScoresByConstraint = { scores: Map<string, TermScores>; literal: Map<string, TermScores> };
 
 type Scored<T> = Promise<Result<T, SearchMenusError>>;
 
@@ -70,13 +73,26 @@ async function scoreConstraints(
   const excluded = new Set(units.filter(isWeekWideExclusion).map(({ members: [member] }) => member.id));
   const weekWideExclusions = constraints.filter(({ id }) => excluded.has(id));
   const otherConstraints = constraints.filter(({ id }) => !excluded.has(id));
-  const otherScores = await scoreTerms(distinctTerms(otherConstraints), strategy, deps);
+  const [otherScores, exclusionScores] = await Promise.all([
+    scoreTerms(distinctTerms(otherConstraints), strategy, deps),
+    lexicalScores(distinctTerms(weekWideExclusions), deps.dishText),
+  ]);
   if (!otherScores.ok) return otherScores;
-  const exclusionScores = await lexicalScores(distinctTerms(weekWideExclusions), deps.dishText);
   if (!exclusionScores.ok) return exclusionScores;
-  return ok(
-    new Map(constraints.map(({ id, term }) => [id, scoresOf(excluded.has(id) ? exclusionScores.value : otherScores.value, term)])),
-  );
+  const exclusions = { scores: exclusionScores.value, literal: exclusionScores.value };
+  return ok(byConstraint(constraints, (id) => (excluded.has(id) ? exclusions : otherScores.value)));
+}
+
+// Each constraint takes the scores and the text match of its term from the evidence it was scored with.
+function byConstraint(constraints: Constraint[], evidenceOf: (id: string) => TermEvidence): ScoresByConstraint {
+  const scores = new Map<string, TermScores>();
+  const literal = new Map<string, TermScores>();
+  for (const { id, term } of constraints) {
+    const evidence = evidenceOf(id);
+    scores.set(id, scoresOf(evidence.scores, term));
+    literal.set(id, scoresOf(evidence.literal, term));
+  }
+  return { scores, literal };
 }
 
 // The terms of the constraints without repeats, so that each one is matched and embedded once.
@@ -90,14 +106,18 @@ function scoresOf(byTerm: ScoresByTerm, term: string): TermScores {
 }
 
 // Each strategy calls only the ports it needs: the lexical one never reaches the embedding service, and no strategy
-// does when there is no term to score.
-async function scoreTerms(terms: string[], strategy: SearchStrategy, deps: FindMenusDeps): Scored<ScoresByTerm> {
-  if (strategy === 'lexical' || terms.length === 0) return lexicalScores(terms, deps.dishText);
-  const semantic = await semanticScores(terms, deps);
-  if (strategy === 'semantic' || !semantic.ok) return semantic;
-  const lexical = await lexicalScores(terms, deps.dishText);
+// does when there is no term to score. Every strategy matches the text too, to tell the literal dishes (MF-61 design D2).
+async function scoreTerms(terms: string[], strategy: SearchStrategy, deps: FindMenusDeps): Scored<TermEvidence> {
+  if (strategy === 'lexical' || terms.length === 0) {
+    const lexical = await lexicalScores(terms, deps.dishText);
+    return lexical.ok ? ok({ scores: lexical.value, literal: lexical.value }) : lexical;
+  }
+  const [semantic, lexical] = await Promise.all([semanticScores(terms, deps), lexicalScores(terms, deps.dishText)]);
+  if (!semantic.ok) return semantic;
   if (!lexical.ok) return lexical;
-  return ok(new Map(terms.map((term) => [term, combineHybrid(scoresOf(lexical.value, term), scoresOf(semantic.value, term))])));
+  if (strategy === 'semantic') return ok({ scores: semantic.value, literal: lexical.value });
+  const hybrid = new Map(terms.map((term) => [term, combineHybrid(scoresOf(lexical.value, term), scoresOf(semantic.value, term))]));
+  return ok({ scores: hybrid, literal: lexical.value });
 }
 
 async function lexicalScores(terms: string[], dishText: DishTextSearch): Scored<ScoresByTerm> {
@@ -146,13 +166,16 @@ function toScoredMenu({ number, meals }: WeeklyMenu, scores: ScoresByConstraint)
 
 function toScoredDish(menu: number, { day, type }: Meal, { position, name }: MenuDish, scores: ScoresByConstraint): ScoredDish {
   const key = addressKey({ menu, day, meal: type, position });
-  const byConstraint = Object.fromEntries([...scores].map(([id, termScores]) => [id, scoreAt(termScores, key)]));
-  return { day, meal: type, position, name, scores: byConstraint };
+  const byConstraint: Record<string, number> = {};
+  for (const [id, termScores] of scores.scores) byConstraint[id] = scoreAt(termScores, key);
+  const literal: Record<string, boolean> = {};
+  for (const [id, termScores] of scores.literal) literal[id] = scoreAt(termScores, key) === 1;
+  return { day, meal: type, position, name, scores: byConstraint, literal };
 }
 
 function rank(menus: ScoredMenu[], units: Unit[], strategy: SearchStrategy): SearchResultDto {
   const filter = filterByHardUnits(menus, units, strategy);
-  const ranking = rankMenus(filter.kept.map((menu) => scoreMenu(menu, units)));
+  const ranking = rankMenus(filter.kept.map((menu) => scoreMenu(menu, units, strategy)));
   return toResultDto(strategy, units, ranking, filter);
 }
 
@@ -169,9 +192,10 @@ function toResultDto(
     menus: top.map(({ menu, score, units: unitScores }) => ({
       menu,
       score,
-      evidence: unitScores.map(({ evidence }, index) => ({
+      evidence: unitScores.map(({ evidence, match }, index) => ({
         constraints: units[index].members.map((member) => member.id),
         dish: evidence && toDishDto(evidence),
+        match,
       })),
     })),
     tiedWithFirst,

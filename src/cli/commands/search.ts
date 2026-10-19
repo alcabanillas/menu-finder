@@ -84,8 +84,8 @@ function menuCount(count: number): string {
 function menuLines({ menu, score, evidence }: SearchResultDto['menus'][number], index: number): string[] {
   return [
     `${index + 1}. Menu ${menu}, score ${score.toFixed(SCORE_DECIMALS)}`,
-    ...evidence.map(({ constraints, dish }) => {
-      const where = dish ? `${dish.name} (${dish.day} ${dish.meal})` : 'no dish';
+    ...evidence.map(({ constraints, dish, match }) => {
+      const where = dish ? `${dish.name} (${dish.day} ${dish.meal}), ${match}` : 'no dish';
       return `   ${constraints.join('+')}: ${where}`;
     }),
   ];

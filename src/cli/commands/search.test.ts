@@ -25,11 +25,11 @@ const RESULT: SearchResultDto = {
       menu: 3,
       score: 1,
       evidence: [
-        { constraints: ['c1'], dish: { day: 'monday', meal: 'lunch', position: 1, name: 'Pollo asado' } },
-        { constraints: ['c2'], dish: null },
+        { constraints: ['c1'], dish: { day: 'monday', meal: 'lunch', position: 1, name: 'Pollo asado' }, match: 'literal' },
+        { constraints: ['c2'], dish: { day: 'tuesday', meal: 'dinner', position: 1, name: 'Merluza en papillote' }, match: 'similar' },
       ],
     },
-    { menu: 7, score: 0.5, evidence: [{ constraints: ['c1'], dish: null }] },
+    { menu: 7, score: 0.5, evidence: [{ constraints: ['c1'], dish: null, match: 'none' }] },
   ],
   tiedWithFirst: 1,
   ranked: [
@@ -64,7 +64,7 @@ async function search(content: string | null, outcome: Outcome = ok(RESULT), str
 }
 
 describe('runSearch', () => {
-  it('prints the ranking with its evidence, the ties with the first menu and the menus each filter removes', async () => {
+  it('prints the ranking with its evidence and its kind, the ties with the first menu and the menus each filter removes', async () => {
     const { code, text, calls } = await search(JSON.stringify(STRUCTURE));
 
     expect(code).toBe(0);
@@ -73,8 +73,8 @@ describe('runSearch', () => {
       [
         'Search with the lexical strategy: 2 menus.',
         '1. Menu 3, score 1.000',
-        '   c1: Pollo asado (monday lunch)',
-        '   c2: no dish',
+        '   c1: Pollo asado (monday lunch), literal',
+        '   c2: Merluza en papillote (tuesday dinner), similar',
         '2. Menu 7, score 0.500',
         '   c1: no dish',
         'Menus tied with the first: 1',
