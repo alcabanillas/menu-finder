@@ -32,5 +32,9 @@
 
 - [x] 6.1 `pnpm typecheck` and `pnpm test:run` on the touched files; `pnpm exec eslint <touched files> --rule "import/no-cycle: off"`
 - [x] 6.2 End to end: `pnpm ingest search-text "pollo, sin cerdo"` returns no menu with a dish that names pork, and prints the filter line; `pnpm ingest search-text "sin caviar"` removes no menu
-- [ ] 6.3 `pnpm test:coverage` before the PR; ask the author about the version in `package.json`
-- [ ] 6.4 Before archiving, go through `context/safety-first.md` §4 and record the result
+- [x] 6.3 `pnpm test:coverage` before the PR; ask the author about the version in `package.json`
+- [x] 6.4 Before archiving, go through `context/safety-first.md` §4 and record the result
+
+## Security checklist (context/safety-first.md §4)
+
+- Reviewed before archiving: the change is in the search domain, the use case and the CLI output. No new endpoint, input or dependency (only the npm script `evals:exclusion-strategies`). The excluded terms come from the request already validated by `parseSearchRequest` and reach the database through the existing `DishTextSearch` adapter, whose parameterised query does not change. No secret in the diff.

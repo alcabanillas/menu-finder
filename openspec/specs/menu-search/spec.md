@@ -121,7 +121,7 @@ The `lexical` strategy SHALL NOT call the embedding service and SHALL work with 
 - **THEN** the search returns a ranking
 
 ### Requirement: Constraint units and menu score
-The constraints SHALL be grouped into units: each `sameDish` group is one unit, each `anyOf` group is one unit, and every other constraint is its own unit. The score of a dish for a constraint SHALL be its term score for an `include` constraint and one minus its term score for an `exclude` constraint; a dish whose meal does not match the constraint's `slot` SHALL score 0 for it. The score of a dish for a `sameDish` unit is the lowest score of its members; for an `anyOf` unit it is the highest. The score of a menu for a unit is the highest score among its dishes. The exception is an `exclude` constraint that is in no group, the week-wide exclusion: its unit score is `1 / (1 + n)`, where `n` is the number of dishes of the menu (of the requested slot, if any) whose term score reaches the matching threshold of the strategy (0.5 for `lexical` and `semantic`, 0.75 for `hybrid`). The score of a menu is the mean of its unit scores.
+The constraints SHALL be grouped into units: each `sameDish` group is one unit, each `anyOf` group is one unit, and every other constraint is its own unit. The score of a dish for a constraint SHALL be its term score for an `include` constraint and one minus its term score for an `exclude` constraint; a dish whose meal does not match the constraint's `slot` SHALL score 0 for it. The score of a dish for a `sameDish` unit is the lowest score of its members; for an `anyOf` unit it is the highest. The score of a menu for a unit is the highest score among its dishes. The exception is an `exclude` constraint that is in no group, the week-wide exclusion: it is a filter ("Hard constraints") and SHALL NOT count in the score. The score of a menu is the mean of its other unit scores, and 1 when every unit of the request is a week-wide exclusion.
 
 #### Scenario: Each constraint covered by a different dish
 - **WHEN** the constraints are `pollo` and `brócoli` (not grouped), and a menu has one dish with pollo and another with brócoli
@@ -140,8 +140,12 @@ The constraints SHALL be grouped into units: each `sameDish` group is one unit, 
 - **THEN** the unit scores 1
 
 #### Scenario: Week-wide exclusion
-- **WHEN** an ungrouped exclusion `cerdo` meets a menu with three dishes that contain it
-- **THEN** that unit scores 0.25
+- **WHEN** the constraints are `pollo` and the ungrouped exclusion `cerdo`, and a kept menu scores 0.7 for `pollo`
+- **THEN** the menu scores 0.7, the score of `pollo` alone
+
+#### Scenario: Only week-wide exclusions
+- **WHEN** the only constraint is the ungrouped exclusion `cerdo`
+- **THEN** every menu it keeps scores 1, so they tie and are ordered by menu number
 
 #### Scenario: Slot
 - **WHEN** a constraint has the slot `dinner` and the only matching dish is at lunch
@@ -152,7 +156,7 @@ The constraints SHALL be grouped into units: each `sameDish` group is one unit, 
 - **THEN** its score is 0.5
 
 ### Requirement: Hard constraints
-Whether a hard unit is satisfied SHALL be decided with one rule for every unit: a dish matches a term when its term score reaches the matching threshold of the strategy (0.5 for `lexical` and `semantic`, 0.75 for `hybrid`), and an `exclude` constraint is broken by a dish only when that dish matches its term, whether the constraint is alone or in a group. A unit with a `hard` constraint (any member of a group, for a group) SHALL be satisfied by a menu when: for an ungrouped `include` constraint, a dish of the menu matches its term; for a week-wide exclusion, no dish of the menu matches its term; for a `sameDish` group, one dish of the menu matches the term of every `include` member and does not match the term of any `exclude` member; for an `anyOf` group, a dish of the menu matches the term of any member. The `slot` of a constraint limits the dishes that count for it; in a `sameDish` group the slot describes the dish, so the dish must be in the slot of every member, an `exclude` member included. A menu that does not satisfy a hard unit SHALL NOT be ranked. For every hard unit, the result SHALL report how many of the 36 menus it removes on its own.
+Whether a hard unit is satisfied SHALL be decided with one rule for every unit: a dish matches a term when its term score reaches the matching threshold of the strategy (0.5 for `lexical` and `semantic`, 0.75 for `hybrid`), and an `exclude` constraint is broken by a dish only when that dish matches its term, whether the constraint is alone or in a group. A unit with a `hard` constraint (any member of a group, for a group) SHALL be satisfied by a menu when: for an ungrouped `include` constraint, a dish of the menu matches its term; for a `sameDish` group, one dish of the menu matches the term of every `include` member and does not match the term of any `exclude` member; for an `anyOf` group, a dish of the menu matches the term of any member. The `slot` of a constraint limits the dishes that count for it; in a `sameDish` group the slot describes the dish, so the dish must be in the slot of every member, an `exclude` member included. A week-wide exclusion SHALL always filter, whether `hard` or not and with every strategy: a menu is kept only when no dish of it (of the requested slot, if any) matches its term as the `lexical` strategy matches it ("Text match of a term"), whatever the strategy of the search. A menu that does not satisfy a hard unit or a week-wide exclusion SHALL NOT be ranked. For every hard unit and every week-wide exclusion, the result SHALL report how many of the 36 menus it removes on its own.
 
 #### Scenario: Hard filter removes menus
 - **WHEN** a hard constraint is satisfied by 5 of the 36 menus
@@ -167,8 +171,8 @@ Whether a hard unit is satisfied SHALL be decided with one rule for every unit: 
 - **THEN** each count is reported separately and the ranking holds only the menus that satisfy both
 
 #### Scenario: Same threshold for an exclusion alone and in a group
-- **WHEN** the strategy is `hybrid`, the menu's only arroz dish matches `arroz` and has a hybrid score of 0.3 for `pescado`, and the hard exclusion `pescado` is first alone and then in a `sameDish` group with `arroz`
-- **THEN** the menu satisfies the exclusion in both cases, because 0.3 does not reach 0.75
+- **WHEN** the strategy is `hybrid`, the menu's only arroz dish matches `arroz` and does not contain the word `pescado`, and the exclusion `pescado` is first alone and then in a hard `sameDish` group with `arroz`, with a hybrid score of 0.3 for `pescado`
+- **THEN** the menu satisfies the exclusion in both cases: alone, because no dish contains the word; in the group, because 0.3 does not reach 0.75
 
 #### Scenario: Slot of an exclusion in a group
 - **WHEN** `arroz` and the exclusion `carne` with slot `dinner` are a hard `sameDish` group ("en la cena, un arroz sin carne")
@@ -177,6 +181,22 @@ Whether a hard unit is satisfied SHALL be decided with one rule for every unit: 
 #### Scenario: Exclusion in a group broken by a matching dish
 - **WHEN** the strategy is `hybrid`, `arroz` and the exclusion `pescado` are a hard `sameDish` group, and the menu's only arroz dish has a hybrid score of 0.75 for `pescado`
 - **THEN** the menu does not satisfy the group
+
+#### Scenario: A soft week-wide exclusion filters
+- **WHEN** the ungrouped exclusion `cerdo` has `hard` false and one dish of a menu has the ingredient `magro de cerdo`
+- **THEN** that menu is not ranked, and the result reports the menus `cerdo` removes
+
+#### Scenario: A week-wide exclusion is lexical with the semantic strategy
+- **WHEN** the strategy is `semantic`, the ungrouped exclusion is `caviar`, and no dish has the word `caviar` in its name, its recipe title or an ingredient, although some dishes have a rescaled semantic score of 1 for it
+- **THEN** no menu is removed and the result reports that `caviar` removes 0
+
+#### Scenario: A week-wide exclusion every menu breaks
+- **WHEN** the ungrouped exclusion is `huevo` and every menu has a dish with the ingredient `huevo`
+- **THEN** the ranking is empty, the result reports that `huevo` removes 36 and the search does not fail
+
+#### Scenario: Slot of a week-wide exclusion
+- **WHEN** the ungrouped exclusion `pescado` has the slot `dinner`, and a menu's only dish with the word `pescado` is at lunch
+- **THEN** the menu is kept
 
 ### Requirement: Top five and ties
 A menu whose score, rounded to two decimals, is below 0.6 SHALL NOT be ranked: with two units both must count, with three two are enough. The minimum is the same for every strategy and was fixed before any golden-set result. The search SHALL return at most the five best menus, ordered by score from high to low and, for equal scores (compared to six decimals), by menu number from low to high. For every menu returned it SHALL give the menu number, the score and, for each unit, the dish that gave the best score (the first one in menu order on a tie; none when the best score is 0, because such a dish explains nothing; none for a week-wide exclusion, which no single dish satisfies). It SHALL also give the units of the request, in the order of their first constraint, each with its kind (`constraint`, `sameDish` or `anyOf`) and the ids of its constraints, and the evidence of every returned menu SHALL follow that same order, one item per unit. It SHALL also give the number of ranked menus that tie with the first one, and every ranked menu, in the same order, with its menu number and score, so that an evaluation can see the ties that go past the fifth menu.
@@ -236,7 +256,7 @@ A failure of the database or of the embedding service SHALL end the search with 
 - **THEN** the search returns an `embedding-failed` error with its reason, no ranking and no key in the text
 
 ### Requirement: Search command
-`pnpm ingest search <structure.json> [--strategy lexical|semantic|hybrid]` SHALL read the structure from the file, validate it (the file MAY be a request of the decomposer golden set: the command drops its `id`, `text` and `origin` before the search, and passes every other key on), run the search (default strategy `semantic`, the best strategy overall in `evals/search/results.md`, always over `DATABASE_URL_UNPOOLED`; `GEMINI_API_KEY` is required only with `semantic` and `hybrid`) and print the top five, the tie count and the menus each hard constraint removes. It SHALL exit with code 1 when the file is missing, is not JSON or is not a valid structure (naming the file and the field), and with code 2 and the usage when the arguments are wrong.
+`pnpm ingest search <structure.json> [--strategy lexical|semantic|hybrid]` SHALL read the structure from the file, validate it (the file MAY be a request of the decomposer golden set: the command drops its `id`, `text` and `origin` before the search, and passes every other key on), run the search (default strategy `semantic`, the best strategy overall in `evals/search/results.md`, always over `DATABASE_URL_UNPOOLED`; `GEMINI_API_KEY` is required only with `semantic` and `hybrid`) and print the top five, the tie count and the menus each filter (a hard unit or a week-wide exclusion) removes. It SHALL exit with code 1 when the file is missing, is not JSON or is not a valid structure (naming the file and the field), and with code 2 and the usage when the arguments are wrong.
 
 #### Scenario: Run a search
 - **WHEN** the command runs on a valid file with `--strategy lexical`
@@ -269,6 +289,10 @@ A failure of the database or of the embedding service SHALL end the search with 
 #### Scenario: Unknown strategy
 - **WHEN** `--strategy fuzzy-magic` is given
 - **THEN** the usage is printed and the exit code is 2
+
+#### Scenario: A week-wide exclusion is printed as a filter
+- **WHEN** the structure has the soft ungrouped exclusion `cerdo` with id `c2`, which removes 15 menus
+- **THEN** the command prints that the filter `c2` removes 15 menus
 
 ### Requirement: Search from a request
 The search SHALL also run from the text of a request: the request is decomposed with one call to the model (spec `request-decomposer`) and, when the answer is a structure with at least one constraint, the menus are searched with that structure, unchanged. The result SHALL hold the structure and the ranking together. Every outcome of the decomposer that is not a structure with constraints (a refused request, a rejection, an invalid answer, a model failure, or a structure with no constraints) SHALL end with its own outcome, with no search and no database or embedding call. A structure with no constraints SHALL be an outcome of its own, distinct from a rejection and from an invalid structure. A failure of the search SHALL end with an error and no partial ranking.
