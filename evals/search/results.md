@@ -19,22 +19,22 @@ The number of queries behind each mean is in parentheses: per type they are smal
 | Type | lexical | semantic | hybrid |
 |---|---|---|---|
 | literal | 0.8509 (n=10) | 0.9000 (n=10) | 0.9000 (n=10) |
-| exclusion | 0.5806 (n=7) | 0.3322 (n=7) | 0.6379 (n=7) |
+| exclusion | 0.6010 (n=6) | 0.6010 (n=6) | 0.6010 (n=6) |
 | attribute | 0.0000 (n=9) | 0.4418 (n=9) | 0.0000 (n=9) |
 | fuzzy | 0.0424 (n=8) | 0.6755 (n=8) | 0.0424 (n=8) |
-| combined | 0.4350 (n=9) | 0.7444 (n=9) | 0.6350 (n=9) |
-| overall | 0.3913 (n=43) | 0.6373 (n=43) | 0.4540 (n=43) |
+| combined | 0.4350 (n=9) | 0.6961 (n=9) | 0.5957 (n=9) |
+| overall | 0.3897 (n=42) | 0.6726 (n=42) | 0.4359 (n=42) |
 
 ## hit@5 by query type
 
 | Type | lexical | semantic | hybrid |
 |---|---|---|---|
 | literal | 0.9989 (n=8) | 1.0000 (n=8) | 1.0000 (n=8) |
-| exclusion | 0.9499 (n=7) | 0.4226 (n=7) | 0.9480 (n=7) |
+| exclusion | 0.9603 (n=6) | 0.9603 (n=6) | 0.9603 (n=6) |
 | attribute | 0.0000 (n=9) | 0.8889 (n=9) | 0.0000 (n=9) |
 | fuzzy | 0.1250 (n=8) | 1.0000 (n=8) | 0.1250 (n=8) |
-| combined | 0.6028 (n=9) | 0.8889 (n=9) | 0.6667 (n=9) |
-| overall | 0.5138 (n=41) | 0.8526 (n=41) | 0.5277 (n=41) |
+| combined | 0.6028 (n=9) | 0.7778 (n=9) | 0.6667 (n=9) |
+| overall | 0.5045 (n=40) | 0.9190 (n=40) | 0.5190 (n=40) |
 
 ## nDCG@5 per query
 
@@ -53,18 +53,17 @@ The number of queries behind each mean is in parentheses: per type they are smal
 | C04 | combined | 0.3392 | 0.3392 | 0.3392 |
 | C05 | combined | 0.8571 | 1.0000 | 1.0000 |
 | C06 | combined | 0.8333 | 1.0000 | 1.0000 |
-| C07 | combined | 0.6250 | 0.6578 | 0.7574 |
+| C07 | combined | 0.6250 | 0.6800 | 0.6800 |
 | C08 | combined | 0.0000 (empty) | 0.5609 | 0.0000 (empty) |
 | C10 | combined | 0.6400 | 0.8422 | 0.8422 |
-| C11 | combined | 0.0000 | 0.4538 | 0.2766 |
-| C12 | combined | 0.6200 | 0.8459 | 0.5000 |
-| E01 | exclusion | 0.7222 | 0.0000 (empty) | 0.7222 |
-| E02 | exclusion | 0.5531 | 1.0000 | 1.0000 |
-| E03 | exclusion | 0.5714 | 0.6000 | 0.5714 |
-| E04 | exclusion | 0.6200 | 0.5559 | 0.5741 |
-| E05 | exclusion | 0.4167 | 0.1696 | 0.4167 |
-| E06 | exclusion | 0.7227 | 0.0000 (empty) | 0.7227 |
-| E07 | exclusion | 0.4583 | 0.0000 (empty) | 0.4583 |
+| C11 | combined | 0.0000 (empty) | 0.3422 | 0.0000 (empty) |
+| C12 | combined | 0.6200 | 0.5000 | 0.5000 |
+| E01 | exclusion | 0.7222 | 0.7222 | 0.7222 |
+| E02 | exclusion | 0.5531 | 0.5531 | 0.5531 |
+| E03 | exclusion | 0.5714 | 0.5714 | 0.5714 |
+| E04 | exclusion | 0.6200 | 0.6200 | 0.6200 |
+| E05 | exclusion | 0.4167 | 0.4167 | 0.4167 |
+| E06 | exclusion | 0.7227 | 0.7227 | 0.7227 |
 | F01 | fuzzy | 0.0000 (empty) | 0.6918 | 0.0000 (empty) |
 | F02 | fuzzy | 0.3392 | 0.9344 | 0.3392 |
 | F03 | fuzzy | 0.0000 (empty) | 0.3082 | 0.0000 (empty) |

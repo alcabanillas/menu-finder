@@ -54,7 +54,8 @@ describe('satisfiesUnit', () => {
     const alone = request([exclude('pescado')]);
     const inGroup = request([include('arroz'), exclude('pescado')], { sameDish: [['arroz', 'pescado']] });
 
-    expect(satisfies(alone, [dish({ pescado: 0.3 })], 'hybrid')).toBe(true);
+    // A week-wide exclusion gets its lexical score, 0 or 1, with every strategy (find-menus).
+    expect(satisfies(alone, [dish({ pescado: 0 })], 'hybrid')).toBe(true);
     expect(satisfies(inGroup, [dish({ arroz: 1, pescado: 0.3 })], 'hybrid')).toBe(true);
     expect(satisfies(inGroup, [dish({ arroz: 1, pescado: 0.75 })], 'hybrid')).toBe(false);
   });
@@ -117,5 +118,28 @@ describe('filterByHardUnits', () => {
     const filter = filterByHardUnits(all, toUnits(req), 'lexical');
 
     expect(filter).toEqual({ kept: [all[0]], removedBy: [{ constraints: ['arroz', 'pollo'], menusRemoved: 1 }] });
+  });
+
+  it('filters with a week-wide exclusion that is not hard, and reports how many menus it removes', () => {
+    const all = menus(3, (menu) => [dish({ pollo: 1, cerdo: menu === 2 ? 1 : 0 })]);
+    const req = request([include('pollo', { hard: false }), exclude('cerdo', { hard: false })]);
+
+    const filter = filterByHardUnits(all, toUnits(req), 'semantic');
+
+    expect(filter.kept.map(({ menu }) => menu)).toEqual([1, 3]);
+    expect(filter.removedBy).toEqual([{ constraints: ['cerdo'], menusRemoved: 1 }]);
+  });
+
+  it('keeps no menu when every menu breaks a week-wide exclusion', () => {
+    const filter = filterByHardUnits(menus(36, () => [dish({ huevo: 1 })]), toUnits(request([exclude('huevo', { hard: false })])), 'semantic');
+
+    expect(filter).toEqual({ kept: [], removedBy: [{ constraints: ['huevo'], menusRemoved: 36 }] });
+  });
+
+  it('keeps a menu whose only dish breaking a week-wide exclusion is outside its slot', () => {
+    const all = menus(1, () => [dish({ pescado: 1 }, 'lunch')]);
+    const req = request([exclude('pescado', { hard: false, slot: 'dinner' })]);
+
+    expect(filterByHardUnits(all, toUnits(req), 'semantic').kept).toEqual(all);
   });
 });

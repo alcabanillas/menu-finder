@@ -208,8 +208,8 @@
     "text": "vegetariano",
     "origin": "llm-blind",
     "rule": {
-      "kind": "exclusion",
-      "concept": "no_vegetariano"
+      "kind": "withdrawn",
+      "reason": "no menu is vegetarian, because none is free of fish: does not discriminate (author, MF-72)"
     }
   },
   {

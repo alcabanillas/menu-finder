@@ -23,7 +23,8 @@ const CATALOG = [
 ];
 
 type FailingPort = 'list' | 'matches' | 'embed' | 'similarities';
-type FakeOptions = { fail?: FailingPort; noEmbeddings?: boolean; shortVectors?: boolean };
+/** `similarTo` makes the dishes whose name contains the given text similar to a term, without matching its text. */
+type FakeOptions = { fail?: FailingPort; noEmbeddings?: boolean; shortVectors?: boolean; similarTo?: Record<string, string> };
 
 function menu(number: number, lunch: string, dinner: string): WeeklyMenu {
   return {
@@ -56,7 +57,7 @@ function nameHas(name: string, term: string): boolean {
  * then and 0.2 otherwise, so the rescaled semantic score is 1 or 0. A query vector is the term's position in the
  * terms embedded so far, so the store can tell which term it is about.
  */
-function fakePorts({ fail, noEmbeddings = false, shortVectors = false }: FakeOptions = {}) {
+function fakePorts({ fail, noEmbeddings = false, shortVectors = false, similarTo = {} }: FakeOptions = {}) {
   const calls = { list: 0, matches: [] as string[], embedQueries: [] as string[][], similarities: 0 };
   const embedded: string[] = [];
   const dishes = catalogDishes();
@@ -83,7 +84,8 @@ function fakePorts({ fail, noEmbeddings = false, shortVectors = false }: FakeOpt
         if (fail === 'similarities') return err({ kind: 'store-failed', ...failure });
         if (noEmbeddings) return ok([]);
         const term = embedded[index];
-        return ok(dishes.map(({ address, name }) => ({ dish: address, similarity: nameHas(name, term) ? 0.9 : 0.2 })));
+        const like = similarTo[term] ?? term;
+        return ok(dishes.map(({ address, name }) => ({ dish: address, similarity: nameHas(name, like) ? 0.9 : 0.2 })));
       },
     },
     embeddings: {
@@ -145,7 +147,7 @@ describe('findMenus', () => {
     expect((await result).ok).toBe(true);
   });
 
-  it('with semantic, embeds each distinct term once and never matches text', async () => {
+  it('with semantic, embeds each distinct term once and matches text only for the week-wide exclusions', async () => {
     const raw = request([
       constraint('c1', 'pollo'),
       constraint('c2', 'pollo', { slot: 'lunch' }),
@@ -155,7 +157,43 @@ describe('findMenus', () => {
     const { result, calls } = search(raw, 'semantic');
 
     expect((await result).ok).toBe(true);
-    expect(calls).toMatchObject({ matches: [], embedQueries: [['pollo', 'cerdo']], similarities: 2 });
+    expect(calls).toMatchObject({ matches: ['cerdo'], embedQueries: [['pollo']], similarities: 1 });
+  });
+
+  it('with semantic, removes the menus whose dishes match a week-wide exclusion by text', async () => {
+    const raw = request([constraint('c1', 'lentejas'), constraint('c2', 'cerdo', { type: 'exclusion', polarity: 'exclude' })]);
+
+    const result = await search(raw, 'semantic').result;
+
+    expect(result).toMatchObject({ ok: true, value: { menus: [], removedBy: [{ constraints: ['c2'], menusRemoved: 1 }] } });
+  });
+
+  it('with semantic, keeps the menus when no dish has the excluded word, however similar a dish is to it', async () => {
+    const raw = request([constraint('c1', 'pollo'), constraint('c2', 'caviar', { type: 'exclusion', polarity: 'exclude' })]);
+
+    const result = await search(raw, 'semantic', { similarTo: { caviar: 'Merluza' } }).result;
+
+    expect(result).toMatchObject({ ok: true, value: { menus: [{ menu: 1 }, { menu: 3 }], removedBy: [{ constraints: ['c2'], menusRemoved: 0 }] } });
+  });
+
+  it('matches each distinct excluded term once', async () => {
+    const raw = request([
+      constraint('c1', 'cerdo', { type: 'exclusion', polarity: 'exclude' }),
+      constraint('c2', 'cerdo', { type: 'exclusion', polarity: 'exclude', slot: 'dinner' }),
+    ]);
+
+    const { result, calls } = search(raw, 'semantic');
+
+    expect((await result).ok).toBe(true);
+    expect(calls).toMatchObject({ matches: ['cerdo'], embedQueries: [] });
+  });
+
+  it('with semantic, ends with an error and no ranking when the text match of an exclusion fails', async () => {
+    const raw = request([constraint('c1', 'pollo'), constraint('c2', 'cerdo', { type: 'exclusion', polarity: 'exclude' })]);
+
+    const result = await search(raw, 'semantic', { fail: 'matches' }).result;
+
+    expect(result).toEqual({ ok: false, error: { kind: 'search-failed', reason: 'connection lost' } });
   });
 
   it('with hybrid, uses the text match and the embeddings', async () => {
@@ -185,7 +223,10 @@ describe('findMenus', () => {
           { menu: 1, evidence: [{ constraints: ['c1'] }, { constraints: ['c2'], dish: null }] },
           { menu: 3 },
         ],
-        removedBy: [{ constraints: ['c1'], menusRemoved: 1 }],
+        removedBy: [
+          { constraints: ['c1'], menusRemoved: 1 },
+          { constraints: ['c2'], menusRemoved: 1 },
+        ],
       },
     });
   });

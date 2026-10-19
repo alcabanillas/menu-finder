@@ -59,7 +59,7 @@ const USAGE = [
 ];
 
 const STRATEGIES: SearchStrategy[] = ['lexical', 'semantic', 'hybrid'];
-// The best strategy overall in MF-14 (evals/search/results.md): nDCG@5 0.64 against 0.45 for hybrid, which scores 0
+// The best strategy overall (evals/search/results.md, MF-72): nDCG@5 0.67 against 0.44 for hybrid, which scores 0
 // on attribute and fuzzy requests. Hybrid stays available with --strategy (decided by the author on 2026-10-12).
 const DEFAULT_STRATEGY: SearchStrategy = 'semantic';
 

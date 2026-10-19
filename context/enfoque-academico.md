@@ -20,9 +20,9 @@ El pipeline defendible:
 
 1. **Descomponer** la petición en restricciones (`["alitas de pollo", "salmón"]`). Con LLM o con un *split* sencillo — las dos se pueden comparar, y esa comparación es resultado.
 2. **Puntuar** cada restricción contra los platos e ingredientes indexados; la puntuación del menú es una agregación (suma de máximos por restricción, penalizando las no cubiertas).
-3. **Explicar**, generando texto **anclado** en lo recuperado ("Menú 4: pollo al curry el viernes, salmón al horno el jueves"). Aquí es donde entra el LLM y donde se mide *faithfulness*.
+3. **Explicar** con lo recuperado, sin LLM: una plantilla dice qué plato cubre cada restricción y en qué día ("Menú 4: pollo al curry el viernes, salmón al horno el jueves"). No puede inventar nada (MF-61, decidido por el autor el 2026-10-18).
 
-Esto es **hybrid retrieval + grounded generation**. Es legítimo llamarlo RAG, pero en la presentación hay que describirlo así, **no como RAG documental clásico**: no hay chunking, ni problema de ventana de contexto, ni escala.
+Esto es **recuperación híbrida multi-restricción**, con un LLM que traduce la petición a restricciones. No es RAG, porque no hay generación, y en la presentación hay que describirlo así: tampoco hay chunking, ni problema de ventana de contexto, ni escala.
 
 ## 2. Dónde está el peso académico
 
@@ -30,8 +30,7 @@ Con 36 menús no hay problema de escala. Si quien evalúa ve "36 registros + un 
 
 1. **Extracción estructurada, con la alternativa medida.** Menú (tabla aplanada en columnas) y recetas (tres columnas fijas) se extraen por posición desde el PDF, con 0 anomalías estructurales sobre 504 slots y 4.929 ingredientes ([T2](tareas/T2-esquema-json-ingesta.md)). Se midió la alternativa por texto con layout (pierde el 11,6 % de los ingredientes) y **se descartó el LLM en la ingesta con esa cifra** (ING-determinista). No hay ground truth independiente: el autor dio el parser por bueno tras revisarlo a mano, y es una limitación declarada. El resultado no es "extraje con IA", sino "medí dónde no hacía falta".
 2. **Evaluación comparada de recuperación:** léxica (Postgres full-text) vs. semántica vs. híbrida multi-restricción, sobre el golden dataset. **Si la léxica gana en este dataset, es un resultado válido y honesto**, no un fracaso.
-3. **Faithfulness de la explicación**, con LLM-as-judge (EVAL-estrategia).
-4. **Flujo SDD con agentes**, documentado como proceso (PROC-sdd-memoria).
+3. **Flujo SDD con agentes**, documentado como proceso (PROC-sdd-memoria).
 
 Sin (1) y (2), el proyecto es un CRUD con un embedding. Con ellos, es IA aplicada con evaluación.
 
@@ -51,7 +50,7 @@ Sin (1) y (2), el proyecto es un CRUD con un embedding. Con ellos, es IA aplicad
 - **La superficie de consulta (C9).** T1 midió el poder discriminante sobre **ingredientes literales**, y solo sobre eso. Si el buscador se queda ahí, el núcleo del sistema es un `WHERE ingrediente IN (...)` con envoltorio en lenguaje natural. Lo que lo saca de ahí es aceptar consultas por **atributo derivado** (tiempo total, fuente de proteína, alérgenos, método de cocción) y por **intención difusa**, y eso exige una capa de enriquecimiento en ingesta que está sin decidir. *Se cerró ese mismo día con BUS-superficie-consulta: se enriquecen el tiempo total, el grupo alimentario de cada ingrediente (del que salen la fuente de proteína y los grupos de exclusión) y la temporada; el método de cocción **no** se enriquece, se resuelve por texto sobre el nombre del plato y por similitud.*
 - **El vector store podría ser decorativo.** Si la capa estructurada es buena, las consultas por plato concreto, por ingrediente literal y por atributo derivado se resuelven **sin embeddings**; solo la intención difusa los necesita de verdad. Es un riesgo para la etiqueta "RAG" de todo el TFM, y hay que decidirlo a la vista, no por inercia. Por eso la comparativa léxica vs. semántica vs. híbrida deja de ser un extra y pasa a ser **la justificación arquitectónica** de si el vector store entra o no.
 
-**2026-09-21. La ingesta deja de ser riesgo y pasa a ser resultado.** El parser posicional de recetas ([T2 §4](tareas/T2-esquema-json-ingesta.md)) cierra la extracción con 100 % de líneas y 0 anomalías; el agente extractor queda como experimento. El riesgo de "demasiado simple" ya no está en la ingesta ni en la superficie de consulta (BUS-superficie-consulta la cerró): está **solo** en la comparativa de recuperación y en la evaluación (golden sets EVAL-golden-sets, juez IA-proveedor). Lo que T0, T1 y T2 dejan para la presentación no es infraestructura: es la parte de análisis del corpus (T1, con el resultado plato vs. semana) y el de ingesta (T2, con la comparativa de enfoques, la decisión sobre el LLM y el hallazgo de las 105 recetas con versiones).
+**2026-09-21. La ingesta deja de ser riesgo y pasa a ser resultado.** El parser posicional de recetas ([T2 §4](tareas/T2-esquema-json-ingesta.md)) cierra la extracción con 100 % de líneas y 0 anomalías; el agente extractor queda como experimento. El riesgo de "demasiado simple" ya no está en la ingesta ni en la superficie de consulta (BUS-superficie-consulta la cerró): está **solo** en la comparativa de recuperación y en la evaluación (golden sets, EVAL-golden-sets). Lo que T0, T1 y T2 dejan para la presentación no es infraestructura: es la parte de análisis del corpus (T1, con el resultado plato vs. semana) y el de ingesta (T2, con la comparativa de enfoques, la decisión sobre el LLM y el hallazgo de las 105 recetas con versiones).
 
 ## 4. Los casos que justifican los embeddings
 

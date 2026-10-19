@@ -64,7 +64,7 @@ async function search(content: string | null, outcome: Outcome = ok(RESULT), str
 }
 
 describe('runSearch', () => {
-  it('prints the ranking with its evidence, the ties with the first menu and the menus each hard unit removes', async () => {
+  it('prints the ranking with its evidence, the ties with the first menu and the menus each filter removes', async () => {
     const { code, text, calls } = await search(JSON.stringify(STRUCTURE));
 
     expect(code).toBe(0);
@@ -78,24 +78,24 @@ describe('runSearch', () => {
         '2. Menu 7, score 0.500',
         '   c1: no dish',
         'Menus tied with the first: 1',
-        'Hard constraint c1 removes 31 menus.',
-        'Hard constraint c3+c4 removes 2 menus.',
+        'Filter c1 removes 31 menus.',
+        'Filter c3+c4 removes 2 menus.',
       ].join('\n'),
     );
   });
 
-  it('says "menu" in the singular when a hard unit removes one menu', async () => {
+  it('says "menu" in the singular when a filter removes one menu', async () => {
     const { text } = await search(JSON.stringify(STRUCTURE), ok({ ...RESULT, removedBy: [{ constraints: ['c1'], menusRemoved: 1 }] }));
 
-    expect(text).toContain('Hard constraint c1 removes 1 menu.');
+    expect(text).toContain('Filter c1 removes 1 menu.');
   });
 
-  it('says so when no menu is left and there is no hard constraint', async () => {
+  it('says so when no menu is left and no constraint filters the menus', async () => {
     const { code, text } = await search(JSON.stringify(STRUCTURE), ok({ ...RESULT, menus: [], tiedWithFirst: 0, removedBy: [] }));
 
     expect(code).toBe(0);
     expect(text).toContain('No menu is ranked.');
-    expect(text).toContain('No hard constraint.');
+    expect(text).toContain('No constraint filters the menus.');
   });
 
   it('searches a golden-set request without its id, text and origin, and passes every other key on', async () => {

@@ -55,28 +55,27 @@ El flujo con el ejemplo *"quiero comer alitas de pollo y salmón esta semana"*:
    Menú 4:  pollo 0.79  +  salmón 0.95                 →  cubre 2 de 2  ← mejor
    Menú 17: pollo 0.30  +  salmón 0.94                 →  cubre 1 de 2
 
-4. Mostrar ranking + explicación anclada en los datos
+4. Mostrar ranking + explicación con los datos recuperados (una plantilla, sin LLM)
    "Menú 4: lleva solomillo de pollo al curry el viernes y salmón al horno el
     jueves. Menú 1 tiene pollo pero no salmón (lleva bacalao)."
 
 5. El usuario elige → ese menú y su lista de la compra pasan a ser los actuales
 ```
 
-**Sigue siendo RAG en sentido estricto** — hay retrieval (pasos 2–3) y generation anclada en lo recuperado (paso 4) — pero:
+**No es RAG en sentido estricto**: hay retrieval (pasos 2–3), pero el paso 4 no genera texto. La explicación la arma una plantilla con los datos recuperados (MF-61, decidido por el autor el 2026-10-18). Además:
 
 - El retrieval no es "top-k chunks" sino **matching multi-restricción**: cada condición se busca por separado y se combina, porque una única embedding de la frase entera premia menús con mucho pollo y nada de salmón.
-- La generación **no responde**, **explica**: el LLM no decide nada, solo redacta por qué cada candidato encaja, y eso se puede verificar (¿lo que dice está en el menú? = *faithfulness*).
+- El LLM está **antes** de la recuperación, no después: traduce la petición a restricciones (paso 1) y no decide nada sobre el resultado.
 - El vector store es un índice derivado; la verdad está en el JSON estructurado.
 
-Nombre honesto para la presentación: *"búsqueda híbrida multi-restricción sobre registros estructurados con generación anclada"*, o en corto, **hybrid retrieval + grounded generation**. Puedes decir "una variante de RAG" siempre que expliques en qué se aparta del clásico y por qué.
+Nombre honesto para la presentación: *"búsqueda híbrida multi-restricción sobre registros estructurados"*, con un LLM que interpreta la petición; en corto, **hybrid retrieval**.
 
 ### 1.4 Por qué esto no es "demasiado simple"
 
 Lo que da peso académico no es el tamaño del índice sino lo que puedes **medir**:
 
 1. **¿Cuándo aporta la búsqueda semántica frente a la léxica?** "Marisco" no aparece en ningún PDF (hay "gamba", "sepia", "mejillón"); "algo de cuchara" tampoco. Una búsqueda por texto falla; una semántica acierta. Pero "salmón" o "pollo y brócoli" los encuentran las dos, y "alitas" lo encuentra la léxica porque el plato se llama "Alitas de pollo al curry". Con el golden dataset comparas léxica vs semántica vs híbrida **por tipo de consulta** y das cifras. Si la léxica gana en tu dataset, es un resultado válido. Casos verificados en [datos.md §4](datos.md).
-2. **¿La explicación es fiel?** LLM-as-judge sobre las explicaciones: ¿inventa platos que no están? Métrica de faithfulness.
-3. **¿La extracción del PDF es correcta?** Precisión de asignación plato→día contra menús etiquetados a mano.
+2. **¿La extracción del PDF es correcta?** Precisión de asignación plato→día contra menús etiquetados a mano.
 
 Un CRUD con un embedding no mide nada. Esto sí.
 
@@ -148,7 +147,7 @@ Por qué importa para el TFM: si llamas "agente" a cada llamada al LLM, quien ev
 entrada: "arroz con pollo y garbanzos, nada de cerdo"
   ↓
 LLM con schema Zod → restricciones: "arroz con pollo" (un mismo plato), "garbanzos"
-                      exclusión global: cerdo (penalización blanda)
+                      exclusión global: cerdo (filtro léxico)
   ↓
 buscador → puntúa los 36 menús → muestra los 5 primeros
   ↓
@@ -173,14 +172,6 @@ validar: schema, 6 días (L–S), 1–2 platos por celda, platos con * presentes
 
 Cumpliría la definición, pero **no se construye**: los parsers deterministas (por posición desde el PDF) extraen menú y recetas con 0 anomalías, así que un LLM no tiene nada que corregir. Se planteó como experimento comparativo contra un ground truth y se descartó por plazo (ING-determinista). Que el problema no necesitara un agente es un resultado, no un fracaso.
 
-#### ❌ Explicador — no es agente (IA-criterio-agente)
-
-Recibe los candidatos y qué platos cubren cada restricción, y redacta por qué encajan **usando solo ese contexto**. Genera una vez; su control de calidad (faithfulness) es **externo**, lo mide el juez. Es una llamada con schema, no un bucle.
-
-#### ❌ Juez de evaluación — no es agente (IA-criterio-agente)
-
-Patrón LLM-as-judge: puntúa faithfulness y relevancia de las explicaciones, en batch, fuera de producción. Entra contexto, sale una puntuación: no hay bucle, ni decisión, ni parada. Es de otra familia de modelo que el sistema (IA-proveedor).
-
 #### ❌ Pipeline determinista (y está bien que lo sea)
 
 | Componente | Qué es |
@@ -189,12 +180,13 @@ Patrón LLM-as-judge: puntúa faithfulness y relevancia de las explicaciones, en
 | Parser de lista de la compra | Regex sobre líneas `- X: 120g` (ING-lista-compra) |
 | Embeddings | Texto → vector, por plato |
 | Ranking | Agrega, por restricción, el mejor plato de cada menú |
+| Explicación | Plantilla con los platos que cubren cada restricción (MF-61) |
 | CLI de ingesta | Recorre `data/raw/`, extrae a JSON y carga en BD (ING-cli-local) |
 
 ### 2.3 Cómo se cuenta esto en la presentación
 
-> *El sistema es un buscador en lenguaje natural sobre un catálogo estructurado: traduce la petición a restricciones, las recupera plato a plato con búsqueda híbrida y explica el ranking con los datos recuperados. Combina componentes deterministas (parsers, ranking, ingesta) con tres usos de LLM —descomponer, explicar y evaluar—, clasificados según cumplan o no la definición de agente adoptada (bucle de observación, decisión y condición de parada). Solo la cumple el agente extractor, que se conserva como experimento comparativo porque la extracción de los PDF se resolvió de forma determinista. El descomponedor, el explicador y el juez se documentan como llamadas con schema, no como agentes; la relajación automática de restricciones, que sí sería un agente, queda como línea futura con el diseño preparado. Se ha evitado deliberadamente usar un LLM donde una solución determinista es suficiente.*
+> *El sistema es un buscador en lenguaje natural sobre un catálogo estructurado: traduce la petición a restricciones, las recupera plato a plato con búsqueda híbrida y explica el ranking con los datos recuperados. Combina componentes deterministas (parsers, ranking, ingesta y la plantilla de la explicación) con un uso de LLM, descomponer la petición, clasificado según la definición de agente adoptada (bucle de observación, decisión y condición de parada). Ningún componente la cumple: el extractor la cumpliría, pero se descartó porque la extracción de los PDF se resolvió de forma determinista. El descomponedor se documenta como llamada con schema, no como agente; la relajación automática de restricciones, que sí sería un agente, queda como línea futura con el diseño preparado. Se ha evitado deliberadamente usar un LLM donde una solución determinista es suficiente.*
 
 ### 2.4 Relación con Genkit (IA-proveedor)
 
-Genkit modela esto: *flows* con schema de entrada y salida (Zod), trazas de cada paso y un runner de evals. Descomponedor y explicador son flows; los componentes deterministas, funciones normales. Queda detrás de un puerto (ADR-001). Su Developer UI es la consola de debug en local, y en producción las trazas van a Sentry (OPS-observabilidad): la app no tiene pantalla de debug.
+Genkit modela esto: *flows* con schema de entrada y salida (Zod), trazas de cada paso y un runner de evals. El descomponedor es un flow; los componentes deterministas, funciones normales. Queda detrás de un puerto (ADR-001). Su Developer UI es la consola de debug en local, y en producción las trazas van a Sentry (OPS-observabilidad): la app no tiene pantalla de debug.

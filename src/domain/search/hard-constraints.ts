@@ -8,14 +8,17 @@ import {
 } from '@/domain/search/constraint-unit';
 import type { Strategy } from '@/domain/search/term-score';
 
-/** How many menus a hard unit removes on its own; the UI chip shows it (BUS-descomponedor). */
+/** How many menus a filtering unit removes on its own; the UI chip shows it (BUS-descomponedor). */
 type RemovedMenus = { constraints: string[]; menusRemoved: number };
 
 export type HardFilter = { kept: ScoredMenu[]; removedBy: RemovedMenus[] };
 
-/** Keeps the menus that satisfy every hard unit and counts, for each hard unit, the menus it removes on its own. */
+/**
+ * Keeps the menus that satisfy every filtering unit, a hard unit or a week-wide exclusion (BUS-superficie-consulta (b)),
+ * and counts, for each one, the menus it removes on its own.
+ */
 export function filterByHardUnits(menus: ScoredMenu[], units: Unit[], strategy: Strategy): HardFilter {
-  const hardUnits = units.filter(isHard);
+  const hardUnits = units.filter(filters);
   return {
     kept: menus.filter((menu) => hardUnits.every((unit) => satisfiesUnit(unit, menu.dishes, strategy))),
     removedBy: hardUnits.map((unit) => countRemoved(unit, menus, strategy)),
@@ -32,8 +35,9 @@ export function satisfiesUnit(unit: Unit, dishes: ScoredDish[], strategy: Strate
   return dishes.some((dish) => dishSatisfies(unit, dish, strategy));
 }
 
-function isHard(unit: Unit): boolean {
-  return unit.members.some((member) => member.hard);
+// A week-wide exclusion filters whether or not it is hard.
+function filters(unit: Unit): boolean {
+  return isWeekWideExclusion(unit) || unit.members.some((member) => member.hard);
 }
 
 function countRemoved(unit: Unit, menus: ScoredMenu[], strategy: Strategy): RemovedMenus {
