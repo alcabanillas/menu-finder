@@ -84,8 +84,9 @@ function distinctTerms(constraints: Constraint[]): string[] {
   return [...new Set(constraints.map(({ term }) => term))];
 }
 
+// Every term is scored before it is looked up, so it is always in the map.
 function scoresOf(byTerm: ScoresByTerm, term: string): TermScores {
-  return byTerm.get(term) ?? new Map();
+  return byTerm.get(term) as TermScores;
 }
 
 // Each strategy calls only the ports it needs: the lexical one never reaches the embedding service, and no strategy
