@@ -3,7 +3,7 @@ import { rankMenus } from '@/domain/search/rank-menus';
 import type { MenuScore } from '@/domain/search/score-menu';
 
 function scored(menu: number, score: number): MenuScore {
-  return { menu, score, units: [{ score, evidence: null }] };
+  return { menu, score, units: [{ score, evidence: null, match: 'none' }] };
 }
 
 function order(scores: MenuScore[]): number[] {
@@ -58,8 +58,8 @@ describe('rankMenus', () => {
   });
 
   it('keeps the evidence of every unit of the menus it returns', () => {
-    const evidence = { day: 'monday', meal: 'lunch', position: 1, name: 'Pollo asado', scores: { pollo: 1 } } as const;
-    const menu: MenuScore = { menu: 1, score: 1, units: [{ score: 1, evidence }] };
+    const evidence = { day: 'monday', meal: 'lunch', position: 1, name: 'Pollo asado', scores: { pollo: 1 }, literal: { pollo: true } } as const;
+    const menu: MenuScore = { menu: 1, score: 1, units: [{ score: 1, evidence, match: 'literal' }] };
 
     expect(rankMenus([menu]).top[0].units[0].evidence).toBe(evidence);
   });

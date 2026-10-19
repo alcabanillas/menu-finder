@@ -20,6 +20,7 @@ function ranking(attempt: number, menus: number[] = [12, 3]): PlannerSearchState
   return {
     status: 'ranking',
     attempt,
+    onlyExclusions: false,
     chips: [
       { kind: 'constraint', members: [member('garbanzos')] },
       { kind: 'constraint', members: [member('cerdo', { polarity: 'exclude', type: 'exclusion' })] },
@@ -27,9 +28,10 @@ function ranking(attempt: number, menus: number[] = [12, 3]): PlannerSearchState
     cards: menus.map((menu, index) => ({
       rank: index + 1,
       menu,
+      summary: 'Cumple las 2 cosas que pides.',
       lines: [
-        { kind: 'constraint', terms: [member('garbanzos')], found: true, detail: 'Martes, comida · Garbanzos con espinacas' },
-        { kind: 'constraint', terms: [member('cerdo', { polarity: 'exclude' })], found: true, detail: 'no aparece en la semana' },
+        { kind: 'constraint', terms: [member('garbanzos')], state: 'met', detail: 'Martes, comida · Garbanzos con espinacas' },
+        { kind: 'constraint', terms: [member('cerdo', { polarity: 'exclude' })], state: 'met', detail: 'no aparece en la semana' },
       ],
     })),
   };
@@ -113,12 +115,13 @@ describe('PlannerSearch', () => {
     expect(screen.getByText('Menú 12')).toBeInTheDocument();
   });
 
-  it('says "Ningún menú encaja con lo que has pedido." under the chips when the ranking is empty', async () => {
+  it('shows the heading "Ningún menú encaja con lo que has pedido" under the chips when the ranking is empty', async () => {
     render(<Planner action={answering(ranking(1, []))} />);
 
     await search('garbanzos');
 
-    expect(await screen.findByText('Ningún menú encaja con lo que has pedido.')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 2, name: 'Ningún menú encaja con lo que has pedido' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Resultados' })).not.toBeInTheDocument();
     expect(screen.getByRole('list', { name: 'Lo que has pedido' })).toBeInTheDocument();
     expect(screen.queryByRole('article')).not.toBeInTheDocument();
   });
@@ -154,12 +157,55 @@ describe('PlannerSearch', () => {
     expect(screen.queryByText('Buscando…')).not.toBeInTheDocument();
   });
 
+  it('heads the cards with "Resultados" and the real count', async () => {
+    render(<Planner action={answering(ranking(1, [12, 3, 20]))} />);
+
+    await search('garbanzos sin cerdo');
+
+    expect(await screen.findByRole('heading', { level: 2, name: 'Resultados' })).toBeInTheDocument();
+    expect(screen.getByText('Los 3 que mejor encajan')).toBeInTheDocument();
+  });
+
+  it('says "El que mejor encaja" for one menu', async () => {
+    render(<Planner action={answering(ranking(1, [12]))} />);
+
+    await search('garbanzos sin cerdo');
+
+    expect(await screen.findByText('El que mejor encaja')).toBeInTheDocument();
+  });
+
+  it('explains the tie of a request with only week-wide exclusions, with no rank on the cards', async () => {
+    const only: PlannerSearchState = {
+      status: 'ranking',
+      attempt: 1,
+      onlyExclusions: true,
+      chips: [{ kind: 'constraint', members: [member('cerdo', { polarity: 'exclude', type: 'exclusion' })] }],
+      cards: [4, 9].map((menu) => ({
+        rank: null,
+        menu,
+        summary: null,
+        lines: [{ kind: 'constraint', terms: [member('cerdo', { polarity: 'exclude' })], state: 'met', detail: 'no aparece en la semana' }],
+      })),
+    };
+    render(<Planner action={answering(only)} />);
+
+    await search('nada de cerdo');
+
+    expect(await screen.findByText('Todos cumplen lo que pides')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Resultados' })).toBeInTheDocument();
+    expect(
+      screen.getByText('Como solo has pedido quitar cosas, todos estos menús lo cumplen por igual: salen por número de menú.'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/mejor encaja/)).not.toBeInTheDocument();
+  });
+
   it('replaces the chips and the cards of the previous search with the new ones', async () => {
     const second: PlannerSearchState = {
       status: 'ranking',
       attempt: 2,
+      onlyExclusions: false,
       chips: [{ kind: 'constraint', members: [member('lentejas')] }],
-      cards: [{ rank: 1, menu: 7, lines: [{ kind: 'constraint', terms: [member('lentejas')], found: true, detail: 'Lunes, comida · Lentejas' }] }],
+      cards: [{ rank: 1, menu: 7, summary: 'Cumple lo que pides.', lines: [{ kind: 'constraint', terms: [member('lentejas')], state: 'met', detail: 'Lunes, comida · Lentejas' }] }],
     };
     render(<Planner action={answering(ranking(1), second)} />);
 

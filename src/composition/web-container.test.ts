@@ -178,7 +178,8 @@ describe('createWebContainer searchByText', () => {
     const result = await container.searchByText('user-a', 'quiero pollo');
 
     expect(result.ok).toBe(true);
-    expect(calls).toMatchObject({ decompose: 1, embed: 1, list: 1, matches: 0 });
+    // The semantic strategy matches the text too, to tell the literal dishes (MF-61 design D2).
+    expect(calls).toMatchObject({ decompose: 1, embed: 1, list: 1, matches: 1 });
     expect(calls.hits).toEqual([expect.stringMatching(/^llm:daily:user-a:\d{4}-\d{2}-\d{2}$/)]);
     expect(events).toEqual([]);
   });

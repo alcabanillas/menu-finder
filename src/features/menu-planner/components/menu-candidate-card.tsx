@@ -4,12 +4,19 @@ import { PlannerIcon } from '@/features/menu-planner/components/planner-icon';
 import { describeChip, type CandidateCard, type EvidenceLine } from '@/features/menu-planner/search-view';
 import { Button } from '@/shared/ui/button';
 
-// Ported from the design system's `components/recipe/MenuCandidateCard.jsx` (version 1792178100-1406): the rank, the
-// number, the evidence lines and the choose button. No title or explanation (spec menu-planner). The design system colours the
-// terms of an attribute ochre; the author decided olive, the colour of `include` (MF-22.4 design D5).
+// Ported from the design system's `components/recipe/MenuCandidateCard.jsx` (version 1792433417-7fa2): the rank, "Menú N"
+// as the heading, the fixed summary, the evidence lines with their state and the choose button (MF-61 design D5). The
+// design system colours the terms of an attribute ochre; the author decided olive, the colour of `include` (MF-22.4 design D5).
 // A group that mixes include and exclude has the ochre background of its chip (`RestrictionChip.jsx`).
 const MIXED_TERMS = 'rounded-pill bg-ochre-100 px-2.5 py-0.5';
 const TERM_COLOURS = { include: 'text-include', exclude: 'text-exclude' };
+
+/** The state that starts a line: a literal dish, a similar one, or none (`MATCH` of the design system). */
+const STATES: Record<EvidenceLine['state'], { symbol: string; colour: string }> = {
+  met: { symbol: '✓', colour: 'text-olive-600' },
+  similar: { symbol: '≈', colour: 'text-ochre-700' },
+  unmet: { symbol: '✕', colour: 'text-terracotta-600' },
+};
 
 /**
  * The choose button of a card: it submits the choose form `formId` with the menu number, whatever its place in the page.
@@ -35,12 +42,17 @@ export function MenuCandidateCard({ card, choice }: { card: CandidateCard; choic
       className={`rounded-md border bg-surface-card p-5 shadow-card ${choice?.selected ? SELECTED_BORDER : PLAIN_BORDER}`}
     >
       <div className="flex items-start gap-3.5">
-        <div
-          className={`w-[26px] flex-none text-[40px] leading-[0.9] font-extrabold italic ${card.rank === 1 ? 'text-olive-500' : 'text-text-faint'}`}
-        >
-          {card.rank}
+        {card.rank !== null && (
+          <div
+            className={`w-[26px] flex-none text-[40px] leading-[0.9] font-extrabold italic ${card.rank === 1 ? 'text-olive-500' : 'text-text-faint'}`}
+          >
+            {card.rank}
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <h3 className="text-[22px] leading-[1.2] font-extrabold text-text-strong">Menú {card.menu}</h3>
+          {card.summary && <p className="mt-2 text-[15px] leading-normal text-pretty text-text-body">{card.summary}</p>}
         </div>
-        <span className="rounded-pill bg-ink px-2.5 py-0.5 text-xs font-semibold text-white">Menú {card.menu}</span>
       </div>
       <ul className="mt-4 flex list-none flex-col gap-2 border-t border-border-hairline p-0 pt-3">
         {card.lines.map((line, index) => (
@@ -99,9 +111,8 @@ function EvidenceItem({ line }: { line: EvidenceLine }) {
         data-terms
         className={`inline-flex max-w-full shrink-0 flex-wrap items-baseline gap-1 font-semibold ${mixed ? MIXED_TERMS : ''}`}
       >
-        {/* The icon has no text baseline: centred on its own, so that the terms give the baseline of the line. */}
-        <span className="flex-none self-center">
-          <PlannerIcon name={line.found ? 'check' : 'x'} size={14} strokeWidth={2.2} />
+        <span data-state={line.state} className={`w-3 flex-none text-center font-bold ${STATES[line.state].colour}`}>
+          {STATES[line.state].symbol}
         </span>
         {line.terms.map((term, index) => (
           <Fragment key={index}>

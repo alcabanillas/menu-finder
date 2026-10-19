@@ -17,7 +17,7 @@ function request(constraints: Constraint[], groups: Partial<SearchRequest> = {})
 }
 
 function dish(scores: Record<string, number>, meal: MealType = 'lunch'): ScoredDish {
-  return { day: 'monday', meal, position: 1, name: 'dish', scores };
+  return { day: 'monday', meal, position: 1, name: 'dish', scores, literal: {} };
 }
 
 function menus(count: number, dishesOf: (menu: number) => ScoredDish[]): ScoredMenu[] {

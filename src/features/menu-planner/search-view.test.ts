@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import type { SearchRequestDto } from '@/application/dto/search-request';
 import type { DailyLimitedSearchError, SearchResultDto } from '@/application/dto/search-result';
-import { describeChip, IDLE_SEARCH, toChips, toEvidenceLines, toSearchState } from '@/features/menu-planner/search-view';
+import {
+  describeChip,
+  IDLE_SEARCH,
+  summarize,
+  toChips,
+  toEvidenceLines,
+  toSearchState,
+  type EvidenceLine,
+} from '@/features/menu-planner/search-view';
 import { err, ok } from '@/shared/result';
 
 type Structure = Required<SearchRequestDto>;
@@ -54,51 +62,100 @@ describe('toEvidenceLines', () => {
     { kind: 'constraint', constraints: ['c4'] },
   ]);
 
-  it('names the day, the meal and the dish of a unit covered by a dish', () => {
+  it('names the day, the meal and the dish of a unit covered by a literal dish', () => {
     const lines = toEvidenceLines(chips, [
-      { constraints: ['c3'], dish: { day: 'tuesday', meal: 'lunch', position: 1, name: 'Garbanzos con espinacas' } },
-      { constraints: ['c2'], dish: null },
-      { constraints: ['c4'], dish: null },
+      { constraints: ['c3'], dish: { day: 'tuesday', meal: 'lunch', position: 1, name: 'Garbanzos con espinacas' }, match: 'literal' },
+      { constraints: ['c2'], dish: null, match: 'none' },
+      { constraints: ['c4'], dish: null, match: 'none' },
     ]);
 
-    expect(lines[0]).toEqual({ kind: 'constraint', terms: chips[0].members, found: true, detail: 'Martes, comida · Garbanzos con espinacas' });
+    expect(lines[0]).toEqual({ kind: 'constraint', terms: chips[0].members, state: 'met', detail: 'Martes, comida · Garbanzos con espinacas' });
   });
 
   it('says "no aparece en la semana" with a check for a week-wide exclusion', () => {
     const lines = toEvidenceLines(chips, [
-      { constraints: ['c3'], dish: null },
-      { constraints: ['c2'], dish: null },
-      { constraints: ['c4'], dish: null },
+      { constraints: ['c3'], dish: null, match: 'none' },
+      { constraints: ['c2'], dish: null, match: 'none' },
+      { constraints: ['c4'], dish: null, match: 'none' },
     ]);
 
-    expect(lines[1]).toEqual({ kind: 'constraint', terms: chips[1].members, found: true, detail: 'no aparece en la semana' });
+    expect(lines[1]).toEqual({ kind: 'constraint', terms: chips[1].members, state: 'met', detail: 'no aparece en la semana' });
   });
 
   it('says "ningún plato" with a cross for a soft constraint no dish covers', () => {
     const lines = toEvidenceLines(chips, [
-      { constraints: ['c3'], dish: null },
-      { constraints: ['c2'], dish: null },
-      { constraints: ['c4'], dish: null },
+      { constraints: ['c3'], dish: null, match: 'none' },
+      { constraints: ['c2'], dish: null, match: 'none' },
+      { constraints: ['c4'], dish: null, match: 'none' },
     ]);
 
-    expect(lines[0]).toEqual({ kind: 'constraint', terms: chips[0].members, found: false, detail: 'ningún plato' });
-    expect(lines[2]).toEqual({ kind: 'constraint', terms: chips[2].members, found: false, detail: 'ningún plato' });
+    expect(lines[0]).toEqual({ kind: 'constraint', terms: chips[0].members, state: 'unmet', detail: 'ningún plato' });
+    expect(lines[2]).toEqual({ kind: 'constraint', terms: chips[2].members, state: 'unmet', detail: 'ningún plato' });
+  });
+
+  it('says "parecido: " before the day, the meal and the dish of a unit covered by a similar dish', () => {
+    const lines = toEvidenceLines(chips, [
+      { constraints: ['c3'], dish: { day: 'thursday', meal: 'dinner', position: 1, name: 'Merluza en papillote' }, match: 'similar' },
+      { constraints: ['c2'], dish: null, match: 'none' },
+      { constraints: ['c4'], dish: null, match: 'none' },
+    ]);
+
+    expect(lines[0]).toEqual({
+      kind: 'constraint',
+      terms: chips[0].members,
+      state: 'similar',
+      detail: 'parecido: Jueves, cena · Merluza en papillote',
+    });
   });
 
   it('keeps the kind of its unit, so the card can separate the terms of a group like the chip does', () => {
     const group = toChips(structure([ARROZ, MARISCO], { sameDish: [['c1', 'c2']] }), [{ kind: 'sameDish', constraints: ['c1', 'c2'] }]);
 
-    expect(toEvidenceLines(group, [{ constraints: ['c1', 'c2'], dish: null }])[0].kind).toBe('sameDish');
+    expect(toEvidenceLines(group, [{ constraints: ['c1', 'c2'], dish: null, match: 'none' }])[0].kind).toBe('sameDish');
   });
 
   it('labels the dinner of a weekend day', () => {
     const lines = toEvidenceLines(chips, [
-      { constraints: ['c3'], dish: { day: 'sunday', meal: 'dinner', position: 1, name: 'Crema' } },
-      { constraints: ['c2'], dish: null },
-      { constraints: ['c4'], dish: null },
+      { constraints: ['c3'], dish: { day: 'sunday', meal: 'dinner', position: 1, name: 'Crema' }, match: 'literal' },
+      { constraints: ['c2'], dish: null, match: 'none' },
+      { constraints: ['c4'], dish: null, match: 'none' },
     ]);
 
     expect(lines[0].detail).toBe('Domingo, cena · Crema');
+  });
+});
+
+describe('summarize', () => {
+  function lines(...states: EvidenceLine['state'][]): EvidenceLine[] {
+    return states.map((state) => ({ kind: 'constraint', terms: [], state, detail: '' }));
+  }
+
+  it('says every unit is met, counting a similar dish', () => {
+    expect(summarize(lines('met', 'similar', 'met'))).toBe('Cumple las 3 cosas que pides, una con un plato parecido.');
+  });
+
+  it('says how many units are met when some are not', () => {
+    expect(summarize(lines('met', 'unmet', 'met'))).toBe('Cumple 2 de las 3 cosas que pides.');
+  });
+
+  it('counts the similar dishes in words', () => {
+    expect(summarize(lines('similar', 'similar', 'met'))).toBe('Cumple las 3 cosas que pides, dos con platos parecidos.');
+  });
+
+  it('writes in digits more than ten similar dishes', () => {
+    expect(summarize(lines(...Array<EvidenceLine['state']>(11).fill('similar')))).toBe(
+      'Cumple las 11 cosas que pides, 11 con platos parecidos.',
+    );
+  });
+
+  it('says "Cumple lo que pides." for one unit met', () => {
+    expect(summarize(lines('met'))).toBe('Cumple lo que pides.');
+  });
+
+  it('holds only fixed text and the counts, never a term or a dish', () => {
+    const line: EvidenceLine = { kind: 'constraint', terms: [member(POLLO)], state: 'similar', detail: 'parecido: Lunes, comida · Pavo' };
+
+    expect(summarize([line, { ...line, state: 'unmet' }])).toBe('Cumple 1 de las 2 cosas que pides, una con un plato parecido.');
   });
 });
 
@@ -160,8 +217,39 @@ describe('toSearchState', () => {
       [2, 3],
     ]);
     expect(state.cards[0].lines).toEqual([
-      { kind: 'constraint', terms: state.chips[0].members, found: false, detail: 'ningún plato' },
+      { kind: 'constraint', terms: state.chips[0].members, state: 'unmet', detail: 'ningún plato' },
     ]);
+    expect(state.cards[0].summary).toBe('Cumple 0 de las 1 cosas que pides.');
+    expect(state.onlyExclusions).toBe(false);
+  });
+
+  it('marks a request with only week-wide exclusions, and gives its cards no rank and no summary', () => {
+    const cerdo = { id: 'c3', type: 'exclusion', term: 'cerdo', polarity: 'exclude', hard: false } as const;
+
+    const state = toSearchState(ok({ structure: structure([cerdo]), result: resultWith([4, 9]) }), 1);
+
+    expect(state).toMatchObject({ status: 'ranking', onlyExclusions: true });
+    expect(state.status === 'ranking' && state.cards.map(({ rank, summary }) => [rank, summary])).toEqual([
+      [null, null],
+      [null, null],
+    ]);
+  });
+
+  it('does not mark a request with an exclusion and another constraint', () => {
+    const chips = structure([POLLO, { ...MARISCO, id: 'c2' }]);
+    const result: SearchResultDto = {
+      ...resultWith([12]),
+      units: [
+        { kind: 'constraint', constraints: ['c3'] },
+        { kind: 'constraint', constraints: ['c2'] },
+      ],
+      menus: [{ menu: 12, score: 1, evidence: [{ constraints: ['c3'], dish: null, match: 'none' }, { constraints: ['c2'], dish: null, match: 'none' }] }],
+    };
+
+    const state = toSearchState(ok({ structure: chips, result }), 1);
+
+    expect(state).toMatchObject({ status: 'ranking', onlyExclusions: false });
+    expect(state.status === 'ranking' && state.cards[0].summary).toBe('Cumple 1 de las 2 cosas que pides.');
   });
 
   it.each<[string, SearchResultDto]>([
@@ -171,7 +259,7 @@ describe('toSearchState', () => {
       'a menu has more evidence items than units',
       {
         ...resultWith([12]),
-        menus: [{ menu: 12, score: 1, evidence: [{ constraints: ['c3'], dish: null }, { constraints: ['c3'], dish: null }] }],
+        menus: [{ menu: 12, score: 1, evidence: [{ constraints: ['c3'], dish: null, match: 'none' }, { constraints: ['c3'], dish: null, match: 'none' }] }],
       },
     ],
   ])('gives the failure of the system when %s, instead of throwing', (_case, result) => {
@@ -199,7 +287,7 @@ function resultWith(menus: number[]): SearchResultDto {
   return {
     strategy: 'hybrid',
     units: [{ kind: 'constraint', constraints: ['c3'] }],
-    menus: menus.map((menu) => ({ menu, score: 1, evidence: [{ constraints: ['c3'], dish: null }] })),
+    menus: menus.map((menu) => ({ menu, score: 1, evidence: [{ constraints: ['c3'], dish: null, match: 'none' }] })),
     tiedWithFirst: menus.length,
     ranked: menus.map((menu) => ({ menu, score: 1 })),
     removedBy: [],

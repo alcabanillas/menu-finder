@@ -25,8 +25,13 @@ type MenuScoreDto = { menu: number; score: number };
 
 type RankedMenuDto = { menu: number; score: number; evidence: EvidenceDto[] };
 
-/** For each unit of the request, the dish that gave its best score; none for a week-wide exclusion. */
-type EvidenceDto = { constraints: string[]; dish: DishDto | null };
+/**
+ * For each unit of the request, the dish shown as its evidence and how it was found: a dish with the term word for
+ * word, a dish similar enough, or none, always none for a week-wide exclusion (spec menu-search, "Evidence of a unit").
+ */
+type EvidenceDto = { constraints: string[]; dish: DishDto | null; match: EvidenceMatchDto };
+
+type EvidenceMatchDto = 'literal' | 'similar' | 'none';
 
 type DishDto = { day: DayDto; meal: 'lunch' | 'dinner'; position: number; name: string };
 
