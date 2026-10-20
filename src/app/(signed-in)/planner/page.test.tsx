@@ -1,6 +1,7 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import PlannerPage from '@/app/(signed-in)/planner/page';
+import { SUGGESTIONS } from '@/features/menu-planner/suggestions';
 
 const mocks = vi.hoisted(() => ({ weeksToChoose: vi.fn() }));
 
@@ -10,6 +11,7 @@ vi.mock('@/app/_auth/require-user', () => ({
 vi.mock('@/composition/web-container', () => ({ webContainer: () => ({ weeksToChoose: mocks.weeksToChoose }) }));
 vi.mock('@/app/(signed-in)/planner/actions', () => ({
   chooseMenuAction: vi.fn(),
+  previewMenuAction: vi.fn(),
   searchMenusAction: vi.fn(),
 }));
 
@@ -77,22 +79,22 @@ describe('PlannerPage', () => {
     expect(screen.getByRole('radio', { name: /Esta semana/ })).toBeChecked();
   });
 
-  it('says the menu could not be loaded and still offers the search and the random button when the weeks fail', async () => {
+  it('says the menu could not be loaded and still offers the search and the random chip when the weeks fail', async () => {
     mocks.weeksToChoose.mockResolvedValue({ ok: false, error: { kind: 'failed' } });
     render(await PlannerPage({ searchParams: Promise.resolve({}) }));
 
     expect(screen.getByText('No se ha podido cargar tu menú.')).toBeInTheDocument();
     expect(screen.queryByRole('radio')).not.toBeInTheDocument();
     expect(screen.getByRole('textbox')).toHaveAttribute('name', 'request');
-    expect(screen.getAllByRole('button', { name: 'Elegir uno al azar' })[0]).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Al azar' })).toBeInTheDocument();
   });
 
-  it('renders the selector above the search, with the random button beside it', async () => {
+  it('renders the selector above the search, with the suggestions under it', async () => {
     mocks.weeksToChoose.mockResolvedValue(NOTHING_CHOSEN);
     render(await PlannerPage({ searchParams: Promise.resolve({}) }));
 
     const box = screen.getByRole('textbox');
-    const button = screen.getAllByRole('button', { name: 'Elegir uno al azar' })[0];
+    const button = screen.getByRole('button', { name: 'Al azar' });
     expect(box).toHaveAttribute('name', 'request');
     expect(box.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getByRole('group', { name: 'Eligiendo menú para' }).compareDocumentPosition(box) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
@@ -102,7 +104,26 @@ describe('PlannerPage', () => {
     mocks.weeksToChoose.mockResolvedValue(NOTHING_CHOSEN);
     const { container } = render(await PlannerPage({ searchParams: Promise.resolve({}) }));
 
-    expect(container.firstElementChild).toHaveClass('py-5', '@min-[640px]:py-8');
+    expect(container.firstElementChild).toHaveClass('py-5', '@min-[640px]:py-8', 'px-5', '@min-[640px]:px-8');
     expect(container.firstElementChild).not.toHaveClass('py-8');
+  });
+
+  it('is as wide as the page of the design system, 1440 px, so that the cards can have two columns, and has no centred text', async () => {
+    mocks.weeksToChoose.mockResolvedValue(NOTHING_CHOSEN);
+    const { container } = render(await PlannerPage({ searchParams: Promise.resolve({}) }));
+
+    expect(container.firstElementChild).toHaveClass('max-w-[1440px]');
+    expect(container.firstElementChild).not.toHaveClass('max-w-4xl', 'text-center');
+  });
+
+  it('offers four different suggestions of the list after "Al azar"', async () => {
+    mocks.weeksToChoose.mockResolvedValue(NOTHING_CHOSEN);
+    render(await PlannerPage({ searchParams: Promise.resolve({}) }));
+
+    const row = screen.getByText('Prueba con').parentElement as HTMLElement;
+    const requests = within(row).getAllByRole('button').map((button) => button.textContent as string).slice(1);
+    expect(requests).toHaveLength(4);
+    expect(new Set(requests).size).toBe(4);
+    for (const request of requests) expect(SUGGESTIONS).toContain(request);
   });
 });

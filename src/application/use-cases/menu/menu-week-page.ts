@@ -1,4 +1,4 @@
-import type { WeekNavigationDto, WeekStatusDto } from '@/application/dto/week-navigation';
+import type { LockedByDto, WeekNavigationDto, WeekStatusDto } from '@/application/dto/week-navigation';
 import type { Clock } from '@/application/ports/clock';
 import type { MenuRepository } from '@/application/ports/menu-repository';
 import type { RecipeRepository } from '@/application/ports/recipe-repository';
@@ -8,20 +8,25 @@ import type { WeeklyMenu } from '@/domain/menu/weekly-menu';
 import { mondayOf, type LocalDate } from '@/domain/selection/local-date';
 import type { Selection } from '@/domain/selection/selection';
 import { earliestStartsOn, neighbouringWeeks, resolveStartsOn } from '@/domain/selection/starts-on';
-import { weekDates } from '@/domain/selection/week';
+import { isLocked, mondayOfWeek, weekDates } from '@/domain/selection/week';
 import { err, ok, type Result } from '@/shared/result';
 
 /** Whose week is asked for; `startsOn` is the raw query value and is validated here, never trusted. */
 export type MenuWeekPageInput = { userId: string; startsOn: unknown };
 
-/** The week on show, its menu if any, and today's date (the dashboard's heading shows it also with no menu). */
-export type MenuWeekPage = { navigation: WeekNavigationDto; menu: MenuWeek | null; today: LocalDate };
+/**
+ * The week on show, its menu if any, whether next week's menu closes it (only this week, and only with no menu of its
+ * own), and today's date (the dashboard's heading shows it also with no menu).
+ */
+export type MenuWeekPage = {
+  navigation: WeekNavigationDto;
+  menu: MenuWeek | null;
+  lockedBy: LockedByDto | null;
+  today: LocalDate;
+};
 
 /** The menu could not be read: a fault of the system. */
 export type WeekFailure = { kind: 'failed' };
-
-/** Whose menu is asked for and which week: the user id comes from the session, `startsOn` is already validated. */
-type WeekMenuInput = { userId: string; startsOn: LocalDate };
 
 type Deps = {
   selections: SelectionRepository;
@@ -36,28 +41,34 @@ const FAILED: WeekFailure = { kind: 'failed' };
 export async function menuWeekPage(deps: Deps, input: MenuWeekPageInput): Promise<Result<MenuWeekPage, WeekFailure>> {
   const today = deps.clock.today();
   const shown = resolveStartsOn(input.startsOn, today);
-  const menu = await weekMenu(deps, { userId: input.userId, startsOn: shown });
+  const listed = await deps.selections.listFrom(input.userId, earliestStartsOn(today));
+  if (!listed.ok) return err(FAILED);
+
+  const menu = await weekMenu(deps, selectionOn(listed.value, shown));
   if (!menu.ok) return err(FAILED);
-  return ok({ navigation: navigationOf(shown, today), menu: menu.value, today });
+  const lockedBy = menu.value ? null : lockedByOf(listed.value, shown, today);
+  return ok({ navigation: navigationOf(shown, today), menu: menu.value, lockedBy, today });
 }
 
-/** The user's menu for the week that starts on `startsOn`; `null` when that week has no selection. */
-async function weekMenu(deps: Deps, input: WeekMenuInput): Promise<Result<MenuWeek | null, WeekFailure>> {
-  const selection = await selectionOn(deps, input);
-  if (!selection.ok) return err(FAILED);
-  if (!selection.value) return ok(null);
+function selectionOn(selections: Selection[], startsOn: LocalDate): Selection | null {
+  return selections.find((selection) => selection.startsOn === startsOn) ?? null;
+}
 
-  const week = await selectedWeek(deps, selection.value);
+/** The user's menu for a week, given the selection that starts on it; `null` when that week has none. */
+async function weekMenu(deps: Deps, selection: Selection | null): Promise<Result<MenuWeek | null, WeekFailure>> {
+  if (!selection) return ok(null);
+
+  const week = await selectedWeek(deps, selection);
   return week.ok ? ok(week.value) : err(FAILED);
 }
 
-async function selectionOn(
-  { selections, clock }: Deps,
-  { userId, startsOn }: WeekMenuInput,
-): Promise<Result<Selection | null, WeekFailure>> {
-  const listed = await selections.listFrom(userId, earliestStartsOn(clock.today()));
-  if (!listed.ok) return err(FAILED);
-  return ok(listed.value.find((selection) => selection.startsOn === startsOn) ?? null);
+/** The rule of Buscar: this week is closed once next week has a menu. Only this week can be closed. */
+function lockedByOf(selections: Selection[], shown: LocalDate, today: LocalDate): LockedByDto | null {
+  if (shown !== mondayOf(today) || !isLocked('current', selections, today)) return null;
+  const startsOn = mondayOfWeek(today, 'next');
+  // `isLocked` holds only when next week has a selection, so one of them is always found.
+  const { menuNumber } = selections.find((selection) => selection.startsOn === startsOn) as Selection;
+  return { menuNumber, startsOn };
 }
 
 /** The week a selection chose, laid on its dates with the recipes of its dishes. */

@@ -6,6 +6,7 @@ import {
   IDLE_SEARCH,
   summarize,
   toChips,
+  evidenceMarks,
   toEvidenceLines,
   toSearchState,
   type EvidenceLine,
@@ -69,7 +70,13 @@ describe('toEvidenceLines', () => {
       { constraints: ['c4'], dish: null, match: 'none' },
     ]);
 
-    expect(lines[0]).toEqual({ kind: 'constraint', terms: chips[0].members, state: 'met', detail: 'Martes, comida · Garbanzos con espinacas' });
+    expect(lines[0]).toEqual({
+      kind: 'constraint',
+      terms: chips[0].members,
+      state: 'met',
+      detail: 'Martes, comida · Garbanzos con espinacas',
+      dish: { day: 'tuesday', meal: 'lunch', name: 'Garbanzos con espinacas' },
+    });
   });
 
   it('says "no aparece en la semana" with a check for a week-wide exclusion', () => {
@@ -79,7 +86,7 @@ describe('toEvidenceLines', () => {
       { constraints: ['c4'], dish: null, match: 'none' },
     ]);
 
-    expect(lines[1]).toEqual({ kind: 'constraint', terms: chips[1].members, state: 'met', detail: 'no aparece en la semana' });
+    expect(lines[1]).toEqual({ kind: 'constraint', terms: chips[1].members, state: 'met', detail: 'no aparece en la semana', dish: null });
   });
 
   it('says "ningún plato" with a cross for a soft constraint no dish covers', () => {
@@ -89,8 +96,8 @@ describe('toEvidenceLines', () => {
       { constraints: ['c4'], dish: null, match: 'none' },
     ]);
 
-    expect(lines[0]).toEqual({ kind: 'constraint', terms: chips[0].members, state: 'unmet', detail: 'ningún plato' });
-    expect(lines[2]).toEqual({ kind: 'constraint', terms: chips[2].members, state: 'unmet', detail: 'ningún plato' });
+    expect(lines[0]).toEqual({ kind: 'constraint', terms: chips[0].members, state: 'unmet', detail: 'ningún plato', dish: null });
+    expect(lines[2]).toEqual({ kind: 'constraint', terms: chips[2].members, state: 'unmet', detail: 'ningún plato', dish: null });
   });
 
   it('says "parecido: " before the day, the meal and the dish of a unit covered by a similar dish', () => {
@@ -105,6 +112,7 @@ describe('toEvidenceLines', () => {
       terms: chips[0].members,
       state: 'similar',
       detail: 'parecido: Jueves, cena · Merluza en papillote',
+      dish: { day: 'thursday', meal: 'dinner', name: 'Merluza en papillote' },
     });
   });
 
@@ -127,7 +135,7 @@ describe('toEvidenceLines', () => {
 
 describe('summarize', () => {
   function lines(...states: EvidenceLine['state'][]): EvidenceLine[] {
-    return states.map((state) => ({ kind: 'constraint', terms: [], state, detail: '' }));
+    return states.map((state) => ({ kind: 'constraint', terms: [], state, detail: '', dish: null }));
   }
 
   it('says every unit is met, counting a similar dish', () => {
@@ -153,7 +161,7 @@ describe('summarize', () => {
   });
 
   it('holds only fixed text and the counts, never a term or a dish', () => {
-    const line: EvidenceLine = { kind: 'constraint', terms: [member(POLLO)], state: 'similar', detail: 'parecido: Lunes, comida · Pavo' };
+    const line: EvidenceLine = { kind: 'constraint', terms: [member(POLLO)], state: 'similar', detail: 'parecido: Lunes, comida · Pavo', dish: { day: 'monday', meal: 'lunch', name: 'Pavo' } };
 
     expect(summarize([line, { ...line, state: 'unmet' }])).toBe('Cumple 1 de las 2 cosas que pides, una con un plato parecido.');
   });
@@ -203,11 +211,11 @@ describe('toSearchState', () => {
     [{ kind: 'index-not-loaded', message: 'run embed' }, SYSTEM_FAILURE],
     [{ kind: 'invalid-request', issues: [] }, SYSTEM_FAILURE],
   ])('turns %j into a failed state with its own kind and message', (error, message) => {
-    expect(toSearchState(err(error), 3)).toEqual({ status: 'failed', kind: error.kind, message, attempt: 3 });
+    expect(toSearchState(err(error), 3, 'garbanzos')).toEqual({ status: 'failed', kind: error.kind, message, attempt: 3 });
   });
 
   it('turns a ranking into chips and cards, in ranking order', () => {
-    const state = toSearchState(ok({ structure: structure([POLLO]), result: resultWith([12, 3]) }), 1);
+    const state = toSearchState(ok({ structure: structure([POLLO]), result: resultWith([12, 3]) }), 1, 'pollo');
 
     expect(state).toMatchObject({ status: 'ranking', attempt: 1 });
     if (state.status !== 'ranking') throw new Error('expected a ranking');
@@ -217,7 +225,7 @@ describe('toSearchState', () => {
       [2, 3],
     ]);
     expect(state.cards[0].lines).toEqual([
-      { kind: 'constraint', terms: state.chips[0].members, state: 'unmet', detail: 'ningún plato' },
+      { kind: 'constraint', terms: state.chips[0].members, state: 'unmet', detail: 'ningún plato', dish: null },
     ]);
     expect(state.cards[0].summary).toBe('Cumple 0 de las 1 cosas que pides.');
     expect(state.onlyExclusions).toBe(false);
@@ -226,7 +234,7 @@ describe('toSearchState', () => {
   it('marks a request with only week-wide exclusions, and gives its cards no rank and no summary', () => {
     const cerdo = { id: 'c3', type: 'exclusion', term: 'cerdo', polarity: 'exclude', hard: false } as const;
 
-    const state = toSearchState(ok({ structure: structure([cerdo]), result: resultWith([4, 9]) }), 1);
+    const state = toSearchState(ok({ structure: structure([cerdo]), result: resultWith([4, 9]) }), 1, 'pollo');
 
     expect(state).toMatchObject({ status: 'ranking', onlyExclusions: true });
     expect(state.status === 'ranking' && state.cards.map(({ rank, summary }) => [rank, summary])).toEqual([
@@ -246,7 +254,7 @@ describe('toSearchState', () => {
       menus: [{ menu: 12, score: 1, evidence: [{ constraints: ['c3'], dish: null, match: 'none' }, { constraints: ['c2'], dish: null, match: 'none' }] }],
     };
 
-    const state = toSearchState(ok({ structure: chips, result }), 1);
+    const state = toSearchState(ok({ structure: chips, result }), 1, 'pollo');
 
     expect(state).toMatchObject({ status: 'ranking', onlyExclusions: false });
     expect(state.status === 'ranking' && state.cards[0].summary).toBe('Cumple 1 de las 2 cosas que pides.');
@@ -263,7 +271,7 @@ describe('toSearchState', () => {
       },
     ],
   ])('gives the failure of the system when %s, instead of throwing', (_case, result) => {
-    expect(toSearchState(ok({ structure: structure([POLLO]), result }), 4)).toEqual({
+    expect(toSearchState(ok({ structure: structure([POLLO]), result }), 4, 'pollo')).toEqual({
       status: 'failed',
       kind: 'search-failed',
       message: SYSTEM_FAILURE,
@@ -271,8 +279,15 @@ describe('toSearchState', () => {
     });
   });
 
+  it('keeps the request exactly as it was sent, with its spaces and accents, for "Editar mi búsqueda"', () => {
+    const request = '  cenas sin horno, con salmón  ';
+    const state = toSearchState(ok({ structure: structure([POLLO]), result: resultWith([12]) }), 1, request);
+
+    expect(state.status === 'ranking' && state.request).toBe(request);
+  });
+
   it('turns an empty ranking into a ranking state with chips and no cards', () => {
-    const state = toSearchState(ok({ structure: structure([POLLO]), result: resultWith([]) }), 2);
+    const state = toSearchState(ok({ structure: structure([POLLO]), result: resultWith([]) }), 2, 'pollo');
 
     expect(state).toMatchObject({ status: 'ranking', cards: [] });
     expect(state.status === 'ranking' && state.chips).toHaveLength(1);
@@ -293,3 +308,34 @@ function resultWith(menus: number[]): SearchResultDto {
     removedBy: [],
   };
 }
+
+describe('evidenceMarks', () => {
+  const termOf = (term: string) => ({ term, polarity: 'include' as const, type: 'literal' as const, hard: false, slot: undefined });
+  const line = (over: Partial<EvidenceLine>): EvidenceLine => ({ kind: 'constraint', terms: [member(POLLO)], state: 'met', detail: '', dish: null, ...over });
+
+  it('marks the dish of a met line ✓ and the dish of a similar line ≈, with the term, by day, meal and name', () => {
+    const marks = evidenceMarks([
+      line({ terms: [member(POLLO)], dish: { day: 'monday', meal: 'lunch', name: 'Garbanzos con espinacas' } }),
+      line({ terms: [member(LUBINA)], state: 'similar', dish: { day: 'thursday', meal: 'dinner', name: 'Merluza en papillote' } }),
+    ]);
+
+    expect(marks).toEqual([
+      { day: 'monday', meal: 'lunch', name: 'Garbanzos con espinacas', state: 'met', label: POLLO.term },
+      { day: 'thursday', meal: 'dinner', name: 'Merluza en papillote', state: 'similar', label: LUBINA.term },
+    ]);
+  });
+
+  it('joins the terms of a group with "y" for the same dish and "o" for any of', () => {
+    const dish = { day: 'monday' as const, meal: 'lunch' as const, name: 'Arroz' };
+
+    const [same] = evidenceMarks([line({ kind: 'sameDish', terms: [termOf('arroz'), termOf('verduras')], dish })]);
+    const [any] = evidenceMarks([line({ kind: 'anyOf', terms: [termOf('lubina'), termOf('dorada')], dish })]);
+
+    expect(same.label).toBe('arroz y verduras');
+    expect(any.label).toBe('lubina o dorada');
+  });
+
+  it('marks nothing for a line with no dish', () => {
+    expect(evidenceMarks([line({ state: 'unmet' }), line({ state: 'met', detail: 'no aparece en la semana' })])).toEqual([]);
+  });
+});

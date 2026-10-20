@@ -11,3 +11,6 @@ export type WeekNavigationDto = {
   /** The seven dates of the week on show, Monday to Sunday. */
   days: string[];
 };
+
+/** The menu of next week that closes this week to choices, with the Monday it starts on (`YYYY-MM-DD`). */
+export type LockedByDto = { menuNumber: number; startsOn: string };

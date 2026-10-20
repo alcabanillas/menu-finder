@@ -43,12 +43,27 @@ const PAST: WeekNavigationDto = {
   days: ['2026-09-28', '2026-09-29', '2026-09-30', '2026-10-01', '2026-10-02', '2026-10-03', '2026-10-04'],
 };
 
+const NEXT_MONDAY = '2026-10-12';
+const FUTURE: WeekNavigationDto = {
+  shown: NEXT_MONDAY,
+  current: THIS_MONDAY,
+  previous: THIS_MONDAY,
+  next: null,
+  status: 'future',
+  days: ['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15', '2026-10-16', '2026-10-17', '2026-10-18'],
+};
+const LOCKED_BY_31 = { menuNumber: 31, startsOn: NEXT_MONDAY };
+
 type Params = { startsOn?: string | string[] };
 
-/** Renders the page the way Next does: awaited props with the request's search params. */
-async function renderPage(params: Params = {}) {
+/** The page the way Next calls it: awaited props with the request's search params. */
+async function pageElement(params: Params = {}) {
   const page = MenuPage as unknown as (props: { searchParams: Promise<Params> }) => ReturnType<typeof MenuPage>;
-  render(await page({ searchParams: Promise.resolve(params) }));
+  return page({ searchParams: Promise.resolve(params) });
+}
+
+async function renderPage(params: Params = {}) {
+  render(await pageElement(params));
 }
 
 afterEach(() => {
@@ -58,7 +73,7 @@ afterEach(() => {
 describe('MenuPage', () => {
   it("shows the session user's menu of the week the use case gives", async () => {
     mocks.requireUser.mockResolvedValue(ANA);
-    mocks.menuWeekPage.mockResolvedValue({ ok: true, value: { navigation: CURRENT, menu: MENU_3 } });
+    mocks.menuWeekPage.mockResolvedValue({ ok: true, value: { navigation: CURRENT, menu: MENU_3, lockedBy: null } });
     await renderPage();
 
     expect(mocks.menuWeekPage).toHaveBeenCalledWith({ userId: 'user-1', startsOn: undefined });
@@ -69,7 +84,7 @@ describe('MenuPage', () => {
 
   it('passes the raw startsOn to the use case, which validates it', async () => {
     mocks.requireUser.mockResolvedValue(ANA);
-    mocks.menuWeekPage.mockResolvedValue({ ok: true, value: { navigation: CURRENT, menu: null } });
+    mocks.menuWeekPage.mockResolvedValue({ ok: true, value: { navigation: CURRENT, menu: null, lockedBy: null } });
     await renderPage({ startsOn: ['2026-09-28', '2026-10-05'] });
 
     expect(mocks.menuWeekPage).toHaveBeenCalledWith({ userId: 'user-1', startsOn: ['2026-09-28', '2026-10-05'] });
@@ -77,7 +92,7 @@ describe('MenuPage', () => {
 
   it('renders the week controls with the neighbouring weeks and the range', async () => {
     mocks.requireUser.mockResolvedValue(ANA);
-    mocks.menuWeekPage.mockResolvedValue({ ok: true, value: { navigation: CURRENT, menu: MENU_3 } });
+    mocks.menuWeekPage.mockResolvedValue({ ok: true, value: { navigation: CURRENT, menu: MENU_3, lockedBy: null } });
     await renderPage();
 
     expect(screen.getByRole('link', { name: 'Semana anterior' })).toHaveAttribute('href', '/menu?startsOn=2026-09-28');
@@ -87,21 +102,67 @@ describe('MenuPage', () => {
 
   it('says this week has no menu yet, and offers to search for one', async () => {
     mocks.requireUser.mockResolvedValue(ANA);
-    mocks.menuWeekPage.mockResolvedValue({ ok: true, value: { navigation: CURRENT, menu: null } });
+    mocks.menuWeekPage.mockResolvedValue({ ok: true, value: { navigation: CURRENT, menu: null, lockedBy: null } });
     await renderPage();
 
-    expect(screen.getByText('Todavía no has elegido menú para esta semana.')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Elegir menú' })).toHaveAttribute('href', '/planner?week=current');
+    expect(screen.getByRole('heading', { level: 1, name: 'Semana sin menú' })).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Esta semana aún no tiene menú');
+    expect(screen.getByRole('link', { name: 'Elegir menú para esta semana' })).toHaveAttribute(
+      'href',
+      '/planner?week=current',
+    );
   });
 
   it('says no menu was chosen for a past week, and offers no search', async () => {
     mocks.requireUser.mockResolvedValue(ANA);
-    mocks.menuWeekPage.mockResolvedValue({ ok: true, value: { navigation: PAST, menu: null } });
+    mocks.menuWeekPage.mockResolvedValue({ ok: true, value: { navigation: PAST, menu: null, lockedBy: null } });
     await renderPage({ startsOn: PAST_MONDAY });
 
-    expect(screen.getByText('No se eligió menú para esta semana.')).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Elegir menú' })).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('No se eligió menú para esta semana');
+    expect(screen.queryByRole('link', { name: /Elegir menú/ })).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Esta semana' })).toHaveAttribute('href', '/menu');
+  });
+
+  it('says this week is closed by the menu of next week, and links to it', async () => {
+    mocks.requireUser.mockResolvedValue(ANA);
+    mocks.menuWeekPage.mockResolvedValue({
+      ok: true,
+      value: { navigation: CURRENT, menu: null, lockedBy: LOCKED_BY_31 },
+    });
+    await renderPage();
+
+    expect(screen.getByRole('status')).toHaveTextContent('Esta semana no tiene menú');
+    expect(screen.getByRole('status')).toHaveTextContent('Menú 31');
+    expect(screen.getByRole('link', { name: 'Ver el menú de la semana que viene' })).toHaveAttribute(
+      'href',
+      '/menu?startsOn=2026-10-12',
+    );
+    expect(screen.queryByRole('link', { name: /Elegir menú/ })).not.toBeInTheDocument();
+  });
+
+  it('offers to choose next week when it has no menu, with the date of its Monday', async () => {
+    mocks.requireUser.mockResolvedValue(ANA);
+    mocks.menuWeekPage.mockResolvedValue({ ok: true, value: { navigation: FUTURE, menu: null, lockedBy: null } });
+    await renderPage({ startsOn: NEXT_MONDAY });
+
+    expect(screen.getByRole('status')).toHaveTextContent('La semana que viene aún no tiene menú');
+    expect(screen.getByRole('link', { name: 'Elegir menú para el 12 oct' })).toHaveAttribute(
+      'href',
+      '/planner?week=next',
+    );
+    expect(screen.queryByRole('link', { name: 'Semana siguiente' })).not.toBeInTheDocument();
+  });
+
+  it('builds the links from the dates of the server, never from the request', async () => {
+    mocks.requireUser.mockResolvedValue(ANA);
+    mocks.menuWeekPage.mockResolvedValue({
+      ok: true,
+      value: { navigation: CURRENT, menu: null, lockedBy: LOCKED_BY_31 },
+    });
+    await renderPage({ startsOn: '"><script>alert(1)</script>' });
+
+    const hrefs = screen.getAllByRole('link').map((link) => link.getAttribute('href'));
+    expect(hrefs.join(' ')).not.toContain('script');
   });
 
   it('says the menu could not be loaded, with no detail of the error', async () => {
@@ -113,6 +174,25 @@ describe('MenuPage', () => {
     expect(document.body).not.toHaveTextContent('failed');
   });
 
+  it('puts the menu, the empty week and the failure in the same centred box of the header', async () => {
+    mocks.requireUser.mockResolvedValue(ANA);
+    const boxes: (string | undefined)[] = [];
+    for (const page of [
+      { ok: true, value: { navigation: CURRENT, menu: MENU_3, lockedBy: null } },
+      { ok: true, value: { navigation: CURRENT, menu: null, lockedBy: null } },
+      { ok: false, error: { kind: 'failed' } },
+    ]) {
+      mocks.menuWeekPage.mockResolvedValue(page);
+      const { container, unmount } = render(await pageElement());
+      boxes.push(container.firstElementChild?.className);
+      unmount();
+    }
+
+    expect(new Set(boxes).size).toBe(1);
+    expect(boxes[0]).toContain('mx-auto');
+    expect(boxes[0]).toContain('@min-[800px]:max-w-[1440px]');
+  });
+
   it('reads nothing without a session: the redirect of requireUser ends it first', async () => {
     mocks.requireUser.mockRejectedValue(new Error('NEXT_REDIRECT /login'));
 
@@ -122,7 +202,7 @@ describe('MenuPage', () => {
 
   it('ignores parameters of the request naming another user or menu', async () => {
     mocks.requireUser.mockResolvedValue(ANA);
-    mocks.menuWeekPage.mockResolvedValue({ ok: true, value: { navigation: CURRENT, menu: MENU_3 } });
+    mocks.menuWeekPage.mockResolvedValue({ ok: true, value: { navigation: CURRENT, menu: MENU_3, lockedBy: null } });
     await renderPage({ userId: 'user-2', menu: '12' } as Params);
 
     expect(mocks.menuWeekPage).toHaveBeenCalledWith({ userId: 'user-1', startsOn: undefined });
@@ -131,7 +211,7 @@ describe('MenuPage', () => {
 
   it("draws no main landmark of its own: the shell has the page's only one", async () => {
     mocks.requireUser.mockResolvedValue(ANA);
-    mocks.menuWeekPage.mockResolvedValue({ ok: true, value: { navigation: CURRENT, menu: null } });
+    mocks.menuWeekPage.mockResolvedValue({ ok: true, value: { navigation: CURRENT, menu: null, lockedBy: null } });
     await renderPage();
 
     expect(screen.queryByRole('main')).not.toBeInTheDocument();

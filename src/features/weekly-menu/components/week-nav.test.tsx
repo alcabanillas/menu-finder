@@ -47,4 +47,11 @@ describe('WeekNav', () => {
     );
     expect(screen.getByRole('link', { name: 'Esta semana' })).toHaveAttribute('href', '/menu');
   });
+
+  it('offers the return to this week on next week too, where the next control is disabled', () => {
+    render(<WeekNav {...navigation({ shown: '2026-10-12', previous: '2026-10-05', next: null, status: 'future' })} />);
+
+    expect(screen.getByRole('link', { name: 'Esta semana' })).toHaveAttribute('href', '/menu');
+    expect(screen.getByText('Semana siguiente').closest('[aria-disabled]')).toHaveAttribute('aria-disabled', 'true');
+  });
 });

@@ -1,16 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { chooseMenuAction, searchMenusAction } from '@/app/(signed-in)/planner/actions';
+import { chooseMenuAction, previewMenuAction, searchMenusAction } from '@/app/(signed-in)/planner/actions';
 
 const mocks = vi.hoisted(() => ({
   requireUser: vi.fn(),
   selectRandomMenu: vi.fn(),
   chooseMenu: vi.fn(),
   searchByText: vi.fn(),
+  menuPreview: vi.fn(),
   revalidatePath: vi.fn(),
 }));
 
 vi.mock('@/app/_auth/require-user', () => ({ requireUser: mocks.requireUser }));
-vi.mock('@/composition/web-container', () => ({ webContainer: () => ({ selectRandomMenu: mocks.selectRandomMenu, chooseMenu: mocks.chooseMenu, searchByText: mocks.searchByText }) }));
+vi.mock('@/composition/web-container', () => ({ webContainer: () => ({ selectRandomMenu: mocks.selectRandomMenu, chooseMenu: mocks.chooseMenu, searchByText: mocks.searchByText, menuPreview: mocks.menuPreview }) }));
 vi.mock('next/cache', () => ({ revalidatePath: mocks.revalidatePath }));
 
 const ANA = { userId: 'user-a', name: 'Ana', email: 'ana@example.test' };
@@ -57,6 +58,14 @@ describe('searchMenusAction', () => {
     expect(mocks.searchByText).toHaveBeenCalledExactlyOnceWith('user-a', 'garbanzos');
     expect(state).toMatchObject({ status: 'ranking', attempt: 1 });
     expect(state.status === 'ranking' && state.cards.map(({ menu }) => menu)).toEqual([12]);
+  });
+
+  it('returns the request as it was sent, untrimmed, so that the page can put it back in the box', async () => {
+    mocks.searchByText.mockResolvedValue({ ok: true, value: SEARCH });
+
+    const state = await searchMenusAction(IDLE, formWith('  garbanzos  '));
+
+    expect(state.status === 'ranking' && state.request).toBe('  garbanzos  ');
   });
 
   it('returns the message of a failed search', async () => {
@@ -242,5 +251,50 @@ describe('chooseMenuAction', () => {
       expect(mocks.selectRandomMenu).not.toHaveBeenCalled();
       expect(mocks.chooseMenu).toHaveBeenCalledOnce();
     });
+  });
+});
+
+describe('previewMenuAction', () => {
+  const PREVIEW = { menuNumber: 22, days: [{ day: 'monday', lunch: ['Garbanzos'], dinner: [] }] };
+
+  it('reads the preview of the menu and returns it as ready', async () => {
+    mocks.menuPreview.mockResolvedValue({ ok: true, value: PREVIEW });
+
+    const state = await previewMenuAction(22);
+
+    expect(mocks.menuPreview).toHaveBeenCalledExactlyOnceWith({ menuNumber: 22 });
+    expect(state).toEqual({ status: 'ready', preview: PREVIEW });
+  });
+
+  it('reads nothing without a session: requireUser redirects before the value is read', async () => {
+    mocks.requireUser.mockRejectedValue(new Error('NEXT_REDIRECT /login'));
+
+    await expect(previewMenuAction(22)).rejects.toThrow('NEXT_REDIRECT /login');
+
+    expect(mocks.menuPreview).not.toHaveBeenCalled();
+  });
+
+  it.each([['invalid-menu'], ['unknown-menu']])('says the menu does not exist for %s', async (kind) => {
+    mocks.menuPreview.mockResolvedValue({ ok: false, error: { kind } });
+
+    await expect(previewMenuAction('12abc')).resolves.toEqual({ status: 'failed', message: 'Ese menú no existe.' });
+  });
+
+  it('asks to try again when reading the menu fails', async () => {
+    mocks.menuPreview.mockResolvedValue({ ok: false, error: { kind: 'failed' } });
+
+    await expect(previewMenuAction(22)).resolves.toEqual({
+      status: 'failed',
+      message: 'No se ha podido cargar la semana. Inténtalo de nuevo.',
+    });
+  });
+
+  it('passes the value on as it came, for the use case to validate', async () => {
+    mocks.menuPreview.mockResolvedValue({ ok: false, error: { kind: 'invalid-menu' } });
+    const file = new Blob(['x']);
+
+    await previewMenuAction(file);
+
+    expect(mocks.menuPreview).toHaveBeenCalledExactlyOnceWith({ menuNumber: file });
   });
 });

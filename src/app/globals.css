@@ -10,6 +10,19 @@
   --font-sans: var(--font-archivo), "Helvetica Neue", system-ui, sans-serif;
   --ease-out: cubic-bezier(.2, .7, .2, 1);
   --ease-in-out: cubic-bezier(.45, 0, .25, 1);
+  /* The week preview of Buscar on a phone: the sheet slides up and its backdrop fades in (MF-73). */
+  --animate-sheet-in: sheet-in var(--dur-slow) var(--ease-out);
+  --animate-backdrop-in: backdrop-in var(--dur-slow) var(--ease-out);
+  @keyframes sheet-in {
+    from {
+      transform: translateY(100%);
+    }
+  }
+  @keyframes backdrop-in {
+    from {
+      opacity: 0;
+    }
+  }
 }
 
 :root {

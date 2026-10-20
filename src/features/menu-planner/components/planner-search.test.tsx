@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { WeeksToChooseDto } from '@/application/dto/weeks-to-choose';
 import type { ChoiceState } from '@/features/menu-planner/choice-view';
+import type { PreviewState } from '@/features/menu-planner/preview-view';
 import { PlannerSearch } from '@/features/menu-planner/components/planner-search';
 import type { ChipMember, PlannerSearchState } from '@/features/menu-planner/search-view';
 
@@ -16,10 +17,11 @@ function member(term: string, overrides: Partial<ChipMember> = {}): ChipMember {
   return { term, polarity: 'include', type: 'literal', hard: false, slot: undefined, ...overrides };
 }
 
-function ranking(attempt: number, menus: number[] = [12, 3]): PlannerSearchState {
+function ranking(attempt: number, menus: number[] = [12, 3], request = 'garbanzos sin cerdo'): PlannerSearchState {
   return {
     status: 'ranking',
     attempt,
+    request,
     onlyExclusions: false,
     chips: [
       { kind: 'constraint', members: [member('garbanzos')] },
@@ -30,8 +32,14 @@ function ranking(attempt: number, menus: number[] = [12, 3]): PlannerSearchState
       menu,
       summary: 'Cumple las 2 cosas que pides.',
       lines: [
-        { kind: 'constraint', terms: [member('garbanzos')], state: 'met', detail: 'Martes, comida · Garbanzos con espinacas' },
-        { kind: 'constraint', terms: [member('cerdo', { polarity: 'exclude' })], state: 'met', detail: 'no aparece en la semana' },
+        {
+          kind: 'constraint',
+          terms: [member('garbanzos')],
+          state: 'met',
+          detail: 'Martes, comida · Garbanzos con espinacas',
+          dish: { day: 'tuesday', meal: 'lunch', name: 'Garbanzos con espinacas' },
+        },
+        { kind: 'constraint', terms: [member('cerdo', { polarity: 'exclude' })], state: 'met', detail: 'no aparece en la semana', dish: null },
       ],
     })),
   };
@@ -52,8 +60,39 @@ function choosing(...states: ChoiceState[]) {
 
 type PlannerProps = Partial<Parameters<typeof PlannerSearch>[0]>;
 
-function Planner({ action = answering(), chooseAction = choosing(), weeks = EMPTY_WEEKS, initialWeek }: PlannerProps) {
-  return <PlannerSearch action={action} chooseAction={chooseAction} weeks={weeks} initialWeek={initialWeek} />;
+const SUGGESTIONS = ['de cuchara', 'algo fresquito', 'cenas rápidas', 'sin cerdo'];
+
+function previewing() {
+  return vi.fn(async (menu: number): Promise<PreviewState> => ({
+    status: 'ready',
+    preview: {
+      menuNumber: menu,
+      days: [
+        { day: 'monday', lunch: ['Lentejas'], dinner: [] },
+        { day: 'tuesday', lunch: ['Garbanzos con espinacas'], dinner: ['Crema'] },
+      ],
+    },
+  }));
+}
+
+function Planner({
+  action = answering(),
+  chooseAction = choosing(),
+  previewAction = previewing(),
+  weeks = EMPTY_WEEKS,
+  initialWeek,
+  suggestions = SUGGESTIONS,
+}: PlannerProps) {
+  return (
+    <PlannerSearch
+      action={action}
+      chooseAction={chooseAction}
+      previewAction={previewAction}
+      weeks={weeks}
+      initialWeek={initialWeek}
+      suggestions={suggestions}
+    />
+  );
 }
 
 function answering(...states: PlannerSearchState[]) {
@@ -104,6 +143,55 @@ describe('PlannerSearch', () => {
     expect(window.location.search).toBe('');
   });
 
+  describe('the suggestions "Prueba con"', () => {
+    it('shows "Prueba con", "Al azar" first and the four requests, before any search', () => {
+      render(<Planner />);
+
+      expect(screen.getByText('Prueba con')).toBeInTheDocument();
+      const row = screen.getByText('Prueba con').parentElement as HTMLElement;
+      const buttons = within(row).getAllByRole('button').map((button) => button.textContent);
+      expect(buttons).toEqual(['Al azar', ...SUGGESTIONS]);
+    });
+
+    it('posts a suggestion as the request of its own form, not of the search form', async () => {
+      const action = answering(ranking(1));
+      render(<Planner action={action} />);
+      const chip = screen.getByRole('button', { name: 'de cuchara' });
+
+      expect(chip).toHaveAttribute('type', 'submit');
+      expect(chip).toHaveAttribute('name', 'request');
+      expect(chip).toHaveAttribute('value', 'de cuchara');
+      expect((chip as HTMLButtonElement).form).not.toBe(screen.getByRole('textbox').closest('form'));
+      await act(async () => {
+        fireEvent.click(chip);
+      });
+
+      expect(action).toHaveBeenCalledOnce();
+      expect(action.mock.calls[0][1].get('request')).toBe('de cuchara');
+      expect(await screen.findByRole('list', { name: 'Lo que has pedido' })).toBeInTheDocument();
+    });
+
+    it('is no longer shown, with "Al azar", once a search returns menus', async () => {
+      render(<Planner action={answering(ranking(1))} />);
+
+      await search('garbanzos');
+
+      await screen.findByRole('list', { name: 'Lo que has pedido' });
+      expect(screen.queryByText('Prueba con')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Al azar' })).not.toBeInTheDocument();
+    });
+
+    it('stays after a search that failed, so that the user can still try one', async () => {
+      const failed: PlannerSearchState = { status: 'failed', kind: 'search-failed', message: 'No se ha podido buscar. Inténtalo de nuevo.', attempt: 1 };
+      render(<Planner action={answering(failed)} />);
+
+      await search('garbanzos');
+
+      expect(await screen.findByRole('alert')).toBeInTheDocument();
+      expect(screen.getByText('Prueba con')).toBeInTheDocument();
+    });
+  });
+
   it('shows the chips and the cards of a ranking', async () => {
     render(<Planner action={answering(ranking(1))} />);
 
@@ -113,6 +201,202 @@ describe('PlannerSearch', () => {
     expect(chips).toHaveLength(2);
     expect(screen.getAllByRole('article')).toHaveLength(2);
     expect(screen.getByText('Menú 12')).toBeInTheDocument();
+  });
+
+  describe('the week preview', () => {
+    const CHOSEN_CURRENT: ChoiceState = {
+      status: 'chosen',
+      menu: 12,
+      week: 'current',
+      message: 'Menú 12 para la semana del 5 oct.',
+      weekHref: '/menu?startsOn=2026-10-05',
+      attempt: 1,
+    };
+    const THIS_WEEK_CHOSEN: WeeksToChooseDto = {
+      current: { ...EMPTY_WEEKS.current, menuNumber: 14 },
+      next: EMPTY_WEEKS.next,
+      suggested: 'next',
+    };
+
+    async function openPreview(props: PlannerProps = {}, menu = 12) {
+      render(<Planner action={answering(ranking(1))} {...props} />);
+      await search('garbanzos sin cerdo');
+      await act(async () => {
+        fireEvent.click(await screen.findByRole('button', { name: `Ver semana del Menú ${menu}` }));
+      });
+      return screen.findByRole('dialog', { name: `Menú ${menu}` });
+    }
+
+    it('opens the week of a card without leaving the results, and reads the menu of the card', async () => {
+      const previewAction = previewing();
+
+      const dialog = await openPreview({ previewAction });
+
+      expect(within(dialog).getByText('Candidato #1')).toBeInTheDocument();
+      expect(await within(dialog).findByText('Lentejas')).toBeInTheDocument();
+      expect(previewAction).toHaveBeenCalledExactlyOnceWith(12);
+      expect(screen.getAllByRole('article')).toHaveLength(2);
+      expect(screen.getByRole('list', { name: 'Lo que has pedido' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Ver semana del Menú 12' })).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    it('marks the dish that is the evidence of a unit', async () => {
+      const dialog = await openPreview();
+
+      await within(dialog).findByText('Lentejas');
+      expect(dialog.querySelector('[data-mark]')).toHaveTextContent('✓ garbanzos');
+    });
+
+    it('chooses the menu from its footer for the selected week', async () => {
+      const chooseAction = choosing(CHOSEN_CURRENT);
+      const dialog = await openPreview({ chooseAction });
+
+      await act(async () => {
+        fireEvent.click(within(dialog).getByRole('button', { name: 'Elegir para el 5 oct (Menú 12)' }));
+      });
+
+      expect(chooseAction).toHaveBeenCalledOnce();
+      expect(chooseAction.mock.calls[0][1].get('menu')).toBe('12');
+      expect(chooseAction.mock.calls[0][1].get('week')).toBe('current');
+    });
+
+    it('asks in the footer, and not in the card, before replacing the menu of the week', async () => {
+      const dialog = await openPreview({ weeks: THIS_WEEK_CHOSEN });
+      fireEvent.click(screen.getByRole('radio', { name: /Esta semana/ }));
+
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Cambiar el menú del 5 oct (Menú 12)' }));
+
+      expect(within(dialog).getByRole('group', { name: 'Confirmar cambio' })).toHaveTextContent(
+        '¿Cambiar el Menú 14 por el Menú 12 en la semana del 5 oct?',
+      );
+      expect(within(screen.getAllByRole('article')[0]).queryByRole('group', { name: 'Confirmar cambio' })).not.toBeInTheDocument();
+    });
+
+    it('closes with Escape and gives the focus back to the button of the card', async () => {
+      await openPreview();
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+      expect(screen.getByRole('button', { name: 'Ver semana del Menú 12' })).toHaveFocus();
+    });
+
+    it('closes when a new search is sent', async () => {
+      render(<Planner action={answering(ranking(1), ranking(2))} />);
+      await search('garbanzos');
+      await act(async () => {
+        fireEvent.click(await screen.findByRole('button', { name: 'Ver semana del Menú 12' }));
+      });
+      await screen.findByRole('dialog');
+
+      await search('lentejas');
+
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    });
+
+    it('says "Vista previa" in the preview of a card with no rank', async () => {
+      const base = ranking(1) as Extract<PlannerSearchState, { status: 'ranking' }>;
+      const unranked: PlannerSearchState = { ...base, onlyExclusions: true, cards: base.cards.map((card) => ({ ...card, rank: null, summary: null })) };
+      render(<Planner action={answering(unranked)} />);
+      await search('nada de cerdo');
+      await act(async () => {
+        fireEvent.click((await screen.findAllByRole('button', { name: /Ver semana del Menú/ }))[0]);
+      });
+
+      expect(await screen.findByText('Vista previa')).toBeInTheDocument();
+    });
+  });
+
+  describe('the layout of the results', () => {
+    it('puts "Lo que has pedido" in a strip above the results, not in a side column', async () => {
+      const { container } = render(<Planner action={answering(ranking(1))} />);
+
+      await search('garbanzos sin cerdo');
+
+      const chips = await screen.findByRole('list', { name: 'Lo que has pedido' });
+      const heading = screen.getByRole('heading', { name: 'Resultados' });
+      expect(chips.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(container.innerHTML).not.toContain('300px');
+      expect(screen.getByText('Lo que has pedido', { selector: 'p' })).toBeInTheDocument();
+    });
+
+    it('lays the cards in one column and, from a 1100 px container, in two', async () => {
+      render(<Planner action={answering(ranking(1))} />);
+
+      await search('garbanzos sin cerdo');
+
+      const [first] = await screen.findAllByRole('article');
+      const grid = first.parentElement as HTMLElement;
+      expect(grid).toHaveClass('grid', 'grid-cols-1', '@min-[1100px]:grid-cols-2', 'items-start');
+      expect(within(grid).getAllByRole('article').map((card) => card.textContent?.includes('Menú 12'))).toEqual([true, false]);
+    });
+  });
+
+  describe('a search with no menu', () => {
+    const NO_MENU = () => answering(ranking(1, [], '  cenas sin horno  '));
+
+    it('says what to do, offers "Editar mi búsqueda" and the suggestions, "Al azar" first', async () => {
+      render(<Planner action={NO_MENU()} />);
+
+      await search('  cenas sin horno  ');
+
+      expect(await screen.findByText('Quita alguna condición o dila de otra forma.')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Editar mi búsqueda' })).toBeInTheDocument();
+      expect(screen.getByText(/Suele funcionar mejor decirlo corto/)).toBeInTheDocument();
+      const label = screen.getByText('O prueba con algo que suele funcionar');
+      const buttons = within(label.parentElement as HTMLElement).getAllByRole('button').map((button) => button.textContent);
+      expect(buttons).toEqual(['Al azar', ...SUGGESTIONS]);
+    });
+
+    it('puts the request back in the box as it was written, focuses it with the caret at the end and sends nothing', async () => {
+      const action = NO_MENU();
+      render(<Planner action={action} />);
+      await search('  cenas sin horno  ');
+
+      fireEvent.click(await screen.findByRole('button', { name: 'Editar mi búsqueda' }));
+
+      const box = screen.getByRole('textbox') as HTMLInputElement;
+      expect(box.value).toBe('  cenas sin horno  ');
+      expect(box).toHaveFocus();
+      expect(box.selectionStart).toBe(box.value.length);
+      expect(box.selectionEnd).toBe(box.value.length);
+      expect(action).toHaveBeenCalledOnce();
+    });
+
+    it('gives the same text the second time', async () => {
+      render(<Planner action={NO_MENU()} />);
+      await search('  cenas sin horno  ');
+      const edit = await screen.findByRole('button', { name: 'Editar mi búsqueda' });
+
+      fireEvent.click(edit);
+      fireEvent.click(edit);
+
+      expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('  cenas sin horno  ');
+    });
+
+    it('does not show "Editar mi búsqueda" when there is no last request', async () => {
+      render(<Planner action={answering(ranking(1, [], ''))} />);
+
+      await search('x');
+
+      await screen.findByText('Quita alguna condición o dila de otra forma.');
+      expect(screen.queryByRole('button', { name: 'Editar mi búsqueda' })).not.toBeInTheDocument();
+    });
+
+    it('runs the search of a suggestion of the panel', async () => {
+      const action = answering(ranking(1, [], 'x'), ranking(2));
+      render(<Planner action={action} />);
+      await search('x');
+      const label = await screen.findByText('O prueba con algo que suele funcionar');
+
+      await act(async () => {
+        fireEvent.click(within(label.parentElement as HTMLElement).getByRole('button', { name: 'sin cerdo' }));
+      });
+
+      expect(action).toHaveBeenCalledTimes(2);
+      expect(action.mock.calls[1][1].get('request')).toBe('sin cerdo');
+      expect(await screen.findAllByRole('article')).toHaveLength(2);
+    });
   });
 
   it('shows the heading "Ningún menú encaja con lo que has pedido" under the chips when the ranking is empty', async () => {
@@ -178,13 +462,14 @@ describe('PlannerSearch', () => {
     const only: PlannerSearchState = {
       status: 'ranking',
       attempt: 1,
+      request: 'nada de cerdo',
       onlyExclusions: true,
       chips: [{ kind: 'constraint', members: [member('cerdo', { polarity: 'exclude', type: 'exclusion' })] }],
       cards: [4, 9].map((menu) => ({
         rank: null,
         menu,
         summary: null,
-        lines: [{ kind: 'constraint', terms: [member('cerdo', { polarity: 'exclude' })], state: 'met', detail: 'no aparece en la semana' }],
+        lines: [{ kind: 'constraint', terms: [member('cerdo', { polarity: 'exclude' })], state: 'met', detail: 'no aparece en la semana', dish: null }],
       })),
     };
     render(<Planner action={answering(only)} />);
@@ -203,9 +488,10 @@ describe('PlannerSearch', () => {
     const second: PlannerSearchState = {
       status: 'ranking',
       attempt: 2,
+      request: 'lentejas',
       onlyExclusions: false,
       chips: [{ kind: 'constraint', members: [member('lentejas')] }],
-      cards: [{ rank: 1, menu: 7, summary: 'Cumple lo que pides.', lines: [{ kind: 'constraint', terms: [member('lentejas')], state: 'met', detail: 'Lunes, comida · Lentejas' }] }],
+      cards: [{ rank: 1, menu: 7, summary: 'Cumple lo que pides.', lines: [{ kind: 'constraint', terms: [member('lentejas')], state: 'met', detail: 'Lunes, comida · Lentejas', dish: null }] }],
     };
     render(<Planner action={answering(ranking(1), second)} />);
 
@@ -444,23 +730,22 @@ describe('PlannerSearch', () => {
       expect(screen.getByRole('radio', { name: /La que viene/ })).toBeChecked();
     });
 
-    describe('the random button', () => {
-      const randomButtons = () => screen.getAllByRole('button', { name: 'Elegir uno al azar' });
+    describe('the "Al azar" chip', () => {
+      const randomButtons = () => screen.getAllByRole('button', { name: 'Al azar' });
 
-      it('is a secondary button with a dice, once for a phone and once for a desktop, joined to the choose form', () => {
+      it('is one chip with a dice and an ink border, joined to the choose form, and there is no loose random button', () => {
         render(<Planner />);
 
-        expect(randomButtons()).toHaveLength(2);
+        expect(randomButtons()).toHaveLength(1);
         const form = (screen.getAllByRole('radio')[0] as HTMLInputElement).form;
-        for (const button of randomButtons()) {
-          expect(button).toHaveAttribute('type', 'submit');
-          expect(button).toHaveAttribute('name', 'random');
-          expect(button).toHaveAttribute('value', '1');
-          expect((button as HTMLButtonElement).form).toBe(form);
-          expect(button).toHaveClass('border-border-ink');
-          expect(button.querySelector('svg[data-icon="dices"]')).toBeInTheDocument();
-        }
-        expect(screen.queryByRole('button', { name: 'Elegir un menú al azar' })).not.toBeInTheDocument();
+        const [chip] = randomButtons();
+        expect(chip).toHaveAttribute('type', 'submit');
+        expect(chip).toHaveAttribute('name', 'random');
+        expect(chip).toHaveAttribute('value', '1');
+        expect((chip as HTMLButtonElement).form).toBe(form);
+        expect(chip).toHaveClass('border-border-ink');
+        expect(chip.querySelector('svg[data-icon="dices"]')).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /Elegir uno al azar/ })).not.toBeInTheDocument();
       });
 
       it('sits outside the search form, so that it never sends a search', () => {

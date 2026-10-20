@@ -4,11 +4,10 @@ import { PlannerIcon } from '@/features/menu-planner/components/planner-icon';
 import { describeChip, type CandidateCard, type EvidenceLine } from '@/features/menu-planner/search-view';
 import { Button } from '@/shared/ui/button';
 
-// Ported from the design system's `components/recipe/MenuCandidateCard.jsx` (version 1792433417-7fa2): the rank, "Menú N"
+// Ported from the design system's `components/recipe/MenuCandidateCard.jsx` (version 1792443153-9554): the rank, "Menú N"
 // as the heading, the fixed summary, the evidence lines with their state and the choose button (MF-61 design D5). The
 // design system colours the terms of an attribute ochre; the author decided olive, the colour of `include` (MF-22.4 design D5).
-// A group that mixes include and exclude has the ochre background of its chip (`RestrictionChip.jsx`).
-const MIXED_TERMS = 'rounded-pill bg-ochre-100 px-2.5 py-0.5';
+// The terms are on the white of the card, a mixed group included: each keeps the colour of its polarity (version 1792443153-9554).
 const TERM_COLOURS = { include: 'text-include', exclude: 'text-exclude' };
 
 /** The state that starts a line: a literal dish, a similar one, or none (`MATCH` of the design system). */
@@ -35,8 +34,17 @@ export type CardChoice = {
 const PLAIN_BORDER = 'border-border-hairline';
 const SELECTED_BORDER = 'border-olive-500 outline outline-olive-500';
 
+type MenuCandidateCardProps = {
+  card: CandidateCard;
+  choice?: CardChoice;
+  /** Opens the week preview of this menu; it gets the button, so that the focus can come back to it. */
+  onViewWeek?: (trigger: HTMLButtonElement) => void;
+  /** The preview of this menu is open. */
+  viewing?: boolean;
+};
+
 /** A menu of the ranking: how well it answers each unit of the request, and, with the weeks, a button to choose it. */
-export function MenuCandidateCard({ card, choice }: { card: CandidateCard; choice?: CardChoice }) {
+export function MenuCandidateCard({ card, choice, onViewWeek, viewing = false }: MenuCandidateCardProps) {
   return (
     <article
       className={`rounded-md border bg-surface-card p-5 shadow-card ${choice?.selected ? SELECTED_BORDER : PLAIN_BORDER}`}
@@ -59,12 +67,50 @@ export function MenuCandidateCard({ card, choice }: { card: CandidateCard; choic
           <EvidenceItem key={index} line={line} />
         ))}
       </ul>
-      {choice && <ChooseButton menu={card.menu} choice={choice} />}
+      <Actions card={card} choice={choice} onViewWeek={onViewWeek} viewing={viewing} />
     </article>
   );
 }
 
-function ChooseButton({ menu, choice }: { menu: number; choice: CardChoice }) {
+// The question of a replacement is asked here, or in the footer of the preview while it is open (MF-73 design D4).
+function Actions({ card, choice, onViewWeek, viewing }: Pick<MenuCandidateCardProps, 'card' | 'choice' | 'onViewWeek'> & { viewing: boolean }) {
+  if (!choice && !onViewWeek) return null;
+  if (choice?.replacing?.open && !viewing) return <ChooseControls menu={card.menu} choice={choice} className="mt-4" />;
+  return (
+    <div className="mt-4 flex flex-wrap gap-2">
+      {choice && <ChooseControls menu={card.menu} choice={withoutQuestion(choice)} />}
+      {onViewWeek && <ViewWeekButton menu={card.menu} onViewWeek={onViewWeek} viewing={viewing} />}
+    </div>
+  );
+}
+
+// While the preview is open the question is asked in its footer, so the card keeps its button and asks nothing.
+function withoutQuestion(choice: CardChoice): CardChoice {
+  return choice.replacing ? { ...choice, replacing: { ...choice.replacing, open: false } } : choice;
+}
+
+function ViewWeekButton({ menu, onViewWeek, viewing }: { menu: number; onViewWeek: (trigger: HTMLButtonElement) => void; viewing: boolean }) {
+  return (
+    <Button
+      size="sm"
+      variant="secondary"
+      aria-haspopup="dialog"
+      aria-expanded={viewing}
+      aria-label={`Ver semana del Menú ${menu}`}
+      onClick={(event) => onViewWeek(event.currentTarget)}
+      className={viewing ? 'border-olive-600 bg-olive-50 text-olive-700 hover:enabled:bg-olive-50' : undefined}
+    >
+      <PlannerIcon name="calendar-days" size={16} />
+      Ver semana
+    </Button>
+  );
+}
+
+/**
+ * The choose button of a card, or the question that comes first when it replaces the menu of the week. The card and the
+ * footer of the week preview both use it, so that the rules of the week are written once.
+ */
+export function ChooseControls({ menu, choice, className, fullWidth = false }: { menu: number; choice: CardChoice; className?: string; fullWidth?: boolean }) {
   const { replacing } = choice;
   if (replacing?.open) {
     return (
@@ -73,34 +119,32 @@ function ChooseButton({ menu, choice }: { menu: number; choice: CardChoice }) {
         formId={choice.formId}
         field={{ name: 'menu', value: menu }}
         onCancel={replacing.onCancel}
-        className="mt-4"
+        className={className}
       />
     );
   }
   return (
-    <div className="mt-4 flex flex-wrap gap-2">
-      <Button
-        type="submit"
-        size="sm"
-        name="menu"
-        value={menu}
-        form={choice.formId}
-        variant={choice.selected ? 'primary' : choice.variant}
-        disabled={choice.selected || choice.disabled}
-        // With JavaScript the question comes first; without it the button posts, as it always did.
-        onClick={replacing && !choice.selected ? (event) => { event.preventDefault(); replacing.onAsk(); } : undefined}
-        // The visible text first, then the menu, so that "Elegir para el 12 oct" says which card it belongs to.
-        aria-label={`${choice.label} (Menú ${menu})`}
-      >
-        {choice.selected && <PlannerIcon name="check" size={17} strokeWidth={2.2} />}
-        {choice.label}
-      </Button>
-    </div>
+    <Button
+      fullWidth={fullWidth}
+      type="submit"
+      size="sm"
+      name="menu"
+      value={menu}
+      form={choice.formId}
+      variant={choice.selected ? 'primary' : choice.variant}
+      disabled={choice.selected || choice.disabled}
+      // With JavaScript the question comes first; without it the button posts, as it always did.
+      onClick={replacing && !choice.selected ? (event) => { event.preventDefault(); replacing.onAsk(); } : undefined}
+      // The visible text first, then the menu, so that "Elegir para el 12 oct" says which card it belongs to.
+      aria-label={`${choice.label} (Menú ${menu})`}
+    >
+      {choice.selected && <PlannerIcon name="check" size={17} strokeWidth={2.2} />}
+      {choice.label}
+    </Button>
   );
 }
 
 function EvidenceItem({ line }: { line: EvidenceLine }) {
-  const mixed = new Set(line.terms.map(({ polarity }) => polarity)).size > 1;
   return (
     // The terms keep their width beside the detail; with no room left, the detail moves under them.
     <li className="flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5 text-sm">
@@ -109,7 +153,7 @@ function EvidenceItem({ line }: { line: EvidenceLine }) {
       <span
         aria-hidden="true"
         data-terms
-        className={`inline-flex max-w-full shrink-0 flex-wrap items-baseline gap-1 font-semibold ${mixed ? MIXED_TERMS : ''}`}
+        className="inline-flex max-w-full shrink-0 flex-wrap items-baseline gap-1 font-semibold"
       >
         <span data-state={line.state} className={`w-3 flex-none text-center font-bold ${STATES[line.state].colour}`}>
           {STATES[line.state].symbol}

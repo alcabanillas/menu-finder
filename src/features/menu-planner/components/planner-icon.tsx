@@ -1,4 +1,4 @@
-type PlannerIconName = 'plus' | 'minus' | 'sparkles' | 'check' | 'x' | 'search' | 'arrow-up' | 'arrow-right' | 'lock' | 'repeat' | 'dices';
+type PlannerIconName = 'plus' | 'minus' | 'sparkles' | 'check' | 'x' | 'search' | 'arrow-up' | 'arrow-right' | 'lock' | 'repeat' | 'dices' | 'pencil' | 'calendar-days';
 
 const DEFAULT_STROKE_WIDTH = 1.5;
 
@@ -32,6 +32,11 @@ const PATHS: Record<PlannerIconName, string[]> = {
     'M15 6h.01',
     'M18 9h.01',
   ],
+  pencil: [
+    'M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z',
+    'm15 5 4 4',
+  ],
+  'calendar-days': ['M8 2v4', 'M16 2v4', 'M3 10h18', 'M8 14h.01', 'M12 14h.01', 'M16 14h.01', 'M8 18h.01', 'M12 18h.01', 'M16 18h.01'],
 };
 
 /** A decorative 24-unit stroke icon: the text next to it carries the meaning. */
@@ -52,6 +57,7 @@ export function PlannerIcon({ name, size, strokeWidth = DEFAULT_STROKE_WIDTH }: 
     >
       {name === 'search' && <circle cx="11" cy="11" r="8" />}
       {name === 'lock' && <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />}
+      {name === 'calendar-days' && <rect width="18" height="18" x="3" y="4" rx="2" />}
       {name === 'dices' && <rect width="12" height="12" x="2" y="10" rx="2" ry="2" />}
       {PATHS[name].map((d) => (
         <path key={d} d={d} />

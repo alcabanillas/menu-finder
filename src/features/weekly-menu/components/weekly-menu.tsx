@@ -17,9 +17,8 @@ type OpenDish = DishRef & { side: PanelSide };
 
 // After the design system's `ui_kits/app/MenuScreen.jsx`, mobile view (version 1791384225-1eab). Its `TopBar` and
 // `SectionHeader` are a few lines of markup each, written here rather than ported (design D5). From an 800 px
-// container, the day cards and the recipe panel of version 1791414282-6467 instead (design D1 of MF-56), in the
-// mock's 1440 px `.mf-page--wide` box (design D3 of MF-56).
-const PAGE = 'mx-auto w-full max-w-[var(--spacing-content-max)] @min-[800px]:max-w-[1440px]';
+// container, the day cards and the recipe panel of version 1791414282-6467 instead (design D1 of MF-56). The page's
+// width box is `app/(signed-in)/menu/page.tsx`'s (design D5 of MF-74).
 const EYEBROW = 'text-eyebrow font-semibold uppercase tracking-[var(--text-eyebrow--letter-spacing)]';
 const MEALS = [
   ['lunch', 'Comida'],
@@ -46,7 +45,7 @@ export function WeeklyMenu({ menu, nav }: WeeklyMenuProps) {
   }, []);
 
   return (
-    <div className={PAGE}>
+    <>
       <WeekHeader
         eyebrow={`Semana del ${formatShortDate(menu.startsOn)}`}
         title={`Menú ${menu.menuNumber}`}
@@ -67,7 +66,7 @@ export function WeeklyMenu({ menu, nav }: WeeklyMenuProps) {
         <WeekCards days={menu.days} today={menu.today} open={open} onOpen={openDish} />
       </div>
       {open && <OpenRecipe menu={menu} open={open} onClose={close} />}
-    </div>
+    </>
   );
 }
 

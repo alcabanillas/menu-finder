@@ -13,10 +13,10 @@ const CARD: CandidateCard = {
   menu: 12,
   summary: 'Cumple las 2 cosas que pides.',
   lines: [
-    { kind: 'constraint', terms: [member('garbanzos')], state: 'met', detail: 'Martes, comida · Garbanzos con espinacas' },
-    { kind: 'constraint', terms: [member('cerdo', { polarity: 'exclude', type: 'exclusion' })], state: 'met', detail: 'no aparece en la semana' },
-    { kind: 'constraint', terms: [member('salmón')], state: 'unmet', detail: 'ningún plato' },
-    { kind: 'constraint', terms: [member('sencillas', { type: 'attribute' })], state: 'met', detail: 'Lunes, cena · Crema' },
+    { kind: 'constraint', terms: [member('garbanzos')], state: 'met', detail: 'Martes, comida · Garbanzos con espinacas', dish: null },
+    { kind: 'constraint', terms: [member('cerdo', { polarity: 'exclude', type: 'exclusion' })], state: 'met', detail: 'no aparece en la semana', dish: null },
+    { kind: 'constraint', terms: [member('salmón')], state: 'unmet', detail: 'ningún plato', dish: null },
+    { kind: 'constraint', terms: [member('sencillas', { type: 'attribute' })], state: 'met', detail: 'Lunes, cena · Crema', dish: null },
   ],
 };
 
@@ -43,7 +43,7 @@ describe('MenuCandidateCard', () => {
   });
 
   it('starts each line with its state, ✓ olive, ≈ ochre or ✕ terracotta, hidden from screen readers', () => {
-    const similar: EvidenceLine = { kind: 'constraint', terms: [member('pescado al horno')], state: 'similar', detail: 'parecido: Jueves, cena · Merluza' };
+    const similar: EvidenceLine = { kind: 'constraint', terms: [member('pescado al horno')], state: 'similar', detail: 'parecido: Jueves, cena · Merluza', dish: null };
     render(<MenuCandidateCard card={{ ...CARD, lines: [...CARD.lines, similar] }} />);
 
     const symbols = lines().map((line) => line.querySelector('[data-state]'));
@@ -78,8 +78,8 @@ describe('MenuCandidateCard', () => {
       menu: 3,
       summary: 'Cumple las 2 cosas que pides.',
       lines: [
-        { kind: 'sameDish', terms: [member('arroz'), member('marisco', { polarity: 'exclude' })], state: 'met', detail: 'Lunes, comida · Arroz' },
-        { kind: 'anyOf', terms: [member('lubina'), member('dorada')], state: 'met', detail: 'Martes, cena · Lubina' },
+        { kind: 'sameDish', terms: [member('arroz'), member('marisco', { polarity: 'exclude' })], state: 'met', detail: 'Lunes, comida · Arroz', dish: null },
+        { kind: 'anyOf', terms: [member('lubina'), member('dorada')], state: 'met', detail: 'Martes, cena · Lubina', dish: null },
       ],
     };
     render(<MenuCandidateCard card={card} />);
@@ -89,22 +89,21 @@ describe('MenuCandidateCard', () => {
     expect(lines()[0].querySelector('[data-separator="or"]')).not.toBeInTheDocument();
   });
 
-  it('puts the terms of a group that mixes include and exclude on an ochre background, like its chip', () => {
+  it('leaves the terms of a group that mixes include and exclude on the white of the card, each in its colour', () => {
     const card: CandidateCard = {
       rank: 1,
       menu: 3,
       summary: 'Cumple las 2 cosas que pides.',
       lines: [
-        { kind: 'sameDish', terms: [member('arroz'), member('marisco', { polarity: 'exclude' })], state: 'met', detail: 'Lunes, comida · Arroz' },
-        { kind: 'sameDish', terms: [member('pollo'), member('verduras')], state: 'met', detail: 'Martes, cena · Pollo' },
-        { kind: 'constraint', terms: [member('salmón')], state: 'unmet', detail: 'ningún plato' },
+        { kind: 'sameDish', terms: [member('arroz'), member('marisco', { polarity: 'exclude' })], state: 'met', detail: 'Lunes, comida · Arroz', dish: null },
       ],
     };
     render(<MenuCandidateCard card={card} />);
 
-    expect(lines()[0].querySelector('[data-terms]')).toHaveClass('bg-ochre-100');
-    expect(lines()[1].querySelector('[data-terms]')).not.toHaveClass('bg-ochre-100');
-    expect(lines()[2].querySelector('[data-terms]')).not.toHaveClass('bg-ochre-100');
+    const terms = lines()[0].querySelector('[data-terms]');
+    expect(terms?.className).not.toMatch(/bg-ochre/);
+    expect(screen.getByText('arroz')).toHaveClass('text-include');
+    expect(screen.getByText('marisco')).toHaveClass('text-exclude');
   });
 
   it('renders a term and a dish name with HTML metacharacters as text, never as markup', () => {
@@ -112,7 +111,7 @@ describe('MenuCandidateCard', () => {
       rank: 1,
       menu: 3,
       summary: 'Cumple las 2 cosas que pides.',
-      lines: [{ kind: 'constraint', terms: [member('<img src=x onerror=alert(1)>')], state: 'met', detail: 'Lunes, comida · <b>Arroz</b>' }],
+      lines: [{ kind: 'constraint', terms: [member('<img src=x onerror=alert(1)>')], state: 'met', detail: 'Lunes, comida · <b>Arroz</b>', dish: null }],
     };
     render(<MenuCandidateCard card={card} />);
 
@@ -141,6 +140,7 @@ describe('MenuCandidateCard', () => {
           terms: [member('arroz'), member('marisco', { polarity: 'exclude', type: 'exclusion' })],
           state: 'met',
           detail: 'Martes, comida · Arroz con verduras',
+          dish: { day: 'tuesday', meal: 'lunch', name: 'Arroz con verduras' },
         },
       ],
     };
@@ -278,5 +278,55 @@ describe('MenuCandidateCard choose button', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
       expect(onCancel).toHaveBeenCalledOnce();
     });
+  });
+});
+
+describe('MenuCandidateCard, "Ver semana"', () => {
+  const CHOICE: CardChoice = { formId: 'choose', label: 'Elegir para el 12 oct', variant: 'primary', selected: false, disabled: false };
+
+  it('has no "Ver semana" button without a handler', () => {
+    render(<MenuCandidateCard card={CARD} choice={CHOICE} />);
+
+    expect(screen.queryByRole('button', { name: /Ver semana/ })).not.toBeInTheDocument();
+  });
+
+  it('is a secondary button with a calendar, after the choose button, named after the menu and announcing a dialog', () => {
+    render(<MenuCandidateCard card={CARD} choice={CHOICE} onViewWeek={vi.fn()} />);
+
+    const buttons = within(screen.getByRole('article')).getAllByRole('button');
+    expect(buttons.map((button) => button.textContent)).toEqual(['Elegir para el 12 oct', 'Ver semana']);
+    const view = screen.getByRole('button', { name: 'Ver semana del Menú 12' });
+    expect(view).toHaveAttribute('type', 'button');
+    expect(view).toHaveAttribute('aria-haspopup', 'dialog');
+    expect(view).toHaveAttribute('aria-expanded', 'false');
+    expect(view.querySelector('svg[data-icon="calendar-days"]')).toBeInTheDocument();
+  });
+
+  it('is olive and expanded while its preview is open', () => {
+    render(<MenuCandidateCard card={CARD} choice={CHOICE} onViewWeek={vi.fn()} viewing />);
+
+    const view = screen.getByRole('button', { name: 'Ver semana del Menú 12' });
+    expect(view).toHaveAttribute('aria-expanded', 'true');
+    expect(view).toHaveClass('border-olive-600', 'bg-olive-50', 'text-olive-700');
+  });
+
+  it('hands the handler the button, so that the focus can come back to it', () => {
+    const onViewWeek = vi.fn();
+    render(<MenuCandidateCard card={CARD} choice={CHOICE} onViewWeek={onViewWeek} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ver semana del Menú 12' }));
+
+    expect(onViewWeek).toHaveBeenCalledExactlyOnceWith(screen.getByRole('button', { name: 'Ver semana del Menú 12' }));
+  });
+
+  it('does not repeat the question of a replacement while its preview shows it', () => {
+    const replacing = { text: '¿Cambiar el Menú 14 por el Menú 12 en la semana del 5 oct?', open: true, onAsk: vi.fn(), onCancel: vi.fn() };
+    const { rerender } = render(<MenuCandidateCard card={CARD} choice={{ ...CHOICE, replacing }} onViewWeek={vi.fn()} />);
+    expect(screen.getByRole('group', { name: 'Confirmar cambio' })).toBeInTheDocument();
+
+    rerender(<MenuCandidateCard card={CARD} choice={{ ...CHOICE, replacing }} onViewWeek={vi.fn()} viewing />);
+
+    expect(screen.queryByRole('group', { name: 'Confirmar cambio' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Ver semana del Menú 12' })).toBeInTheDocument();
   });
 });

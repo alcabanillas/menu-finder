@@ -1,4 +1,5 @@
 import { chooseMenu, type ChooseMenuInput } from '@/application/use-cases/menu/choose-menu';
+import { menuPreview, type MenuPreviewInput } from '@/application/use-cases/menu/menu-preview';
 import { menuWeekPage, type MenuWeekPageInput } from '@/application/use-cases/menu/menu-week-page';
 import { selectRandomMenu, type SelectRandomMenuInput } from '@/application/use-cases/menu/select-random-menu';
 import { weeksToChoose, type WeeksToChooseInput } from '@/application/use-cases/menu/weeks-to-choose';
@@ -10,6 +11,7 @@ export function menuUseCases(lazyDeps: () => Deps) {
     weeksToChoose: async (input: WeeksToChooseInput) => weeksToChoose(lazyDeps(), input),
     chooseMenu: async (input: ChooseMenuInput) => chooseMenu(lazyDeps(), input),
     selectRandomMenu: async (input: SelectRandomMenuInput) => selectRandomMenu(lazyDeps(), input),
+    menuPreview: async (input: MenuPreviewInput) => menuPreview(lazyDeps(), input),
     menuWeekPage: async (input: MenuWeekPageInput) => menuWeekPage(lazyDeps(), input),
   };
 }

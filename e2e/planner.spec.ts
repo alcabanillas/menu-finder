@@ -12,7 +12,7 @@ test.skip(!testDatabaseUrl(process.env, readEnvFile()), 'needs the test database
 // A number of this run only, so a parallel run never deletes it (MF-62).
 const MENU = newFixtureRun().menuNumber(0);
 const CHOSEN = /Menú (\d+) para la semana del \d+ \p{L}+\./u;
-const RANDOM = 'Elegir uno al azar';
+const RANDOM = 'Al azar';
 
 const account = registerTestAccount();
 
@@ -36,6 +36,14 @@ test.describe('with a session', () => {
   test.beforeEach(async ({ page }) => {
     await signInAs(page, account);
     await page.goto('/planner');
+  });
+
+  test('offers "Prueba con" with "Al azar" first, and no loose random button', async ({ page }) => {
+    const row = page.getByText('Prueba con').locator('..');
+
+    await expect(row.getByRole('button').first()).toHaveText('Al azar');
+    await expect(row.getByRole('button')).toHaveCount(5);
+    await expect(page.getByRole('button', { name: /Elegir uno al azar/ })).toHaveCount(0);
   });
 
   test('choosing a random menu says which one and shows it in the week selector', async ({ page }) => {
