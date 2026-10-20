@@ -62,9 +62,10 @@ test.describe('with a session', () => {
   });
 
   // Spec app-shell, "The Menú and Compra tabs lead to a page".
-  // `/menu` heads with its menu number when there is one ("Menú 3"); `/shopping-list` with "Lista de la compra".
+  // `/menu` heads with its menu number when there is one ("Menú 3"), or "Semana sin menú" when the week is empty (this
+  // user has no menu); `/shopping-list` with "Lista de la compra".
   for (const [tab, path, heading] of [
-    ['Menú', '/menu', /^Menú/],
+    ['Menú', '/menu', /^(Menú|Semana sin menú)/],
     ['Compra', '/shopping-list', /^Lista de la compra$/],
   ] as const) {
     test(`the ${tab} tab leads to a page inside the shell, marked as current`, async ({ page }) => {
