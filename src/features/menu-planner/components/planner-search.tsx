@@ -1,18 +1,23 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useRef, type ReactNode, type RefObject } from 'react';
 import type { Week, WeeksToChooseDto } from '@/application/dto/weeks-to-choose';
 import type { ChoiceInputs } from '@/features/menu-planner/choice-prompts';
 import type { ChoiceState } from '@/features/menu-planner/choice-view';
+import { ChooseControls } from '@/features/menu-planner/components/menu-candidate-card';
 import { ChoiceMessage } from '@/features/menu-planner/components/choice-message';
 import { PlannerResults } from '@/features/menu-planner/components/planner-results';
-import { RandomButton, type RandomProps } from '@/features/menu-planner/components/random-button';
-import { RestrictionChipList } from '@/features/menu-planner/components/restriction-chip-list';
-import { SearchBox } from '@/features/menu-planner/components/search-box';
+import { RequestStrip } from '@/features/menu-planner/components/request-strip';
+import { putBackRequest, SearchBox } from '@/features/menu-planner/components/search-box';
+import { SuggestionChips } from '@/features/menu-planner/components/suggestion-chips';
+import { WeekPreviewPanel } from '@/features/menu-planner/components/week-preview-panel';
 import { WeekSelector } from '@/features/menu-planner/components/week-selector';
+import { cardChoice } from '@/features/menu-planner/choice-prompts';
 import { addSentBreadcrumb, useAnswerBreadcrumb } from '@/features/menu-planner/planner-breadcrumbs';
-import { IDLE_SEARCH, type PlannerSearchState } from '@/features/menu-planner/search-view';
+import type { PreviewState } from '@/features/menu-planner/preview-view';
+import { evidenceMarks, IDLE_SEARCH, type CandidateCard, type PlannerSearchState } from '@/features/menu-planner/search-view';
 import { useMenuChoice } from '@/features/menu-planner/use-menu-choice';
+import { useWeekPreview } from '@/features/menu-planner/use-week-preview';
 
 type PlannerSearchProps = {
   action: (previous: PlannerSearchState, formData: FormData) => Promise<PlannerSearchState>;
@@ -21,21 +26,32 @@ type PlannerSearchProps = {
   weeks: WeeksToChooseDto | null;
   /** The week the page was asked to start on (the link of an empty week in Menú); a locked week is ignored. */
   initialWeek?: Week;
+  /** Reads the week of a menu for the preview of a card; the session is checked behind it. */
+  previewAction: (menu: number) => Promise<PreviewState>;
+  /** The requests offered under "Prueba con", chosen by the page. */
+  suggestions: string[];
 };
 
 /**
- * The planner: the week selector, the search box with the random button, the chips of the request and the five best
+ * The planner: the week selector, the search box, the suggestions with "Al azar", the strip of the request and the five best
  * menus, each with a button that chooses it for the selected week (spec menu-planner). The layout is the design system's
- * `PlannerScreen.jsx`: one column on a phone, and from an 800 px container with results the chips on the left and the
- * cards on the right. Both forms post to server actions, so they work without JavaScript, and the text goes in the body
+ * `PlannerScreen.jsx`: the strip across the page and the cards in one column, or two from a 1100 px container. Both forms post to server actions, so they work without JavaScript, and the text goes in the body
  * of the POST, never in the URL. The choose form is empty: the radios and the buttons join it with the `form` attribute
  * (MF-22.5 design D4).
  */
-export function PlannerSearch({ action, chooseAction, weeks, initialWeek }: PlannerSearchProps) {
+export function PlannerSearch({ action, chooseAction, previewAction, weeks, initialWeek, suggestions }: PlannerSearchProps) {
   const [state, formAction, pending] = useActionState(action, IDLE_SEARCH);
   const choice = useMenuChoice(chooseAction, weeks, initialWeek);
   useAnswerBreadcrumb(state);
   const randomProps = { formId: choice.formId, disabled: choice.choosing, onAsk: choice.askRandom };
+  const preview = useWeekPreview(previewAction);
+  const sent = () => {
+    choice.dismiss();
+    preview.reset();
+    addSentBreadcrumb();
+  };
+  const input = useRef<HTMLInputElement>(null);
+  const chips = <SuggestionChips suggestions={suggestions} formAction={formAction} onSent={sent} random={randomProps} />;
   return (
     <section aria-label="Buscar menú" className="@container flex w-full flex-col gap-5 @min-[800px]:gap-6">
       {/* Hidden: an empty flex item would still add a gap. The controls join it with the `form` attribute. */}
@@ -49,9 +65,21 @@ export function PlannerSearch({ action, chooseAction, weeks, initialWeek }: Plan
         asking={choice.asking}
       />
       <ChoiceMessage choice={choice.shownChoice} choosing={choice.choosing} />
-      <SearchRow formAction={formAction} pending={pending} onSent={choice.dismiss} random={randomProps} />
-      <RandomButton size="sm" {...randomProps} />
-      <ResultsArea state={state} pending={pending} weeks={weeks} choice={choice} />
+      <SearchRow formAction={formAction} pending={pending} onSent={sent} inputRef={input} />
+      {!pending && state.status !== 'ranking' && <Suggestions>{chips}</Suggestions>}
+      <ResultsArea
+        state={state}
+        pending={pending}
+        weeks={weeks}
+        choice={choice}
+        suggestions={chips}
+        onEdit={(request) => putBackRequest(input.current, request)}
+        onViewWeek={preview.toggle}
+        viewing={preview.open}
+      />
+      {!pending && state.status === 'ranking' && (
+        <OpenPreview cards={state.cards} preview={preview} weeks={weeks} choice={choice} />
+      )}
     </section>
   );
 }
@@ -60,28 +88,56 @@ type SearchRowProps = {
   formAction: (formData: FormData) => void;
   pending: boolean;
   onSent: () => void;
-  random: RandomProps;
+  inputRef: RefObject<HTMLInputElement | null>;
 };
 
 // On a phone only the box stays at the top when the page scrolls, under the header of the shell, which is sticky too
-// (56 px, 64 px from 640 px); the random button goes under it (`PlannerScreen.jsx`).
-function SearchRow({ formAction, pending, onSent, random }: SearchRowProps) {
+// (56 px, 64 px from 640 px) (`PlannerScreen.jsx`).
+function SearchRow({ formAction, pending, onSent, inputRef }: SearchRowProps) {
   return (
-    <div className="sticky top-14 z-[4] -mx-5 -mt-3 sm:top-16 bg-surface-page px-5 py-3 @min-[800px]:static @min-[800px]:m-0 @min-[800px]:max-w-[760px] @min-[800px]:p-0">
-      <form
-        action={formAction}
-        onSubmit={() => {
-          onSent();
-          addSentBreadcrumb();
-        }}
-        className="flex items-center gap-3"
-      >
+    <div className="sticky top-14 z-[4] -mx-5 -mt-3 bg-surface-page px-5 py-3 sm:top-16 @min-[640px]:-mx-8 @min-[640px]:px-8 @min-[800px]:static @min-[800px]:m-0 @min-[800px]:max-w-[760px] @min-[800px]:p-0">
+      <form action={formAction} onSubmit={onSent} className="flex items-center gap-3">
         <div className="min-w-0 flex-1">
-          <SearchBox pending={pending} />
+          <SearchBox pending={pending} inputRef={inputRef} />
         </div>
-        <RandomButton size="md" {...random} />
       </form>
     </div>
+  );
+}
+
+// Before the first search, and after one that gave no ranking.
+function Suggestions({ children }: { children: ReactNode }) {
+  return (
+    <div>
+      <p className="mb-2.5 text-eyebrow font-semibold tracking-[var(--text-eyebrow--letter-spacing)] text-text-muted uppercase">
+        Prueba con
+      </p>
+      {children}
+    </div>
+  );
+}
+
+type OpenPreviewProps = {
+  cards: CandidateCard[];
+  preview: ReturnType<typeof useWeekPreview>;
+  weeks: WeeksToChooseDto | null;
+  choice: ChoiceInputs;
+};
+
+// The week preview of the card that has it open: the card's own choose button is its footer (MF-73 design D4).
+function OpenPreview({ cards, preview, weeks, choice }: OpenPreviewProps) {
+  const card = cards.find(({ menu }) => menu === preview.open);
+  if (!card) return null;
+  const choose = cardChoice(card, weeks, choice);
+  return (
+    <WeekPreviewPanel
+      menu={card.menu}
+      rank={card.rank}
+      state={preview.stateOf(card.menu)}
+      marks={evidenceMarks(card.lines)}
+      footer={choose && <ChooseControls menu={card.menu} choice={choose} fullWidth />}
+      onClose={preview.close}
+    />
   );
 }
 
@@ -90,26 +146,35 @@ type ResultsAreaProps = {
   pending: boolean;
   weeks: WeeksToChooseDto | null;
   choice: ChoiceInputs;
+  suggestions: ReactNode;
+  onEdit: (request: string) => void;
+  onViewWeek: (menu: number, trigger: HTMLButtonElement) => void;
+  viewing: number | null;
 };
 
-// While a search runs, `state` is still the previous answer: a new search replaces it, so it is not shown.
-function ResultsArea({ state, pending, weeks, choice }: ResultsAreaProps) {
+// While a search runs, `state` is still the previous answer: a new search replaces it, so it is not shown. The strip of
+// the request goes across the page above the results (MF-73 design D7).
+function ResultsArea({ state, pending, weeks, choice, suggestions, onEdit, onViewWeek, viewing }: ResultsAreaProps) {
   const chips = !pending && state.status === 'ranking' ? state.chips : null;
-  const hasResults = chips !== null;
-  const columns = hasResults ? '@min-[800px]:grid-cols-[300px_minmax(0,1fr)]' : '@min-[800px]:grid-cols-[minmax(0,640px)]';
   return (
-    <div className={`flex flex-col gap-4 @min-[800px]:grid @min-[800px]:items-start @min-[800px]:gap-12 ${columns}`}>
-      {(pending || hasResults) && (
-        <div className="flex min-w-0 flex-col gap-4">
-          {pending && (
-            <p role="status" className="text-text-muted">
-              Buscando…
-            </p>
-          )}
-          {chips && <RestrictionChipList chips={chips} />}
-        </div>
+    <div className="flex flex-col gap-4 @min-[800px]:gap-6">
+      {pending && (
+        <p role="status" className="text-text-muted">
+          Buscando…
+        </p>
       )}
-      {!pending && <PlannerResults state={state} weeks={weeks} choice={choice} />}
+      {chips && <RequestStrip chips={chips} />}
+      {!pending && (
+        <PlannerResults
+          state={state}
+          weeks={weeks}
+          choice={choice}
+          suggestions={suggestions}
+          onEdit={onEdit}
+          onViewWeek={onViewWeek}
+          viewing={viewing}
+        />
+      )}
     </div>
   );
 }

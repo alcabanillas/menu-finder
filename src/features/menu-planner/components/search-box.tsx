@@ -1,6 +1,7 @@
+import type { Ref } from 'react';
 import { PlannerIcon } from '@/features/menu-planner/components/planner-icon';
 
-type SearchBoxProps = { pending: boolean };
+type SearchBoxProps = { pending: boolean; inputRef?: Ref<HTMLInputElement> };
 
 // Ported from the design system's `components/forms/SearchBox.jsx` (version 1791992191-0fd0). It has no state of its
 // own: the form belongs to the server action, so it also posts without JavaScript. `required` keeps an empty box from
@@ -15,13 +16,14 @@ const SUBMIT =
   'disabled:cursor-not-allowed disabled:opacity-45';
 
 /** The text field and the "Buscar" button of the planner's search. */
-export function SearchBox({ pending }: SearchBoxProps) {
+export function SearchBox({ pending, inputRef }: SearchBoxProps) {
   return (
     <div className={BOX}>
       <span className="text-text-muted">
         <PlannerIcon name="search" size={20} />
       </span>
       <input
+        ref={inputRef}
         type="text"
         name="request"
         aria-label="Qué te apetece"
@@ -35,4 +37,12 @@ export function SearchBox({ pending }: SearchBoxProps) {
       </button>
     </div>
   );
+}
+
+/** "Editar mi búsqueda": the text exactly as it was written goes back in the box, which takes the focus with the caret at the end. */
+export function putBackRequest(input: HTMLInputElement | null, request: string): void {
+  if (!input) return;
+  input.value = request;
+  input.focus();
+  input.setSelectionRange(request.length, request.length);
 }

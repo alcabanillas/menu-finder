@@ -1,6 +1,6 @@
 import { useId } from 'react';
 import type { DayDto, WeekDayDto, WeekDishDto } from '@/application/dto/weekly-menu';
-import { DAY_BARS } from '@/features/weekly-menu/components/day-bar';
+import { DAY_BARS } from '@/shared/ui/day-bars';
 import { MenuIcon } from '@/features/weekly-menu/components/menu-icon';
 import { daysShown } from '@/features/weekly-menu/days-shown';
 import { formatShortDate, formatWeekday } from '@/shared/format-date';

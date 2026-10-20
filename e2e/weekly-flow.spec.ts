@@ -72,7 +72,7 @@ async function clearSelectionsOf({ email }: TestAccount): Promise<void> {
 
 async function chooseRandomMenu(page: Page): Promise<number> {
   await page.goto('/planner');
-  await page.getByRole('button', { name: 'Elegir uno al azar' }).click();
+  await page.getByRole('button', { name: 'Al azar' }).click();
   const message = page.getByText(CHOSEN);
   await expect(message).toBeVisible();
   return Number(CHOSEN.exec((await message.textContent())!)![1]);

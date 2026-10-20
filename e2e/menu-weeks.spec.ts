@@ -19,6 +19,8 @@ const WEEK_MS = 7 * MS_PER_DAY;
 
 const account = registerTestAccount();
 const otherAccount = registerTestAccount();
+// Chose next week's menu and nothing else, so this week is closed.
+const closedAccount = registerTestAccount();
 
 test.beforeAll(async () => {
   await withDatabase(async (client) => {
@@ -26,6 +28,7 @@ test.beforeAll(async () => {
     await insertSelection(client, account.email, THIS_WEEK.number, mondayOffset(0));
     await insertSelection(client, account.email, LAST_WEEK.number, mondayOffset(-1));
     await insertSelection(client, account.email, NEXT_WEEK.number, mondayOffset(1));
+    await insertSelection(client, closedAccount.email, NEXT_WEEK.number, mondayOffset(1));
   });
 });
 
@@ -65,7 +68,7 @@ test.describe('moving between weeks', () => {
   test('a week with no menu says so, and the back arrow stays enabled over it', async ({ page }) => {
     await page.goto(`/menu?startsOn=${mondayOffset(-2)}`);
 
-    await expect(page.getByText('No se eligió menú para esta semana.')).toBeVisible();
+    await expect(page.getByText('No se eligió menú para esta semana')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Semana anterior' })).toHaveAttribute(
       'href',
       `/menu?startsOn=${mondayOffset(-3)}`,
@@ -83,6 +86,77 @@ test.describe('moving between weeks', () => {
     await page.goto(`/menu?startsOn=${mondayOffset(-11)}`);
 
     await expect(page.getByRole('heading', { level: 1, name: `Menú ${THIS_WEEK.number}` })).toBeVisible();
+  });
+});
+
+// Spec weekly-menu, MF-74: a week without a menu is one notice, in four cases, and no card for any day.
+test.describe('a week without a menu', () => {
+  test('this week, still open: the notice offers to choose it', async ({ page }) => {
+    await signInAs(page, otherAccount);
+    await page.goto('/menu');
+
+    await expect(page.getByRole('heading', { level: 1, name: 'Semana sin menú' })).toBeVisible();
+    await expect(page.getByRole('status')).toContainText('Esta semana aún no tiene menú');
+    await expect(page.getByRole('link', { name: 'Elegir menú para esta semana' })).toHaveAttribute(
+      'href',
+      '/planner?week=current',
+    );
+    await expect(page.getByText('Domingo')).toHaveCount(0);
+  });
+
+  test('next week: the notice offers to choose it, with the date of its Monday', async ({ page }) => {
+    await signInAs(page, otherAccount);
+    await page.goto(`/menu?startsOn=${mondayOffset(1)}`);
+
+    await expect(page.getByRole('status')).toContainText('La semana que viene aún no tiene menú');
+    await expect(page.getByRole('link', { name: /^Elegir menú para el \d{1,2} [a-z]{3,4}$/ })).toHaveAttribute(
+      'href',
+      '/planner?week=next',
+    );
+    await expect(page.locator('[aria-disabled="true"]').filter({ hasText: 'Semana siguiente' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Esta semana' })).toBeVisible();
+  });
+
+  test('this week, closed by the menu of next week: the notice leads to that menu', async ({ page }) => {
+    await signInAs(page, closedAccount);
+    await page.goto('/menu');
+
+    await expect(page.getByRole('status')).toContainText('Esta semana no tiene menú');
+    await expect(page.getByRole('status')).toContainText(`Menú ${NEXT_WEEK.number}`);
+    await expect(page.getByRole('link', { name: /Elegir menú/ })).toHaveCount(0);
+
+    await page.getByRole('link', { name: 'Ver el menú de la semana que viene' }).click();
+
+    await expect(page).toHaveURL(`/menu?startsOn=${mondayOffset(1)}`);
+    await expect(page.getByRole('heading', { level: 1, name: `Menú ${NEXT_WEEK.number}` })).toBeVisible();
+  });
+
+  test('a past week: the notice has no button', async ({ page }) => {
+    await signInAs(page, otherAccount);
+    await page.goto(`/menu?startsOn=${mondayOffset(-2)}`);
+
+    await expect(page.getByRole('status')).toContainText('Las semanas pasadas no se pueden cambiar.');
+    await expect(page.getByRole('status').getByRole('link')).toHaveCount(0);
+  });
+});
+
+// The content of the page starts where the header of the shell does: a 1440 px box, centred, with 32 px of margin.
+test.describe('on a wide screen', () => {
+  test.use({ viewport: { width: 1920, height: 1000 } });
+  const LEFT_EDGE = (1920 - 1440) / 2 + 32;
+
+  test('a week with a menu and a week without one start at the edge of the header', async ({ page }) => {
+    await signInAs(page, account);
+    await page.goto('/menu');
+    await expect(page.getByRole('heading', { level: 1, name: `Menú ${THIS_WEEK.number}` })).toBeVisible();
+    expect((await page.getByRole('heading', { level: 1 }).boundingBox())!.x).toBe(LEFT_EDGE);
+
+    await page.goto(`/menu?startsOn=${mondayOffset(-2)}`);
+    await expect(page.getByRole('heading', { level: 1, name: 'Semana sin menú' })).toBeVisible();
+    expect((await page.getByRole('heading', { level: 1 }).boundingBox())!.x).toBe(LEFT_EDGE);
+    const notice = (await page.getByRole('status').boundingBox())!;
+    expect(notice.x).toBe(LEFT_EDGE);
+    expect(notice.width).toBeLessThanOrEqual(760);
   });
 });
 
@@ -127,12 +201,12 @@ test.describe('on a phone', () => {
     await expect(page.getByRole('heading', { level: 1, name: `Menú ${LAST_WEEK.number}` })).toBeVisible();
   });
 
-  test('an empty week fits the screen, with its card and day placeholders', async ({ page }) => {
+  test('an empty week fits the screen', async ({ page }) => {
     await page.goto(`/menu?startsOn=${mondayOffset(-2)}`);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 
     expect(overflow).toBeLessThanOrEqual(0);
-    await expect(page.getByText('No se eligió menú para esta semana.')).toBeVisible();
+    await expect(page.getByText('No se eligió menú para esta semana')).toBeVisible();
   });
 });
 
@@ -140,7 +214,7 @@ test('another user does not see this account\'s past week', async ({ page }) => 
   await signInAs(page, otherAccount);
   await page.goto(`/menu?startsOn=${mondayOffset(-1)}`);
 
-  await expect(page.getByText('No se eligió menú para esta semana.')).toBeVisible();
+  await expect(page.getByText('No se eligió menú para esta semana')).toBeVisible();
   await expect(page.getByText(LAST_WEEK.dish)).toHaveCount(0);
 });
 

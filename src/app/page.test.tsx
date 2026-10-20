@@ -124,6 +124,7 @@ describe('Home with a session', () => {
     render(await Home());
 
     expect(screen.getByRole('status')).toHaveTextContent('Esta semana no tiene menú');
+    expect(screen.getByRole('status')).toHaveClass('bg-olive-50');
     expect(screen.getByRole('link', { name: 'Ver el menú de la semana que viene' })).toHaveAttribute(
       'href',
       '/menu?startsOn=2026-10-12',

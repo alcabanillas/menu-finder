@@ -4,7 +4,7 @@ import { APP_VERSION } from '@/app/app-version';
 import { webContainer } from '@/composition/web-container';
 import { AppShell } from '@/features/app-shell/components/app-shell';
 import { DashboardLayout } from '@/features/dashboard/components/dashboard-layout';
-import { NoMenuNotice, type EmptyWeek } from '@/features/dashboard/components/no-menu-notice';
+import { NoMenuNotice, type EmptyWeek } from '@/shared/ui/no-menu-notice';
 import { WeeksCard, type DashboardWeeks } from '@/features/dashboard/components/weeks-card';
 import { ShoppingProgress, type ListProgress } from '@/features/shopping-list/components/shopping-progress';
 import { TodayMeals } from '@/features/weekly-menu/components/today-meals';
@@ -56,7 +56,7 @@ async function dashboardOf(user: SignedInUser) {
 /** Today's dishes; with no menu this week, what the user can do instead; or the failure of a read it needs. */
 function TodayBlock({ week, weeks }: { week: WeekRead; weeks: WeeksRead }) {
   if (week.ok && week.value.menu) return <TodayMeals menu={week.value.menu} />;
-  if (week.ok && weeks.ok) return <NoMenuNotice week={emptyWeekOf(weeks.value)} />;
+  if (week.ok && weeks.ok) return <NoMenuNotice week={emptyWeekOf(weeks.value)} tone="olive" className="mt-5" />;
   return <p className="mt-4">No se ha podido cargar tu menú.</p>;
 }
 

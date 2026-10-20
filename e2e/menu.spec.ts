@@ -193,8 +193,9 @@ test('another user, with no menu of their own, does not see this one', async ({ 
   await signInAs(page, otherAccount);
   await page.goto('/menu');
 
-  await expect(page.getByText('Todavía no has elegido menú para esta semana.')).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Elegir menú' })).toHaveAttribute('href', '/planner?week=current');
+  await expect(page.getByRole('heading', { level: 1, name: 'Semana sin menú' })).toBeVisible();
+  await expect(page.getByRole('status')).toContainText('Esta semana aún no tiene menú');
+  await expect(page.getByRole('link', { name: 'Elegir menú para esta semana' })).toHaveAttribute('href', '/planner?week=current');
   await expect(page.getByText('Lentejas ficticias')).toHaveCount(0);
 });
 

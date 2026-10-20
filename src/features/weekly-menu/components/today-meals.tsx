@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useCallback, useId, useRef, useState } from 'react';
 import type { WeekDayDto, WeekDishDto, WeeklyMenuDto } from '@/application/dto/weekly-menu';
-import { DAY_BARS } from '@/features/weekly-menu/components/day-bar';
+import { DAY_BARS } from '@/shared/ui/day-bars';
 import { MenuIcon } from '@/features/weekly-menu/components/menu-icon';
 import { RecipeCard } from '@/features/weekly-menu/components/recipe-card';
 import { RecipePanel, sideAwayFrom, type PanelSide } from '@/features/weekly-menu/components/recipe-panel';

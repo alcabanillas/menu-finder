@@ -56,6 +56,7 @@ describe('menuWeekPage', () => {
           days: WEEK_OF_THIS_MONDAY,
         },
         menu: null,
+        lockedBy: null,
         today: TODAY,
       }),
     );
@@ -89,6 +90,51 @@ describe('menuWeekPage', () => {
     const page = await menuWeekPage(fakes([], true), { userId: 'user-a', startsOn: PAST_MONDAY });
 
     expect(page).toEqual(err({ kind: 'failed' }));
+  });
+});
+
+describe('menuWeekPage, the week that the menu of next week closes', () => {
+  const NEXT_MENU_31: Selection = { id: 'sel-31', menuNumber: 31, startsOn: NEXT_MONDAY };
+  const lockedBy = async (selections: Selection[], startsOn: string | undefined) => {
+    const page = await menuWeekPage(fakes(selections), { userId: 'user-a', startsOn });
+    return page.ok ? page.value.lockedBy : 'failed';
+  };
+
+  it('names the menu of next week when this week has none and next week has menu 31', async () => {
+    expect(await lockedBy([NEXT_MENU_31], undefined)).toEqual({ menuNumber: 31, startsOn: NEXT_MONDAY });
+  });
+
+  it('is null when next week has no menu', async () => {
+    expect(await lockedBy([], undefined)).toBeNull();
+  });
+
+  it('is null for a past week, even when next week has a menu', async () => {
+    expect(await lockedBy([NEXT_MENU_31], PAST_MONDAY)).toBeNull();
+  });
+
+  it('is null for next week itself', async () => {
+    expect(await lockedBy([], NEXT_MONDAY)).toBeNull();
+    expect(await lockedBy([NEXT_MENU_31], NEXT_MONDAY)).toBeNull();
+  });
+
+  it('is null when this week has a menu of its own', async () => {
+    const own: Selection = { id: 'sel-3', menuNumber: 3, startsOn: THIS_MONDAY };
+
+    expect(await lockedBy([own, NEXT_MENU_31], THIS_MONDAY)).toBeNull();
+  });
+
+  it('reads the selections once, for the week on show and for the lock', async () => {
+    let reads = 0;
+    const deps = fakes([NEXT_MENU_31]);
+    const listFrom = deps.selections.listFrom;
+    deps.selections.listFrom = async (...args) => {
+      reads += 1;
+      return listFrom(...args);
+    };
+
+    await menuWeekPage(deps, { userId: 'user-a', startsOn: undefined });
+
+    expect(reads).toBe(1);
   });
 });
 

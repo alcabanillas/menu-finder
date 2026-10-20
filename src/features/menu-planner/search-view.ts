@@ -18,7 +18,17 @@ export type Chip = { kind: SearchResultDto['units'][number]['kind']; members: Ch
  * What a card says about one unit: its kind (how its terms are separated), its terms, whether the menu meets it with a
  * literal dish, only with a similar one, or not at all (✓, ≈, ✕), and the dish or the reason (MF-61 design D4).
  */
-export type EvidenceLine = { kind: Chip['kind']; terms: ChipMember[]; state: 'met' | 'similar' | 'unmet'; detail: string };
+export type EvidenceLine = {
+  kind: Chip['kind'];
+  terms: ChipMember[];
+  state: 'met' | 'similar' | 'unmet';
+  detail: string;
+  /** The dish behind the line, by day, meal and name; `null` when the unit has none. The week preview marks it. */
+  dish: { day: DayDto; meal: Dish['meal']; name: string } | null;
+};
+
+/** A dish of the week preview that is the evidence of a unit: ✓ (`met`) or ≈ (`similar`) and the unit's terms. */
+export type EvidenceMark = { day: DayDto; meal: Dish['meal']; name: string; state: 'met' | 'similar'; label: string };
 
 /**
  * A menu of the ranking. `rank` and `summary` are null when the request has only week-wide exclusions: every card
@@ -28,11 +38,12 @@ export type CandidateCard = { rank: number | null; menu: number; summary: string
 
 /**
  * What the planner shows for a search, built on the server (MF-22.4 design D1). `attempt` counts the answers: it tells
- * a new answer from the previous one even when the message is the same.
+ * a new answer from the previous one even when the message is the same. `request` is the text as it was sent, untrimmed,
+ * so that "Editar mi búsqueda" can put it back in the box (MF-73 design D8).
  */
 export type PlannerSearchState =
   | { status: 'idle'; attempt: number }
-  | { status: 'ranking'; chips: Chip[]; cards: CandidateCard[]; onlyExclusions: boolean; attempt: number }
+  | { status: 'ranking'; request: string; chips: Chip[]; cards: CandidateCard[]; onlyExclusions: boolean; attempt: number }
   | { status: 'failed'; kind: DailyLimitedSearchError['kind']; message: string; attempt: number };
 
 export const IDLE_SEARCH: PlannerSearchState = { status: 'idle', attempt: 0 };
@@ -54,7 +65,8 @@ const MESSAGES: Record<DailyLimitedSearchError['kind'], string> = {
   'invalid-request': SYSTEM_FAILURE,
 };
 
-const DAYS: Record<DayDto, string> = {
+/** The days as the cards and the week preview write them. */
+export const DAY_NAMES: Record<DayDto, string> = {
   monday: 'Lunes',
   tuesday: 'Martes',
   wednesday: 'Miércoles',
@@ -70,7 +82,11 @@ const MEALS: Record<Dish['meal'], string> = { lunch: 'comida', dinner: 'cena' };
 const NUMBER_WORDS = ['', 'una', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez'];
 
 /** The view of a search: a ranking with its chips and cards, or the message of the outcome that gave none. */
-export function toSearchState(result: Result<TextSearchDto, DailyLimitedSearchError>, attempt: number): PlannerSearchState {
+export function toSearchState(
+  result: Result<TextSearchDto, DailyLimitedSearchError>,
+  attempt: number,
+  request: string,
+): PlannerSearchState {
   if (!result.ok) return toFailedState(result.error.kind, attempt);
   const { structure, result: ranking } = result.value;
   if (!isAligned(structure, ranking)) return toFailedState('search-failed', attempt);
@@ -82,7 +98,7 @@ export function toSearchState(result: Result<TextSearchDto, DailyLimitedSearchEr
       ? { rank: null, menu, summary: null, lines }
       : { rank: index + 1, menu, summary: summarize(lines), lines };
   });
-  return { status: 'ranking', chips, cards, onlyExclusions, attempt };
+  return { status: 'ranking', request, chips, cards, onlyExclusions, attempt };
 }
 
 /** One chip per unit, in the order of the units. The search already grouped the constraints: this only looks them up. */
@@ -110,6 +126,18 @@ export function summarize(lines: EvidenceLine[]): string {
   return `${metSentence(met, total)}${similarClause(similar)}`;
 }
 
+/**
+ * The dishes of a card that are the evidence of a unit, for the week preview to mark: ✓ for a literal one, ≈ for a similar
+ * one, with the terms of the unit joined by " y " (same dish) or " o " (any of). Units with no dish mark nothing.
+ */
+export function evidenceMarks(lines: EvidenceLine[]): EvidenceMark[] {
+  return lines.flatMap(({ kind, terms, state, dish }) => {
+    if (!dish || state === 'unmet') return [];
+    const joiner = kind === 'anyOf' ? ' o ' : ' y ';
+    return [{ ...dish, state, label: terms.map(({ term }) => term).join(joiner) }];
+  });
+}
+
 /** What a screen reader says for a chip, and for the terms of an evidence line (spec menu-planner). */
 export function describeChip({ kind, members }: Pick<Chip, 'kind' | 'members'>): string {
   const prefix = { constraint: '', sameDish: 'En el mismo plato: ', anyOf: 'Una de: ' }[kind];
@@ -134,15 +162,16 @@ function toMember({ term, polarity, type, hard, slot }: Constraint): ChipMember 
 
 function toLine({ kind, members }: Chip, { dish, match }: Evidence): EvidenceLine {
   if (dish) {
-    const where = `${DAYS[dish.day]}, ${MEALS[dish.meal]} · ${dish.name}`;
+    const where = `${DAY_NAMES[dish.day]}, ${MEALS[dish.meal]} · ${dish.name}`;
+    const named = { day: dish.day, meal: dish.meal, name: dish.name };
     return match === 'literal'
-      ? { kind, terms: members, state: 'met', detail: where }
-      : { kind, terms: members, state: 'similar', detail: `parecido: ${where}` };
+      ? { kind, terms: members, state: 'met', detail: where, dish: named }
+      : { kind, terms: members, state: 'similar', detail: `parecido: ${where}`, dish: named };
   }
   const onlyExclusions = members.every(({ polarity }) => polarity === 'exclude');
   return onlyExclusions
-    ? { kind, terms: members, state: 'met', detail: 'no aparece en la semana' }
-    : { kind, terms: members, state: 'unmet', detail: 'ningún plato' };
+    ? { kind, terms: members, state: 'met', detail: 'no aparece en la semana', dish: null }
+    : { kind, terms: members, state: 'unmet', detail: 'ningún plato', dish: null };
 }
 
 // An exclusion in no group filters the whole week (BUS-superficie-consulta (b)).

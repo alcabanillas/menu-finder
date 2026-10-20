@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { requireUser } from '@/app/_auth/require-user';
 import { webContainer } from '@/composition/web-container';
 import { toChoiceState, type ChoiceState } from '@/features/menu-planner/choice-view';
+import { toPreviewState, type PreviewState } from '@/features/menu-planner/preview-view';
 import { toSearchState, type PlannerSearchState } from '@/features/menu-planner/search-view';
 import { err } from '@/shared/result';
 
@@ -11,13 +12,14 @@ import { err } from '@/shared/result';
  * The planner's search. The session is checked before the form is read, because a server action is a public POST
  * endpoint. Only the `request` field is read, and a value that is not text is an empty request; the user, whose
  * daily limit the search spends, comes from the session, and the strategy is the web's own (MF-22.4 design D1, D2b).
+ * The state returns the text as sent, so that the page can put it back in the box (MF-73 design D8).
  */
 export async function searchMenusAction(previous: PlannerSearchState, formData: FormData): Promise<PlannerSearchState> {
   const user = await requireUser();
   const attempt = previous.attempt + 1;
   const request = formData.get('request');
-  if (typeof request !== 'string') return toSearchState(err({ kind: 'request-too-short' }), attempt);
-  return toSearchState(await webContainer().searchByText(user.userId, request.trim()), attempt);
+  if (typeof request !== 'string') return toSearchState(err({ kind: 'request-too-short' }), attempt, '');
+  return toSearchState(await webContainer().searchByText(user.userId, request.trim()), attempt, request);
 }
 
 /**
@@ -35,6 +37,16 @@ export async function chooseMenuAction(previous: ChoiceState, formData: FormData
       : await webContainer().chooseMenu({ userId: user.userId, menuNumber: textOf(formData, 'menu'), week });
   if (result.ok) revalidatePath('/planner');
   return toChoiceState(result, week === 'next' ? 'next' : 'current', previous.attempt + 1);
+}
+
+/**
+ * The week preview of a card. The session is checked before the value is read, because a server action is a public POST
+ * endpoint. It reads one value, the menu number, which `menuPreview` validates; the answer holds only the names of the
+ * dishes (MF-73 design D1).
+ */
+export async function previewMenuAction(menu: unknown): Promise<PreviewState> {
+  await requireUser();
+  return toPreviewState(await webContainer().menuPreview({ menuNumber: menu }));
 }
 
 function textOf(formData: FormData, field: string): string | undefined {
