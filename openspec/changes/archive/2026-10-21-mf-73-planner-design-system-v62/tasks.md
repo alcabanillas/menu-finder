@@ -49,8 +49,8 @@ Every group: the test of each scenario is written first and seen failing (PROC-t
 ## 8. Check by eye and close
 
 - [x] 8.1 Start the dev server and check `/planner` at 390 px and at 1280 px: the suggestions row, the strip and two columns (a container of 1100 px or more), the no-results panel with "Editar mi búsqueda", the preview as a bottom sheet with backdrop and as a right panel below the header (the fixed panel is placed against the viewport, design Risks), and the mixed evidence unit on white; take screenshots and fix what differs from the mock.
-- [ ] 8.2 Update `openspec/specs` via the archive flow only (not by hand); run `pnpm typecheck`, then `pnpm test:run` on the files touched and `pnpm test:coverage` before `gh pr create`; ask the author whether the PR raises `"version"` in `package.json` (`AGENTS.md`).
-- [ ] 8.3 Registry: in `project/implementacion.md` of the design system artifact, set each row of Buscar to `implementado` (or `parcial`, with what is missing) with this change's PR as ticket, and the date of the audit; publish it to the artifact, or give the author the list of rows to change if it cannot be published.
+- [x] 8.2 Update `openspec/specs` via the archive flow only (not by hand); run `pnpm typecheck`, then `pnpm test:run` on the files touched and `pnpm test:coverage` before `gh pr create`; ask the author whether the PR raises `"version"` in `package.json` (`AGENTS.md`).
+- [x] 8.3 Registry: in `project/implementacion.md` of the design system artifact, set each row of Buscar to `implementado` (or `parcial`, with what is missing) with this change's PR as ticket, and the date of the audit; publish it to the artifact, or give the author the list of rows to change if it cannot be published.
 
 ## Workflow follow-up
 
