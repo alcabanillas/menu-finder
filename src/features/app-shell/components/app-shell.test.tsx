@@ -38,6 +38,16 @@ describe('AppShell', () => {
     expect(within(screen.getByRole('banner')).getAllByRole('navigation')).toHaveLength(1);
   });
 
+  it('switches from the bottom bar to the header navigation at 800 px, where the pages switch too', () => {
+    renderShell();
+
+    const [header, bottom] = screen.getAllByRole('navigation', { name: 'Principal' });
+    expect(header).toHaveClass('hidden', 'min-[800px]:block');
+    expect(bottom).toHaveClass('min-[800px]:hidden');
+    expect(header?.parentElement).toHaveClass('h-14', 'min-[800px]:h-16');
+    expect(document.querySelector('[class*="sm:"]')).toBeNull();
+  });
+
   it('has one main landmark and the page content is inside it', () => {
     renderShell();
 

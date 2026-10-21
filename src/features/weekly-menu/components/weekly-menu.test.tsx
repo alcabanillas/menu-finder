@@ -161,18 +161,18 @@ describe('WeeklyMenu', () => {
     expect(screen.getByRole('button', { name: 'Mié 7 hoy' })).not.toHaveAttribute('aria-current');
   });
 
-  it("keeps the day bar under the shell's sticky header, which is 56 px high and 64 px from 640 px", () => {
+  it("keeps the day bar under the shell's sticky header, which is 56 px high and 64 px from 800 px", () => {
     render(<WeeklyMenu menu={MENU} />);
 
     const bar = screen.getByRole('navigation', { name: 'Días de la semana' }).parentElement;
-    expect(bar).toHaveClass('sticky', 'top-14', 'sm:top-16');
+    expect(bar).toHaveClass('sticky', 'top-14', 'min-[800px]:top-16');
   });
 
   it('leaves room for the header and the day bar above a day the page scrolls to', () => {
     render(<WeeklyMenu menu={MENU} />);
 
     // Header (56 or 64 px) plus the day bar (64 px buttons and 8 px of padding): 128 px, 136 px from 640 px.
-    expect(daySection('Lunes 5 de octubre')).toHaveClass('scroll-mt-32', 'sm:scroll-mt-34');
+    expect(daySection('Lunes 5 de octubre')).toHaveClass('scroll-mt-32', 'min-[800px]:scroll-mt-34');
   });
 
   it('lets the last day reach the top however short it is, so the bar can mark it', () => {
@@ -181,7 +181,7 @@ describe('WeeklyMenu', () => {
     // A viewport high minus the header and the day bar, as `scroll-mt` above.
     expect(daySection('Domingo 11 de octubre')).toHaveClass(
       'last:min-h-[calc(100dvh-8rem)]',
-      'sm:last:min-h-[calc(100dvh-8.5rem)]',
+      'min-[800px]:last:min-h-[calc(100dvh-8.5rem)]',
     );
   });
 
@@ -270,16 +270,14 @@ describe('WeeklyMenu, the recipe panel', () => {
     expect(dish('Crema de calabacín')).toHaveAttribute('aria-expanded', 'false');
   });
 
-  it('lies on the side of the page away from the dish', () => {
+  it('lies on the right whatever the place of the dish: it is modal, so it may cover it', () => {
     render(<WeeklyMenu menu={MENU} />);
     vi.spyOn(document.documentElement, 'clientWidth', 'get').mockReturnValue(1280);
     placeAt('Crema de calabacín', 900);
-    placeAt('Arroz con verduras', 100);
 
     fireEvent.click(dish('Crema de calabacín'));
-    expect(screen.getByRole('dialog')).toHaveAttribute('data-side', 'left');
 
-    fireEvent.click(dish('Arroz con verduras'));
-    expect(screen.getByRole('dialog')).toHaveAttribute('data-side', 'right');
+    expect(screen.getByRole('dialog')).toHaveClass('right-0');
+    expect(screen.getByRole('dialog')).not.toHaveAttribute('data-side');
   });
 });

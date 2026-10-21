@@ -66,7 +66,7 @@ function ResultsHeading({ count, onlyExclusions }: { count: number; onlyExclusio
           Resultados
         </h2>
       </div>
-      {onlyExclusions && <p className="text-text-body">{TIE_LINE}</p>}
+      {onlyExclusions && <p className="max-w-[70ch] text-sm text-text-muted">{TIE_LINE}</p>}
     </header>
   );
 }

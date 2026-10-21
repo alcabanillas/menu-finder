@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { RecipeDto } from '@/application/dto/weekly-menu';
-import { RecipePanel, sideAwayFrom } from '@/features/weekly-menu/components/recipe-panel';
+import { RecipePanel } from '@/features/weekly-menu/components/recipe-panel';
 
 const RECIPE: RecipeDto = {
   title: 'Lentejas estofadas',
@@ -10,16 +10,8 @@ const RECIPE: RecipeDto = {
   preparation: ['Sofreír las verduras.', 'Cocer las lentejas.'],
 };
 
-function renderPanel(onClose = () => {}, side: 'left' | 'right' = 'right') {
-  return render(
-    <RecipePanel
-      name="Lentejas estofadas"
-      eyebrow="Miércoles · Comida"
-      recipe={RECIPE}
-      side={side}
-      onClose={onClose}
-    />,
-  );
+function renderPanel(onClose = () => {}) {
+  return render(<RecipePanel name="Lentejas estofadas" eyebrow="Miércoles · Comida" recipe={RECIPE} onClose={onClose} />);
 }
 
 describe('RecipePanel', () => {
@@ -39,42 +31,32 @@ describe('RecipePanel', () => {
     expect(screen.getByRole('button', { name: 'Cerrar receta' })).toHaveFocus();
   });
 
-  it('asks to close on Escape', () => {
+  it('asks to close on Escape, with its close button and with the backdrop', () => {
     const onClose = vi.fn();
     renderPanel(onClose);
 
     fireEvent.keyDown(document, { key: 'Escape' });
-
-    expect(onClose).toHaveBeenCalledOnce();
-  });
-
-  it('asks to close with its close button', () => {
-    const onClose = vi.fn();
-    renderPanel(onClose);
-
     fireEvent.click(screen.getByRole('button', { name: 'Cerrar receta' }));
+    fireEvent.click(document.querySelector('[data-backdrop]') as HTMLElement);
 
-    expect(onClose).toHaveBeenCalledOnce();
+    expect(onClose).toHaveBeenCalledTimes(3);
   });
 
-  it('lies on the side it is given', () => {
-    renderPanel(() => {}, 'left');
+  it('is a modal 400 px panel against the right edge of the window, below the header, like the week preview of Buscar', () => {
+    renderPanel();
 
-    expect(screen.getByRole('dialog')).toHaveAttribute('data-side', 'left');
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    expect(dialog).toHaveClass('fixed', 'top-16', 'right-0', 'bottom-0', 'w-[400px]', 'border-l');
+    expect(dialog.className).not.toMatch(/1440px|left-/);
+    expect(document.querySelector('[data-backdrop]')).toHaveClass('fixed', 'top-16', 'bg-ink/40');
   });
-});
 
-describe('sideAwayFrom', () => {
-  const at = (left: number, width = 100) => {
-    const button = document.createElement('button');
-    vi.spyOn(button, 'getBoundingClientRect').mockReturnValue({ left, width } as DOMRect);
-    return button;
-  };
+  it('keeps the page behind still while it is open', () => {
+    const { unmount } = renderPanel();
 
-  it('puts the panel on the side of the page away from the dish', () => {
-    vi.spyOn(document.documentElement, 'clientWidth', 'get').mockReturnValue(1280);
-
-    expect(sideAwayFrom(at(100))).toBe('right');
-    expect(sideAwayFrom(at(900))).toBe('left');
+    expect(document.documentElement.style.overflow).toBe('hidden');
+    unmount();
+    expect(document.documentElement.style.overflow).toBe('');
   });
 });

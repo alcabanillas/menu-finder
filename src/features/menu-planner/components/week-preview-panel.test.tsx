@@ -137,6 +137,8 @@ describe('WeekPreviewPanel', () => {
     );
 
     expect(document.querySelector('[data-body]')).toHaveClass('overscroll-contain');
+    // Beside the scrollbar of the page, a thin one, so that the two do not read as a double bar.
+    expect(document.querySelector('[data-body]')).toHaveClass('[scrollbar-width:thin]');
     expect(document.documentElement.style.overflow).toBe('hidden');
     unmount();
     expect(document.documentElement.style.overflow).toBe('');
@@ -156,15 +158,22 @@ describe('WeekPreviewPanel', () => {
     const dialog = screen.getByRole('dialog');
     expect(dialog).toHaveClass('h-[85dvh]', '@min-[800px]:h-auto');
     expect(dialog).toHaveClass('@max-[799px]:animate-sheet-in');
-    expect(document.querySelector('[data-backdrop]')).toHaveClass('@max-[799px]:animate-backdrop-in');
+    expect(document.querySelector('[data-backdrop]')).toHaveClass('animate-backdrop-in');
   });
 
-  it('is a bottom sheet on a phone and a 400 px panel below the header on the right from 800 px, where the backdrop goes', () => {
+  it('is a bottom sheet on a phone and a 400 px panel below the header on the right from 800 px, both over a backdrop', () => {
     panel();
 
     const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
     expect(dialog).toHaveClass('fixed', 'inset-x-0', 'bottom-0', 'rounded-t-lg');
     expect(dialog).toHaveClass('@min-[800px]:top-16', '@min-[800px]:w-[400px]');
-    expect(document.querySelector('[data-backdrop]')).toHaveClass('@min-[800px]:hidden');
+    // Against the edge of the window, not of the 1440 px box of the page.
+    expect(dialog).toHaveClass('@min-[800px]:right-0');
+    expect(dialog.className).not.toMatch(/1440px/);
+    // From 800 px the backdrop stays, below the header, as in the recipe panel of Menú.
+    const backdrop = document.querySelector('[data-backdrop]');
+    expect(backdrop).not.toHaveClass('@min-[800px]:hidden');
+    expect(backdrop).toHaveClass('@min-[800px]:top-16');
   });
 });

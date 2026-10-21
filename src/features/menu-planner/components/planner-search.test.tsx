@@ -120,12 +120,21 @@ describe('PlannerSearch', () => {
     expect(screen.queryByRole('article')).not.toBeInTheDocument();
   });
 
+  it('asks "Busca otra cosa…" in the box once a search has been sent', async () => {
+    render(<Planner action={answering(ranking(1))} />);
+
+    await search('garbanzos');
+
+    await screen.findAllByRole('article');
+    expect(screen.getByRole('textbox')).toHaveAttribute('placeholder', 'Busca otra cosa…');
+  });
+
   it('keeps the search box under the header of the shell when the page scrolls: it sticks at the height of the header', () => {
     render(<Planner />);
 
     const row = screen.getByRole('textbox').closest('form')?.parentElement as HTMLElement;
     // The header is `sticky top-0` and 56 px high, 64 px from 640 px; at `top-0` the box would hide behind it.
-    expect(row).toHaveClass('sticky', 'top-14', 'sm:top-16');
+    expect(row).toHaveClass('sticky', 'top-14', 'min-[800px]:top-16');
     expect(row).not.toHaveClass('top-0');
   });
 
@@ -478,9 +487,8 @@ describe('PlannerSearch', () => {
 
     expect(await screen.findByText('Todos cumplen lo que pides')).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: 'Resultados' })).toBeInTheDocument();
-    expect(
-      screen.getByText('Como solo has pedido quitar cosas, todos estos menús lo cumplen por igual: salen por número de menú.'),
-    ).toBeInTheDocument();
+    const tie = screen.getByText('Como solo has pedido quitar cosas, todos estos menús lo cumplen por igual: salen por número de menú.');
+    expect(tie).toHaveClass('text-sm', 'text-text-muted', 'max-w-[70ch]');
     expect(screen.queryByText(/mejor encaja/)).not.toBeInTheDocument();
   });
 
@@ -837,6 +845,17 @@ describe('PlannerSearch', () => {
         expect(screen.queryByRole('group', { name: 'Confirmar cambio' })).not.toBeInTheDocument();
       });
 
+      it('keeps one question open: asking from another card closes the first one', async () => {
+        await renderRanking({ weeks: THIS_WEEK_CHOSEN }, [12, 3]);
+        fireEvent.click(screen.getByRole('radio', { name: /Esta semana/ }));
+        fireEvent.click(screen.getByRole('button', { name: 'Cambiar el menú del 5 oct (Menú 12)' }));
+
+        fireEvent.click(screen.getByRole('button', { name: 'Cambiar el menú del 5 oct (Menú 3)' }));
+
+        expect(screen.getAllByRole('group', { name: 'Confirmar cambio' })).toHaveLength(1);
+        expect(screen.getByRole('group', { name: 'Confirmar cambio' }).closest('article')).toHaveTextContent('Menú 3');
+      });
+
       it('asks for nothing when the week is empty: the button chooses at once', async () => {
         const chooseAction = choosing(CHOSEN_NEXT);
         await renderRanking({ chooseAction });
@@ -844,6 +863,32 @@ describe('PlannerSearch', () => {
         await choose('Elegir para el 5 oct (Menú 3)');
 
         expect(chooseAction).toHaveBeenCalledOnce();
+      });
+    });
+
+    describe('a new search', () => {
+      it('cancels the question of "Al azar"', async () => {
+        render(<Planner weeks={THIS_WEEK_CHOSEN} action={answering(ranking(1))} />);
+        fireEvent.click(screen.getByRole('radio', { name: /Esta semana/ }));
+        fireEvent.click(screen.getByRole('button', { name: 'Al azar' }));
+        expect(screen.getByRole('group', { name: 'Confirmar cambio' })).toBeInTheDocument();
+
+        await search('garbanzos');
+        await screen.findAllByRole('article');
+
+        expect(screen.queryByRole('group', { name: 'Confirmar cambio' })).not.toBeInTheDocument();
+      });
+
+      it('cancels the question of a card, although the same menu comes back', async () => {
+        await renderRanking({ weeks: THIS_WEEK_CHOSEN, action: answering(ranking(1, [14, 3]), ranking(2, [14, 3])) }, [14, 3]);
+        fireEvent.click(screen.getByRole('radio', { name: /Esta semana/ }));
+        fireEvent.click(screen.getByRole('button', { name: 'Cambiar el menú del 5 oct (Menú 3)' }));
+
+        await search('lentejas');
+        await screen.findAllByRole('article');
+
+        expect(screen.queryByRole('group', { name: 'Confirmar cambio' })).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Cambiar el menú del 5 oct (Menú 3)' })).toBeInTheDocument();
       });
     });
 

@@ -4,16 +4,13 @@ import { useCallback, useId, useRef, useState, type ReactNode } from 'react';
 import type { WeekDayDto, WeekDishDto, WeeklyMenuDto } from '@/application/dto/weekly-menu';
 import { DayTabs } from '@/features/weekly-menu/components/day-tabs';
 import { RecipeCard } from '@/features/weekly-menu/components/recipe-card';
-import { RecipePanel, sideAwayFrom, type PanelSide } from '@/features/weekly-menu/components/recipe-panel';
+import { RecipePanel } from '@/features/weekly-menu/components/recipe-panel';
 import { WeekCards, type DishRef } from '@/features/weekly-menu/components/week-cards';
 import { WeekHeader } from '@/features/weekly-menu/components/week-header';
 import { formatDayDate, formatShortDate, formatWeekday } from '@/shared/format-date';
 import { daySectionId, useDayScroll } from '@/features/weekly-menu/use-day-scroll';
 
 type WeeklyMenuProps = { menu: WeeklyMenuDto; nav?: ReactNode };
-
-/** The open dish and the side of the page its panel lies on. */
-type OpenDish = DishRef & { side: PanelSide };
 
 // After the design system's `ui_kits/app/MenuScreen.jsx`, mobile view (version 1791384225-1eab). Its `TopBar` and
 // `SectionHeader` are a few lines of markup each, written here rather than ported (design D5). From an 800 px
@@ -32,12 +29,12 @@ const MEAL_LABELS = Object.fromEntries(MEALS);
  */
 export function WeeklyMenu({ menu, nav }: WeeklyMenuProps) {
   const { active, goTo } = useDayScroll(menu.days, menu.today);
-  const [open, setOpen] = useState<OpenDish | null>(null);
+  const [open, setOpen] = useState<DishRef | null>(null);
   const trigger = useRef<HTMLButtonElement | null>(null);
 
   const openDish = (ref: DishRef, button: HTMLButtonElement) => {
     trigger.current = button;
-    setOpen({ ...ref, side: sideAwayFrom(button) });
+    setOpen(ref);
   };
   const close = useCallback(() => {
     setOpen(null);
@@ -52,8 +49,8 @@ export function WeeklyMenu({ menu, nav }: WeeklyMenuProps) {
         nav={nav}
       />
       <div className="@min-[800px]:hidden">
-        {/* Under the shell's header, which is sticky too, 56 px high and 64 px from 640 px. */}
-        <div className="sticky top-14 z-[2] bg-surface-page px-3 pb-2 sm:top-16">
+        {/* Under the shell's header, which is sticky too, 56 px high and 64 px from 800 px. */}
+        <div className="sticky top-14 z-[2] bg-surface-page px-3 pb-2 min-[800px]:top-16">
           <DayTabs days={menu.days} active={active} today={menu.today} onSelect={goTo} />
         </div>
         <div className="flex flex-col">
@@ -77,11 +74,11 @@ function DaySection({ day }: { day: WeekDayDto }) {
     <section
       id={daySectionId(day.day)}
       aria-labelledby={headingId}
-      // Room for the header and the day bar above the section the page scrolls to: 128 px, 136 px from 640 px. The last
+      // Room for the header and the day bar above the section the page scrolls to: 128 px, 136 px from 800 px. The last
       // day is at least the rest of the viewport high, so however short it is it reaches the top and the bar marks it.
       className={
-        'flex scroll-mt-32 flex-col gap-7 px-gutter-mobile pb-10 pt-4 sm:scroll-mt-34 ' +
-        'last:min-h-[calc(100dvh-8rem)] sm:last:min-h-[calc(100dvh-8.5rem)]'
+        'flex scroll-mt-32 flex-col gap-7 px-gutter-mobile pb-10 pt-4 min-[800px]:scroll-mt-34 ' +
+        'last:min-h-[calc(100dvh-8rem)] min-[800px]:last:min-h-[calc(100dvh-8.5rem)]'
       }
     >
       <h2 id={headingId} className="text-h2 font-extrabold">{formatDayDate(day.date)}</h2>
@@ -110,7 +107,7 @@ function Meal({ label, dishes }: { label: string; dishes: WeekDishDto[] }) {
   );
 }
 
-function OpenRecipe({ menu, open, onClose }: { menu: WeeklyMenuDto; open: OpenDish; onClose: () => void }) {
+function OpenRecipe({ menu, open, onClose }: { menu: WeeklyMenuDto; open: DishRef; onClose: () => void }) {
   const day = menu.days.find(({ day: candidate }) => candidate === open.day);
   const dish = day?.meals[open.meal][open.index];
   if (!day || !dish?.recipe) return null;
@@ -119,7 +116,6 @@ function OpenRecipe({ menu, open, onClose }: { menu: WeeklyMenuDto; open: OpenDi
       name={dish.name}
       eyebrow={`${formatWeekday(day.date)} · ${MEAL_LABELS[open.meal]}`}
       recipe={dish.recipe}
-      side={open.side}
       onClose={onClose}
     />
   );
