@@ -12,7 +12,7 @@ type ChooseAction = (previous: ChoiceState, formData: FormData) => Promise<Choic
 /**
  * The state of choosing a menu for a week (MF-22.5 design D4, D5, D11): the selected week, the choose form, its answer and
  * what waits for a yes. The message of a choice goes away when something replaces it: a new search, another week or a
- * choice that runs.
+ * choice that runs. A new search and another week also cancel the question that waits for a yes.
  */
 export function useMenuChoice(chooseAction: ChooseAction, weeks: WeeksToChooseDto | null, initialWeek: Week | undefined) {
   const [choice, formAction, choosing] = useActionState(chooseAction, IDLE_CHOICE);
@@ -26,7 +26,11 @@ export function useMenuChoice(chooseAction: ChooseAction, weeks: WeeksToChooseDt
   useChoiceBreadcrumb(choice, choiceWeek);
 
   const target = weeks?.[selected];
-  const dismiss = () => setDismissedAt(choice.attempt);
+  // Only one question can be open: a new search or another week closes the message and the question that waits (v68).
+  const dismiss = () => {
+    setDismissedAt(choice.attempt);
+    setAsk(null);
+  };
   const asking: Asking | null =
     ask === 'random' && target?.menuNumber != null ? randomAsking(target.menuNumber, target.startsOn, () => setAsk(null)) : null;
   return {
@@ -43,7 +47,6 @@ export function useMenuChoice(chooseAction: ChooseAction, weeks: WeeksToChooseDt
     askRandom: target?.menuNumber != null ? () => setAsk('random') : undefined,
     select: (week: Week) => {
       dismiss();
-      setAsk(null);
       setPicked(week);
     },
     submitted: () => {

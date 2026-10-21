@@ -65,7 +65,7 @@ export function PlannerSearch({ action, chooseAction, previewAction, weeks, init
         asking={choice.asking}
       />
       <ChoiceMessage choice={choice.shownChoice} choosing={choice.choosing} />
-      <SearchRow formAction={formAction} pending={pending} onSent={sent} inputRef={input} />
+      <SearchRow formAction={formAction} pending={pending} searched={pending || state.status !== 'idle'} onSent={sent} inputRef={input} />
       {!pending && state.status !== 'ranking' && <Suggestions>{chips}</Suggestions>}
       <ResultsArea
         state={state}
@@ -87,18 +87,19 @@ export function PlannerSearch({ action, chooseAction, previewAction, weeks, init
 type SearchRowProps = {
   formAction: (formData: FormData) => void;
   pending: boolean;
+  searched: boolean;
   onSent: () => void;
   inputRef: RefObject<HTMLInputElement | null>;
 };
 
 // On a phone only the box stays at the top when the page scrolls, under the header of the shell, which is sticky too
-// (56 px, 64 px from 640 px) (`PlannerScreen.jsx`).
-function SearchRow({ formAction, pending, onSent, inputRef }: SearchRowProps) {
+// (56 px, 64 px from 800 px) (`PlannerScreen.jsx`).
+function SearchRow({ formAction, pending, searched, onSent, inputRef }: SearchRowProps) {
   return (
-    <div className="sticky top-14 z-[4] -mx-5 -mt-3 bg-surface-page px-5 py-3 sm:top-16 @min-[640px]:-mx-8 @min-[640px]:px-8 @min-[800px]:static @min-[800px]:m-0 @min-[800px]:max-w-[760px] @min-[800px]:p-0">
+    <div className="sticky top-14 z-[4] -mx-5 -mt-3 bg-surface-page px-5 py-3 min-[800px]:top-16 @min-[640px]:-mx-8 @min-[640px]:px-8 @min-[800px]:static @min-[800px]:m-0 @min-[800px]:max-w-[760px] @min-[800px]:p-0">
       <form action={formAction} onSubmit={onSent} className="flex items-center gap-3">
         <div className="min-w-0 flex-1">
-          <SearchBox pending={pending} inputRef={inputRef} />
+          <SearchBox pending={pending} searched={searched} inputRef={inputRef} />
         </div>
       </form>
     </div>

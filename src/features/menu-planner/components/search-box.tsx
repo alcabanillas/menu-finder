@@ -1,7 +1,8 @@
 import type { Ref } from 'react';
 import { PlannerIcon } from '@/features/menu-planner/components/planner-icon';
 
-type SearchBoxProps = { pending: boolean; inputRef?: Ref<HTMLInputElement> };
+/** `searched`: a search has been sent, so the box asks for another one (`PlannerScreen.jsx`). */
+type SearchBoxProps = { pending: boolean; searched?: boolean; inputRef?: Ref<HTMLInputElement> };
 
 // Ported from the design system's `components/forms/SearchBox.jsx` (version 1791992191-0fd0). It has no state of its
 // own: the form belongs to the server action, so it also posts without JavaScript. `required` keeps an empty box from
@@ -16,7 +17,7 @@ const SUBMIT =
   'disabled:cursor-not-allowed disabled:opacity-45';
 
 /** The text field and the "Buscar" button of the planner's search. */
-export function SearchBox({ pending, inputRef }: SearchBoxProps) {
+export function SearchBox({ pending, searched = false, inputRef }: SearchBoxProps) {
   return (
     <div className={BOX}>
       <span className="text-text-muted">
@@ -27,7 +28,7 @@ export function SearchBox({ pending, inputRef }: SearchBoxProps) {
         type="text"
         name="request"
         aria-label="Qué te apetece"
-        placeholder="¿Qué te apetece?"
+        placeholder={searched ? 'Busca otra cosa…' : '¿Qué te apetece?'}
         required
         autoComplete="off"
         className="min-w-0 flex-1 border-0 bg-transparent py-2 text-base text-text-strong outline-0 placeholder:text-text-muted"

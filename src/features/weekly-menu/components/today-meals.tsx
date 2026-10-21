@@ -6,7 +6,7 @@ import type { WeekDayDto, WeekDishDto, WeeklyMenuDto } from '@/application/dto/w
 import { DAY_BARS } from '@/shared/ui/day-bars';
 import { MenuIcon } from '@/features/weekly-menu/components/menu-icon';
 import { RecipeCard } from '@/features/weekly-menu/components/recipe-card';
-import { RecipePanel, sideAwayFrom, type PanelSide } from '@/features/weekly-menu/components/recipe-panel';
+import { RecipePanel } from '@/features/weekly-menu/components/recipe-panel';
 import { ArrowRight } from '@/shared/ui/arrow-right';
 import { buttonClasses } from '@/shared/ui/button';
 import { formatWeekday, formatWeekdayAndDay } from '@/shared/format-date';
@@ -15,12 +15,12 @@ type TodayMealsProps = { menu: WeeklyMenuDto };
 
 type MealDto = 'lunch' | 'dinner';
 
-/** Today's dish whose recipe is open, and the side of the page its panel lies on. */
-type OpenDish = { meal: MealDto; index: number; side: PanelSide };
+/** Today's dish whose recipe is open. */
+type OpenDish = { meal: MealDto; index: number };
 
 // After "Qué toca hoy" of the design system's `ui_kits/app/HomeScreen.jsx` (version 1792337560-ff39). The heading and
 // today's date are the page's (dashboard layout). On a phone the meals go one below the other with their unfolding
-// cards; from an 800 px container they are two cards side by side and a recipe opens in Menú's side panel (design D9).
+// cards; from an 800 px container they are two cards side by side and a recipe opens in Menú's modal panel (design D9).
 // Both views are in the page and CSS shows one, as in `/menu`.
 const MEALS = [
   ['lunch', 'Comida'],
@@ -53,7 +53,7 @@ export function TodayMeals({ menu }: TodayMealsProps) {
 
   const openDish = (meal: MealDto, dishIndex: number, button: HTMLButtonElement) => {
     trigger.current = button;
-    setOpen({ meal, index: dishIndex, side: sideAwayFrom(button) });
+    setOpen({ meal, index: dishIndex });
   };
   const close = useCallback(() => {
     setOpen(null);
@@ -208,7 +208,6 @@ function OpenRecipe({ day, open, onClose }: { day: WeekDayDto; open: OpenDish; o
       name={dish.name}
       eyebrow={`${formatWeekday(day.date)} · ${MEAL_LABELS[open.meal]}`}
       recipe={dish.recipe}
-      side={open.side}
       onClose={onClose}
     />
   );

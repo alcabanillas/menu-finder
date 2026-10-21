@@ -7,8 +7,9 @@ type AppShellProps = { children: ReactNode; account?: Account };
 
 const MAIN_ID = 'contenido';
 
-// Ported from the design system's `AppShell` (version 1791272018-0feb). The header and the bottom bar change at 640 px of
-// the viewport (design D3); the one that is not shown is `display: none`, so the four links are announced once (D4).
+// Ported from the design system's `AppShell` (version 1791272018-0feb). The header and the bottom bar change at 800 px of
+// the viewport, where the pages change too (decided by the author on 2026-10-21; before, 640 px, design D3); the one not
+// shown is `display: none`, so the four links are announced once (D4).
 const SKIP_LINK =
   'fixed -top-16 left-3 z-30 rounded-pill bg-ink px-4 py-2.5 text-sm font-semibold text-white no-underline ' +
   'focus:top-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink';
@@ -38,13 +39,13 @@ export function AppShell({ children, account }: AppShellProps) {
       </a>
       <header className="sticky top-0 z-10 border-b border-border-hairline bg-surface-card">
         {/* The mock's `.mf-top__in` (version 1791414282-6467): the same 1440 px box as the pages (design D3 of MF-56). */}
-        <div className="mx-auto flex h-14 max-w-[1440px] items-center gap-6 px-gutter-mobile sm:h-16 sm:px-8">
+        <div className="mx-auto flex h-14 max-w-[1440px] items-center gap-6 px-gutter-mobile min-[800px]:h-16 min-[640px]:px-8">
           <Link href="/" className={WORDMARK}>
             Menu <i className="text-olive-600">Finder</i>
           </Link>
           {account ? (
             <>
-              <nav aria-label="Principal" className="hidden h-full flex-1 sm:block">
+              <nav aria-label="Principal" className="hidden h-full flex-1 min-[800px]:block">
                 <NavList placement="header" />
               </nav>
               <div className="ml-auto">
@@ -64,7 +65,7 @@ export function AppShell({ children, account }: AppShellProps) {
       {account && (
         <nav
           aria-label="Principal"
-          className="sticky bottom-0 z-10 border-t border-border-hairline bg-surface-card pb-[env(safe-area-inset-bottom)] sm:hidden"
+          className="sticky bottom-0 z-10 border-t border-border-hairline bg-surface-card pb-[env(safe-area-inset-bottom)] min-[800px]:hidden"
         >
           <NavList placement="bottom" />
         </nav>

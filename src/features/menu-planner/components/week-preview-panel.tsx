@@ -6,6 +6,7 @@ import { PlannerIcon } from '@/features/menu-planner/components/planner-icon';
 import type { PreviewState } from '@/features/menu-planner/preview-view';
 import { DAY_NAMES, type EvidenceMark } from '@/features/menu-planner/search-view';
 import { DAY_BARS } from '@/shared/ui/day-bars';
+import { closeOnEscape, lockPageScroll } from '@/shared/ui/modal-panel';
 
 type WeekPreviewPanelProps = {
   menu: number;
@@ -21,12 +22,14 @@ type WeekPreviewPanelProps = {
 };
 
 // After `WeekPreviewPanel` of the design system's `PlannerScreen.jsx` (version 1792443153-9554), with the anatomy of the
-// recipe panel of Menú: a bottom sheet over a backdrop on a phone, from 800 px a 400 px panel on the right below the 64 px
-// header. Like the recipe panel it is non-modal, so the cards stay usable beside it (MF-73 design D5).
-const BACKDROP = 'fixed inset-0 z-30 bg-ink/40 @max-[799px]:animate-backdrop-in motion-reduce:animate-none @min-[800px]:hidden';
+// recipe panel of Menú: a bottom sheet over a backdrop on a phone, from 800 px a 400 px panel against the right edge of the
+// window (not of the 1440 px box) below the 64 px header. On both sizes it is modal, like the recipe panel: the backdrop
+// covers the page, which does not scroll behind it, and leaves the header clear from 800 px (decided by the author on
+// 2026-10-21, after the double scrollbar of the non-modal panel of MF-73 design D5).
+const BACKDROP = 'fixed inset-0 z-30 bg-ink/40 animate-backdrop-in motion-reduce:animate-none @min-[800px]:top-16';
 const PANEL =
   'fixed inset-x-0 bottom-0 z-[31] flex h-[85dvh] flex-col rounded-t-lg bg-surface-card shadow-sheet @max-[799px]:animate-sheet-in motion-reduce:animate-none ' +
-  '@min-[800px]:inset-x-auto @min-[800px]:top-16 @min-[800px]:right-[max(0px,calc((100vw-1440px)/2))] @min-[800px]:w-[400px] ' +
+  '@min-[800px]:inset-x-auto @min-[800px]:top-16 @min-[800px]:right-0 @min-[800px]:w-[400px] ' +
   '@min-[800px]:h-auto @min-[800px]:rounded-none @min-[800px]:border-l @min-[800px]:border-border-hairline @min-[800px]:shadow-raised';
 const CLOSE =
   'flex size-10 flex-none cursor-pointer items-center justify-center rounded-full border border-border-strong ' +
@@ -52,7 +55,7 @@ export function WeekPreviewPanel({ menu, rank, state, marks, footer, onClose }: 
   return (
     <>
       <div ref={backdrop} data-backdrop onClick={onClose} aria-hidden="true" className={BACKDROP} />
-      <aside role="dialog" aria-labelledby={headingId} className={PANEL}>
+      <aside role="dialog" aria-modal="true" aria-labelledby={headingId} className={PANEL}>
         <div aria-hidden="true" className="mx-auto mt-2 h-1 w-10 flex-none rounded-xs bg-border-strong @min-[800px]:hidden" />
         <div className="flex flex-none items-start gap-3 border-b border-border-hairline px-5 pt-3.5 pb-3 @min-[800px]:pt-5 @min-[800px]:pb-3.5">
           <div className="min-w-0 flex-1">
@@ -65,7 +68,7 @@ export function WeekPreviewPanel({ menu, rank, state, marks, footer, onClose }: 
             <PlannerIcon name="x" size={18} />
           </button>
         </div>
-        <div data-body className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pt-1 pb-4">
+        <div data-body className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pt-1 pb-4 [scrollbar-width:thin]">
           <Body state={state} marks={marks} />
         </div>
         <div data-footer className="flex-none border-t border-border-hairline bg-surface-card px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
@@ -143,23 +146,4 @@ function Meal({ label, names, marks }: { label: string; names: string[]; marks: 
       ))}
     </div>
   );
-}
-
-function closeOnEscape(onClose: () => void): () => void {
-  const onKeyDown = (event: KeyboardEvent) => {
-    if (event.key === 'Escape') onClose();
-  };
-  document.addEventListener('keydown', onKeyDown);
-  return () => document.removeEventListener('keydown', onKeyDown);
-}
-
-// As a bottom sheet over a backdrop the page behind must not scroll with the sheet; as a side panel (no backdrop) it does.
-function lockPageScroll(backdrop: HTMLElement): (() => void) | undefined {
-  if (getComputedStyle(backdrop).display === 'none') return undefined;
-  const page = document.documentElement;
-  const before = page.style.overflow;
-  page.style.overflow = 'hidden';
-  return () => {
-    page.style.overflow = before;
-  };
 }

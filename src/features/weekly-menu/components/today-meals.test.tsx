@@ -133,16 +133,17 @@ describe('TodayMeals from 800 px', () => {
     expect(dish('Lentejas estofadas')).toHaveAttribute('aria-expanded', 'false');
   });
 
-  it('lies on the side of the page away from the dish', () => {
+  it('lies on the right whatever the place of the dish: it is modal, so it may cover it', () => {
     render(<TodayMeals menu={MENU} />);
     vi.spyOn(document.documentElement, 'clientWidth', 'get').mockReturnValue(1280);
     vi.spyOn(dish('Lentejas estofadas'), 'getBoundingClientRect').mockReturnValue(
-      DOMRect.fromRect({ x: 100, y: 0, width: 160, height: 20 }),
+      DOMRect.fromRect({ x: 900, y: 0, width: 160, height: 20 }),
     );
 
     fireEvent.click(dish('Lentejas estofadas'));
 
-    expect(screen.getByRole('dialog')).toHaveAttribute('data-side', 'right');
+    expect(screen.getByRole('dialog')).toHaveClass('right-0');
+    expect(screen.getByRole('dialog')).not.toHaveAttribute('data-side');
   });
 });
 

@@ -36,9 +36,9 @@ Every group: the test of each scenario is written first and seen failing (PROC-t
 
 - [x] 7.1 Run `pnpm typecheck`, the tests of the touched folders and `pnpm test:run` for `src/app`, `src/features/weekly-menu`, `src/features/dashboard`, `src/shared` and `src/application/use-cases/menu`.
 - [x] 7.2 Look at the four cases by eye at 390 px and at 1440 px, and at 1920 px for the width, with and without a menu: title and notice start where the header's content starts; the notice is at most 760 px and left-aligned from 800 px; no day cards; the buttons lead to Buscar with that week selected, or to `/menu` on next week. Report what was seen and with which data (canned or real).
-- [ ] 7.3 Run `pnpm test:coverage` before the PR (`AGENTS.md`): done on 2026-10-20, passes; still to ask the author whether the PR raises `"version"` in `package.json`.
+- [x] 7.3 Run `pnpm test:coverage` before the PR (`AGENTS.md`): done on 2026-10-20, passes; the author said on 2026-10-21 the PR does not raise `"version"`.
 
 ## 8. Close
 
 - [x] 8.1 In the design system's `project/implementacion.md`, set the two "Menú" rows to `implementado` (or `parcial`, with what is missing) with the ticket MF-74 and the PR, and publish the artifact.
-- [ ] 8.2 Add MF-74 to `context/roadmap.md` once the author confirms the ID and the estimate; after the merge, archive this change (checklist `context/safety-first.md` §4).
+- [x] 8.2 Add MF-74 to `context/roadmap.md` (ID and ~2 h estimate confirmed by the author on 2026-10-21, done); after the merge, archive this change (checklist `context/safety-first.md` §4).
