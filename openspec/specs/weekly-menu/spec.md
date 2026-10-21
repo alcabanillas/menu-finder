@@ -141,30 +141,6 @@ When the content is 800 px wide or wider, the page SHALL show the active menu's 
 - **WHEN** a signed-in user with JavaScript disabled opens `/menu` on a screen 800 px wide or wider
 - **THEN** the page shows every day's card with its dishes
 
-### Requirement: From 800 px a dish opens its recipe in a panel
-
-When the content is 800 px wide or wider, activating a dish with a recipe SHALL open a panel at the side of the page, on the side opposite the dish: on the right when the dish is in the left half of the page, and on the left otherwise. The panel SHALL be a dialog named after the dish, SHALL say the day and meal of the dish, and SHALL show the recipe as the card does: the times with a dash when unknown, the ingredients with their amounts and "opcional", and the numbered steps. When it opens, the focus SHALL move into the panel. Escape and the panel's close button SHALL close it and give the focus back to the dish that opened it. Activating another dish while the panel is open SHALL show that dish's recipe. The dish whose recipe is open SHALL be announced as expanded.
-
-#### Scenario: Opening a recipe
-- **WHEN** the user activates the dish "Lentejas" in Wednesday's lunch, whose recipe takes 45 minutes in total, with the ingredient "Lentejas" of 240 g and two preparation steps
-- **THEN** a dialog named after "Lentejas" opens with "Miércoles · Comida", 45 minutes, "Lentejas" with "240 g" and the two steps numbered 1 and 2; the focus is inside the dialog and the dish is announced as expanded
-
-#### Scenario: The panel takes the side away from the dish
-- **WHEN** the user opens a dish in the left half of the page and then a dish in the right half
-- **THEN** the panel of the first dish lies on the right of the page and the panel of the second on the left
-
-#### Scenario: Closing with Escape
-- **WHEN** the panel is open and the user presses Escape
-- **THEN** the panel closes and the focus returns to the dish that opened it, now announced as collapsed
-
-#### Scenario: Closing with the close button
-- **WHEN** the panel is open and the user activates "Cerrar receta"
-- **THEN** the panel closes and the focus returns to the dish that opened it
-
-#### Scenario: Opening another dish
-- **WHEN** the panel shows one dish's recipe and the user activates another dish with a recipe
-- **THEN** the panel shows the other dish's recipe, and only that dish is announced as expanded
-
 ### Requirement: The page moves between weeks from its header
 
 The `/menu` page SHALL show, in its header, a previous-week control, a next-week control and a control that returns to the current week. The page SHALL show the week chosen by the `startsOn` query parameter, whose value is the Monday of that week as `YYYY-MM-DD`. Without that parameter, the page SHALL show the current week. The return control SHALL show on every week but the current one.
@@ -316,3 +292,35 @@ From 800 px, the content of `/menu` SHALL have the same maximum width and the sa
 #### Scenario: A wide screen with a menu
 - **WHEN** a signed-in user opens `/menu` on a week with a menu on a 1920 px screen
 - **THEN** the title and the day cards start and end at the edges of the header's content
+
+### Requirement: From 800 px a dish opens its recipe in a modal panel
+
+When the content is 800 px wide or wider, activating a dish with a recipe SHALL open its recipe in a modal panel ("The recipe panel is modal"). The panel SHALL be a dialog named after the dish, SHALL say the day and meal of the dish, and SHALL show the recipe as the card does. When it opens, the focus SHALL move into the panel. Activating another dish while the panel is open SHALL show that dish's recipe. The dish whose recipe is open SHALL be announced as expanded.
+
+#### Scenario: Opening a recipe
+- **WHEN** the user activates the dish "Lentejas" in Wednesday's lunch, whose recipe takes 45 minutes in total, with the ingredient "Lentejas" of 240 g and two preparation steps
+- **THEN** a dialog named after "Lentejas" opens with "Miércoles · Comida", 45 minutes, "Lentejas" with "240 g" and the two steps numbered 1 and 2; the focus is inside the dialog and the dish is announced as expanded
+
+#### Scenario: Opening another dish
+- **WHEN** the panel shows one dish's recipe and the user activates another dish with a recipe
+- **THEN** the panel shows the other dish's recipe, and only that dish is announced as expanded
+
+### Requirement: The recipe panel is modal
+
+The recipe panel SHALL be a modal dialog 400 px wide against the right edge of the window, below the 64 px header, over a dark backdrop that leaves the header clear, wherever the dish is. The page behind SHALL NOT scroll while it is open, and Escape, the panel's close button and a tap on the backdrop SHALL close it and give the focus back to the dish that opened it.
+
+#### Scenario: The panel lies on the right wherever the dish is
+- **WHEN** the user opens a dish in the left half of the page and then a dish in the right half
+- **THEN** both recipes open in the same panel against the right edge of the window, over a dark backdrop
+
+#### Scenario: Closing with the backdrop
+- **WHEN** the panel is open and the user taps the backdrop
+- **THEN** the panel closes and the page scrolls again
+
+#### Scenario: Closing with Escape
+- **WHEN** the panel is open and the user presses Escape
+- **THEN** the panel closes and the focus returns to the dish that opened it, now announced as collapsed
+
+#### Scenario: Closing with the close button
+- **WHEN** the panel is open and the user activates "Cerrar receta"
+- **THEN** the panel closes and the focus returns to the dish that opened it
