@@ -31,10 +31,10 @@
 
 - [x] 6.1 `pnpm typecheck`, and `pnpm exec eslint <touched files> --rule "import/no-cycle: off"`
 - [x] 6.2 Review `/` without a session by eye at 390 px and 1440 px, top to bottom, against the "Bienvenida" card, and record what differs. Reviewed on 2026-10-22 with the local dev server: no horizontal scroll, no console errors, only the two "Acceder" reachable. Differences kept: the chip "de cuchara" shows the sparkles of an attribute, as in Buscar, where the design draws a plus; the recipe card has no eyebrow (design D3)
-- [ ] 6.3 `pnpm test:coverage` before the PR
+- [x] 6.3 `pnpm test:coverage` before the PR: 1839 tests passed, thresholds met (2026-10-22)
 
 ## Workflow follow-up
 
-- Ask the author whether the PR bumps `"version"` in `package.json`.
+- `"version"` goes to 1.0.0 in this PR (decided by the author on 2026-10-22).
 - Mark row v73 of `project/implementacion.md` in the design system as `implementado` with the PR, and fix its version line.
 - Archive the change after review, with the checklist of `context/safety-first.md` §4.
