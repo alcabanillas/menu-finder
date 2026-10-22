@@ -161,12 +161,8 @@ function EvidenceItem({ line }: { line: EvidenceLine }) {
         {line.terms.map((term, index) => (
           <Fragment key={index}>
             {index > 0 && <TermSeparator kind={line.kind} />}
-            {term.polarity === 'exclude' && (
-              // A minus as well as the colour, so the polarity is not told by colour alone (WCAG 1.4.1).
-              <span className={`flex-none self-center ${TERM_COLOURS.exclude}`}>
-                <PlannerIcon name="minus" size={12} strokeWidth={2.2} />
-              </span>
-            )}
+            {/* No minus before an excluded term, as in the design system (version 1792687168-5ad7): the colour tells it on
+                screen and the screen reader text says "excluido" (MF-76 design D6). */}
             <span className={`wrap-anywhere ${TERM_COLOURS[term.polarity]}`}>{term.term}</span>
           </Fragment>
         ))}

@@ -88,7 +88,9 @@ test.describe('without a session', () => {
     await expect(page.getByRole('button', { name: 'Cuenta' })).toHaveCount(0);
     await expect(page.getByRole('main')).toHaveCount(1);
 
-    await page.getByRole('main').getByRole('link', { name: 'Acceder' }).click();
+    // The cover and the closing block both have one (MF-76).
+    await expect(page.getByRole('main').getByRole('link', { name: 'Acceder' })).toHaveCount(2);
+    await page.getByRole('main').getByRole('link', { name: 'Acceder' }).first().click();
     await expect(page).toHaveURL('/login');
     await expect(page.getByRole('button', { name: 'Entrar' })).toBeVisible();
   });

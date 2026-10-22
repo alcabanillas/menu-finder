@@ -155,12 +155,23 @@ describe('MenuCandidateCard', () => {
       expect(line.querySelector('[data-terms]')).toHaveAttribute('aria-hidden', 'true');
     });
 
-    it('marks an excluded term with a minus, not only with colour', () => {
+    it('shows an excluded term in a group with no minus in front, as the design system does (v73)', () => {
       render(<MenuCandidateCard card={GROUP} />);
 
       const terms = lines()[0].querySelector('[data-terms]') as HTMLElement;
-      expect(terms.querySelectorAll('svg[data-icon="minus"]')).toHaveLength(1);
-      expect(within(terms).getByText('marisco').previousElementSibling?.querySelector('svg[data-icon="minus"]')).toBeInTheDocument();
+      expect(terms.querySelector('svg[data-icon="minus"]')).not.toBeInTheDocument();
+      expect(within(terms).getByText('marisco')).toHaveClass('text-exclude');
+    });
+
+    it('shows a week-wide exclusion as ✓, the term in terracotta with no minus, and "no aparece en la semana"', () => {
+      render(<MenuCandidateCard card={CARD} />);
+
+      const line = lines()[1];
+      const terms = line.querySelector('[data-terms]') as HTMLElement;
+      expect(terms).toHaveTextContent('✓cerdo');
+      expect(terms.querySelector('svg[data-icon="minus"]')).not.toBeInTheDocument();
+      expect(within(terms).getByText('cerdo')).toHaveClass('text-exclude');
+      expect(line).toHaveTextContent('no aparece en la semana');
     });
 
     it('lets long terms wrap instead of keeping them on one line', () => {

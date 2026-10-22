@@ -22,6 +22,7 @@
     "evals:term-variants": "tsx scripts/evaluacion/term-variants.ts",
     "roadmap": "tsx scripts/roadmap/index.ts",
     "ds:tokens": "tsx scripts/design-system/index.ts",
+    "welcome:check-samples": "tsx scripts/welcome/check-sample-dishes.ts",
     "release": "tsx scripts/release/index.ts"
   },
   "dependencies": {
