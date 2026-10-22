@@ -57,9 +57,13 @@ test('a menu chosen in Buscar shows in Menú, and its list can be ticked', async
   await page.goto('/shopping-list');
   await expect(page.getByText(`Menú ${menuNumber}`)).toBeVisible();
   const first = page.getByRole('checkbox').first();
-  const answered = page.waitForResponse((response) => response.request().method() === 'POST');
+  // The server action's own POST: any other POST that answers first would let the reload run before the tick is saved.
+  const answered = page.waitForResponse(
+    (response) => response.request().method() === 'POST' && 'next-action' in response.request().headers(),
+  );
   await first.click();
   await answered;
+  await expect(first).toHaveAttribute('aria-checked', 'true');
   await page.reload();
   await expect(page.getByRole('checkbox').first()).toHaveAttribute('aria-checked', 'true');
 });
