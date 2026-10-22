@@ -11,4 +11,7 @@ ignoredBuiltDependencies:
 # eslint-plugin-boundaries. 4.7.10 is a patch of the same major. Remove when they depend on >= 4.7.10.
 overrides:
   handlebars: ^4.7.10
+  # GHSA-587h-7wmj-h5pm (OSV-Scanner, high) and five more: vite 8.3.1, transitive through vitest and
+  # @vitejs/plugin-react. Fixed in 8.3.3, a patch of the same minor. Remove when they depend on >= 8.3.3.
+  vite: ^8.3.3
 
