@@ -202,6 +202,13 @@ describe('toSearchState', () => {
     [{ kind: 'request-too-short' }, 'Escribe qué te apetece.'],
     [{ kind: 'request-too-long', max: 300 }, 'La petición es demasiado larga: como mucho 300 caracteres.'],
     [{ kind: 'rejected', category: 'gibberish' }, 'Eso no parece una petición de menús. Prueba a decir qué te apetece comer.'],
+    [{ kind: 'rejected', category: 'off-topic' }, 'Eso no parece una petición de menús. Prueba a decir qué te apetece comer.'],
+    [{ kind: 'rejected', category: 'instruction' }, 'Eso no parece una petición de menús. Prueba a decir qué te apetece comer.'],
+    [{ kind: 'rejected', category: 'not-a-search' }, 'Eso no parece una petición de menús. Prueba a decir qué te apetece comer.'],
+    [
+      { kind: 'rejected', category: 'out-of-catalog' },
+      'Los menús solo tienen comidas y cenas: no hay postres, desayunos ni bebidas.',
+    ],
     [{ kind: 'invalid-answer', issues: [] }, 'No he sabido entender la petición. Prueba a escribirla de otra forma.'],
     [{ kind: 'nothing-to-search' }, 'No he sabido entender la petición. Prueba a escribirla de otra forma.'],
     [{ kind: 'llm-limit-reached' }, 'Hoy ya no se pueden hacer más búsquedas. Vuelve a intentarlo mañana.'],

@@ -6,7 +6,7 @@ import type {
   ModelReport,
   RequestDetail,
 } from '@/application/dto/decomposer-evaluation';
-import type { DecomposeError, RejectionCategory } from '@/application/dto/decomposition';
+import { REJECTION_CATEGORIES, type DecomposeError, type RejectionCategory } from '@/application/dto/decomposition';
 import type { SearchRequestDto } from '@/application/dto/search-request';
 import type { DecomposerRequest, GoldenSetSource } from '@/application/ports/golden-set-source';
 import type { RequestDecomposer } from '@/application/ports/request-decomposer';
@@ -40,7 +40,6 @@ type Run = { request: DecomposerRequest; outcome: Outcome; ms: number };
 /** A run with its constraints paired: the answered ones, the expected ones and the hits. */
 type Scored = Run & { expected: Grouped; answered: Grouped; pairs: ConstraintPair[] };
 
-const CATEGORIES: RejectionCategory[] = ['gibberish', 'off-topic', 'instruction', 'not-a-search'];
 const NOTHING: Grouped = { constraints: [], sameDish: [], anyOf: [] };
 const PERCENTILE = 0.95;
 const SLOWEST = 5;
@@ -108,7 +107,7 @@ function modelReport(model: string, runs: Scored[]): ModelReport {
     hard: share(pairs, ({ expected, answered }) => expected.hard === answered.hard),
     slot: share(pairs, ({ expected, answered }) => expected.slot === answered.slot),
     groups: [groupRow('sameDish', runs), groupRow('anyOf', runs)],
-    rejections: CATEGORIES.map((category) => rejectionRow(category, runs)),
+    rejections: REJECTION_CATEGORIES.map((category) => rejectionRow(category, runs)),
     rejectedSearches: idsWhere(runs, ({ request, outcome }) => request.expected.kind === 'search' && outcome.kind === 'rejection'),
     invalidAnswers: idsWhere(runs, ({ outcome }) => outcome.kind === 'invalid'),
     failedCalls: idsWhere(runs, ({ outcome }) => outcome.kind === 'failed'),

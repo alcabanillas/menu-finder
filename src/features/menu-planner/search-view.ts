@@ -50,6 +50,7 @@ export const IDLE_SEARCH: PlannerSearchState = { status: 'idle', attempt: 0 };
 
 const UNDERSTAND_FAILURE = 'No he sabido entender la petición. Prueba a escribirla de otra forma.';
 const SYSTEM_FAILURE = 'No se ha podido buscar. Inténtalo de nuevo.';
+const OUT_OF_CATALOG = 'Los menús solo tienen comidas y cenas: no hay postres, desayunos ni bebidas.';
 
 const MESSAGES: Record<DailyLimitedSearchError['kind'], string> = {
   'request-too-short': 'Escribe qué te apetece.',
@@ -87,7 +88,7 @@ export function toSearchState(
   attempt: number,
   request: string,
 ): PlannerSearchState {
-  if (!result.ok) return toFailedState(result.error.kind, attempt);
+  if (!result.ok) return toFailedState(result.error.kind, attempt, messageOf(result.error));
   const { structure, result: ranking } = result.value;
   if (!isAligned(structure, ranking)) return toFailedState('search-failed', attempt);
   const chips = toChips(structure, ranking.units);
@@ -144,8 +145,14 @@ export function describeChip({ kind, members }: Pick<Chip, 'kind' | 'members'>):
   return prefix + members.map(describeMember).join(kind === 'anyOf' ? ' o ' : ' y ');
 }
 
-function toFailedState(kind: DailyLimitedSearchError['kind'], attempt: number): PlannerSearchState {
-  return { status: 'failed', kind, message: MESSAGES[kind], attempt };
+function toFailedState(kind: DailyLimitedSearchError['kind'], attempt: number, message = MESSAGES[kind]): PlannerSearchState {
+  return { status: 'failed', kind, message, attempt };
+}
+
+// A request for what the menus cannot have gets its own message: it says what they hold (MF-71 design D6).
+function messageOf(error: DailyLimitedSearchError): string {
+  if (error.kind === 'rejected' && error.category === 'out-of-catalog') return OUT_OF_CATALOG;
+  return MESSAGES[error.kind];
 }
 
 // The search promises every unit's ids in the structure and one evidence item per unit (spec menu-search); a broken
