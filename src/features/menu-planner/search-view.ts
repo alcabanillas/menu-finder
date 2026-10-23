@@ -44,7 +44,17 @@ export type CandidateCard = { rank: number | null; menu: number; summary: string
 export type PlannerSearchState =
   | { status: 'idle'; attempt: number }
   | { status: 'ranking'; request: string; chips: Chip[]; cards: CandidateCard[]; onlyExclusions: boolean; attempt: number }
-  | { status: 'failed'; kind: DailyLimitedSearchError['kind']; message: string; attempt: number };
+  | {
+      status: 'failed';
+      kind: DailyLimitedSearchError['kind'];
+      message: string;
+      group: ErrorGroup;
+      request: string;
+      attempt: number;
+    };
+
+/** The panel of a failed search: what the user can do about it (spec menu-planner, "Search messages"; MF-79 design D1). */
+export type ErrorGroup = 'request' | 'catalog' | 'failure' | 'limit';
 
 export const IDLE_SEARCH: PlannerSearchState = { status: 'idle', attempt: 0 };
 
@@ -65,6 +75,23 @@ const MESSAGES: Record<DailyLimitedSearchError['kind'], string> = {
   'index-not-loaded': SYSTEM_FAILURE,
   'invalid-request': SYSTEM_FAILURE,
 };
+
+const GROUPS: Record<DailyLimitedSearchError['kind'], ErrorGroup> = {
+  'request-too-short': 'request',
+  'request-too-long': 'request',
+  rejected: 'request',
+  'invalid-answer': 'request',
+  'nothing-to-search': 'request',
+  'llm-limit-reached': 'limit',
+  'decomposer-failed': 'failure',
+  'embedding-failed': 'failure',
+  'search-failed': 'failure',
+  'index-not-loaded': 'failure',
+  'invalid-request': 'failure',
+};
+
+// The search broke its promise of one evidence item per unit (spec menu-search): a failure of the system.
+const MISALIGNED: DailyLimitedSearchError = { kind: 'search-failed', reason: 'the ranking does not match its request' };
 
 /** The days as the cards and the week preview write them. */
 export const DAY_NAMES: Record<DayDto, string> = {
@@ -88,9 +115,9 @@ export function toSearchState(
   attempt: number,
   request: string,
 ): PlannerSearchState {
-  if (!result.ok) return toFailedState(result.error.kind, attempt, messageOf(result.error));
+  if (!result.ok) return toFailedState(result.error, attempt, request);
   const { structure, result: ranking } = result.value;
-  if (!isAligned(structure, ranking)) return toFailedState('search-failed', attempt);
+  if (!isAligned(structure, ranking)) return toFailedState(MISALIGNED, attempt, request);
   const chips = toChips(structure, ranking.units);
   const onlyExclusions = chips.every(isWeekWideExclusion);
   const cards = ranking.menus.map(({ menu, evidence }, index) => {
@@ -145,14 +172,21 @@ export function describeChip({ kind, members }: Pick<Chip, 'kind' | 'members'>):
   return prefix + members.map(describeMember).join(kind === 'anyOf' ? ' o ' : ' y ');
 }
 
-function toFailedState(kind: DailyLimitedSearchError['kind'], attempt: number, message = MESSAGES[kind]): PlannerSearchState {
-  return { status: 'failed', kind, message, attempt };
+function toFailedState(error: DailyLimitedSearchError, attempt: number, request: string): PlannerSearchState {
+  const outOfCatalog = isOutOfCatalog(error);
+  return {
+    status: 'failed',
+    kind: error.kind,
+    // A request for what the menus cannot have gets its own message: it says what they hold (MF-71 design D6).
+    message: outOfCatalog ? OUT_OF_CATALOG : MESSAGES[error.kind],
+    group: outOfCatalog ? 'catalog' : GROUPS[error.kind],
+    request,
+    attempt,
+  };
 }
 
-// A request for what the menus cannot have gets its own message: it says what they hold (MF-71 design D6).
-function messageOf(error: DailyLimitedSearchError): string {
-  if (error.kind === 'rejected' && error.category === 'out-of-catalog') return OUT_OF_CATALOG;
-  return MESSAGES[error.kind];
+function isOutOfCatalog(error: DailyLimitedSearchError): boolean {
+  return error.kind === 'rejected' && error.category === 'out-of-catalog';
 }
 
 // The search promises every unit's ids in the structure and one evidence item per unit (spec menu-search); a broken
