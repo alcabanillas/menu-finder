@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { createCliContainer } from '@/composition/cli-container';
 import { runEmbed } from '@/cli/commands/embed';
+import { runIngredientGroups } from '@/cli/commands/ingredient-groups';
 import { runIngestMenu } from '@/cli/commands/ingest-menu';
 import { runIngestRecipes } from '@/cli/commands/ingest-recipes';
 import { runIngestShoppingList } from '@/cli/commands/ingest-shopping-list';
@@ -42,6 +43,8 @@ runCli(process.argv.slice(2), {
       migrate: () => runMigrate({ migrate: container.migrate, print }),
       'shopping-list': () => runIngestShoppingList({ ...container, ...output }),
       embed: () => runEmbed({ embedRecipes: container.embedRecipes, print }),
+      'ingredient-groups': () =>
+        runIngredientGroups({ classifyIngredients: container.classifyIngredients, print }),
       account: ([email, name]) =>
         runCreateAccount({
           email,

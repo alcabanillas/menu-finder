@@ -86,6 +86,33 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresDishTextSearch (Neon test branch)',
     expect(await search.matches('garbanzo')).toEqual({ ok: true, value: [at('dinner', 2)] });
   });
 
+  it('matches a food group stored in ingredient_group by default', async () => {
+    await new PostgresRecipeRepository(db.pool).saveIngredientGroups([
+      { ingredientName: 'tahini', foodGroups: ['marisco'], model: 'test' },
+    ]);
+
+    expect(await search.matches('marisco')).toEqual({ ok: true, value: [at('dinner', 2)] });
+  });
+
+  it('matches food group singular and plural forms via Spanish stemming', async () => {
+    await new PostgresRecipeRepository(db.pool).saveIngredientGroups([
+      { ingredientName: 'espinacas', foodGroups: ['verduras'], model: 'test' },
+    ]);
+
+    expect(await search.matches('verdura')).toEqual({ ok: true, value: [at('lunch', 3)] });
+  });
+
+  it('ignores ingredient_group when includeIngredientGroups is false', async () => {
+    await new PostgresRecipeRepository(db.pool).saveIngredientGroups([
+      { ingredientName: 'tahini', foodGroups: ['marisco'], model: 'test' },
+    ]);
+
+    expect(await search.matches('marisco', { includeIngredientGroups: false })).toEqual({
+      ok: true,
+      value: [],
+    });
+  });
+
   it('matches a term of several words as a phrase, with its stopwords in between', async () => {
     expect(await search.matches('tortilla de patatas')).toEqual({ ok: true, value: [at('dinner', 4)] });
   });

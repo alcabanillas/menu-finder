@@ -14,9 +14,10 @@
 | 2 | un PDF por receta | `pnpm ingest recipes` (CLI de `src/`) | `data/recetas.json` ([T2](T2-esquema-json-ingesta.md) §4) y la BD |
 | 3 | `menu.pdf` | `pnpm ingest menu` (CLI de `src/`) | `data/menu-platos.json` ([T2](T2-esquema-json-ingesta.md) §2) y la BD |
 | 4 | `Lista_de_la_compra.pdf` | `pnpm ingest shopping-list` (CLI de `src/`) | Tabla `shopping_item` en la BD ([T2](T2-esquema-json-ingesta.md) §3) |
-| 5 | Recetas de la BD | `pnpm ingest embed` (CLI de `src/`) | Embeddings de recetas en la BD |
+| 5 | Ingredientes de las recetas | `pnpm ingest ingredient-groups` (CLI de `src/`) | Tabla `ingredient_group` en la BD (MF-78) |
+| 6 | Recetas de la BD | `pnpm ingest embed` (CLI de `src/`) | Embeddings de recetas en la BD |
 
-El orden de ingesta (`migrate → recipes → menu → shopping-list → embed`) responde a las dependencias relacionales de la BD: las recetas van antes que el menú porque cada plato apunta a su receta (MF-41), y el menú va antes que la lista de la compra porque cada ítem referencia a su menú (MF-10).
+El orden de ingesta (`migrate → recipes → menu → shopping-list → ingredient-groups → embed`) responde a las dependencias relacionales de la BD: las recetas van antes que el menú porque cada plato apunta a su receta (MF-41), el menú va antes que la lista de la compra porque cada ítem referencia a su menú (MF-10), y los grupos canónicos de ingredientes (`ingredient-groups`) clasifican los ingredientes extraídos de las recetas (MF-78).
 
 Todo se lee **directamente del PDF** con `pdf-parse` (menú) y `pdfjs-dist` (recetas y lista de la compra). Ya no se requiere Poppler ni conversiones intermedias a TXT.
 
@@ -35,6 +36,7 @@ pnpm ingest migrate        # → aplica las migraciones pendientes de postgres/m
 pnpm ingest recipes        # → data/recetas.json y la BD (sale con 1 si alguna receta falla)
 pnpm ingest menu           # → data/menu-platos.json y la BD (sale con 1 si algún menú falla)
 pnpm ingest shopping-list  # → tabla shopping_item en la BD y data/qa/qa-lista-compra.md
+pnpm ingest ingredient-groups  # → clasifica con Gemini los ingredientes en ingredient_group (MF-78)
 pnpm ingest embed          # → embeddings de las recetas en la BD; solo calcula los nuevos o cambiados
 pnpm ingest search <estructura.json> [--strategy lexical|semantic|hybrid] # → top 5 de menús; lee la BD, no escribe (semantic por defecto)
 ```

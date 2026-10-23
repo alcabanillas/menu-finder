@@ -13,6 +13,7 @@ export type CliCommands = {
   migrate: () => Promise<number>;
   'shopping-list': () => Promise<number>;
   embed: () => Promise<number>;
+  'ingredient-groups': () => Promise<number>;
   account: (args: string[]) => Promise<number>;
   search: (options: SearchOptions) => Promise<number>;
   'search-text': (options: SearchTextOptions) => Promise<number>;
@@ -36,20 +37,22 @@ const ARGUMENTS: Record<ArgsCommand, { min: number; max: number }> = {
   menu: { min: 0, max: 0 },
   'shopping-list': { min: 0, max: 0 },
   embed: { min: 0, max: 0 },
+  'ingredient-groups': { min: 0, max: 0 },
   account: { min: 1, max: 2 },
   'evaluate-search': { min: 0, max: 0 },
   decompose: { min: 1, max: 1 },
   'evaluate-decomposer': { min: 0, max: 0 },
 };
 
-// Listed in the order they are run (MF-41 design D9, MF-10 design D3): migrate → recipes → menu → shopping-list → embed.
+// Listed in the order they are run (MF-41 design D9, MF-10 design D3): migrate → recipes → menu → shopping-list → embed → ingredient-groups.
 const USAGE = [
-  'Usage: pnpm ingest <migrate|recipes|menu|shopping-list|embed|account|search|search-text|evaluate-search|decompose|evaluate-decomposer>',
+  'Usage: pnpm ingest <migrate|recipes|menu|shopping-list|embed|ingredient-groups|account|search|search-text|evaluate-search|decompose|evaluate-decomposer>',
   '  migrate                 Apply the pending SQL migrations of postgres/migrations to the database',
   '  recipes                 Ingest the recipes from data/raw/Dieta into data/recetas.json and the database',
   '  menu                    Ingest the weekly menus from data/raw/Dieta into data/menu-platos.json and the database',
   '  shopping-list           Ingest the shopping lists from data/raw/Dieta into the database',
   '  embed                   Compute the missing or outdated recipe embeddings and store them in the database',
+  '  ingredient-groups       Classify recipe ingredients into food groups and store them in the database',
   '  account <email> [name]  Create an account; the password is asked at a prompt, or read from stdin',
   '  search <structure.json> Search the menus with a structure file [--strategy lexical|semantic|hybrid]',
   '  search-text <request>   Decompose a request with the model and search the menus with it [--strategy …]',

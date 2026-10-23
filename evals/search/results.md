@@ -18,23 +18,23 @@ The number of queries behind each mean is in parentheses: per type they are smal
 
 | Type | lexical | semantic | hybrid |
 |---|---|---|---|
-| literal | 0.8509 (n=10) | 0.9000 (n=10) | 0.9000 (n=10) |
+| literal | 0.8509 (n=10) | 0.9325 (n=10) | 0.9000 (n=10) |
 | exclusion | 0.6010 (n=6) | 0.6010 (n=6) | 0.6010 (n=6) |
 | attribute | 0.0000 (n=9) | 0.4418 (n=9) | 0.0000 (n=9) |
-| fuzzy | 0.0424 (n=8) | 0.6755 (n=8) | 0.0424 (n=8) |
-| combined | 0.4350 (n=9) | 0.6961 (n=9) | 0.5957 (n=9) |
-| overall | 0.3897 (n=42) | 0.6726 (n=42) | 0.4359 (n=42) |
+| fuzzy | 0.0814 (n=8) | 0.6755 (n=8) | 0.1168 (n=8) |
+| combined | 0.6302 (n=9) | 0.7265 (n=9) | 0.6691 (n=9) |
+| overall | 0.4390 (n=42) | 0.6869 (n=42) | 0.4658 (n=42) |
 
 ## hit@5 by query type
 
 | Type | lexical | semantic | hybrid |
 |---|---|---|---|
-| literal | 0.9989 (n=8) | 1.0000 (n=8) | 1.0000 (n=8) |
+| literal | 0.9989 (n=8) | 0.9989 (n=8) | 1.0000 (n=8) |
 | exclusion | 0.9603 (n=6) | 0.9603 (n=6) | 0.9603 (n=6) |
 | attribute | 0.0000 (n=9) | 0.8889 (n=9) | 0.0000 (n=9) |
-| fuzzy | 0.1250 (n=8) | 1.0000 (n=8) | 0.1250 (n=8) |
-| combined | 0.6028 (n=9) | 0.7778 (n=9) | 0.6667 (n=9) |
-| overall | 0.5045 (n=40) | 0.9190 (n=40) | 0.5190 (n=40) |
+| fuzzy | 0.1073 (n=8) | 1.0000 (n=8) | 0.1250 (n=8) |
+| combined | 0.7162 (n=9) | 0.7563 (n=9) | 0.6667 (n=9) |
+| overall | 0.5264 (n=40) | 0.9140 (n=40) | 0.5190 (n=40) |
 
 ## nDCG@5 per query
 
@@ -49,13 +49,13 @@ The number of queries behind each mean is in parentheses: per type they are smal
 | A09 | attribute | 0.0000 (empty) | 0.4310 | 0.0000 (empty) |
 | A10 | attribute | 0.0000 (empty) | 0.3813 | 0.0000 (empty) |
 | A11 | attribute | 0.0000 (empty) | 0.4152 | 0.0000 (empty) |
-| C03 | combined | 0.0000 (empty) | 1.0000 | 1.0000 |
-| C04 | combined | 0.3392 | 0.3392 | 0.3392 |
-| C05 | combined | 0.8571 | 1.0000 | 1.0000 |
-| C06 | combined | 0.8333 | 1.0000 | 1.0000 |
-| C07 | combined | 0.6250 | 0.6800 | 0.6800 |
+| C03 | combined | 0.9310 | 1.0000 | 1.0000 |
+| C04 | combined | 1.0000 | 1.0000 | 1.0000 |
+| C05 | combined | 0.9808 | 1.0000 | 1.0000 |
+| C06 | combined | 0.8636 | 0.6608 | 1.0000 |
+| C07 | combined | 0.6250 | 0.6250 | 0.6800 |
 | C08 | combined | 0.0000 (empty) | 0.5609 | 0.0000 (empty) |
-| C10 | combined | 0.6400 | 0.8422 | 0.8422 |
+| C10 | combined | 0.6515 | 0.8496 | 0.8422 |
 | C11 | combined | 0.0000 (empty) | 0.3422 | 0.0000 (empty) |
 | C12 | combined | 0.6200 | 0.5000 | 0.5000 |
 | E01 | exclusion | 0.7222 | 0.7222 | 0.7222 |
@@ -65,20 +65,20 @@ The number of queries behind each mean is in parentheses: per type they are smal
 | E05 | exclusion | 0.4167 | 0.4167 | 0.4167 |
 | E06 | exclusion | 0.7227 | 0.7227 | 0.7227 |
 | F01 | fuzzy | 0.0000 (empty) | 0.6918 | 0.0000 (empty) |
-| F02 | fuzzy | 0.3392 | 0.9344 | 0.3392 |
+| F02 | fuzzy | 0.6515 | 0.9344 | 0.9344 |
 | F03 | fuzzy | 0.0000 (empty) | 0.3082 | 0.0000 (empty) |
 | F04 | fuzzy | 0.0000 (empty) | 0.6398 | 0.0000 (empty) |
 | F05 | fuzzy | 0.0000 (empty) | 0.6992 | 0.0000 (empty) |
 | F06 | fuzzy | 0.0000 (empty) | 0.4938 | 0.0000 (empty) |
 | F07 | fuzzy | 0.0000 (empty) | 0.7860 | 0.0000 (empty) |
 | F08 | fuzzy | 0.0000 (empty) | 0.8510 | 0.0000 (empty) |
-| L01 | literal | 0.9348 | 1.0000 | 1.0000 |
+| L01 | literal | 0.9348 | 0.9348 | 1.0000 |
 | L02 | literal | 1.0000 | 1.0000 | 1.0000 |
-| L05 | literal | 0.9687 | 1.0000 | 1.0000 |
+| L05 | literal | 0.9687 | 0.9687 | 1.0000 |
 | L07 | literal | 1.0000 | 1.0000 | 1.0000 |
-| L08 | literal | 0.8095 | 1.0000 | 1.0000 |
-| L10 | literal | 1.0000 | 0.0000 | 1.0000 |
-| L11 | literal | 0.7963 | 1.0000 | 1.0000 |
+| L08 | literal | 0.8095 | 0.8095 | 1.0000 |
+| L10 | literal | 1.0000 | 0.8155 | 1.0000 |
+| L11 | literal | 0.7963 | 0.7963 | 1.0000 |
 | L13 | literal | 1.0000 | 1.0000 | 1.0000 |
 | L14 | literal | 0.0000 (empty) | 1.0000 | 0.0000 (empty) |
 | L15 | literal | 1.0000 | 1.0000 | 1.0000 |

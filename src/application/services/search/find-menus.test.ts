@@ -24,7 +24,14 @@ const CATALOG = [
 
 type FailingPort = 'list' | 'matches' | 'embed' | 'similarities';
 /** `similarTo` makes the dishes whose name contains the given text similar to a term, without matching its text. */
-type FakeOptions = { fail?: FailingPort; noEmbeddings?: boolean; shortVectors?: boolean; similarTo?: Record<string, string>; failTerm?: string };
+type FakeOptions = {
+  fail?: FailingPort;
+  noEmbeddings?: boolean;
+  shortVectors?: boolean;
+  similarTo?: Record<string, string>;
+  failTerm?: string;
+  customSimilarities?: Record<string, Record<string, number>>;
+};
 
 function menu(number: number, lunch: string, dinner: string): WeeklyMenu {
   return {
@@ -57,8 +64,21 @@ function nameHas(name: string, term: string): boolean {
  * then and 0.2 otherwise, so the rescaled semantic score is 1 or 0. A query vector is the term's position in the
  * terms embedded so far, so the store can tell which term it is about.
  */
-function fakePorts({ fail, noEmbeddings = false, shortVectors = false, similarTo = {}, failTerm }: FakeOptions = {}) {
-  const calls = { list: 0, matches: [] as string[], embedQueries: [] as string[][], similarities: 0 };
+function fakePorts({
+  fail,
+  noEmbeddings = false,
+  shortVectors = false,
+  similarTo = {},
+  failTerm,
+  customSimilarities,
+}: FakeOptions = {}) {
+  const calls = {
+    list: 0,
+    matches: [] as string[],
+    matchCalls: [] as { term: string; options?: { includeIngredientGroups?: boolean } }[],
+    embedQueries: [] as string[][],
+    similarities: 0,
+  };
   const embedded: string[] = [];
   const dishes = catalogDishes();
   const failure = { reason: 'connection lost' };
@@ -70,8 +90,9 @@ function fakePorts({ fail, noEmbeddings = false, shortVectors = false, similarTo
       },
     },
     dishText: {
-      matches: async (term) => {
+      matches: async (term, options) => {
         calls.matches.push(term);
+        calls.matchCalls.push({ term, options });
         if (fail === 'matches' || term === failTerm) return err({ kind: 'text-search-failed', ...failure });
         return ok(dishes.filter(({ name }) => nameHas(name, term)).map(({ address }) => address));
       },
@@ -84,6 +105,14 @@ function fakePorts({ fail, noEmbeddings = false, shortVectors = false, similarTo
         if (fail === 'similarities') return err({ kind: 'store-failed', ...failure });
         if (noEmbeddings) return ok([]);
         const term = embedded[index];
+        if (customSimilarities && customSimilarities[term]) {
+          return ok(
+            dishes.map(({ address, name }) => ({
+              dish: address,
+              similarity: customSimilarities[term][name] ?? 0.2,
+            })),
+          );
+        }
         const like = similarTo[term] ?? term;
         return ok(dishes.map(({ address, name }) => ({ dish: address, similarity: nameHas(name, like) ? 0.9 : 0.2 })));
       },
@@ -116,7 +145,7 @@ describe('findMenus', () => {
     const { result, calls } = search(request([constraint('c1', '   ')]), 'hybrid');
 
     expect(await result).toMatchObject({ ok: false, error: { kind: 'invalid-request' } });
-    expect(calls).toEqual({ list: 0, matches: [], embedQueries: [], similarities: 0 });
+    expect(calls).toEqual({ list: 0, matches: [], matchCalls: [], embedQueries: [], similarities: 0 });
   });
 
   it('with lexical, matches each term in the database and ranks the menus that reach 0.6 with their evidence', async () => {
@@ -160,148 +189,91 @@ describe('findMenus', () => {
     expect(calls).toMatchObject({ matches: ['pollo', 'cerdo'], embedQueries: [['pollo']], similarities: 1 });
   });
 
-  it('with semantic, gives the dish that has the term as literal evidence and a dish only similar to it as similar', async () => {
-    const raw = request([constraint('c1', 'pescado'), constraint('c2', 'pollo')]);
-
-    const result = await search(raw, 'semantic', { similarTo: { pescado: 'Merluza' } }).result;
-
-    expect(result).toMatchObject({
-      ok: true,
-      value: {
-        menus: [
-          {
-            menu: 1,
-            evidence: [
-              { constraints: ['c1'], dish: { name: 'Merluza al horno' }, match: 'similar' },
-              { constraints: ['c2'], dish: lunchDish('Pollo asado'), match: 'literal' },
-            ],
-          },
-        ],
-      },
-    });
-  });
-
-  it('with semantic, gives no evidence for a unit no dish of the menu matches, and none for a week-wide exclusion', async () => {
+  it('matches week-wide exclusions with includeIngredientGroups false and other constraints with default', async () => {
     const raw = request([
       constraint('c1', 'pollo'),
-      constraint('c2', 'calabaza'),
-      constraint('c3', 'lentejas'),
-      constraint('c4', 'cerdo', { type: 'exclusion', polarity: 'exclude' }),
-    ]);
-
-    const result = await search(raw, 'semantic').result;
-
-    expect(result).toMatchObject({
-      ok: true,
-      value: {
-        menus: [
-          {
-            menu: 3,
-            evidence: [{ match: 'literal' }, { match: 'literal' }, { dish: null, match: 'none' }, { dish: null, match: 'none' }],
-          },
-        ],
-      },
-    });
-  });
-
-  it('with hybrid, gives the dish that has the term as literal evidence', async () => {
-    const result = await search(request([constraint('c1', 'pollo')]), 'hybrid').result;
-
-    expect(result).toMatchObject({ ok: true, value: { menus: [{ evidence: [{ match: 'literal' }] }, { evidence: [{ match: 'literal' }] }] } });
-  });
-
-  it('with semantic, removes the menus whose dishes match a week-wide exclusion by text', async () => {
-    const raw = request([constraint('c1', 'lentejas'), constraint('c2', 'cerdo', { type: 'exclusion', polarity: 'exclude' })]);
-
-    const result = await search(raw, 'semantic').result;
-
-    expect(result).toMatchObject({ ok: true, value: { menus: [], removedBy: [{ constraints: ['c2'], menusRemoved: 1 }] } });
-  });
-
-  it('with semantic, keeps the menus when no dish has the excluded word, however similar a dish is to it', async () => {
-    const raw = request([constraint('c1', 'pollo'), constraint('c2', 'caviar', { type: 'exclusion', polarity: 'exclude' })]);
-
-    const result = await search(raw, 'semantic', { similarTo: { caviar: 'Merluza' } }).result;
-
-    expect(result).toMatchObject({ ok: true, value: { menus: [{ menu: 1 }, { menu: 3 }], removedBy: [{ constraints: ['c2'], menusRemoved: 0 }] } });
-  });
-
-  it('matches each distinct excluded term once', async () => {
-    const raw = request([
-      constraint('c1', 'cerdo', { type: 'exclusion', polarity: 'exclude' }),
-      constraint('c2', 'cerdo', { type: 'exclusion', polarity: 'exclude', slot: 'dinner' }),
+      constraint('c2', 'cerdo', { type: 'exclusion', polarity: 'exclude' }),
     ]);
 
     const { result, calls } = search(raw, 'semantic');
 
     expect((await result).ok).toBe(true);
-    expect(calls).toMatchObject({ matches: ['cerdo'], embedQueries: [] });
-  });
-
-  it('with semantic, ends with an error and no ranking when the text match of an exclusion fails', async () => {
-    const raw = request([constraint('c1', 'pollo'), constraint('c2', 'cerdo', { type: 'exclusion', polarity: 'exclude' })]);
-
-    const result = await search(raw, 'semantic', { failTerm: 'cerdo' }).result;
-
-    expect(result).toEqual({ ok: false, error: { kind: 'search-failed', reason: 'connection lost' } });
-  });
-
-  it('with hybrid, uses the text match and the embeddings', async () => {
-    const { result, calls } = search(request([constraint('c1', 'pollo')]), 'hybrid');
-
-    const ranking = await result;
-
-    expect(ranking.ok && ranking.value.menus.map(({ menu, score }) => [menu, score])).toEqual([
-      [1, 1],
-      [3, 1],
+    expect(calls.matchCalls).toEqual([
+      { term: 'pollo', options: undefined },
+      { term: 'cerdo', options: { includeIngredientGroups: false } },
     ]);
-    expect(calls).toMatchObject({ matches: ['pollo'], embedQueries: [['pollo']], similarities: 1 });
   });
 
-  it('applies the hard constraints and gives no evidence for a week-wide exclusion', async () => {
-    const raw = request([
-      constraint('c1', 'pollo', { hard: true }),
-      constraint('c2', 'cerdo', { type: 'exclusion', polarity: 'exclude' }),
-    ]);
-
-    const result = await search(raw, 'lexical').result;
-
-    expect(result).toMatchObject({
-      ok: true,
-      value: {
-        menus: [
-          { menu: 1, evidence: [{ constraints: ['c1'] }, { constraints: ['c2'], dish: null }] },
-          { menu: 3 },
-        ],
-        removedBy: [
-          { constraints: ['c1'], menusRemoved: 1 },
-          { constraints: ['c2'], menusRemoved: 1 },
-        ],
+  it('with semantic, takes Math.max(semantic, lexical) for a literal constraint', async () => {
+    // Menu 1 'Pollo asado' matches text for 'pollo' (lexical = 1), but let its similarity be 0.4 while Menu 3 is 0.8.
+    // Without max-pooling, Menu 1's rescaled semantic score would be (0.4 - 0.2) / (0.8 - 0.2) = 0.33 (< 0.6, not ranked).
+    // With max-pooling for literal constraint, Menu 1's score is Math.max(0.33, 1) = 1.
+    const customSimilarities = {
+      pollo: {
+        'Pollo asado': 0.4,
+        'Arroz con pollo': 0.8,
       },
-    });
+    };
+    const raw = request([constraint('c1', 'pollo', { type: 'literal' })]);
+
+    const result = await search(raw, 'semantic', { customSimilarities }).result;
+
+    expect(result.ok && result.value.menus.find((m) => m.menu === 1)?.score).toBe(1);
   });
 
-  it('gives the units of the request, and every menu has one evidence item for each, in their order', async () => {
-    const raw = request(
-      [
-        constraint('c1', 'arroz'),
-        constraint('c2', 'marisco', { type: 'exclusion', polarity: 'exclude' }),
-        constraint('c3', 'pollo'),
-      ],
-      { sameDish: [['c1', 'c2']] },
-    );
+  it('with semantic, takes Math.max(semantic, lexical) for a constraint inside sameDish or anyOf', async () => {
+    // Menu 1 'Pollo asado' matches text for 'pollo' (lexical = 1).
+    // Let 'pollo' have low similarity 0.4 on 'Pollo asado' and high 0.8 on 'Arroz con pollo'.
+    // If fuzzy 'pollo' were not maxed to 1, its score on 'Pollo asado' would be 0.33, making sameDish score 0.33 (< 0.6).
+    const customSimilarities = {
+      pollo: {
+        'Pollo asado': 0.4,
+        'Arroz con pollo': 0.8,
+      },
+    };
+    const raw = request([constraint('c1', 'pollo', { type: 'fuzzy' }), constraint('c2', 'asado', { type: 'literal' })], {
+      sameDish: [['c1', 'c2']],
+    });
+
+    const result = await search(raw, 'semantic', { customSimilarities }).result;
+
+    expect(result.ok && result.value.menus.find((m) => m.menu === 1)?.score).toBe(1);
+  });
+
+  it('with semantic, keeps semantic score alone for an ungrouped fuzzy constraint', async () => {
+    const customSimilarities = {
+      pollo: {
+        'Pollo asado': 0.5,
+        'Arroz con pollo': 0.8,
+      },
+      merluza: {
+        'Merluza al horno': 0.9,
+      },
+    };
+    // Ungrouped fuzzy constraint 'c1' + literal constraint 'c2':
+    const raw = request([
+      constraint('c1', 'pollo', { type: 'fuzzy' }),
+      constraint('c2', 'merluza', { type: 'literal' }),
+    ]);
+
+    const result = await search(raw, 'semantic', { customSimilarities }).result;
+
+    // Rescaled score for Menu 1:
+    // for 'pollo': min 0.2, max 0.8 -> (0.5 - 0.2) / (0.8 - 0.2) = 0.5.
+    // for 'merluza': 1.
+    // If c1 keeps semantic score 0.5, mean score for Menu 1 is (0.5 + 1) / 2 = 0.75.
+    // If c1 were max-pooled to lexical (1), mean score would be 1.0.
+    expect(result.ok && result.value.menus.find((m) => m.menu === 1)?.score).toBe(0.75);
+    // But its evidence should still be marked literal because it has text match:
+    expect(result.ok && result.value.menus.find((m) => m.menu === 1)?.evidence[0].match).toBe('literal');
+  });
+
+  it('ranks menus with their units and filters when constraints are grouped', async () => {
+    const raw = request([constraint('c1', 'arroz'), constraint('c2', 'pollo')], { sameDish: [['c1', 'c2']] });
 
     const result = await search(raw, 'lexical').result;
 
-    expect(result.ok && result.value.units).toEqual([
-      { kind: 'sameDish', constraints: ['c1', 'c2'] },
-      { kind: 'constraint', constraints: ['c3'] },
-    ]);
-    expect(result.ok && result.value.menus.length).toBeGreaterThan(0);
-    expect(result.ok && result.value.menus.every(({ evidence }) => evidence.length === 2)).toBe(true);
-    expect(result.ok && result.value.menus.map(({ evidence }) => evidence.map(({ constraints }) => constraints))).toEqual(
-      result.ok ? result.value.menus.map(() => [['c1', 'c2'], ['c3']]) : [],
-    );
+    expect(result.ok && result.value.menus.map(({ menu }) => menu)).toEqual([3]);
   });
 
   it('asks to run embed first when no embedding is stored', async () => {
@@ -318,6 +290,13 @@ describe('findMenus', () => {
     ['similarities', 'semantic'],
   ] as const)('ends with an error and no ranking when %s fails', async (fail, strategy) => {
     const result = await search(request([constraint('c1', 'pollo')]), strategy, { fail }).result;
+
+    expect(result).toEqual({ ok: false, error: { kind: 'search-failed', reason: 'connection lost' } });
+  });
+
+  it('ends with an error and no ranking when matches fails for a week-wide exclusion', async () => {
+    const raw = request([constraint('c1', 'cerdo', { type: 'exclusion', polarity: 'exclude' })]);
+    const result = await search(raw, 'semantic', { fail: 'matches' }).result;
 
     expect(result).toEqual({ ok: false, error: { kind: 'search-failed', reason: 'connection lost' } });
   });

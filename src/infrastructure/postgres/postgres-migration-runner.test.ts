@@ -39,6 +39,7 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresMigrationRunner (Neon test branch)'
         '005-selection.sql',
         '006-user-shopping-item.sql',
         '007-rate-limit.sql',
+        '008-ingredient-groups.sql',
       ],
     });
     expect(await runner.applied()).toEqual({ ok: true, value: [] });
@@ -97,6 +98,45 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresMigrationRunner (Neon test branch)'
       `SELECT relrowsecurity AS rls
          FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
         WHERE n.nspname = $1 AND c.relname = 'shopping_item'`,
+      [db.schema],
+    );
+    expect(rls.rows[0]?.rls).toBe(true);
+  });
+
+  it('applies 008 on top of 001: creates ingredient_group with constraints and row-level security', async () => {
+    const runner = new PostgresMigrationRunner(db.pool, MIGRATIONS_DIR);
+    await runner.apply('001-search-schema.sql');
+
+    expect(await runner.apply('008-ingredient-groups.sql')).toEqual({ ok: true, value: undefined });
+
+    const { rows } = await db.pool.query<{ column_name: string; data_type: string; is_nullable: string }>(
+      `SELECT column_name, data_type, is_nullable
+         FROM information_schema.columns
+        WHERE table_schema = $1 AND table_name = 'ingredient_group'
+        ORDER BY ordinal_position`,
+      [db.schema],
+    );
+    expect(rows.map((r) => [r.column_name, r.data_type, r.is_nullable])).toEqual([
+      ['ingredient_name', 'text', 'NO'],
+      ['food_groups', 'ARRAY', 'NO'],
+      ['model', 'text', 'NO'],
+    ]);
+
+    const pk = await db.pool.query<{ column_name: string }>(
+      `SELECT kcu.column_name
+         FROM information_schema.table_constraints tc
+         JOIN information_schema.key_column_usage kcu
+           ON tc.constraint_name = kcu.constraint_name AND tc.table_schema = kcu.table_schema
+        WHERE tc.table_schema = $1 AND tc.table_name = 'ingredient_group' AND tc.constraint_type = 'PRIMARY KEY'
+        ORDER BY kcu.ordinal_position`,
+      [db.schema],
+    );
+    expect(pk.rows.map((r) => r.column_name)).toEqual(['ingredient_name']);
+
+    const rls = await db.pool.query<{ rls: boolean }>(
+      `SELECT relrowsecurity AS rls
+         FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE n.nspname = $1 AND c.relname = 'ingredient_group'`,
       [db.schema],
     );
     expect(rls.rows[0]?.rls).toBe(true);
