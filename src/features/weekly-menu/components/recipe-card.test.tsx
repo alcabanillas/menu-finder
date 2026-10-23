@@ -26,6 +26,17 @@ describe('RecipeCard', () => {
     expect(screen.queryByText('Ingredientes')).not.toBeInTheDocument();
   });
 
+  it('starts unfolded with defaultOpen, and still folds', () => {
+    render(<RecipeCard name="Lentejas estofadas" recipe={lentejas} defaultOpen />);
+
+    expect(toggle()).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('list', { name: 'Ingredientes' })).toBeInTheDocument();
+
+    fireEvent.click(toggle());
+
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
+  });
+
   it('unfolds the recipe: times, ingredients with their amounts and numbered steps', () => {
     render(<RecipeCard name="Lentejas estofadas" recipe={lentejas} />);
 

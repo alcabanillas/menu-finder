@@ -20,6 +20,10 @@ const nextConfig: NextConfig = {
   },
   poweredByHeader: false,
   headers: async () => [{ source: ALL_ROUTES, headers: fixedSecurityHeaders() }],
+  experimental: {
+    // Coding agents are told only about Next.js security upgrades.
+    agentUpgrade: 'security',
+  },
 };
 
 export default withSentryConfig(nextConfig, sentryBuildOptions(process.env));

@@ -55,7 +55,34 @@ describe('Home without a session', () => {
 
     expect(within(screen.getByRole('main')).getByRole('heading', { level: 1 })).toBeInTheDocument();
     expect(within(screen.getByRole('banner')).getByRole('link', { name: 'Acceder' })).toHaveAttribute('href', '/login');
-    expect(within(screen.getByRole('main')).getByRole('link', { name: 'Acceder' })).toHaveAttribute('href', '/login');
+    const links = within(screen.getByRole('main')).getAllByRole('link', { name: 'Acceder' });
+    expect(links).toHaveLength(2);
+    links.forEach((link) => expect(link).toHaveAttribute('href', '/login'));
+  });
+
+  it('shows the sample search: the request, its three chips and the card of Menú 14 with its evidence', async () => {
+    const { container: page } = render(await Home());
+
+    const [search] = page.querySelectorAll('[data-sample]');
+    expect(search).toHaveTextContent('de cuchara, sin cerdo y con garbanzos');
+    expect([...search.querySelectorAll('li [data-member]')].map((chip) => chip.textContent)).toEqual([
+      'de cuchara',
+      'cerdo',
+      'garbanzos',
+    ]);
+    expect(within(search as HTMLElement).getByRole('heading', { level: 3, hidden: true, name: 'Menú 14' })).toBeInTheDocument();
+    expect(search).toHaveTextContent('Cumple las 3 cosas que pides.');
+    expect(search).toHaveTextContent('✓cerdono aparece en la semana');
+  });
+
+  it('shows the sample pieces of the three features: six days, an open recipe and a category with three items', async () => {
+    const { container: page } = render(await Home());
+
+    const [, week, recipe, shopping] = page.querySelectorAll('[data-sample]');
+    expect(week.querySelectorAll('[data-glance-day]')).toHaveLength(6);
+    expect(within(recipe as HTMLElement).getByRole('button', { hidden: true })).toHaveAttribute('aria-expanded', 'true');
+    expect(within(recipe as HTMLElement).getByRole('list', { hidden: true, name: 'Preparación' })).toBeInTheDocument();
+    expect(shopping.querySelectorAll('[data-sample-item]')).toHaveLength(3);
   });
 
   it('has no navigation, no account, no sign-in form, no version and reads no data', async () => {

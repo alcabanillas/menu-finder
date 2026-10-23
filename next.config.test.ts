@@ -44,6 +44,10 @@ describe('version and framework disclosure', () => {
   it('does not announce the framework in an X-Powered-By header', () => {
     expect(nextConfig.poweredByHeader).toBe(false);
   });
+
+  it('nudges coding agents only about security upgrades of Next.js', () => {
+    expect(nextConfig.experimental?.agentUpgrade).toBe('security');
+  });
 });
 
 // The browser reads the DSN inlined at build time, the same SENTRY_DSN the server reads (MF-22.2 design D3).

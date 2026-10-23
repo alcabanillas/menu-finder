@@ -1,6 +1,8 @@
 import { signOutAction } from '@/app/_auth/actions';
 import { sessionUser } from '@/app/_auth/session-user';
 import { APP_VERSION } from '@/app/app-version';
+import { SAMPLE_WEEK } from '@/app/_welcome/sample-data';
+import { SampleRecipe, SampleSearch, SampleShopping } from '@/app/_welcome/sample-pieces';
 import { webContainer } from '@/composition/web-container';
 import { AppShell } from '@/features/app-shell/components/app-shell';
 import { DashboardLayout } from '@/features/dashboard/components/dashboard-layout';
@@ -26,7 +28,12 @@ export default async function Home() {
   if (!user) {
     return (
       <AppShell>
-        <WelcomeScreen />
+        <WelcomeScreen
+          search={<SampleSearch />}
+          week={SAMPLE_WEEK}
+          recipe={<SampleRecipe />}
+          shopping={<SampleShopping />}
+        />
       </AppShell>
     );
   }

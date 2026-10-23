@@ -5,7 +5,8 @@ import type { RecipeDto } from '@/application/dto/weekly-menu';
 import { MenuIcon } from '@/features/weekly-menu/components/menu-icon';
 import { RecipeBody } from '@/features/weekly-menu/components/recipe-body';
 
-type RecipeCardProps = { name: string; recipe: RecipeDto | null };
+/** `defaultOpen` starts the card unfolded, as `defaultExpanded` of the design system (the sample of the home, MF-76 design D3). */
+type RecipeCardProps = { name: string; recipe: RecipeDto | null; defaultOpen?: boolean };
 
 // Ported from the design system's `recipe/RecipeCard.jsx` (version 1791384225-1eab). A dish without a recipe is not a
 // button there either in look, but here it is not a control at all: it has nothing to unfold (design D6).
@@ -15,8 +16,8 @@ const NAME = 'text-[21px] font-extrabold leading-[1.2] text-text-strong [text-wr
 const META = 'mt-1.5 flex items-center gap-3 text-[13px] text-text-muted';
 
 /** A dish of the menu. With a recipe, its header unfolds and folds the recipe in place. */
-export function RecipeCard({ name, recipe }: RecipeCardProps) {
-  const [open, setOpen] = useState(false);
+export function RecipeCard({ name, recipe, defaultOpen = false }: RecipeCardProps) {
+  const [open, setOpen] = useState(defaultOpen);
   const recipeId = useId();
 
   if (!recipe) {

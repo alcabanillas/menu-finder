@@ -40,7 +40,8 @@ export function RecipeBody({ recipe }: { recipe: RecipeDto }) {
 
 function Time({ label, minutes }: { label: string; minutes: number | null }) {
   return (
-    <li className="min-w-0 flex-1">
+    // Equal columns while they fit; in a narrow box (the sample of the home at 390 px) a label keeps its width (MF-76).
+    <li className="min-w-fit flex-1">
       <span className={`block ${EYEBROW} tracking-[0.1em]`}>{label}</span>
       <span className="mt-0.5 block text-[22px] font-extrabold text-text-strong">
         {minutes === null ? '—' : minutes}
