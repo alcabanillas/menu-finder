@@ -134,6 +134,14 @@ describe('decomposeText: decomposition', () => {
     expect(result).toEqual(err({ kind: 'rejected', category: 'gibberish' }));
   });
 
+  it('returns an out-of-catalog rejection', async () => {
+    const { decomposer } = answering(rejection('out-of-catalog'));
+
+    const result = await decomposeText('una tarta para el cumpleaños', { decomposer });
+
+    expect(result).toEqual(err({ kind: 'rejected', category: 'out-of-catalog' }));
+  });
+
   it('returns the empty structure, which is not a rejection', async () => {
     const { decomposer } = answering(structure({ constraints: [] }));
 

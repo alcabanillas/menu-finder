@@ -128,7 +128,8 @@ test.describe('without JavaScript', () => {
     await page.getByRole('textbox', { name: 'Qué te apetece' }).fill('   ');
     await page.getByRole('button', { name: 'Buscar' }).click();
 
-    await expect(page.getByRole('alert')).toHaveText('Escribe qué te apetece.');
+    // The error is a panel labelled by its heading, with the message of the server inside (MF-79).
+    await expect(page.getByRole('alert', { name: 'Hay que decirlo de otra forma' })).toContainText('Escribe qué te apetece.');
     expect(new URL(page.url()).search).toBe('');
   });
 });

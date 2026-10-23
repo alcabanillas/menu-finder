@@ -66,7 +66,7 @@ export function PlannerSearch({ action, chooseAction, previewAction, weeks, init
       />
       <ChoiceMessage choice={choice.shownChoice} choosing={choice.choosing} />
       <SearchRow formAction={formAction} pending={pending} searched={pending || state.status !== 'idle'} onSent={sent} inputRef={input} />
-      {!pending && state.status !== 'ranking' && <Suggestions>{chips}</Suggestions>}
+      {!pending && state.status === 'idle' && <Suggestions>{chips}</Suggestions>}
       <ResultsArea
         state={state}
         pending={pending}
@@ -106,7 +106,7 @@ function SearchRow({ formAction, pending, searched, onSent, inputRef }: SearchRo
   );
 }
 
-// Before the first search, and after one that gave no ranking.
+// Only before the first search: after one with no menu or with an error, the suggestions are inside its panel (MF-79).
 function Suggestions({ children }: { children: ReactNode }) {
   return (
     <div>

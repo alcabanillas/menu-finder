@@ -198,22 +198,37 @@ describe('toSearchState', () => {
     expect(IDLE_SEARCH).toEqual({ status: 'idle', attempt: 0 });
   });
 
-  it.each<[DailyLimitedSearchError, string]>([
-    [{ kind: 'request-too-short' }, 'Escribe qué te apetece.'],
-    [{ kind: 'request-too-long', max: 300 }, 'La petición es demasiado larga: como mucho 300 caracteres.'],
-    [{ kind: 'rejected', category: 'gibberish' }, 'Eso no parece una petición de menús. Prueba a decir qué te apetece comer.'],
-    [{ kind: 'invalid-answer', issues: [] }, 'No he sabido entender la petición. Prueba a escribirla de otra forma.'],
-    [{ kind: 'nothing-to-search' }, 'No he sabido entender la petición. Prueba a escribirla de otra forma.'],
-    [{ kind: 'llm-limit-reached' }, 'Hoy ya no se pueden hacer más búsquedas. Vuelve a intentarlo mañana.'],
-    [{ kind: 'decomposer-failed', reason: 'quota' }, SYSTEM_FAILURE],
-    [{ kind: 'embedding-failed', reason: 'quota' }, SYSTEM_FAILURE],
-    [{ kind: 'search-failed', reason: 'down' }, SYSTEM_FAILURE],
-    [{ kind: 'index-not-loaded', message: 'run embed' }, SYSTEM_FAILURE],
-    [{ kind: 'invalid-request', issues: [] }, SYSTEM_FAILURE],
-  ])('turns %j into a failed state with its own kind and message', (error, message) => {
-    expect(toSearchState(err(error), 3, 'garbanzos')).toEqual({ status: 'failed', kind: error.kind, message, attempt: 3 });
-  });
+  const REJECTED = 'Eso no parece una petición de menús. Prueba a decir qué te apetece comer.';
+  const NOT_UNDERSTOOD = 'No he sabido entender la petición. Prueba a escribirla de otra forma.';
+  const OUT_OF_CATALOG = 'Los menús solo tienen comidas y cenas: no hay postres, desayunos ni bebidas.';
 
+  // Spec menu-planner, "Search messages": the message of each outcome and the group of its panel (MF-79 design D1).
+  it.each<[DailyLimitedSearchError, string, string]>([
+    [{ kind: 'request-too-short' }, 'Escribe qué te apetece.', 'request'],
+    [{ kind: 'request-too-long', max: 300 }, 'La petición es demasiado larga: como mucho 300 caracteres.', 'request'],
+    [{ kind: 'rejected', category: 'gibberish' }, REJECTED, 'request'],
+    [{ kind: 'rejected', category: 'off-topic' }, REJECTED, 'request'],
+    [{ kind: 'rejected', category: 'instruction' }, REJECTED, 'request'],
+    [{ kind: 'rejected', category: 'not-a-search' }, REJECTED, 'request'],
+    [{ kind: 'rejected', category: 'out-of-catalog' }, OUT_OF_CATALOG, 'catalog'],
+    [{ kind: 'invalid-answer', issues: [] }, NOT_UNDERSTOOD, 'request'],
+    [{ kind: 'nothing-to-search' }, NOT_UNDERSTOOD, 'request'],
+    [{ kind: 'llm-limit-reached' }, 'Hoy ya no se pueden hacer más búsquedas. Vuelve a intentarlo mañana.', 'limit'],
+    [{ kind: 'decomposer-failed', reason: 'quota' }, SYSTEM_FAILURE, 'failure'],
+    [{ kind: 'embedding-failed', reason: 'quota' }, SYSTEM_FAILURE, 'failure'],
+    [{ kind: 'search-failed', reason: 'down' }, SYSTEM_FAILURE, 'failure'],
+    [{ kind: 'index-not-loaded', message: 'run embed' }, SYSTEM_FAILURE, 'failure'],
+    [{ kind: 'invalid-request', issues: [] }, SYSTEM_FAILURE, 'failure'],
+  ])('turns %j into a failed state with its kind, message and group, and the request as sent', (error, message, group) => {
+    expect(toSearchState(err(error), 3, '  garbanzos ')).toEqual({
+      status: 'failed',
+      kind: error.kind,
+      message,
+      group,
+      request: '  garbanzos ',
+      attempt: 3,
+    });
+  });
   it('turns a ranking into chips and cards, in ranking order', () => {
     const state = toSearchState(ok({ structure: structure([POLLO]), result: resultWith([12, 3]) }), 1, 'pollo');
 
@@ -275,6 +290,8 @@ describe('toSearchState', () => {
       status: 'failed',
       kind: 'search-failed',
       message: SYSTEM_FAILURE,
+      group: 'failure',
+      request: 'pollo',
       attempt: 4,
     });
   });

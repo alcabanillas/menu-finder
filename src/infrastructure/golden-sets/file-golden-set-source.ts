@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { z } from 'zod';
+import { REJECTION_CATEGORIES } from '@/application/dto/decomposition';
 import type { SearchRequestDto } from '@/application/dto/search-request';
 import type {
   DecomposerRequest,
@@ -36,7 +37,7 @@ const decomposerSchema = z.array(
   z.looseObject({
     id: z.string().min(1),
     text: z.string().min(1),
-    rejection: z.enum(['gibberish', 'off-topic', 'instruction', 'not-a-search']).optional(),
+    rejection: z.enum(REJECTION_CATEGORIES).optional(),
   }),
 );
 

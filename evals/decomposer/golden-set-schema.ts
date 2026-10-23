@@ -23,7 +23,8 @@ const constraintSchema = z.strictObject({
 const searchRequestSchema = z.strictObject({
   id: z.string().min(1),
   text: z.string().min(1),
-  origin: z.enum(['retrieval-golden-set', 'llm-blind']),
+  // A trap sounds out of the catalog but names a dish it has (MF-71 design D3).
+  origin: z.enum(['retrieval-golden-set', 'llm-blind', 'catalog-trap']),
   constraints: z.array(constraintSchema),
   sameDish: z.array(z.array(z.string())),
   anyOf: z.array(z.array(z.string())),
@@ -34,7 +35,7 @@ const rejectedRequestSchema = z.strictObject({
   id: z.string().min(1),
   text: z.string().min(1),
   origin: z.literal('llm-blind-rejected'),
-  rejection: z.enum(['gibberish', 'off-topic', 'instruction', 'not-a-search']),
+  rejection: z.enum(['gibberish', 'off-topic', 'instruction', 'not-a-search', 'out-of-catalog']),
 });
 
 const requestSchema = z.discriminatedUnion('origin', [searchRequestSchema, rejectedRequestSchema]);
@@ -131,18 +132,24 @@ function checkAlternatives(request: SearchRequest, issues: Issue[]): void {
 const LONG_REQUESTS = 7;
 const LONG_MIN_CONSTRAINTS = 3;
 const LONG_MIN_TYPES = 2;
-const REJECTED_REQUESTS = 10;
+const REJECTED_REQUESTS = 15;
+const OUT_OF_CATALOG_REQUESTS = 5;
+const TRAP_REQUESTS = 4;
 
-// The golden set is the retrieval queries, seven long requests with several constraints and ten rejected requests.
+// The golden set is the retrieval queries, seven long requests with several constraints, fifteen rejected requests
+// (five of them out of the catalog) and four traps.
 function checkComposition(requests: Request[], retrievalQueries: RetrievalQuery[], issues: Issue[]): void {
   const retrievalIds = new Set(retrievalQueries.map((query) => query.id));
   const long = requests.filter(isSearch).filter((request) => request.origin === 'llm-blind');
-  if (long.length !== LONG_REQUESTS) {
-    issues.push({ message: `expected ${LONG_REQUESTS} long requests, found ${long.length}` });
-  }
+  checkCount(long.length, LONG_REQUESTS, 'long requests', issues);
   const rejected = requests.filter((request) => !isSearch(request));
-  if (rejected.length !== REJECTED_REQUESTS) {
-    issues.push({ message: `expected ${REJECTED_REQUESTS} rejected requests, found ${rejected.length}` });
+  checkCount(rejected.length, REJECTED_REQUESTS, 'rejected requests', issues);
+  const outOfCatalog = rejected.filter((request) => request.rejection === 'out-of-catalog');
+  checkCount(outOfCatalog.length, OUT_OF_CATALOG_REQUESTS, 'out-of-catalog requests', issues);
+  const traps = requests.filter(isSearch).filter((request) => request.origin === 'catalog-trap');
+  checkCount(traps.length, TRAP_REQUESTS, 'trap requests', issues);
+  for (const request of traps.filter((trap) => trap.constraints.length === 0)) {
+    issues.push({ request: request.id, field: 'constraints', message: 'a trap request needs at least one constraint' });
   }
   for (const request of long) {
     const types = new Set(request.constraints.map((constraint) => constraint.type));
@@ -159,6 +166,10 @@ function checkComposition(requests: Request[], retrievalQueries: RetrievalQuery[
       issues.push({ request: request.id, field: 'origin', message: 'not a retrieval query' });
     }
   }
+}
+
+function checkCount(found: number, expected: number, what: string, issues: Issue[]): void {
+  if (found !== expected) issues.push({ message: `expected ${expected} ${what}, found ${found}` });
 }
 
 function checkIds(requests: Request[], issues: Issue[]): void {

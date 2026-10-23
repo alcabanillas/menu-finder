@@ -94,7 +94,14 @@ describe('searchMenusAction', () => {
   ])('treats %s as an empty request and runs no search', async (_name, form) => {
     const state = await searchMenusAction(IDLE, form);
 
-    expect(state).toEqual({ status: 'failed', kind: 'request-too-short', message: 'Escribe qué te apetece.', attempt: 1 });
+    expect(state).toEqual({
+      status: 'failed',
+      kind: 'request-too-short',
+      message: 'Escribe qué te apetece.',
+      group: 'request',
+      request: '',
+      attempt: 1,
+    });
     expect(mocks.searchByText).not.toHaveBeenCalled();
   });
 

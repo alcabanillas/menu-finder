@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import goldenSet from '../../../evals/decomposer/golden-set.json';
+import { REJECTION_CATEGORIES } from '@/application/dto/decomposition';
 import { decomposerPrompt } from '@/infrastructure/genkit/decomposer-prompt';
 
 const instructions = decomposerPrompt('').toLowerCase();
@@ -14,9 +15,17 @@ describe('decomposerPrompt', () => {
 
   it('names every constraint type and every rejection category', () => {
     for (const name of ['literal', 'exclusion', 'attribute', 'fuzzy']) expect(instructions).toContain(`\`${name}\``);
-    for (const name of ['gibberish', 'off-topic', 'instruction', 'not-a-search']) {
-      expect(instructions).toContain(`\`${name}\``);
-    }
+    for (const name of REJECTION_CATEGORIES) expect(instructions).toContain(`\`${name}\``);
+  });
+
+  it('shows one example of each rejection category', () => {
+    for (const name of REJECTION_CATEGORIES) expect(instructions).toContain(`{"rejection":"${name}"`);
+  });
+
+  // MF-71 design D2: a request that also asks for a lunch or dinner dish is a search.
+  it('rejects as out-of-catalog only a request that asks for nothing the menus have', () => {
+    expect(instructions).toContain('only asks for desserts, breakfasts or drinks');
+    expect(instructions).toContain('a request that also asks for a lunch or dinner dish is a search');
   });
 
   it('tells the model to copy the words of the request exactly into the term', () => {

@@ -100,6 +100,17 @@ function answering(...states: PlannerSearchState[]) {
   return vi.fn(async (...args: [PlannerSearchState, FormData]) => (args.length > 0 ? queue.shift() : undefined) as PlannerSearchState);
 }
 
+const REJECTED = 'Eso no parece una petición de menús. Prueba a decir qué te apetece comer.';
+const OUT_OF_CATALOG = 'Los menús solo tienen comidas y cenas: no hay postres, desayunos ni bebidas.';
+const SYSTEM_FAILURE = 'No se ha podido buscar. Inténtalo de nuevo.';
+const DAILY_LIMIT = 'Hoy ya no se pueden hacer más búsquedas. Vuelve a intentarlo mañana.';
+
+type Failed = Extract<PlannerSearchState, { status: 'failed' }>;
+
+function failure(kind: Failed['kind'], message: string, group: Failed['group'], request = 'garbanzos'): PlannerSearchState {
+  return { status: 'failed', kind, message, group, request, attempt: 1 };
+}
+
 async function search(text: string) {
   fireEvent.change(screen.getByRole('textbox'), { target: { value: text } });
   await act(async () => {
@@ -190,14 +201,16 @@ describe('PlannerSearch', () => {
       expect(screen.queryByRole('button', { name: 'Al azar' })).not.toBeInTheDocument();
     });
 
-    it('stays after a search that failed, so that the user can still try one', async () => {
-      const failed: PlannerSearchState = { status: 'failed', kind: 'search-failed', message: 'No se ha podido buscar. Inténtalo de nuevo.', attempt: 1 };
-      render(<Planner action={answering(failed)} />);
+    it('goes from above after a search that failed, and stays inside the panel of the error', async () => {
+      render(<Planner action={answering(failure('rejected', REJECTED, 'request'))} />);
 
-      await search('garbanzos');
+      await search('asdfgh');
 
-      expect(await screen.findByRole('alert')).toBeInTheDocument();
-      expect(screen.getByText('Prueba con')).toBeInTheDocument();
+      const panel = await screen.findByRole('alert');
+      expect(screen.queryByText('Prueba con')).not.toBeInTheDocument();
+      const label = within(panel).getByText('O prueba con algo que suele funcionar');
+      const buttons = within(label.parentElement as HTMLElement).getAllByRole('button').map((button) => button.textContent);
+      expect(buttons).toEqual(['Al azar', ...SUGGESTIONS]);
     });
   });
 
@@ -419,14 +432,87 @@ describe('PlannerSearch', () => {
     expect(screen.queryByRole('article')).not.toBeInTheDocument();
   });
 
+  describe('a search that failed', () => {
+    const TIP = /Suele funcionar mejor decirlo corto/;
+    const OTHER_SUGGESTIONS = 'O prueba con algo que suele funcionar';
+
+    it('says otherwise in a panel with "Editar mi búsqueda", the tip and the suggestions', async () => {
+      render(<Planner action={answering(failure('rejected', REJECTED, 'request'))} />);
+
+      await search('asdfgh');
+
+      const panel = await screen.findByRole('alert', { name: 'Hay que decirlo de otra forma' });
+      expect(within(panel).getByRole('heading', { level: 2, name: 'Hay que decirlo de otra forma' })).toBeInTheDocument();
+      expect(panel).toHaveTextContent(REJECTED);
+      expect(within(panel).getByRole('button', { name: 'Editar mi búsqueda' })).toBeInTheDocument();
+      expect(within(panel).getByText(TIP)).toBeInTheDocument();
+      expect(within(panel).getByText(OTHER_SUGGESTIONS)).toBeInTheDocument();
+      expect(panel.querySelector('svg[data-icon="message-circle-question"]')).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    it('says a request is out of the catalog, with "Editar mi búsqueda" and the suggestions, and no tip', async () => {
+      render(<Planner action={answering(failure('rejected', OUT_OF_CATALOG, 'catalog', 'una tarta de queso'))} />);
+
+      await search('una tarta de queso');
+
+      const panel = await screen.findByRole('alert', { name: 'Eso no está en los menús' });
+      expect(panel).toHaveTextContent(OUT_OF_CATALOG);
+      expect(within(panel).getByRole('button', { name: 'Editar mi búsqueda' })).toBeInTheDocument();
+      expect(within(panel).getByText(OTHER_SUGGESTIONS)).toBeInTheDocument();
+      expect(within(panel).queryByText(TIP)).not.toBeInTheDocument();
+      expect(panel.querySelector('svg[data-icon="utensils-crossed"]')).toBeInTheDocument();
+    });
+
+    it('says something failed, with only "Editar mi búsqueda"', async () => {
+      render(<Planner action={answering(failure('search-failed', SYSTEM_FAILURE, 'failure'))} />);
+
+      await search('garbanzos');
+
+      const panel = await screen.findByRole('alert', { name: 'Algo ha fallado' });
+      expect(panel).toHaveTextContent(SYSTEM_FAILURE);
+      expect(within(panel).getAllByRole('button').map((button) => button.textContent)).toEqual(['Editar mi búsqueda']);
+      expect(within(panel).queryByText(TIP)).not.toBeInTheDocument();
+      expect(panel.querySelector('svg[data-icon="triangle-alert"]')).toBeInTheDocument();
+    });
+
+    it('says the daily limit is reached, with no action and a grey icon', async () => {
+      render(<Planner action={answering(failure('llm-limit-reached', DAILY_LIMIT, 'limit'))} />);
+
+      await search('garbanzos');
+
+      const panel = await screen.findByRole('alert', { name: 'Has llegado al límite de hoy' });
+      expect(panel).toHaveTextContent(DAILY_LIMIT);
+      expect(within(panel).queryByRole('button')).not.toBeInTheDocument();
+      expect(within(panel).queryByText(TIP)).not.toBeInTheDocument();
+      expect(panel.querySelector('svg[data-icon="clock"]')?.parentElement).toHaveClass('text-text-muted');
+    });
+
+    it('shows neither "Prueba con" above nor the strip "Lo que has pedido"', async () => {
+      render(<Planner action={answering(failure('search-failed', SYSTEM_FAILURE, 'failure'))} />);
+
+      await search('garbanzos');
+
+      await screen.findByRole('alert');
+      expect(screen.queryByText('Prueba con')).not.toBeInTheDocument();
+      expect(screen.queryByText('Lo que has pedido')).not.toBeInTheDocument();
+    });
+
+    it('puts the request back in the box as it was written and sends nothing', async () => {
+      const action = answering(failure('rejected', OUT_OF_CATALOG, 'catalog', 'una tarta de queso'));
+      render(<Planner action={action} />);
+      await search('una tarta de queso');
+
+      fireEvent.click(await screen.findByRole('button', { name: 'Editar mi búsqueda' }));
+
+      const box = screen.getByRole('textbox') as HTMLInputElement;
+      expect(box.value).toBe('una tarta de queso');
+      expect(box).toHaveFocus();
+      expect(action).toHaveBeenCalledOnce();
+    });
+  });
+
   it('shows the message of a failed search as an alert, with no chips or cards', async () => {
-    const failed: PlannerSearchState = {
-      status: 'failed',
-      kind: 'request-too-short',
-      message: 'Escribe qué te apetece.',
-      attempt: 1,
-    };
-    render(<Planner action={answering(failed)} />);
+    render(<Planner action={answering(failure('request-too-short', 'Escribe qué te apetece.', 'request', '   '))} />);
 
     await search('   ');
 
@@ -552,7 +638,7 @@ describe('PlannerSearch', () => {
     });
 
     it('with only spaces, is sent: the server answers it', async () => {
-      const action = answering({ status: 'failed', kind: 'request-too-short', message: 'Escribe qué te apetece.', attempt: 1 });
+      const action = answering(failure('request-too-short', 'Escribe qué te apetece.', 'request', '   '));
       render(<Planner action={action} />);
 
       await search('   ');
@@ -578,13 +664,7 @@ describe('PlannerSearch', () => {
     });
 
     it('records the kind of a failed search as its outcome, with no chips or menus', async () => {
-      const failed: PlannerSearchState = {
-        status: 'failed',
-        kind: 'llm-limit-reached',
-        message: 'Hoy ya no se pueden hacer más búsquedas. Vuelve a intentarlo mañana.',
-        attempt: 1,
-      };
-      render(<Planner action={answering(failed)} />);
+      render(<Planner action={answering(failure('llm-limit-reached', DAILY_LIMIT, 'limit'))} />);
 
       await search('garbanzos');
       await screen.findByRole('alert');

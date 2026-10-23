@@ -1,7 +1,9 @@
 import type { SearchRequestIssue } from '@/application/dto/search-request';
 
 /** Why a request is not a search for menus (spec decomposer-golden-set, "Rejected requests"). */
-export type RejectionCategory = 'gibberish' | 'off-topic' | 'instruction' | 'not-a-search';
+export const REJECTION_CATEGORIES = ['gibberish', 'off-topic', 'instruction', 'not-a-search', 'out-of-catalog'] as const;
+
+export type RejectionCategory = (typeof REJECTION_CATEGORIES)[number];
 
 /**
  * Why a request gives no structure (spec request-decomposer). A rejection is an error too: the caller must not

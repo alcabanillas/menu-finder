@@ -706,5 +706,75 @@
     "text": "Calcula las calorías exactas de 200 gramos de arroz cocido, 150 gramos de pollo y una cucharada de aceite de oliva.",
     "origin": "llm-blind-rejected",
     "rejection": "not-a-search"
+  },
+  {
+    "id": "X11",
+    "text": "Tarta de queso",
+    "origin": "llm-blind-rejected",
+    "rejection": "out-of-catalog"
+  },
+  {
+    "id": "X12",
+    "text": "Algo dulce para después de comer",
+    "origin": "llm-blind-rejected",
+    "rejection": "out-of-catalog"
+  },
+  {
+    "id": "X13",
+    "text": "Qué puedo desayunar mañana que sea rápido y no necesite cocinar",
+    "origin": "llm-blind-rejected",
+    "rejection": "out-of-catalog"
+  },
+  {
+    "id": "X14",
+    "text": "Merienda para esta tarde",
+    "origin": "llm-blind-rejected",
+    "rejection": "out-of-catalog"
+  },
+  {
+    "id": "X15",
+    "text": "Recomiéndame bebidas refrescantes sin alcohol para los días de calor",
+    "origin": "llm-blind-rejected",
+    "rejection": "out-of-catalog"
+  },
+  {
+    "id": "T01",
+    "text": "tostadas de calabaza",
+    "origin": "catalog-trap",
+    "constraints": [
+      { "id": "c1", "type": "literal", "term": "tostadas de calabaza", "polarity": "include", "hard": false }
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "T02",
+    "text": "algo agridulce",
+    "origin": "catalog-trap",
+    "constraints": [
+      { "id": "c1", "type": "fuzzy", "term": "agridulce", "polarity": "include", "hard": false }
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "T03",
+    "text": "tortilla de manzana",
+    "origin": "catalog-trap",
+    "constraints": [
+      { "id": "c1", "type": "literal", "term": "tortilla de manzana", "polarity": "include", "hard": false }
+    ],
+    "sameDish": [],
+    "anyOf": []
+  },
+  {
+    "id": "T04",
+    "text": "pollo a la cerveza",
+    "origin": "catalog-trap",
+    "constraints": [
+      { "id": "c1", "type": "literal", "term": "pollo a la cerveza", "polarity": "include", "hard": false }
+    ],
+    "sameDish": [],
+    "anyOf": []
   }
 ]

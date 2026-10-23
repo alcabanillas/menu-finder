@@ -72,6 +72,19 @@ describe('FileGoldenSetSource', () => {
     });
   });
 
+  it('reads an out-of-catalog request as that expected rejection', async () => {
+    const rejected = { id: 'X11', text: 'una tarta', origin: 'llm-blind-rejected', rejection: 'out-of-catalog' };
+    await write(RETRIEVAL, [...DECOMPOSER, rejected]);
+
+    const result = await new FileGoldenSetSource(evalsDir).read();
+
+    expect(result.ok && result.value.requests[1]).toEqual({
+      id: 'X11',
+      text: 'una tarta',
+      expected: { kind: 'rejection', category: 'out-of-catalog' },
+    });
+  });
+
   it('names a decomposer request without text', async () => {
     await write(RETRIEVAL, [{ ...DECOMPOSER[0], text: undefined }]);
 
