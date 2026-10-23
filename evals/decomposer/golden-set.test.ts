@@ -84,6 +84,13 @@ describe('decomposer golden set: rejected requests', () => {
     expect(issuesOf(issues, 'X01')).toEqual([]);
   });
 
+  it('accepts a valid out-of-catalog request', () => {
+    const outOfCatalog = rejected({ id: 'X11', text: 'una tarta', rejection: 'out-of-catalog' });
+    const issues = validateGoldenSet([...validRequests(), outOfCatalog], retrievalQueries);
+
+    expect(issuesOf(issues, 'X11')).toEqual([]);
+  });
+
   it('reports an unknown category', () => {
     const issues = validateGoldenSet([...validRequests(), rejected({ rejection: 'spam' })], retrievalQueries);
 
@@ -116,6 +123,33 @@ describe('decomposer golden set: rejected requests', () => {
     const issues = validateGoldenSet([empty], retrieval);
 
     expect(issuesOf(issues, 'A12')).toEqual([]);
+  });
+});
+
+describe('decomposer golden set: trap requests', () => {
+  const trap = (overrides: object = {}) => ({
+    ...reused('T01', 'tostadas de calabaza'),
+    origin: 'catalog-trap',
+    ...overrides,
+  });
+  const issuesOf = (issues: Issue[], request: string) => issues.filter((issue) => issue.request === request);
+
+  it('accepts a valid trap request', () => {
+    const issues = validateGoldenSet([...validRequests(), trap()], retrievalQueries);
+
+    expect(issuesOf(issues, 'T01')).toEqual([]);
+  });
+
+  it('reports a trap request with a rejection', () => {
+    const issues = validateGoldenSet([...validRequests(), trap({ id: 'T02', rejection: 'out-of-catalog' })], retrievalQueries);
+
+    expect(issueFor(issues, { request: 'T02', field: 'rejection' })).toBe(true);
+  });
+
+  it('reports a trap request without constraints', () => {
+    const issues = validateGoldenSet([...validRequests(), trap({ id: 'T03', constraints: [] })], retrievalQueries);
+
+    expect(issueFor(issues, { request: 'T03', field: 'constraints' })).toBe(true);
   });
 });
 
@@ -267,16 +301,33 @@ describe('decomposer golden set: composition', () => {
     expect(issues.some((issue) => issue.request === undefined && issue.message.includes('7'))).toBe(true);
   });
 
-  it('reports a golden set without ten rejected requests', () => {
-    const rejected = Array.from({ length: 9 }, (_, index) => ({
-      id: `X0${index + 1}`,
+  const rejectedRequests = (count: number, outOfCatalog: number) =>
+    Array.from({ length: count }, (_, index) => ({
+      id: `X${String(index + 1).padStart(2, '0')}`,
       text: 'asdfgh',
       origin: 'llm-blind-rejected',
-      rejection: 'gibberish',
+      rejection: index < outOfCatalog ? 'out-of-catalog' : 'gibberish',
     }));
-    const issues = validateGoldenSet(rejected, []);
+  const compositionIssue = (issues: Issue[], text: string) =>
+    issues.some((issue) => issue.request === undefined && issue.message.includes(text));
 
-    expect(issues.some((issue) => issue.request === undefined && issue.message.includes('10 rejected'))).toBe(true);
+  it('reports a golden set without fifteen rejected requests', () => {
+    const issues = validateGoldenSet(rejectedRequests(14, 5), []);
+
+    expect(compositionIssue(issues, '15 rejected')).toBe(true);
+  });
+
+  it('reports a golden set without five out-of-catalog requests', () => {
+    const issues = validateGoldenSet(rejectedRequests(15, 4), []);
+
+    expect(compositionIssue(issues, '5 out-of-catalog')).toBe(true);
+  });
+
+  it('reports a golden set without four trap requests', () => {
+    const traps = ['T01', 'T02', 'T03'].map((id) => ({ ...long(id, [chicken]), text: 'pollo', origin: 'catalog-trap' }));
+    const issues = validateGoldenSet(traps, []);
+
+    expect(compositionIssue(issues, '4 trap')).toBe(true);
   });
 
   it('reports a reused request that is not a retrieval query', () => {

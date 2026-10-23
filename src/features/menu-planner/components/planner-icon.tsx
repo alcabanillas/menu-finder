@@ -1,4 +1,21 @@
-type PlannerIconName = 'plus' | 'minus' | 'sparkles' | 'check' | 'x' | 'search' | 'arrow-up' | 'arrow-right' | 'lock' | 'repeat' | 'dices' | 'pencil' | 'calendar-days';
+export type PlannerIconName =
+  | 'plus'
+  | 'minus'
+  | 'sparkles'
+  | 'check'
+  | 'x'
+  | 'search'
+  | 'arrow-up'
+  | 'arrow-right'
+  | 'lock'
+  | 'repeat'
+  | 'dices'
+  | 'pencil'
+  | 'calendar-days'
+  | 'message-circle-question'
+  | 'utensils-crossed'
+  | 'triangle-alert'
+  | 'clock';
 
 const DEFAULT_STROKE_WIDTH = 1.5;
 
@@ -37,6 +54,17 @@ const PATHS: Record<PlannerIconName, string[]> = {
     'm15 5 4 4',
   ],
   'calendar-days': ['M8 2v4', 'M16 2v4', 'M3 10h18', 'M8 14h.01', 'M12 14h.01', 'M16 14h.01', 'M8 18h.01', 'M12 18h.01', 'M16 18h.01'],
+  // The icons of the search errors (MF-79 design D4).
+  'message-circle-question': ['M7.9 20A9 9 0 1 0 4 16.1L2 22Z', 'M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3', 'M12 17h.01'],
+  'utensils-crossed': [
+    'm16 2-2.3 2.3a3 3 0 0 0 0 4.2l1.8 1.8a3 3 0 0 0 4.2 0L22 8',
+    'M15 15 3.3 3.3a4.2 4.2 0 0 0 0 6l7.3 7.3c.7.7 2 .7 2.8 0L15 15Zm0 0 7 7',
+    'm2.1 21.8 6.4-6.3',
+    'm19 5-7 7',
+  ],
+  'triangle-alert': ['m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3', 'M12 9v4', 'M12 17h.01'],
+  // The polyline `12 6 12 12 16 14` of Lucide, as a path.
+  clock: ['M12 6v6l4 2'],
 };
 
 /** A decorative 24-unit stroke icon: the text next to it carries the meaning. */
@@ -59,6 +87,7 @@ export function PlannerIcon({ name, size, strokeWidth = DEFAULT_STROKE_WIDTH }: 
       {name === 'lock' && <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />}
       {name === 'calendar-days' && <rect width="18" height="18" x="3" y="4" rx="2" />}
       {name === 'dices' && <rect width="12" height="12" x="2" y="10" rx="2" ry="2" />}
+      {name === 'clock' && <circle cx="12" cy="12" r="10" />}
       {PATHS[name].map((d) => (
         <path key={d} d={d} />
       ))}

@@ -2,31 +2,31 @@
 
 Written by `pnpm ingest evaluate-decomposer` (spec decomposer-evaluation). Model names, request ids and numbers only.
 
-One run per model over the 71 requests of `evals/decomposer/golden-set.json`. A constraint is a hit when its term (exact, lowercased), type and polarity match an expected constraint of the same request, one to one. Each cell gives precision (P) and recall (R), then the counts: hits / answered / expected. Small counts are small samples.
+One run per model over the 80 requests of `evals/decomposer/golden-set.json`. A constraint is a hit when its term (exact, lowercased), type and polarity match an expected constraint of the same request, one to one. Each cell gives precision (P) and recall (R), then the counts: hits / answered / expected. Small counts are small samples.
 
 ## Constraints
 
 | Type | gemini-3.5-flash-lite, thinking MINIMAL | gemini-3.5-flash-lite, thinking LOW | gemini-3.8-flash, thinking LOW |
 |---|---|---|---|
-| literal | P 1.000 · R 0.903 (28/28/31) | P 1.000 · R 0.871 (27/27/31) | P 1.000 · R 0.968 (30/30/31) |
-| exclusion | P 0.950 · R 0.950 (19/20/20) | P 0.952 · R 1.000 (20/21/20) | P 0.950 · R 0.950 (19/20/20) |
-| attribute | P 0.684 · R 0.813 (13/19/16) | P 0.636 · R 0.875 (14/22/16) | P 0.882 · R 0.938 (15/17/16) |
-| fuzzy | P 0.828 · R 0.727 (24/29/33) | P 0.700 · R 0.636 (21/30/33) | P 0.906 · R 0.879 (29/32/33) |
-| overall | P 0.875 · R 0.840 (84/96/100) | P 0.820 · R 0.820 (82/100/100) | P 0.939 · R 0.930 (93/99/100) |
+| literal | P 0.967 · R 0.853 (29/30/34) | P 1.000 · R 0.941 (32/32/34) | P 1.000 · R 1.000 (34/34/34) |
+| exclusion | P 0.950 · R 0.950 (19/20/20) | P 0.952 · R 1.000 (20/21/20) | P 0.952 · R 1.000 (20/21/20) |
+| attribute | P 0.550 · R 0.688 (11/20/16) | P 0.684 · R 0.813 (13/19/16) | P 0.882 · R 0.938 (15/17/16) |
+| fuzzy | P 0.793 · R 0.676 (23/29/34) | P 0.774 · R 0.706 (24/31/34) | P 0.909 · R 0.882 (30/33/34) |
+| overall | P 0.828 · R 0.788 (82/99/104) | P 0.864 · R 0.856 (89/103/104) | P 0.943 · R 0.952 (99/105/104) |
 
 ## Hard and slot, over the hits
 
 | Field | gemini-3.5-flash-lite, thinking MINIMAL | gemini-3.5-flash-lite, thinking LOW | gemini-3.8-flash, thinking LOW |
 |---|---|---|---|
-| hard | 1.000 (84/84) | 0.976 (80/82) | 1.000 (93/93) |
-| slot | 0.964 (81/84) | 0.963 (79/82) | 1.000 (93/93) |
+| hard | 0.976 (80/82) | 0.978 (87/89) | 1.000 (99/99) |
+| slot | 0.976 (80/82) | 0.966 (86/89) | 1.000 (99/99) |
 
 ## Groups
 
 | Group | gemini-3.5-flash-lite, thinking MINIMAL | gemini-3.5-flash-lite, thinking LOW | gemini-3.8-flash, thinking LOW |
 |---|---|---|---|
-| sameDish | P 0.714 · R 1.000 (5/7/5) | P 0.833 · R 1.000 (5/6/5) | P 0.667 · R 0.800 (4/6/5) |
-| anyOf | P 0.500 · R 1.000 (1/2/1) | P 1.000 · R 1.000 (1/1/1) | P 1.000 · R 1.000 (1/1/1) |
+| sameDish | P 0.556 · R 1.000 (5/9/5) | P 0.500 · R 0.800 (4/8/5) | P 0.833 · R 1.000 (5/6/5) |
+| anyOf | P 1.000 · R 1.000 (1/1/1) | P 1.000 · R 1.000 (1/1/1) | P 1.000 · R 1.000 (1/1/1) |
 
 ## Rejections
 
@@ -36,7 +36,8 @@ One run per model over the 71 requests of `evals/decomposer/golden-set.json`. A 
 | off-topic | 3/3 | 3/3 | 3/3 |
 | instruction | 2/2 | 2/2 | 2/2 |
 | not-a-search | 2/2 | 2/2 | 2/2 |
-| search requests rejected by mistake | 2 (A09, R05) | 1 (A09) | 0 |
+| out-of-catalog | 5/5 | 5/5 | 5/5 |
+| search requests rejected by mistake | 3 (A09, R05, T01) | 1 (A12) | 0 |
 
 ## Invalid answers and failed calls
 
@@ -45,13 +46,13 @@ Both count as an answer with no constraints.
 | Outcome | gemini-3.5-flash-lite, thinking MINIMAL | gemini-3.5-flash-lite, thinking LOW | gemini-3.8-flash, thinking LOW |
 |---|---|---|---|
 | invalid answers | 0 | 0 | 0 |
-| failed calls | 0 | 0 | 1 (C05) |
+| failed calls | 0 | 0 | 0 |
 
 ## Latency of one decomposition
 
 | Measure | gemini-3.5-flash-lite, thinking MINIMAL | gemini-3.5-flash-lite, thinking LOW | gemini-3.8-flash, thinking LOW |
 |---|---|---|---|
-| mean | 764 ms | 720 ms | 2616 ms |
-| 95th percentile | 1032 ms | 924 ms | 6169 ms |
-| maximum | 1178 ms | 1141 ms | 20011 ms |
-| slowest requests | L01 1178 ms, R07 1147 ms, R04 1055 ms, R01 1032 ms, R03 985 ms | R01 1141 ms, R07 1044 ms, R03 1000 ms, R04 924 ms, C10 920 ms | C05 20011 ms, X08 13889 ms, R05 6926 ms, F01 6169 ms, X07 3849 ms |
+| mean | 923 ms | 877 ms | 3118 ms |
+| 95th percentile | 1229 ms | 1191 ms | 5301 ms |
+| maximum | 1999 ms | 1319 ms | 15838 ms |
+| slowest requests | A12 1999 ms, L01 1821 ms, R03 1405 ms, F07 1259 ms, R06 1229 ms | E03 1319 ms, C11 1262 ms, R06 1262 ms, L06 1248 ms, R03 1191 ms | F05 15838 ms, X08 11511 ms, R03 7904 ms, X11 5412 ms, T03 5301 ms |

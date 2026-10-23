@@ -20,7 +20,7 @@ The schema is **minimal**: it only holds what BUS-superficie-consulta already de
 }
 ```
 
-- `origin`: `retrieval-golden-set` for a query reused from `evals/retrieval/queries.json` (same `id` and `text`), `llm-blind` for a long request `R01`–`R07`, `llm-blind-rejected` for a rejected request `X01`–`X10` (rule 9).
+- `origin`: `retrieval-golden-set` for a query reused from `evals/retrieval/queries.json` (same `id` and `text`), `llm-blind` for a long request `R01`–`R07`, `llm-blind-rejected` for a rejected request `X01`–`X15` (rule 9), `catalog-trap` for a trap request `T01`–`T04` (rule 10).
 - `sameDish` and `anyOf` are lists of groups of constraint ids (rule 1). A request has both, empty when it has no group.
 - A constraint has `id` (`c1`, `c2`… within the request), `type`, `term`, `polarity`, `hard` and, optionally, `slot` (`lunch` or `dinner`). No other field.
 
@@ -55,7 +55,8 @@ The label is the author's reading of the request in context: the decomposer is a
 6. **`slot`**: "comida" sets `lunch` only when it means the meal ("comidas rápidas"), not food in general ("comida reconfortante", "comida casera"). "cena" sets `dinner`. A slot applies to the constraint it qualifies; a slot that qualifies the whole request goes on every constraint.
 7. **Empty list.** A request that none of the four types can hold ("platos para el finde") has `"constraints": []`, `"sameDish": []` and `"anyOf": []`. It is a negative case for the decomposer.
 8. **Label what is said, not what is meant.** Do not add constraints the request does not state, do not normalise synonyms ("alitas" stays "alitas"), and do not guess a group.
-9. **Rejected request.** A request that is not a search for menus is rejected (BUS-descomponedor). It has `id`, `text`, the origin `llm-blind-rejected` and a `rejection` category, and nothing else: `gibberish` (random keys, "asdfgh"), `off-topic` (unrelated to food), `instruction` (orders to the model, a prompt injection or a command) or `not-a-search` (about food, but asks to invent a recipe or to compute something). It differs from rule 7: an empty list is a search that the four types cannot hold, a rejection is not a search. The 10 rejected requests, their generation prompt and the selection are in `rejected-requests.md`.
+9. **Rejected request.** A request that is not a search for menus is rejected (BUS-descomponedor). It has `id`, `text`, the origin `llm-blind-rejected` and a `rejection` category, and nothing else: `gibberish` (random keys, "asdfgh"), `off-topic` (unrelated to food), `instruction` (orders to the model, a prompt injection or a command) or `not-a-search` (about food, but asks to invent a recipe or to compute something) or `out-of-catalog` (only asks for desserts, breakfasts or drinks, which the menus do not have: they hold only lunches and dinners). A request that also asks for a lunch or dinner dish is a search, labelled as it is said ("cenas con lentejas y de postre fruta"). It differs from rule 7: an empty list is a search that the four types cannot hold, a rejection is not a search. The 15 rejected requests, their generation prompts and the selection are in `rejected-requests.md`.
+10. **Trap request.** A search that sounds like a dessert, a breakfast or a drink but names a dish or a flavour the catalog has ("tostadas de calabaza", "agridulce"). It has the origin `catalog-trap` and is labelled like any search, with at least one constraint and no `rejection`: it measures the searches the decomposer rejects by mistake (MF-71). The author picks the four traps from the dish names of the catalog.
 
 ## Known ambiguous cases
 

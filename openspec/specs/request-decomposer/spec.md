@@ -33,7 +33,7 @@ The text of a request SHALL be at least 1 and at most 300 characters after trimm
 - **THEN** the model is called
 
 ### Requirement: Decomposition
-The answer of the model SHALL be either a structure or a rejection. A structure SHALL have the shape of `SearchRequestDto` (spec `menu-search`, "Request structure"): constraints with the four types, `term`, `polarity`, `hard`, an optional `slot`, and the groups `sameDish` and `anyOf`. A rejection SHALL have one category: `gibberish`, `off-topic`, `instruction` or `not-a-search` (spec `decomposer-golden-set`, "Rejected requests").
+The answer of the model SHALL be either a structure or a rejection. A structure SHALL have the shape of `SearchRequestDto` (spec `menu-search`, "Request structure"): constraints with the four types, `term`, `polarity`, `hard`, an optional `slot`, and the groups `sameDish` and `anyOf`. A rejection SHALL have one category: `gibberish`, `off-topic`, `instruction`, `not-a-search` or `out-of-catalog` (spec `decomposer-golden-set`, "Rejected requests").
 
 A structure with constraints SHALL pass the validation of the search (`parseSearchRequest`), and the `term` of every constraint SHALL appear in the request text, both trimmed and compared in lowercase. A structure with no constraints SHALL be a valid answer: the request is a search that the four types cannot hold, not a rejection.
 
@@ -44,6 +44,10 @@ A structure with constraints SHALL pass the validation of the search (`parseSear
 #### Scenario: Rejection
 - **WHEN** the model answers "asdfgh" with the rejection `gibberish`
 - **THEN** the decomposer returns a rejection with the category `gibberish`
+
+#### Scenario: Out-of-catalog rejection
+- **WHEN** the model answers "una tarta para el cumpleaños" with the rejection `out-of-catalog`
+- **THEN** the decomposer returns a rejection with the category `out-of-catalog`
 
 #### Scenario: Empty structure
 - **WHEN** the model answers "platos para el finde" with no constraints and no groups

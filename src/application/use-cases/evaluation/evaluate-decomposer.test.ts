@@ -139,6 +139,25 @@ describe('evaluateDecomposer: rejections', () => {
     expect(report.rejections).toContainEqual({ category: 'instruction', hits: 0, total: 1 });
   });
 
+  it('counts an out-of-catalog hit in its own row', async () => {
+    const tarta: DecomposerRequest = { id: 'X11', text: 'una tarta', expected: { kind: 'rejection', category: 'out-of-catalog' } };
+    const { report } = await run([tarta], { [tarta.text]: ok(rejection('out-of-catalog')) });
+
+    expect(report.rejections).toContainEqual({ category: 'out-of-catalog', hits: 1, total: 1 });
+  });
+
+  it('lists a trap request the model rejected as out of the catalog, with its constraints not found', async () => {
+    const trap = {
+      id: 'T01',
+      text: 'tostadas de calabaza',
+      expected: { kind: 'search', structure: { constraints: [constraint('c1', 'tostadas de calabaza')], sameDish: [], anyOf: [] } },
+    } as DecomposerRequest;
+    const { report } = await run([trap], { [trap.text]: ok(rejection('out-of-catalog')) });
+
+    expect(report.rejectedSearches).toEqual(['T01']);
+    expect(row(report.constraints, 'overall')).toMatchObject({ hits: 0, answered: 0, expected: 1 });
+  });
+
   it('lists a search request the model rejected and counts its constraints as not found', async () => {
     const { report } = await run([SEARCH], { [SEARCH.text]: ok(rejection('not-a-search')) });
 

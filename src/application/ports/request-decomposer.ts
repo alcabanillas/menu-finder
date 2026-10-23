@@ -1,11 +1,9 @@
 import { z } from 'zod';
-import type { RejectionCategory } from '@/application/dto/decomposition';
+import { REJECTION_CATEGORIES } from '@/application/dto/decomposition';
 import { constraintSchema } from '@/application/dto/search-request';
 import type { Result } from '@/shared/result';
 
 export type DecomposerFailure = { kind: 'decomposer-failed'; reason: string };
-
-const REJECTION_CATEGORIES = ['gibberish', 'off-topic', 'instruction', 'not-a-search'] as const satisfies RejectionCategory[];
 
 /**
  * What the model must answer: a structure, or a rejection with no constraints or groups (MF-40.2 design D2). It is
