@@ -188,7 +188,8 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresRecipeRepository (Neon test branch)
   it('returns write-failed when saveIngredientGroups fails', async () => {
     const own = await createMigratedTestDatabase(TEST_DATABASE_URL!);
     try {
-      await own.pool.query('DROP TABLE ingredient_group');
+      // A dropped table would fall through the search path to public.ingredient_group, so the write fails in place.
+      await own.pool.query('ALTER TABLE ingredient_group ADD CONSTRAINT reject_writes CHECK (false)');
 
       const result = await new PostgresRecipeRepository(own.pool).saveIngredientGroups([
         { ingredientName: 'huevo', foodGroups: ['huevo'], model: 'test-model' },
