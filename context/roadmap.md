@@ -153,6 +153,13 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 
 ---
 
+## Trabajo futuro
+
+Pendiente después de la entrega, sin estimación ni sprint; `pnpm roadmap` no lo cuenta.
+* **MF-77** Migrar `pdfjs-dist` de 5.x a 6.x. La 6.x pide demasiados cambios en el código para tomarla dentro del plazo. Dependabot no avisa de ella: la PR #66 (de 5.4.296 a 6.4.299) se cerró el 2026-10-18 con `@dependabot ignore this major version`, que se deshace al reabrirla.
+
+---
+
 ## Fuera de alcance (descartados)
 
 Ítems descartados para llegar a la fecha límite del 2026-10-25 sin comprometer el núcleo académico ni la entrega (decidido por el autor el 2026-10-12):
