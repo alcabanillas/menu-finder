@@ -44,3 +44,16 @@
 
 - Ask the author whether the PR bumps `"version"` in `package.json` before `gh pr create`.
 - `/opsx:verify`, then go through the checklist in `context/safety-first.md` §4 and `/opsx:archive`.
+
+## Security checklist (`context/safety-first.md` §4), 2026-10-23
+
+- **Business and security decisions in the backend:** yes. The decomposer runs on the server, and its answer is validated against the closed category list before the planner view picks the message.
+- **New endpoints (auth, permissions, negative tests):** not applicable. No endpoint, server action or route is added; the search action keeps its session check.
+- **User from the session:** not applicable, for the same reason.
+- **Minimum data returned:** yes. A rejection reaches the page as a fixed message; no text of the model is shown.
+- **No secrets in the diff:** yes. Checked with a `grep` of the branch diff for keys, tokens, passwords and connection strings: no match.
+- **New dependencies:** none.
+- **Parameterised queries:** not applicable. No new SQL.
+- **Tests with unexpected values and prompt injection:** no new input. The request text was already covered (length limits, the "Injected instruction leaks through as text" scenario of `request-decomposer`); an injection that forces `out-of-catalog` only shows a fixed message, and an unknown category is still refused (`decompose-text.test.ts`).
+- **Sensitive actions logged:** not applicable. No sign-in or access decision changes.
+- **Deviations from a MUST rule:** none. The message names desserts, breakfasts and drinks together instead of what was asked, a deviation from the example of `context/roadmap.md` recorded in `design.md` D1.

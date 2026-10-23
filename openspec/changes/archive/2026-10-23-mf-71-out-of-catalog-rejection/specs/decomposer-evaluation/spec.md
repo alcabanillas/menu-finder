@@ -5,7 +5,7 @@
 ### Requirement: Rejections
 For each rejection category, the evaluation SHALL give how many rejected requests the model rejected with that category, out of how many there are. It SHALL also give the search requests the model rejected, which are a mistake, and count their expected constraints as not found.
 
-The categories SHALL be `gibberish`, `off-topic`, `instruction`, `not-a-search` and `out-of-catalog`, one row each. A trap request (spec `decomposer-golden-set`, "Trap requests") is a search request: when the model rejects it, it SHALL count as a search request rejected by mistake.
+There SHALL be one row per category of spec `request-decomposer`. A rejected trap request SHALL count as a search request rejected by mistake.
 
 #### Scenario: Rejection hit
 - **WHEN** the label of X01 is the rejection `gibberish` and the model rejects it as `gibberish`

@@ -177,7 +177,8 @@ When a search gives no ranking, the page SHALL show one message for its outcome 
 |---|---|
 | empty request | "Escribe qué te apetece." |
 | request longer than 300 characters | "La petición es demasiado larga: como mucho 300 caracteres." |
-| rejected request | "Eso no parece una petición de menús. Prueba a decir qué te apetece comer." |
+| request rejected as `out-of-catalog` | "Los menús solo tienen comidas y cenas: no hay postres, desayunos ni bebidas." |
+| request rejected with any other category | "Eso no parece una petición de menús. Prueba a decir qué te apetece comer." |
 | answer that does not validate, or nothing to search | "No he sabido entender la petición. Prueba a escribirla de otra forma." |
 | daily limit reached | "Hoy ya no se pueden hacer más búsquedas. Vuelve a intentarlo mañana." |
 | any failure of the system | "No se ha podido buscar. Inténtalo de nuevo." |
@@ -195,8 +196,12 @@ When a search gives no ranking, the page SHALL show one message for its outcome 
 - **THEN** the page says "La petición es demasiado larga: como mucho 300 caracteres." and no search runs
 
 #### Scenario: Rejected request
-- **WHEN** the search returns a rejection
+- **WHEN** the search returns a rejection with the category `gibberish`, `off-topic`, `instruction` or `not-a-search`
 - **THEN** the page says "Eso no parece una petición de menús. Prueba a decir qué te apetece comer."
+
+#### Scenario: Out-of-catalog request
+- **WHEN** the search returns a rejection with the category `out-of-catalog`
+- **THEN** the page says "Los menús solo tienen comidas y cenas: no hay postres, desayunos ni bebidas." and shows no chips or cards
 
 #### Scenario: Nothing to search
 - **WHEN** the search returns `nothing-to-search` or `invalid-answer`
