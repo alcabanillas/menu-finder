@@ -81,7 +81,7 @@ When a search gives no ranking, the page SHALL show, under the search box, a pan
 
 ### Requirement: Suggestions to try
 
-Until a search returns an answer, the page SHALL show under the search box "Prueba con" and a row of chips: "Al azar" and four requests taken at random, on each load, from a fixed list of requests that return results. Activating a request SHALL run that search with its text, in the body of the request and never in the URL. The row SHALL be the same at every width and hidden while a search runs. After a search with no menu or with an error, the suggestions SHALL be shown only inside its panel, when the panel offers them.
+Until a search returns an answer, the page SHALL show under the search box "Prueba con" and a row of chips: "Al azar" and four requests taken at random, on each load, from a fixed list of requests that return results. Activating a request SHALL run that search with its text, in the body of the request and never in the URL. The row SHALL be the same at every width and hidden while a search runs. After an answer with no menu or an error, the suggestions SHALL be only inside its panel.
 
 #### Scenario: Before searching
 - **WHEN** a signed-in user opens `/planner`

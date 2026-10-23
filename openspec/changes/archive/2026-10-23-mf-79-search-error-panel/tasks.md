@@ -23,3 +23,16 @@
 
 - `/opsx:verify`, the checklist of `context/safety-first.md` §4 and `/opsx:archive`.
 - Mark MF-79 done in `context/roadmap.md`, and the row v83 of `project/implementacion.md` of the design system as implemented with the PR.
+
+## Security checklist (`context/safety-first.md` §4), 2026-10-23
+
+- **Business and security decisions in the backend:** yes. The group of an error is decided on the server in `toSearchState`; the client only paints it.
+- **New endpoints (auth, permissions, negative tests):** not applicable. No endpoint, server action or route is added; the search action keeps its session check.
+- **User from the session:** not applicable, for the same reason.
+- **Minimum data returned:** yes. The failed state adds the group and the user's own request, which the ranking state already carried; the breadcrumbs keep the outcome kind only (`planner-search.test.tsx`, "records the kind of a failed search").
+- **No secrets in the diff:** yes. Checked with a `grep` of the branch diff for keys, tokens, passwords and connection strings: no match.
+- **New dependencies:** none. The four icons are Lucide paths copied inline, like the others.
+- **Parameterised queries:** not applicable. No new SQL.
+- **Tests with unexpected values:** no new input. The request is put back as the value of the input, never as HTML; a request of only spaces is tested.
+- **Sensitive actions logged:** not applicable. No sign-in or access decision changes.
+- **Deviations from a MUST rule:** none.

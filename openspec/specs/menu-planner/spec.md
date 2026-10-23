@@ -171,7 +171,7 @@ When the search gives a ranking with no menu, the page SHALL show, under the chi
 
 ### Requirement: Search messages
 
-When a search gives no ranking, the page SHALL show one message for its outcome and no chips or cards, and the message SHALL be announced to screen readers:
+When a search gives no ranking, the page SHALL show, under the search box, a panel like the one of "No menu fits", with a round icon, a heading for the group of the outcome, the message of the outcome unchanged, and the actions of the group. It SHALL show no chips, no cards and no strip "Lo que has pedido". The panel SHALL be announced as an alert and labelled by its heading; the icon SHALL be hidden from screen readers.
 
 | Outcome | Message |
 |---|---|
@@ -182,6 +182,13 @@ When a search gives no ranking, the page SHALL show one message for its outcome 
 | answer that does not validate, or nothing to search | "No he sabido entender la petición. Prueba a escribirla de otra forma." |
 | daily limit reached | "Hoy ya no se pueden hacer más búsquedas. Vuelve a intentarlo mañana." |
 | any failure of the system | "No se ha podido buscar. Inténtalo de nuevo." |
+
+| Group | Outcomes | Heading | Actions |
+|---|---|---|---|
+| request | empty, too long, rejected with a category other than `out-of-catalog`, does not validate, nothing to search | "Hay que decirlo de otra forma" | "Editar mi búsqueda", the tip, "O prueba con algo que suele funcionar" and the suggestions |
+| catalog | rejected as `out-of-catalog` | "Eso no está en los menús" | "Editar mi búsqueda", "O prueba con algo que suele funcionar" and the suggestions |
+| failure | any failure of the system | "Algo ha fallado" | "Editar mi búsqueda" |
+| limit | daily limit reached | "Has llegado al límite de hoy" | none |
 
 #### Scenario: Empty box
 - **WHEN** a signed-in user sends the search with the box empty, with or without JavaScript
@@ -218,6 +225,26 @@ When a search gives no ranking, the page SHALL show one message for its outcome 
 #### Scenario: A ranking that does not match its request
 - **WHEN** the search returns a unit with a constraint id the structure does not have, or a menu whose evidence does not have one item per unit
 - **THEN** the page says "No se ha podido buscar. Inténtalo de nuevo." with the outcome `search-failed`, and shows no chips or cards
+
+#### Scenario: Panel of a request to say otherwise
+- **WHEN** the search returns a rejection with the category `gibberish`
+- **THEN** an alert labelled "Hay que decirlo de otra forma" shows the message, "Editar mi búsqueda", the tip, "O prueba con algo que suele funcionar" and four suggestions led by "Al azar"
+
+#### Scenario: Panel of a request out of the catalog
+- **WHEN** the search returns a rejection with the category `out-of-catalog`
+- **THEN** an alert labelled "Eso no está en los menús" shows the message, "Editar mi búsqueda" and the suggestions led by "Al azar", and not the tip
+
+#### Scenario: Panel of a failure
+- **WHEN** the search returns `search-failed`
+- **THEN** an alert labelled "Algo ha fallado" shows the message and "Editar mi búsqueda", and no tip or suggestions
+
+#### Scenario: Panel of the daily limit
+- **WHEN** the search returns `llm-limit-reached`
+- **THEN** an alert labelled "Has llegado al límite de hoy" shows the message, and no button, tip or suggestions
+
+#### Scenario: Nothing of a search above the panel
+- **WHEN** a search gives no ranking
+- **THEN** the page shows neither "Prueba con" above the panel nor the strip "Lo que has pedido"
 
 ### Requirement: Searching needs a session and trusts only the session
 
@@ -455,7 +482,7 @@ When every unit of the request is a week-wide exclusion and the ranking has a me
 
 ### Requirement: Suggestions to try
 
-Until a search returns a ranking, the page SHALL show under the search box "Prueba con" and a row of chips: "Al azar" and four requests taken at random, on each load, from a fixed list of requests that return results. Activating a request SHALL run that search with its text, in the body of the request and never in the URL. The row SHALL be the same at every width and hidden while a search runs.
+Until a search returns an answer, the page SHALL show under the search box "Prueba con" and a row of chips: "Al azar" and four requests taken at random, on each load, from a fixed list of requests that return results. Activating a request SHALL run that search with its text, in the body of the request and never in the URL. The row SHALL be the same at every width and hidden while a search runs. After an answer with no menu or an error, the suggestions SHALL be only inside its panel.
 
 #### Scenario: Before searching
 - **WHEN** a signed-in user opens `/planner`
@@ -478,8 +505,8 @@ Until a search returns a ranking, the page SHALL show under the search box "Prue
 - **THEN** "Prueba con" is no longer shown, and neither is "Al azar"
 
 #### Scenario: The row stays after a failed search
-- **WHEN** a search gives no ranking, for example because the daily limit is reached
-- **THEN** the message of the failure is shown and "Prueba con" stays, with "Al azar"
+- **WHEN** a search is rejected with the category `gibberish`
+- **THEN** "Prueba con" is no longer shown above, and the suggestions, "Al azar" first, stay inside the panel of the error under "O prueba con algo que suele funcionar"
 
 ### Requirement: Layout of the results
 
@@ -499,7 +526,7 @@ The chips of the request SHALL be a strip as wide as the content, with the label
 
 ### Requirement: Editing the last request
 
-"Editar mi búsqueda" SHALL put in the search box the text of the last request exactly as the user wrote it, without trimming or changing it, SHALL focus the box with the cursor at its end, and SHALL NOT send anything. It SHALL be shown only when there is a last request, and it needs JavaScript.
+"Editar mi búsqueda" SHALL put in the search box the text of the last request exactly as the user wrote it, without trimming or changing it, SHALL focus the box with the cursor at its end, and SHALL NOT send anything. It SHALL be shown only when there is a last request, and it needs JavaScript. It SHALL work the same from the panel of no menu and from the panel of an error.
 
 #### Scenario: The request comes back as it was
 - **WHEN** a search "  cenas sin horno  " gives no menu and the user activates "Editar mi búsqueda"
@@ -512,6 +539,10 @@ The chips of the request SHALL be a strip as wide as the content, with the label
 #### Scenario: Not shown without a request
 - **WHEN** the no-results panel has no last request
 - **THEN** it does not show "Editar mi búsqueda"
+
+#### Scenario: The request comes back after an error
+- **WHEN** a search "una tarta de queso" is rejected as `out-of-catalog` and the user activates "Editar mi búsqueda"
+- **THEN** the box holds "una tarta de queso", has the focus, and no search runs
 
 ### Requirement: Week preview of a card
 
