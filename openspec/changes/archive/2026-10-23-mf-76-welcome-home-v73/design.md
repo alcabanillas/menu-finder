@@ -2,7 +2,7 @@
 
 ## Context
 
-Source of the design: the "Menu Finder Design System" artifact (<https://claude.ai/code/artifact/2b9c8f4b-b06b-4b2d-a22a-221b23edc61a>), version `1792687168-5ad7`, card "Bienvenida" (`project/components/Bienvenida/preview.html`) and `project/ui_kits/app/WelcomeScreen.jsx`, row v73 of `project/implementacion.md`. Its pieces come from `MenuCandidateCard.jsx`, `RecipeCard.jsx` and `Checkbox.jsx` of the same version; their sample data from `ui_kits/app/data.js`.
+Source of the design: the "Menu Finder Design System" artifact (<https://claude.ai/code/artifact/2b9c8f4b-b06b-4b2d-a22a-221b23edc61a>), version `1792687168-5ad7`, card "Bienvenida" (`project/components/Bienvenida/preview.html`) and `project/ui_kits/app/WelcomeScreen.jsx`, row v73 of `project/implementacion.md`. Its pieces come from `MenuCandidateCard.jsx`, `RecipeCard.jsx` and `Checkbox.jsx` of the same version; their sample data from `ui_kits/app/data.js`. Version `1792741404-457d` (v79) later changed only the sentence of the closing block (row v78).
 
 Today `/` renders `<AppShell><WelcomeScreen /></AppShell>` for a visitor (`src/app/page.tsx`). `WelcomeScreen` lives in `features/welcome` and is static. The pieces the new design shows already exist in other features: the chips (`RestrictionChipList`) and the card (`MenuCandidateCard`) in `features/menu-planner`, the recipe card in `features/weekly-menu`, the box of a shopping item in `features/shopping-list`. ADR-001 §3 forbids a feature to import another feature; `app/` may import any.
 
@@ -36,7 +36,7 @@ Each sample piece is wrapped in an element with `aria-hidden="true"` and `inert`
 
 ### D4. Sample data: invented dishes, checked against the local catalogue
 
-The constants live in `src/app/_welcome/sample-pieces.tsx`. The dishes of the design's `data.js` that appear in the local catalogue are replaced (for example "Crema de calabacín" and "Merluza al horno" are in `data/`). `scripts/welcome/check-sample-dishes.ts` reads `data/menu-platos.json` and `data/recetas.json` when they exist and fails, naming the dish, if a sample dish or recipe title matches one of them (case-insensitive, whole name). It runs by hand (`pnpm welcome:check-samples`): CI has no `data/`. "Menú 14" stays: menus are numbered 1 to 36 and the number says nothing of their content; the evidence lines under it are invented.
+The constants live in `src/app/_welcome/sample-data.ts`; `sample-pieces.tsx` builds the pieces from them. The dishes of the design's `data.js` that appear in the local catalogue are replaced (for example "Crema de calabacín" and "Merluza al horno" are in `data/`). `scripts/welcome/check-sample-dishes.ts` reads `data/menu-platos.json` and `data/recetas.json` when they exist and fails, naming the dish, if a sample dish or recipe title matches one of them (case-insensitive, whole name). It runs by hand (`pnpm welcome:check-samples`): CI has no `data/`. "Menú 14" stays: menus are numbered 1 to 36 and the number says nothing of their content; the evidence lines under it are invented.
 
 ### D5. Layout at the app's breakpoints
 

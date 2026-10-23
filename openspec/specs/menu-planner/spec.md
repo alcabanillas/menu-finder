@@ -362,7 +362,7 @@ Each evidence line SHALL start with the state of its unit, from the evidence the
 | no dish, all members `exclude` | ✓, olive | "no aparece en la semana" |
 | no dish, any member `include` | ✕, terracotta | "ningún plato" |
 
-A week-wide exclusion SHALL always read "no aparece en la semana", never that no dish holds it: its filter only looks for the word. After the state, the line SHALL name the terms of its unit: olive (`text-include`) for an `include` member, an included `attribute` among them, and terracotta (`text-exclude`) for an `exclude` member, which SHALL also carry a minus, so that the polarity is not told by colour alone; in a `sameDish` unit the members SHALL be separated by a thin vertical rule, and in an `anyOf` unit by an "o". A unit that mixes `include` and `exclude` SHALL have no background of its own: its terms are on the white of the card, each in the colour of its polarity. A long term SHALL wrap, never be cut or overflow the card.
+A week-wide exclusion SHALL always read "no aparece en la semana", never that no dish holds it: its filter only looks for the word. After the state, the line SHALL name the terms of its unit: olive (`text-include`) for an `include` member, an included `attribute` among them, and terracotta (`text-exclude`) for an `exclude` member, with no minus in front: the screen reader text says "excluido", and a week-wide exclusion reads "no aparece en la semana"; in a `sameDish` unit the members SHALL be separated by a thin vertical rule, and in an `anyOf` unit by an "o". A unit that mixes `include` and `exclude` SHALL have no background of its own: its terms are on the white of the card, each in the colour of its polarity. A long term SHALL wrap, never be cut or overflow the card.
 
 The summary sentence SHALL be built only from the counts of the lines: a unit is met when its state is ✓ or ≈. With N units of which X are met and S are ≈, it SHALL read "Cumple las N cosas que pides." when X is N and N is more than one, "Cumple lo que pides." when N and X are one, and "Cumple X de las N cosas que pides." otherwise; when S is one or more, the final full stop SHALL give way to ", una con un plato parecido." for one or ", <S> con platos parecidos." for more, with S in words up to ten ("dos", "tres"). Every unit counts, the week-wide exclusions included.
 
@@ -378,7 +378,7 @@ Each line SHALL have a text for screen readers: the text of its chip ("Restricti
 
 #### Scenario: A week-wide exclusion
 - **WHEN** the unit of the exclusion `cerdo`, in no group, has no dish
-- **THEN** the card shows ✓, "cerdo" and "no aparece en la semana"
+- **THEN** the card shows ✓, "cerdo" in terracotta with no minus in front, and "no aparece en la semana"
 
 #### Scenario: A soft constraint no dish covers
 - **WHEN** the unit of the included `salmón` has no dish
@@ -402,7 +402,7 @@ Each line SHALL have a text for screen readers: the text of its chip ("Restricti
 
 #### Scenario: An evidence line read by a screen reader
 - **WHEN** the `sameDish` unit of `arroz` and the exclusion `marisco` has as evidence the `literal` lunch dish "Arroz con verduras" of Tuesday
-- **THEN** "marisco" shows a minus, and the screen reader text of the line is "En el mismo plato: arroz, preferencia y excluido: marisco, preferencia: Martes, comida · Arroz con verduras"
+- **THEN** "marisco" shows no minus, and the screen reader text of the line is "En el mismo plato: arroz, preferencia y excluido: marisco, preferencia: Martes, comida · Arroz con verduras"
 
 #### Scenario: A mixed unit on white
 - **WHEN** the `sameDish` unit of `arroz` and the exclusion `marisco` is shown in a card

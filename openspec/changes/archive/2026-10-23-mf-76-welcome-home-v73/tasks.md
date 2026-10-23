@@ -43,3 +43,16 @@
 - `"version"` goes to 1.0.0 in this PR (decided by the author on 2026-10-22).
 - Mark row v73 of `project/implementacion.md` in the design system as `implementado` with the PR, and fix its version line.
 - Archive the change after review, with the checklist of `context/safety-first.md` §4.
+
+## Security checklist (`context/safety-first.md` §4), 2026-10-23
+
+- **Business and security decisions in the backend:** yes. The home for a visitor is static; the session check that chooses it stays in `src/app/page.tsx` on the server, as in MF-25.
+- **New endpoints (auth, permissions, negative tests):** not applicable. No endpoint, server action or route is added.
+- **User from the session:** not applicable, for the same reason.
+- **Minimum data returned:** yes. The page holds only constants with invented dishes; `pnpm welcome:check-samples` found none of the 15 among the 444 catalogue names, and `e2e/home.spec.ts` checks the response has no dish of the database, no email, no version and no sign-up, also with a forged session cookie (8 passed on 2026-10-23).
+- **No secrets in the diff:** yes. Checked with a `grep` of the branch diff for keys, tokens and passwords: no match.
+- **New dependencies:** none. `next` and `eslint-config-next` go from 16.4.0 to 16.4.2, a patch of existing packages for a security advisory.
+- **Parameterised queries:** not applicable. No new SQL.
+- **Tests with unexpected values:** not applicable. The page has no input; its only controls are the two "Acceder" links.
+- **Sensitive actions logged:** not applicable. No sign-in or access decision changes.
+- **Deviations from a MUST rule:** none. The evidence line loses the minus before an excluded term, a non-colour cue (WCAG 1.4.1); the screen reader text keeps "excluido", and the trade-off is in `proposal.md` and `design.md` (Risks).
