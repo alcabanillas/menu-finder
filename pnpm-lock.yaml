@@ -7,6 +7,7 @@ settings:
 overrides:
   handlebars: ^4.7.10
   vite: ^8.3.3
+  body-parser: 1.20.9
 
 importers:
 
@@ -43,8 +44,8 @@ importers:
         specifier: 19.3.0
         version: 19.3.0(react@19.3.0)
       zod:
-        specifier: ^4.6.5
-        version: 4.6.5
+        specifier: ^4.6.7
+        version: 4.6.7
     devDependencies:
       '@playwright/test':
         specifier: ^1.64.0
@@ -598,8 +599,8 @@ packages:
       '@noble/hashes':
         optional: true
 
-  '@fastify/busboy@3.2.3':
-    resolution: {integrity: sha512-fmo/IKgkenPzz3qTKG+sIUXdF/Kv83AkvvOXJHPTHJeKJbat8SsL1ihUaFaDotqoEl4UZ1Lf8Eb/3vK6eaWX2A==}
+  '@fastify/busboy@3.2.4':
+    resolution: {integrity: sha512-lQS8xcXT54rdJb+wlG/Q7SMSdtkZEpLPHooSDUZyyZm9LJD7X1kONPhVoPaHq+dsPtWUGGLIz9gBNhs9qKbylw==}
 
   '@firebase/app-check-interop-types@0.3.5':
     resolution: {integrity: sha512-qId34pVZ2CXTmtu4ofW5leiI93DvnOvIcr/5GT7MZPw5WXAi6nZoU+g9cNRgl7K90UJSbK0cXxten4meYMPyZg==}
@@ -733,8 +734,8 @@ packages:
     resolution: {integrity: sha512-DJS3s0OVH4zFDB1PzjxAsHqJT6sKVbRwwML0ZBP9PbU7Yebtu/7SWMRzvO2J3nUi9pRNITCfu4LJeooM2w4pjg==}
     engines: {node: '>=14.0.0'}
 
-  '@google-cloud/paginator@7.1.0':
-    resolution: {integrity: sha512-PNCXdAQgNoQODZuqyhmkN2nUpB2q9UFzawZ1oyCDyEyhcheRoCKJJhSKhEIeKpM/NCLnC6Q4We4HEkGCwNDnCA==}
+  '@google-cloud/paginator@7.2.0':
+    resolution: {integrity: sha512-l+x6YObHGTuqBCMvC0SXo3Cnyqg4FkWWKYRptf46PACHJ5GAUuhsd2b3wphgGrg1ybs/LAb+q5MnUTuG/3+v7w==}
     engines: {node: '>=22'}
 
   '@google-cloud/precise-date@4.0.0':
@@ -745,16 +746,16 @@ packages:
     resolution: {integrity: sha512-MmaX6HeSvyPbWGwFq7mXdo0uQZLGBYCwziiLIGq5JVX+/bdI3SAq6bP98trV5eTWfLuvsMcIC1YJOF2vfteLFA==}
     engines: {node: '>=14.0.0'}
 
-  '@google-cloud/projectify@6.1.0':
-    resolution: {integrity: sha512-tKAx9q6vTtbgZcqCojKWK8k6Dy2XBsE7BkNrrBsblxNXrKImYnljqeGfYh9qnTrlTjC9F19pTyCkGcl3pFMW/w==}
+  '@google-cloud/projectify@6.2.1':
+    resolution: {integrity: sha512-PV9oy7VpQRXLuqKuU5RSOHFQyWgvw2sT9MoTGykja9j6c9pv5+ttKTJiFsccu500YYIGiz8JCOsb60PfKmiV/w==}
     engines: {node: '>=22'}
 
   '@google-cloud/promisify@4.0.0':
     resolution: {integrity: sha512-Orxzlfb9c67A15cq2JQEyVc7wEsmFBmHjZWZYQMUyJ1qivXyMwdyNOs9odi79hze+2zqdTtu1E19IM/FtqZ10g==}
     engines: {node: '>=14'}
 
-  '@google-cloud/promisify@6.1.0':
-    resolution: {integrity: sha512-H+Rytzi5zYMyoAmU/zgYLgq7fJ9FY4QQEg4k6gfFx/RY1COJ2xxyIfe8bZ62lqEbWM1DJH7IYETqTFmqNtuUhQ==}
+  '@google-cloud/promisify@6.2.1':
+    resolution: {integrity: sha512-/+RvLJ5u+WhGay6Z3aY6OApDQmNqq1427Mmt7Eov9kYp69gdUiGSwFnygeTxfz69XBtYZLAnWikGMIoFXtKt+A==}
     engines: {node: '>=22'}
 
   '@google-cloud/storage@8.4.0':
@@ -1261,6 +1262,10 @@ packages:
   '@opentelemetry/api-logs@0.52.1':
     resolution: {integrity: sha512-qnSqB2DQ9TPP96dl8cDubDvrUyWc0/sK81xHTK8eSUspzDM3bsewX903qclQFvVhgStjRWdC5bLb3kQqMkfV5A==}
     engines: {node: '>=14'}
+
+  '@opentelemetry/api@1.10.0':
+    resolution: {integrity: sha512-lMkyes8iHrG+mk6WH7X70MdCLI2RS0FwNBY1PyQ8UemaijE2m5mv5A0Niy3HtbYTFrgkUEQjFMXmSAk2hQDuPQ==}
+    engines: {node: '>=8.0.0'}
 
   '@opentelemetry/api@1.9.1':
     resolution: {integrity: sha512-gLyJlPHPZYdAk1JENA9LeHejZe1Ti77/pTeFm/nMXmQH/HFZlcS/O2XJB+L8fkbrNSqhdtlvjBVjxwUYanNH5Q==}
@@ -3143,8 +3148,8 @@ packages:
   bignumber.js@9.3.1:
     resolution: {integrity: sha512-Ko0uX15oIUS7wJ3Rb30Fs6SkVbLmPBAKdlm7q9+ak9bbIeFf0MwuBsQV6z7+X768/cHsfg+WlysDWJcmthjsjQ==}
 
-  body-parser@1.20.8:
-    resolution: {integrity: sha512-JNcyFQ64OiijEkPzUBTCe+hyPXUD/3LEldGQ6iF5LR1w00mx9o7xtDWHXBY2iItjdCFGoilOLNQbH943ut7pHA==}
+  body-parser@1.20.9:
+    resolution: {integrity: sha512-FISIQxV5u91Y9gvuFq3q/tA/qTqLJn3AhRcEvyozyhJTh5OBFFtv827AdHU7Rbyct4r+Ba1/99oFa1Y3yuFsdw==}
     engines: {node: '>= 0.8', npm: 1.2.8000 || >= 1.4.16}
 
   brace-expansion@1.1.21:
@@ -3838,6 +3843,10 @@ packages:
     resolution: {integrity: sha512-kB3rzJV7d9juLZh8/56QTXCwQfxyhdOMdyYk1HdQKFtF8TJTDTZQJtixWIwXdE9Jji91mC41DUNpjleo4L4eAQ==}
     engines: {node: '>=18'}
 
+  gaxios@8.3.2:
+    resolution: {integrity: sha512-7VsaTExxjbDv2ZK1YuC4jbgfN33NI/6/7zdYWUHB6mcg51v4tCBZe+xzjqPzOpVzI+C5k1Kk9OQ80WVrXAHOqw==}
+    engines: {node: '>=22'}
+
   gcp-metadata@6.1.1:
     resolution: {integrity: sha512-a4tiq7E0/5fTjxPAaH4jpjkSv/uCaU2p5KC6HVGrvl0cDjA8iBZv4vv1gyzlmK0ZUKqwpOyQMKzZQe3lTit77A==}
     engines: {node: '>=14'}
@@ -3850,8 +3859,8 @@ packages:
     resolution: {integrity: sha512-iJ9KMsiu+xKtNRX0PmGLSaIU3bUBAyzWTyqKemKPzNPsmmsBCQYmlNg+brEbES7IHSXtdVwzBPzx1vz3FAaipw==}
     engines: {node: '>=18'}
 
-  gcp-metadata@9.1.0:
-    resolution: {integrity: sha512-hV4Abmis9XY9ch/HK8t4oGy/Ho4WNzd6QAj/7PHKF5Ae25LUDviZET0s7DD3i+mG1QpGCqnDji/R/jBiuux4jw==}
+  gcp-metadata@9.2.2:
+    resolution: {integrity: sha512-hlaHpCBoNCzoUjMnBZq0LbUiYqPAhXFaAgyNwQqwWU44TZIYJK3RD3o2wkNdvPs8nnUXqJjTudnodLJkLMBjow==}
     engines: {node: '>=22'}
 
   generator-function@2.0.1:
@@ -3933,8 +3942,8 @@ packages:
     resolution: {integrity: sha512-i1ydyHrqcIxXkWh/uBmVkzCvIuq5yiK2ATndIe5XxKholrG/MTYP9xGYka4sQhrbIAgGjL2B6NOE7rFaiF3fXw==}
     engines: {node: '>=18'}
 
-  google-auth-library@11.2.0:
-    resolution: {integrity: sha512-R9/Dwc3swSur04RnizQ6EBUmmcno2cC5cAKtrG/C+pY+W7c5l6rSnFWgMkR7NSYj1n6XWmb/KhcjxGslWm4yIA==}
+  google-auth-library@11.3.1:
+    resolution: {integrity: sha512-mQS0R2Ev/DKkzuWSYtDeq15uhDeaWuT2qzLYqJ41LmooxVKHmn5ut3pc6dlHY6wfHW/D7FBmOYjAtkjaD1A7qA==}
     engines: {node: '>=22'}
 
   google-auth-library@9.15.1:
@@ -3949,8 +3958,8 @@ packages:
     resolution: {integrity: sha512-M4vpZcXQIC1gqIVGQ7eaU3jXQA6zecStyTXu514TYfThlgSurYJOxHZo9fzU6hAgwPWvuEynAVHWyaIk80VeEA==}
     engines: {node: '>=18'}
 
-  google-gax@6.12.1:
-    resolution: {integrity: sha512-U/OUrt4+aUiELB8sgaPJAdVfPzFOPjo1ngXVOwbR1NcCHV7ZcPOW0Ecwdbp8J86NmxBwLMJUOj8AgRSOZm5iJQ==}
+  google-gax@6.13.0:
+    resolution: {integrity: sha512-7Q60oxwV2M2zWytwB5siHUlip1jTVWoSxfF25NI13wGKlJ9jUwyWvKWrDfXjAuBOI5NVrv0R/tPaYi80V/5ZFg==}
     engines: {node: '>=22'}
 
   google-logging-utils@0.0.2:
@@ -3961,8 +3970,8 @@ packages:
     resolution: {integrity: sha512-eAmLkjDjAFCVXg7A1unxHsLf961m6y17QFqXqAXGj/gVkKFrEICfStRfwUlGNfeCEjNRa32JEWOUTlYXPyyKvA==}
     engines: {node: '>=14'}
 
-  google-logging-utils@2.0.1:
-    resolution: {integrity: sha512-HMhaQghlOTvbcb3c4T5jmmOMtG3JUF1iOQMezaJXL86CDS+Tm2vHd0IeLFRAx3+ewd+bo9E1HFHoy17X5aJa9A==}
+  google-logging-utils@2.1.0:
+    resolution: {integrity: sha512-1R6uiq6XhXW2ZrcGtZpGgVDsYGzSmveVOn8Pp37qe1fbThHZ34e3t3eXj5mVu6PFSVx9fvB1KNVnYgVtq/BRcA==}
     engines: {node: '>=22'}
 
   googleapis-common@7.2.0:
@@ -4250,6 +4259,9 @@ packages:
 
   jose@6.2.12:
     resolution: {integrity: sha512-9NiFmJEex0sy2Dk58j2UGBSHgUs2ypF9eZSu4L6vjOX3Dp96Sw1F3uL+H+D1sx02jZZdzUT0HgvCy59CuvXcWw==}
+
+  jose@6.2.13:
+    resolution: {integrity: sha512-7TIg10ZE1x82YediN+lcrPNvGMKge9yFHQD+Qho/b8y2adfugU3AsvvHfxV0fzyFllT6l9xCjf4RWY9g/Z9PJQ==}
 
   js-tokens@10.0.0:
     resolution: {integrity: sha512-lM/UBzQmfJRo9ABXbPWemivdCW8V2G8FHaHdypQaIy523snUjog0W71ayWXTjiR+ixeMyVHN2XcpnTd/liPg/Q==}
@@ -4986,8 +4998,8 @@ packages:
     resolution: {integrity: sha512-E1sbAYg3aEbXrq0n1ojJkRHQJGE1kaE/O6GLA94y8rnJBfgvOPTOd1b9hOceQK1FFZI9qMh1vBERCyO2ifubcw==}
     engines: {node: '>=18'}
 
-  proto3-json-serializer@4.0.2:
-    resolution: {integrity: sha512-VUQlb/J2WjOG8BKhdLwJUz+MKxSMtBGYh+TaNmRtiYVhlIzXjzeAGIx7gtc3lXlA2iURzfF2+cXaQvC2ofwzpg==}
+  proto3-json-serializer@4.1.0:
+    resolution: {integrity: sha512-Z0Blk2BTZTPp9ZXOWnRG/P3bkEs53FtMv59sl4xU44xcDdYhKlVO/AqAHTYXAlW9HdislqQxjSornP3457wkag==}
     engines: {node: '>=22'}
 
   protobufjs@7.6.6:
@@ -5108,8 +5120,8 @@ packages:
     resolution: {integrity: sha512-pI6/7eabUYkZxamkOq0g0uMxKLLGnjzhefY+vL8bVXag5rto4OU2YBTPytWLuHH7aEKD6fn7kJycQfid0Mwnkw==}
     engines: {node: '>=18'}
 
-  retry-request@9.0.2:
-    resolution: {integrity: sha512-S73r2yk09DSWx7K4mTZG7v5wSOrCK5okQbYLlkgpDjzVsxkUkhKrUR2VpUp69e3iA06Btn0bDXa27gxfnCqZMw==}
+  retry-request@9.1.0:
+    resolution: {integrity: sha512-FILyVbis+DTo3KRbtKceqpj1595wIF+XQFW/+AVOBdCQmxwNDgcNXXr2FNM0Ej2qD7zVXbJGfH7lo4jB0wwhKA==}
     engines: {node: '>=22'}
 
   retry@0.13.1:
@@ -5413,8 +5425,8 @@ packages:
     resolution: {integrity: sha512-R1Cg4Vu0UULeDfHL/kjABLaTW++9yD/B6n2g48y5dJ04hsEaxcfmAqbNDzNsbqAYJyIpZafjklLG9YxRu9uzOg==}
     engines: {node: '>=18'}
 
-  teeny-request@11.0.1:
-    resolution: {integrity: sha512-bNr5j2YjSdajgCVsp+8JVjRf1uHIbpNISLeKp/7V1NnVMX3Gh6H/kECNGlm2Q3I68ACODQ0iv6aZ3Rvm8WgLGA==}
+  teeny-request@11.1.1:
+    resolution: {integrity: sha512-I5OLOkPN3QDN2l1H/eGueuKaq32CdAcXt91WOF/bOfadtZD1WQ8/Fk28WsqDcGjIyhAW/GQDagYhVEjhuZUFyQ==}
     engines: {node: '>=22'}
 
   teeny-request@9.0.0:
@@ -5851,8 +5863,8 @@ packages:
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
-  zod@4.6.5:
-    resolution: {integrity: sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==}
+  zod@4.6.7:
+    resolution: {integrity: sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==}
 
 snapshots:
 
@@ -5979,50 +5991,50 @@ snapshots:
 
   '@bcoe/v8-coverage@1.0.2': {}
 
-  '@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5)':
+  '@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.7))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5)':
     dependencies:
       '@better-auth/utils': 0.4.2
       '@better-fetch/fetch': 1.3.2
       '@opentelemetry/semantic-conventions': 1.43.0
       '@standard-schema/spec': 1.1.0
-      better-call: 1.4.0(zod@4.6.5)
+      better-call: 1.4.0(zod@4.6.7)
       jose: 6.2.12
       kysely: 0.29.6
       nanostores: 1.5.5
-      zod: 4.6.5
+      zod: 4.6.7
     optionalDependencies:
       '@opentelemetry/api': 1.9.1
 
-  '@better-auth/drizzle-adapter@1.7.7(@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5))(@better-auth/utils@0.4.2)':
+  '@better-auth/drizzle-adapter@1.7.7(@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.7))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5))(@better-auth/utils@0.4.2)':
     dependencies:
-      '@better-auth/core': 1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5)
+      '@better-auth/core': 1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.7))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5)
       '@better-auth/utils': 0.4.2
 
-  '@better-auth/kysely-adapter@1.7.7(@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5))(@better-auth/utils@0.4.2)(kysely@0.29.6)':
+  '@better-auth/kysely-adapter@1.7.7(@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.7))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5))(@better-auth/utils@0.4.2)(kysely@0.29.6)':
     dependencies:
-      '@better-auth/core': 1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5)
+      '@better-auth/core': 1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.7))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5)
       '@better-auth/utils': 0.4.2
     optionalDependencies:
       kysely: 0.29.6
 
-  '@better-auth/memory-adapter@1.7.7(@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5))(@better-auth/utils@0.4.2)':
+  '@better-auth/memory-adapter@1.7.7(@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.7))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5))(@better-auth/utils@0.4.2)':
     dependencies:
-      '@better-auth/core': 1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5)
+      '@better-auth/core': 1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.7))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5)
       '@better-auth/utils': 0.4.2
 
-  '@better-auth/mongo-adapter@1.7.7(@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5))(@better-auth/utils@0.4.2)':
+  '@better-auth/mongo-adapter@1.7.7(@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.7))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5))(@better-auth/utils@0.4.2)':
     dependencies:
-      '@better-auth/core': 1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5)
+      '@better-auth/core': 1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.7))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5)
       '@better-auth/utils': 0.4.2
 
-  '@better-auth/prisma-adapter@1.7.7(@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5))(@better-auth/utils@0.4.2)':
+  '@better-auth/prisma-adapter@1.7.7(@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.7))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5))(@better-auth/utils@0.4.2)':
     dependencies:
-      '@better-auth/core': 1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5)
+      '@better-auth/core': 1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.7))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5)
       '@better-auth/utils': 0.4.2
 
-  '@better-auth/telemetry@1.7.7(@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5))(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)':
+  '@better-auth/telemetry@1.7.7(@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.7))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5))(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)':
     dependencies:
-      '@better-auth/core': 1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5)
+      '@better-auth/core': 1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.7))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5)
       '@better-auth/utils': 0.4.2
       '@better-fetch/fetch': 1.3.2
 
@@ -6274,7 +6286,7 @@ snapshots:
     optionalDependencies:
       '@noble/hashes': 2.4.0
 
-  '@fastify/busboy@3.2.3':
+  '@fastify/busboy@3.2.4':
     optional: true
 
   '@firebase/app-check-interop-types@0.3.5':
@@ -6473,10 +6485,10 @@ snapshots:
   '@google-cloud/firestore@9.3.0':
     dependencies:
       '@google-cloud/firestore-api': 0.2.0
-      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/api': 1.10.0
       fast-deep-equal: 3.1.3
       functional-red-black-tree: 1.0.1
-      google-gax: 6.12.1
+      google-gax: 6.13.0
       protobufjs: 7.6.6
     transitivePeerDependencies:
       - supports-color
@@ -6578,7 +6590,7 @@ snapshots:
       extend: 3.0.2
     optional: true
 
-  '@google-cloud/paginator@7.1.0':
+  '@google-cloud/paginator@7.2.0':
     dependencies:
       extend: 3.0.2
     optional: true
@@ -6589,31 +6601,31 @@ snapshots:
   '@google-cloud/projectify@4.0.0':
     optional: true
 
-  '@google-cloud/projectify@6.1.0':
+  '@google-cloud/projectify@6.2.1':
     optional: true
 
   '@google-cloud/promisify@4.0.0':
     optional: true
 
-  '@google-cloud/promisify@6.1.0':
+  '@google-cloud/promisify@6.2.1':
     optional: true
 
   '@google-cloud/storage@8.4.0':
     dependencies:
-      '@google-cloud/paginator': 7.1.0
-      '@google-cloud/projectify': 6.1.0
-      '@google-cloud/promisify': 6.1.0
+      '@google-cloud/paginator': 7.2.0
+      '@google-cloud/projectify': 6.2.1
+      '@google-cloud/promisify': 6.2.1
       abort-controller: 3.0.0
       async-retry: 1.3.3
       duplexify: 4.1.3
       fast-xml-parser: 5.11.2
       gaxios: 7.3.1
-      google-auth-library: 11.2.0
+      google-auth-library: 11.3.1
       html-entities: 2.6.0
       mime: 3.0.0
       p-limit: 3.1.0
-      retry-request: 9.0.2
-      teeny-request: 11.0.1
+      retry-request: 9.1.0
+      teeny-request: 11.1.1
     transitivePeerDependencies:
       - supports-color
     optional: true
@@ -6922,13 +6934,13 @@ snapshots:
     dependencies:
       '@neon/sdk': 7.0.1
       jiti: 2.7.0
-      zod: 4.6.5
+      zod: 4.6.7
 
   '@neon/env@1.5.3':
     dependencies:
       '@neon/config': 1.8.6
       yargs: 18.2.0
-      zod: 4.6.5
+      zod: 4.6.7
     optionalDependencies:
       '@napi-rs/keyring': 1.3.0
 
@@ -6991,6 +7003,9 @@ snapshots:
   '@opentelemetry/api-logs@0.52.1':
     dependencies:
       '@opentelemetry/api': 1.9.1
+
+  '@opentelemetry/api@1.10.0':
+    optional: true
 
   '@opentelemetry/api@1.9.1': {}
 
@@ -8764,23 +8779,23 @@ snapshots:
 
   better-auth@1.7.7(@opentelemetry/api@1.9.1)(next@16.4.2(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.64.0)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(pg@8.23.1)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@5.0.3):
     dependencies:
-      '@better-auth/core': 1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5)
-      '@better-auth/drizzle-adapter': 1.7.7(@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5))(@better-auth/utils@0.4.2)
-      '@better-auth/kysely-adapter': 1.7.7(@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5))(@better-auth/utils@0.4.2)(kysely@0.29.6)
-      '@better-auth/memory-adapter': 1.7.7(@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5))(@better-auth/utils@0.4.2)
-      '@better-auth/mongo-adapter': 1.7.7(@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5))(@better-auth/utils@0.4.2)
-      '@better-auth/prisma-adapter': 1.7.7(@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5))(@better-auth/utils@0.4.2)
-      '@better-auth/telemetry': 1.7.7(@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.5))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5))(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)
+      '@better-auth/core': 1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.7))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5)
+      '@better-auth/drizzle-adapter': 1.7.7(@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.7))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5))(@better-auth/utils@0.4.2)
+      '@better-auth/kysely-adapter': 1.7.7(@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.7))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5))(@better-auth/utils@0.4.2)(kysely@0.29.6)
+      '@better-auth/memory-adapter': 1.7.7(@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.7))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5))(@better-auth/utils@0.4.2)
+      '@better-auth/mongo-adapter': 1.7.7(@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.7))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5))(@better-auth/utils@0.4.2)
+      '@better-auth/prisma-adapter': 1.7.7(@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.7))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5))(@better-auth/utils@0.4.2)
+      '@better-auth/telemetry': 1.7.7(@better-auth/core@1.7.7(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)(@opentelemetry/api@1.9.1)(better-call@1.4.0(zod@4.6.7))(jose@6.2.12)(kysely@0.29.6)(nanostores@1.5.5))(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.2)
       '@better-auth/utils': 0.4.2
       '@better-fetch/fetch': 1.3.2
       '@noble/ciphers': 2.4.0
       '@noble/hashes': 2.4.0
-      better-call: 1.4.0(zod@4.6.5)
+      better-call: 1.4.0(zod@4.6.7)
       defu: 6.1.7
       jose: 6.2.12
       kysely: 0.29.6
       nanostores: 1.5.5
-      zod: 4.6.5
+      zod: 4.6.7
     optionalDependencies:
       next: 16.4.2(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.64.0)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       pg: 8.23.1
@@ -8790,14 +8805,14 @@ snapshots:
     transitivePeerDependencies:
       - '@opentelemetry/api'
 
-  better-call@1.4.0(zod@4.6.5):
+  better-call@1.4.0(zod@4.6.7):
     dependencies:
       '@better-auth/utils': 0.5.0
       '@better-fetch/fetch': 1.3.2
       rou3: 0.9.2
       set-cookie-parser: 3.1.3
     optionalDependencies:
-      zod: 4.6.5
+      zod: 4.6.7
 
   bidi-js@1.1.0:
     dependencies:
@@ -8805,7 +8820,7 @@ snapshots:
 
   bignumber.js@9.3.1: {}
 
-  body-parser@1.20.8:
+  body-parser@1.20.9:
     dependencies:
       bytes: 3.1.2
       content-type: 1.0.5
@@ -9420,8 +9435,8 @@ snapshots:
       '@babel/parser': 7.29.9
       eslint: 9.39.5(jiti@2.7.0)
       hermes-parser: 0.25.1
-      zod: 4.6.5
-      zod-validation-error: 4.0.2(zod@4.6.5)
+      zod: 4.6.7
+      zod-validation-error: 4.0.2(zod@4.6.7)
     transitivePeerDependencies:
       - supports-color
 
@@ -9558,7 +9573,7 @@ snapshots:
     dependencies:
       accepts: 1.3.8
       array-flatten: 1.1.1
-      body-parser: 1.20.8
+      body-parser: 1.20.9
       content-disposition: 0.5.4
       content-type: 1.0.5
       cookie: 0.7.2
@@ -9676,11 +9691,11 @@ snapshots:
 
   firebase-admin@14.5.0:
     dependencies:
-      '@fastify/busboy': 3.2.3
+      '@fastify/busboy': 3.2.4
       '@firebase/database-compat': 2.1.7
       '@firebase/database-types': 1.0.22
       fast-deep-equal: 3.1.3
-      google-auth-library: 11.2.0
+      google-auth-library: 11.3.1
       jsonwebtoken: 9.0.3
       jwks-rsa: 4.1.0
     optionalDependencies:
@@ -9786,6 +9801,15 @@ snapshots:
       - supports-color
     optional: true
 
+  gaxios@8.3.2:
+    dependencies:
+      extend: 3.0.2
+      https-proxy-agent: 7.0.6
+      node-fetch: 3.3.2
+    transitivePeerDependencies:
+      - supports-color
+    optional: true
+
   gcp-metadata@6.1.1:
     dependencies:
       gaxios: 6.7.1
@@ -9813,10 +9837,10 @@ snapshots:
       - supports-color
     optional: true
 
-  gcp-metadata@9.1.0:
+  gcp-metadata@9.2.2:
     dependencies:
-      gaxios: 7.3.1
-      google-logging-utils: 2.0.1
+      gaxios: 8.3.2
+      google-logging-utils: 2.1.0
       json-bigint: 1.0.0
     transitivePeerDependencies:
       - supports-color
@@ -9934,13 +9958,13 @@ snapshots:
       - supports-color
     optional: true
 
-  google-auth-library@11.2.0:
+  google-auth-library@11.3.1:
     dependencies:
       base64-js: 1.5.1
       ecdsa-sig-formatter: 1.0.11
-      gaxios: 7.3.1
-      gcp-metadata: 9.1.0
-      google-logging-utils: 2.0.1
+      gaxios: 8.3.2
+      gcp-metadata: 9.2.2
+      google-logging-utils: 2.1.0
       jws: 4.0.1
     transitivePeerDependencies:
       - supports-color
@@ -9994,19 +10018,19 @@ snapshots:
       - supports-color
     optional: true
 
-  google-gax@6.12.1:
+  google-gax@6.13.0:
     dependencies:
       '@grpc/grpc-js': 1.14.6
       '@grpc/proto-loader': 0.8.1
-      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/api': 1.10.0
       duplexify: 4.1.3
-      google-auth-library: 11.2.0
-      google-logging-utils: 2.0.1
+      google-auth-library: 11.3.1
+      google-logging-utils: 2.1.0
       node-fetch: 3.3.2
       object-hash: 3.0.0
-      proto3-json-serializer: 4.0.2
+      proto3-json-serializer: 4.1.0
       protobufjs: 7.6.6
-      retry-request: 9.0.2
+      retry-request: 9.1.0
     transitivePeerDependencies:
       - supports-color
     optional: true
@@ -10016,7 +10040,7 @@ snapshots:
   google-logging-utils@1.1.3:
     optional: true
 
-  google-logging-utils@2.0.1:
+  google-logging-utils@2.1.0:
     optional: true
 
   googleapis-common@7.2.0:
@@ -10345,6 +10369,9 @@ snapshots:
 
   jose@6.2.12: {}
 
+  jose@6.2.13:
+    optional: true
+
   js-tokens@10.0.0: {}
 
   js-tokens@4.0.0: {}
@@ -10446,7 +10473,7 @@ snapshots:
     dependencies:
       '@types/jsonwebtoken': 9.0.10
       debug: 4.4.3
-      jose: 6.2.12
+      jose: 6.2.13
       limiter: 1.1.5
       lru-cache: 11.5.3
       lru-memoizer: 3.0.0
@@ -10476,7 +10503,7 @@ snapshots:
       tinyglobby: 0.2.17
       unbash: 5.0.0
       yaml: 2.9.1
-      zod: 4.6.5
+      zod: 4.6.7
 
   kuler@2.0.0:
     optional: true
@@ -11104,7 +11131,7 @@ snapshots:
       protobufjs: 7.6.6
     optional: true
 
-  proto3-json-serializer@4.0.2:
+  proto3-json-serializer@4.1.0:
     dependencies:
       protobufjs: 7.6.6
     optional: true
@@ -11270,7 +11297,7 @@ snapshots:
       - supports-color
     optional: true
 
-  retry-request@9.0.2:
+  retry-request@9.1.0:
     dependencies:
       extend: 3.0.2
     optional: true
@@ -11694,7 +11721,7 @@ snapshots:
       - supports-color
     optional: true
 
-  teeny-request@11.0.1:
+  teeny-request@11.1.1:
     dependencies:
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.6
@@ -12127,10 +12154,10 @@ snapshots:
     dependencies:
       zod: 3.25.76
 
-  zod-validation-error@4.0.2(zod@4.6.5):
+  zod-validation-error@4.0.2(zod@4.6.7):
     dependencies:
-      zod: 4.6.5
+      zod: 4.6.7
 
   zod@3.25.76: {}
 
-  zod@4.6.5: {}
+  zod@4.6.7: {}

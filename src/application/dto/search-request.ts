@@ -16,7 +16,7 @@ import { err, ok, type Result } from '@/shared/result';
 /** Limit of a term (spec menu-search, "Request structure"), so that a request cannot exhaust the quota or the memory. */
 const MAX_TERM_LENGTH = 100;
 /** Limit of the structure (spec menu-search, "Request structure"), so that a request cannot exhaust the quota or the memory. */
-const MAX_CONSTRAINTS = 12;
+export const MAX_CONSTRAINTS = 12;
 
 /**
  * The shape of one constraint, as a schema: fields, types and limits only. The rules across constraints and groups
@@ -31,6 +31,13 @@ export const constraintSchema = z.strictObject({
   hard: z.boolean(),
   slot: z.enum(SLOTS).optional(),
 }) satisfies z.ZodType<unknown, ConstraintDto>;
+
+/**
+ * The `sameDish` or `anyOf` groups of a structure. A group has two constraints or more and a constraint is in one
+ * group at most, so neither the list nor a group can have more items than constraints. The size is checked before
+ * any item, so a huge list cannot exhaust the memory (GHSA-mrhx-c7xc-m3w5).
+ */
+export const groupsSchema = z.array(z.array(z.string()).max(MAX_CONSTRAINTS)).max(MAX_CONSTRAINTS);
 
 /**
  * The structure of a search as it comes from outside: what the decomposer emits from a request (BUS-descomponedor),
@@ -65,8 +72,8 @@ export type SearchRequestError = { kind: 'invalid-request'; issues: SearchReques
 // The schema must accept exactly the shape of the DTO: `satisfies` breaks the build if they drift apart.
 const searchRequestSchema = z.strictObject({
   constraints: z.array(constraintSchema).min(1).max(MAX_CONSTRAINTS),
-  sameDish: z.array(z.array(z.string())).default([]),
-  anyOf: z.array(z.array(z.string())).default([]),
+  sameDish: groupsSchema.default([]),
+  anyOf: groupsSchema.default([]),
 }) satisfies z.ZodType<unknown, SearchRequestDto>;
 
 type ValidDto = z.output<typeof searchRequestSchema>;
