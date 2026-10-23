@@ -80,6 +80,17 @@ describe('GenkitRequestDecomposer', () => {
     });
   });
 
+  it('sends the size limits of the answer, so that the model is asked for no more than 12 items', async () => {
+    const { generate, calls } = recording();
+    const group = { type: 'array', maxItems: 12, items: { type: 'array', maxItems: 12 } };
+
+    await new GenkitRequestDecomposer(generate, KEY).decompose('algo con bacalao');
+
+    expect(calls[0].config.responseJsonSchema).toMatchObject({
+      properties: { constraints: { type: 'array', maxItems: 12 }, sameDish: group, anyOf: group },
+    });
+  });
+
   it('calls the model once and returns the parsed answer', async () => {
     const { generate, calls } = recording();
 
