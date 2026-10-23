@@ -1,5 +1,6 @@
 import { join } from 'node:path';
 import type pg from 'pg';
+import { classifyIngredients } from '@/application/use-cases/ingest/classify-ingredients';
 import { embedRecipes } from '@/application/use-cases/ingest/embed-recipes';
 import { ingestMenus } from '@/application/use-cases/ingest/ingest-menus';
 import { ingestRecipes } from '@/application/use-cases/ingest/ingest-recipes';
@@ -7,6 +8,7 @@ import { ingestShoppingLists } from '@/application/use-cases/ingest/ingest-shopp
 import { migrate } from '@/application/use-cases/ingest/migrate';
 import { FanOutRepository } from '@/infrastructure/fan-out/fan-out-repository';
 import { createGenkitEmbeddings } from '@/infrastructure/genkit/genkit-embeddings';
+import { createGenkitIngredientClassifier } from '@/infrastructure/genkit/genkit-ingredient-classifier';
 import { JsonFileMenuRepository, MENU_DATASET_FILE } from '@/infrastructure/json-file/json-file-menu-repository';
 import { JsonFileRecipeRepository, RECIPE_DATASET_FILE } from '@/infrastructure/json-file/json-file-recipe-repository';
 import { LocalDocumentSource } from '@/infrastructure/local-documents/local-document-source';
@@ -42,6 +44,15 @@ export function ingestCommands(env: Env) {
       requiring(env, [DATABASE_URL, GEMINI_API_KEY], ([url, apiKey]) =>
         withPool(url, (pool) =>
           embedRecipes({ store: new PostgresRecipeEmbeddingRepository(pool), embeddings: createGenkitEmbeddings(apiKey) }),
+        ),
+      ),
+    classifyIngredients: () =>
+      requiring(env, [DATABASE_URL, GEMINI_API_KEY], ([url, apiKey]) =>
+        withPool(url, (pool) =>
+          classifyIngredients({
+            recipes: new PostgresRecipeRepository(pool),
+            classifier: createGenkitIngredientClassifier(apiKey),
+          }),
         ),
       ),
   };

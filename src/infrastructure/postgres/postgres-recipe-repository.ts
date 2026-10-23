@@ -1,6 +1,12 @@
 import type pg from 'pg';
 import type { RepositoryError, RepositoryReadError } from '@/application/ports/repository-error';
-import type { RecipeRepository } from '@/application/ports/recipe-repository';
+import type {
+  IngredientToClassify,
+  NewIngredientGroup,
+  RecipeRepository,
+  StoredIngredientGroup,
+} from '@/application/ports/recipe-repository';
+import type { FoodGroup } from '@/domain/recipe/food-group';
 import type { Recipe, RecipeIngredient, Unit } from '@/domain/recipe/recipe';
 import { err, ok, type Result } from '@/shared/result';
 import { describeDatabaseError } from '@/infrastructure/postgres/describe-database-error';
@@ -30,6 +36,21 @@ const SELECT_INGREDIENTS = `
   SELECT recipe_key, name, household_measure, quantity, unit, optional
   FROM recipe_ingredient WHERE recipe_key = ANY($1::text[]) ORDER BY recipe_key, position`;
 
+const SELECT_INGREDIENT_GROUPS = `
+  SELECT i.name, g.food_groups AS "foodGroups", g.model
+  FROM (SELECT DISTINCT name FROM recipe_ingredient) i
+  LEFT JOIN ingredient_group g ON g.ingredient_name = i.name
+  ORDER BY i.name COLLATE "C"`;
+
+const UPSERT_INGREDIENT_GROUPS = `
+  INSERT INTO ingredient_group (ingredient_name, food_groups, model)
+  SELECT ingredient_name, food_groups, model
+  FROM jsonb_to_recordset($1::jsonb)
+    AS g(ingredient_name text, food_groups text[], model text)
+  ON CONFLICT (ingredient_name) DO UPDATE SET
+    food_groups = EXCLUDED.food_groups,
+    model = EXCLUDED.model`;
+
 type RecipeRow = {
   file: string;
   source_menu: number;
@@ -41,7 +62,6 @@ type RecipeRow = {
   preparation: string[];
 };
 
-// `pg` returns `numeric` as a string, so that no precision is lost; the quantities are small and fit a number.
 type IngredientRow = {
   recipe_key: string;
   name: string;
@@ -49,6 +69,12 @@ type IngredientRow = {
   quantity: string | null;
   unit: Unit | null;
   optional: boolean;
+};
+
+type IngredientGroupRow = {
+  name: string;
+  foodGroups: FoodGroup[] | null;
+  model: string | null;
 };
 
 /** The recipes in Postgres: one row per recipe file (the file is the key) and its ingredients in order. */
@@ -99,6 +125,37 @@ export class PostgresRecipeRepository implements RecipeRepository {
           recipes.map(({ file }) => file),
         ]);
         await client.query(INSERT_INGREDIENTS, [asJson(ingredients)]);
+      });
+      return ok(undefined);
+    } catch (error) {
+      return err({ kind: 'write-failed', reason: describeDatabaseError(error) });
+    }
+  }
+
+  async ingredientGroups(): Promise<Result<IngredientToClassify[], RepositoryReadError>> {
+    try {
+      const { rows } = await this.pool.query<IngredientGroupRow>(SELECT_INGREDIENT_GROUPS);
+      return ok(
+        rows.map(({ name, foodGroups, model }) => ({
+          name,
+          stored: model !== null ? ({ foodGroups: foodGroups ?? [], model } as StoredIngredientGroup) : null,
+        })),
+      );
+    } catch (error) {
+      return err({ kind: 'read-failed', reason: describeDatabaseError(error) });
+    }
+  }
+
+  async saveIngredientGroups(groups: NewIngredientGroup[]): Promise<Result<void, RepositoryError>> {
+    if (groups.length === 0) return ok(undefined);
+    const rows = groups.map(({ ingredientName, foodGroups, model }) => ({
+      ingredient_name: ingredientName,
+      food_groups: foodGroups,
+      model,
+    }));
+    try {
+      await inTransaction(this.pool, async (client) => {
+        await client.query(UPSERT_INGREDIENT_GROUPS, [asJson(rows)]);
       });
       return ok(undefined);
     } catch (error) {

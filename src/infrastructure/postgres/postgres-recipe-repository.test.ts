@@ -6,6 +6,7 @@ import {
   TEST_DATABASE_URL,
   type TestDatabase,
 } from '@/infrastructure/postgres/test-database';
+import { ok } from '@/shared/result';
 
 const tortilla: Recipe = {
   file: 'Tortilla',
@@ -125,6 +126,76 @@ describe.skipIf(!TEST_DATABASE_URL)('PostgresRecipeRepository (Neon test branch)
       expect(result.ok).toBe(false);
       expect(!result.ok && result.error.reason).toContain('recipe_ingredient');
       expect((await own.pool.query('SELECT key FROM recipe')).rows).toEqual([]);
+    } finally {
+      await own.drop();
+    }
+  });
+
+  it('returns distinct ingredient names ordered by byte order with their stored food groups and model', async () => {
+    await recipes.saveAll([tortilla, crema]);
+
+    const before = await recipes.ingredientGroups();
+    expect(before).toEqual(
+      ok([
+        { name: 'huevo', stored: null },
+        { name: 'sal', stored: null },
+      ]),
+    );
+
+    const saved = await recipes.saveIngredientGroups([
+      { ingredientName: 'huevo', foodGroups: ['huevo'], model: 'test-model' },
+      { ingredientName: 'sal', foodGroups: [], model: 'test-model' },
+    ]);
+    expect(saved).toEqual(ok(undefined));
+
+    const after = await recipes.ingredientGroups();
+    expect(after).toEqual(
+      ok([
+        { name: 'huevo', stored: { foodGroups: ['huevo'], model: 'test-model' } },
+        { name: 'sal', stored: { foodGroups: [], model: 'test-model' } },
+      ]),
+    );
+  });
+
+  it('replaces an ingredient group saved again', async () => {
+    await recipes.saveAll([tortilla]);
+    await recipes.saveIngredientGroups([{ ingredientName: 'huevo', foodGroups: ['huevo'], model: 'model-1' }]);
+    await recipes.saveIngredientGroups([{ ingredientName: 'huevo', foodGroups: [], model: 'model-2' }]);
+
+    const groups = await recipes.ingredientGroups();
+    expect(groups).toEqual(
+      ok([
+        { name: 'huevo', stored: { foodGroups: [], model: 'model-2' } },
+        { name: 'sal', stored: null },
+      ]),
+    );
+  });
+
+  it('returns read-failed when ingredientGroups cannot query the database', async () => {
+    const own = await createMigratedTestDatabase(TEST_DATABASE_URL!);
+    try {
+      await own.pool.query('ALTER TABLE ingredient_group RENAME COLUMN food_groups TO categories');
+
+      expect(await new PostgresRecipeRepository(own.pool).ingredientGroups()).toMatchObject({
+        ok: false,
+        error: { kind: 'read-failed' },
+      });
+    } finally {
+      await own.drop();
+    }
+  });
+
+  it('returns write-failed when saveIngredientGroups fails', async () => {
+    const own = await createMigratedTestDatabase(TEST_DATABASE_URL!);
+    try {
+      await own.pool.query('DROP TABLE ingredient_group');
+
+      const result = await new PostgresRecipeRepository(own.pool).saveIngredientGroups([
+        { ingredientName: 'huevo', foodGroups: ['huevo'], model: 'test-model' },
+      ]);
+
+      expect(result.ok).toBe(false);
+      expect(!result.ok && result.error.kind).toBe('write-failed');
     } finally {
       await own.drop();
     }

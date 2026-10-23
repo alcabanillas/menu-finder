@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import type { CliCommands, SearchOptions, SearchTextOptions } from '@/cli/run-cli';
 import { runCli } from '@/cli/run-cli';
 
-const USAGE_HEADER = 'Usage: pnpm ingest <migrate|recipes|menu|shopping-list|embed|account|search|search-text|evaluate-search|decompose|evaluate-decomposer>';
+const USAGE_HEADER =
+  'Usage: pnpm ingest <migrate|recipes|menu|shopping-list|embed|ingredient-groups|account|search|search-text|evaluate-search|decompose|evaluate-decomposer>';
 const NO_RUNS = {
   built: 0,
   menuRuns: 0,
@@ -10,6 +11,7 @@ const NO_RUNS = {
   migrateRuns: 0,
   shoppingListRuns: 0,
   embedRuns: 0,
+  ingredientGroupsRuns: 0,
   accountRuns: [],
   searches: [],
   textSearches: [],
@@ -26,6 +28,7 @@ const setup = () => {
   let migrateRuns = 0;
   let shoppingListRuns = 0;
   let embedRuns = 0;
+  let ingredientGroupsRuns = 0;
   const accountRuns: string[][] = [];
   const searches: SearchOptions[] = [];
   const textSearches: SearchTextOptions[] = [];
@@ -54,6 +57,10 @@ const setup = () => {
       embed: async () => {
         embedRuns += 1;
         return 1;
+      },
+      'ingredient-groups': async () => {
+        ingredientGroupsRuns += 1;
+        return 0;
       },
       account: async (args) => {
         accountRuns.push(args);
@@ -91,6 +98,7 @@ const setup = () => {
       migrateRuns,
       shoppingListRuns,
       embedRuns,
+      ingredientGroupsRuns,
       accountRuns,
       searches,
       textSearches,
@@ -137,6 +145,21 @@ describe('runCli', () => {
     expect(counts()).toEqual({ ...NO_RUNS, built: 1, embedRuns: 1 });
   });
 
+  it('runs the ingredient-groups command and returns its exit code', async () => {
+    const { run, counts } = setup();
+
+    expect(await run(['ingredient-groups'])).toBe(0);
+    expect(counts()).toEqual({ ...NO_RUNS, built: 1, ingredientGroupsRuns: 1 });
+  });
+
+  it('prints the usage for ingredient-groups with extra arguments and builds nothing', async () => {
+    const { run, lines, counts } = setup();
+
+    expect(await run(['ingredient-groups', 'extra'])).toBe(2);
+    expect(counts()).toEqual(NO_RUNS);
+    expect(lines[0]).toBe(USAGE_HEADER);
+  });
+
   it.each([
     [['account', 'ana@example.test'], ['ana@example.test']],
     [['account', 'ana@example.test', 'Ana G.'], ['ana@example.test', 'Ana G.']],
@@ -160,73 +183,89 @@ describe('runCli', () => {
       const { run, lines, counts } = setup();
 
       expect(await run(args)).toBe(2);
-      expect(lines.join('\n')).toContain(USAGE_HEADER);
       expect(counts()).toEqual(NO_RUNS);
+      expect(lines[0]).toBe(USAGE_HEADER);
     },
   );
 
-  it('runs the evaluate-decomposer command', async () => {
-    const { run, counts } = setup();
+  it.each([
+    [['account']],
+    [['account', 'ana@example.test', 'Ana G.', 'extra']],
+    [['search']],
+    [['search', 'file.json', 'extra']],
+    [['search-text']],
+    [['search-text', 'request', 'extra']],
+  ])('prints the usage with wrong arguments for %j and builds nothing', async (args) => {
+    const { run, lines, counts } = setup();
 
-    expect(await run(['evaluate-decomposer'])).toBe(0);
-    expect(counts()).toEqual({ ...NO_RUNS, built: 1, decomposerEvaluations: 1 });
+    expect(await run(args)).toBe(2);
+    expect(counts()).toEqual(NO_RUNS);
+    expect(lines[0]).toBe(USAGE_HEADER);
   });
 
-  it('runs the evaluate-search command', async () => {
+  it('runs the search command with the default strategy and returns its exit code', async () => {
+    const { run, counts } = setup();
+
+    expect(await run(['search', 'structure.json'])).toBe(0);
+    expect(counts()).toEqual({ ...NO_RUNS, built: 1, searches: [{ file: 'structure.json', strategy: 'semantic' }] });
+  });
+
+  it.each(['lexical', 'semantic', 'hybrid'] as const)(
+    'runs the search command with --strategy %s and returns its exit code',
+    async (strategy) => {
+      const { run, counts } = setup();
+
+      expect(await run(['search', 'structure.json', '--strategy', strategy])).toBe(0);
+      expect(counts()).toEqual({ ...NO_RUNS, built: 1, searches: [{ file: 'structure.json', strategy }] });
+    },
+  );
+
+  it('runs the search-text command with the default strategy and returns its exit code', async () => {
+    const { run, counts } = setup();
+
+    expect(await run(['search-text', 'algo con pollo'])).toBe(0);
+    expect(counts()).toEqual({
+      ...NO_RUNS,
+      built: 1,
+      textSearches: [{ request: 'algo con pollo', strategy: 'semantic' }],
+    });
+  });
+
+  it.each(['lexical', 'semantic', 'hybrid'] as const)(
+    'runs the search-text command with --strategy %s and returns its exit code',
+    async (strategy) => {
+      const { run, counts } = setup();
+
+      expect(await run(['search-text', 'algo con pollo', '--strategy', strategy])).toBe(0);
+      expect(counts()).toEqual({
+        ...NO_RUNS,
+        built: 1,
+        textSearches: [{ request: 'algo con pollo', strategy }],
+      });
+    },
+  );
+
+  it('runs the evaluate-search command and returns its exit code', async () => {
     const { run, counts } = setup();
 
     expect(await run(['evaluate-search'])).toBe(0);
     expect(counts()).toEqual({ ...NO_RUNS, built: 1, evaluations: 1 });
   });
 
-  it('runs the search command with the semantic strategy by default', async () => {
+  it('runs the evaluate-decomposer command and returns its exit code', async () => {
     const { run, counts } = setup();
 
-    expect(await run(['search', 'pollo.json'])).toBe(0);
-    expect(counts()).toEqual({ ...NO_RUNS, built: 1, searches: [{ file: 'pollo.json', strategy: 'semantic' }] });
-  });
-
-  it.each(['lexical', 'semantic', 'hybrid'])('runs the search command with --strategy %s', async (strategy) => {
-    const { run, counts } = setup();
-
-    expect(await run(['search', 'pollo.json', '--strategy', strategy])).toBe(0);
-    expect(counts()).toEqual({ ...NO_RUNS, built: 1, searches: [{ file: 'pollo.json', strategy }] });
-  });
-
-  it('runs the search-text command with the semantic strategy by default', async () => {
-    const { run, counts } = setup();
-
-    expect(await run(['search-text', 'cenas rápidas sin alitas'])).toBe(0);
-    expect(counts()).toEqual({ ...NO_RUNS, built: 1, textSearches: [{ request: 'cenas rápidas sin alitas', strategy: 'semantic' }] });
-  });
-
-  it('runs the search-text command with --strategy lexical', async () => {
-    const { run, counts } = setup();
-
-    expect(await run(['search-text', 'algo con pollo', '--strategy', 'lexical'])).toBe(0);
-    expect(counts()).toEqual({ ...NO_RUNS, built: 1, textSearches: [{ request: 'algo con pollo', strategy: 'lexical' }] });
+    expect(await run(['evaluate-decomposer'])).toBe(0);
+    expect(counts()).toEqual({ ...NO_RUNS, built: 1, decomposerEvaluations: 1 });
   });
 
   it.each([
-    [[]],
-    [['foo']],
-    [['menu', 'extra']],
-    [['recipes', 'extra']],
     [['migrate', 'extra']],
+    [['recipes', 'extra']],
+    [['menu', 'extra']],
     [['shopping-list', 'extra']],
-    [['embed', '--force']],
-    [['account']],
-    [['account', 'ana@example.test', 'Ana', 'a-long-enough-pass']],
-    [['search']],
-    [['search', 'a.json', 'b.json']],
-    [['search', 'a.json', '--strategy']],
-    [['search', 'a.json', '--strategy', 'fuzzy-magic']],
-    [['search', 'a.json', '--strategy', 'lexical', 'extra']],
-    [['search', '--strategy', 'lexical']],
-    [['search-text']],
-    [['search-text', 'algo con pollo', 'y arroz']],
-    [['search-text', 'algo con pollo', '--strategy', 'fuzzy-magic']],
-    [['search-text', '--strategy', 'lexical']],
+    [['embed', 'extra']],
+    [['evaluate-search', 'extra']],
     [['evaluate-search', '--strategy', 'lexical']],
     [['evaluate-decomposer', 'extra']],
   ])('prints the usage and exits with 2 without building the commands for %j', async (args) => {
@@ -248,6 +287,7 @@ describe('runCli', () => {
       'migrate ',
       'shopping-list ',
       'embed ',
+      'ingredient-groups ',
       'account <email> [name]',
       'search <structure.json>',
       'search-text <request>',
@@ -270,10 +310,12 @@ describe('runCli', () => {
     const menuPos = fullText.indexOf('menu');
     const shoppingPos = fullText.indexOf('shopping-list');
     const embedPos = fullText.indexOf('embed');
+    const groupsPos = fullText.indexOf('ingredient-groups');
 
     expect(migratePos).toBeLessThan(recipesPos);
     expect(recipesPos).toBeLessThan(menuPos);
     expect(menuPos).toBeLessThan(shoppingPos);
     expect(shoppingPos).toBeLessThan(embedPos);
+    expect(embedPos).toBeLessThan(groupsPos);
   });
 });

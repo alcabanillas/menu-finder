@@ -1,6 +1,6 @@
 import { parseSearchRequest, type SearchRequestDto } from '@/application/dto/search-request';
 import type { SearchMenusError, SearchResultDto, SearchStrategy } from '@/application/dto/search-result';
-import type { DishAddress, DishTextSearch } from '@/application/ports/dish-text-search';
+import type { DishAddress, DishTextMatchOptions, DishTextSearch } from '@/application/ports/dish-text-search';
 import type { EmbeddingsPort } from '@/application/ports/embeddings-port';
 import type { MenuRepository } from '@/application/ports/menu-repository';
 import type { RecipeEmbeddingRepository } from '@/application/ports/recipe-embedding-repository';
@@ -75,24 +75,49 @@ async function scoreConstraints(
   const otherConstraints = constraints.filter(({ id }) => !excluded.has(id));
   const [otherScores, exclusionScores] = await Promise.all([
     scoreTerms(distinctTerms(otherConstraints), strategy, deps),
-    lexicalScores(distinctTerms(weekWideExclusions), deps.dishText),
+    lexicalScores(distinctTerms(weekWideExclusions), deps.dishText, { includeIngredientGroups: false }),
   ]);
   if (!otherScores.ok) return otherScores;
   if (!exclusionScores.ok) return exclusionScores;
   const exclusions = { scores: exclusionScores.value, literal: exclusionScores.value };
-  return ok(byConstraint(constraints, (id) => (excluded.has(id) ? exclusions : otherScores.value)));
+  const groupedIds = groupedConstraintIds(units);
+  return ok(byConstraint(constraints, groupedIds, strategy, (id) => (excluded.has(id) ? exclusions : otherScores.value)));
+}
+
+function groupedConstraintIds(units: Unit[]): Set<string> {
+  return new Set(
+    units.filter((unit) => unit.kind !== 'constraint').flatMap((unit) => unit.members.map((member) => member.id)),
+  );
 }
 
 // Each constraint takes the scores and the text match of its term from the evidence it was scored with.
-function byConstraint(constraints: Constraint[], evidenceOf: (id: string) => TermEvidence): ScoresByConstraint {
+// Under semantic, literal and grouped constraints take the maximum of semantic and lexical score (BUS-superficie-consulta (d)).
+function byConstraint(
+  constraints: Constraint[],
+  groupedIds: ReadonlySet<string>,
+  strategy: SearchStrategy,
+  evidenceOf: (id: string) => TermEvidence,
+): ScoresByConstraint {
   const scores = new Map<string, TermScores>();
   const literal = new Map<string, TermScores>();
-  for (const { id, term } of constraints) {
+  for (const constraint of constraints) {
+    const { id, term } = constraint;
     const evidence = evidenceOf(id);
-    scores.set(id, scoresOf(evidence.scores, term));
-    literal.set(id, scoresOf(evidence.literal, term));
+    const lexical = scoresOf(evidence.literal, term);
+    const raw = scoresOf(evidence.scores, term);
+    scores.set(id, strategy === 'semantic' && usesLexicalMax(constraint, groupedIds) ? maxPool(raw, lexical) : raw);
+    literal.set(id, lexical);
   }
   return { scores, literal };
+}
+
+function usesLexicalMax(constraint: Constraint, groupedIds: ReadonlySet<string>): boolean {
+  return constraint.type === 'literal' || groupedIds.has(constraint.id);
+}
+
+function maxPool(semantic: TermScores, lexical: TermScores): TermScores {
+  const keys = new Set([...semantic.keys(), ...lexical.keys()]);
+  return new Map([...keys].map((key) => [key, Math.max(scoreAt(semantic, key), scoreAt(lexical, key))]));
 }
 
 // The terms of the constraints without repeats, so that each one is matched and embedded once.
@@ -120,10 +145,14 @@ async function scoreTerms(terms: string[], strategy: SearchStrategy, deps: FindM
   return ok({ scores: hybrid, literal: lexical.value });
 }
 
-async function lexicalScores(terms: string[], dishText: DishTextSearch): Scored<ScoresByTerm> {
+async function lexicalScores(
+  terms: string[],
+  dishText: DishTextSearch,
+  options?: DishTextMatchOptions,
+): Scored<ScoresByTerm> {
   const scores: ScoresByTerm = new Map();
   for (const term of terms) {
-    const matched = await dishText.matches(term);
+    const matched = await dishText.matches(term, options);
     if (!matched.ok) return failed(matched.error.reason);
     scores.set(term, new Map(matched.value.map((dish) => [addressKey(dish), 1])));
   }

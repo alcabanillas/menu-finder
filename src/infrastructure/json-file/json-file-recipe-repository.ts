@@ -12,7 +12,7 @@ export const RECIPE_DATASET_FILE = 'recetas.json';
  * whole on every save. Written before the database (MF-41 design D1), for the
  * golden-set scripts and for working without the database.
  */
-export class JsonFileRecipeRepository implements RecipeRepository {
+export class JsonFileRecipeRepository implements Pick<RecipeRepository, 'saveAll' | 'findByFiles'> {
   constructor(private readonly dataDir: string) {}
 
   async saveAll(recipes: Recipe[]): Promise<Result<void, RepositoryError>> {
