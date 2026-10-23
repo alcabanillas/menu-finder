@@ -20,7 +20,9 @@ export type ThinkingLevel = 'MINIMAL' | 'LOW' | 'MEDIUM' | 'HIGH';
 
 // The schema comes from `zod` 4, the one of the use case, and not from the `z` of `genkit` (zod 3): Genkit only
 // receives this JSON Schema. Draft 7, because Genkit's validator does not know Zod's default, draft 2020-12 (task 4.1).
-const RESPONSE_JSON_SCHEMA = z.toJSONSchema(decompositionSchema, { target: 'draft-7' });
+// Without the array sizes: with every array bounded at once, Gemini answers 400 INVALID_ARGUMENT. `decomposeText`
+// still checks them, with the bounded schema.
+const RESPONSE_JSON_SCHEMA = z.toJSONSchema(decompositionSchema, { target: 'draft-7', override: dropArraySize });
 
 /**
  * The model config. No `temperature`, `topP` or `topK`: Gemini 3 ignores them (design D5). The schema goes here,
@@ -116,4 +118,8 @@ function parsed(text: string): unknown {
   } catch {
     return text;
   }
+}
+
+function dropArraySize({ jsonSchema }: { jsonSchema: { maxItems?: number } }): void {
+  delete jsonSchema.maxItems;
 }

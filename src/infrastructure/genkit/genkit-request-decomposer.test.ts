@@ -80,15 +80,14 @@ describe('GenkitRequestDecomposer', () => {
     });
   });
 
-  it('sends the size limits of the answer, so that the model is asked for no more than 12 items', async () => {
+  // With every array bounded at once, Gemini answers 400 INVALID_ARGUMENT (seen in production with v1.1.0). The sizes
+  // are still checked: `decomposeText` validates the answer with the bounded schema.
+  it('sends the answer schema without array sizes, which Gemini rejects', async () => {
     const { generate, calls } = recording();
-    const group = { type: 'array', maxItems: 12, items: { type: 'array', maxItems: 12 } };
 
     await new GenkitRequestDecomposer(generate, KEY).decompose('algo con bacalao');
 
-    expect(calls[0].config.responseJsonSchema).toMatchObject({
-      properties: { constraints: { type: 'array', maxItems: 12 }, sameDish: group, anyOf: group },
-    });
+    expect(JSON.stringify(calls[0].config.responseJsonSchema)).not.toContain('maxItems');
   });
 
   it('calls the model once and returns the parsed answer', async () => {
