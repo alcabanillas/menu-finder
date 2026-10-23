@@ -12,7 +12,7 @@ Without a session, `/` SHALL show a page inside the shell's variant for a visito
 
 #### Scenario: Three features and a closing block
 - **WHEN** a visitor opens `/`
-- **THEN** the page has the level-two headings "La semana, de un vistazo", "Cada plato, con su receta", "La compra, por categorías" and "¿Qué os apetece esta semana?", in that order, and the sentence "Menu Finder no inventa menús ni recetas: solo encuentra y ordena los que ya existen."
+- **THEN** the page has the level-two headings "La semana, de un vistazo", "Cada plato, con su receta", "La compra, por categorías" and "¿Qué os apetece esta semana?", in that order, and the sentence "Escríbelo como te salga y te enseñamos los menús que encajan."
 
 #### Scenario: The sample pieces show the app
 - **WHEN** a visitor opens `/`

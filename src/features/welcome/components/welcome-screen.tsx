@@ -166,7 +166,7 @@ function Closing() {
       <div>
         <h2 className={`${H2} text-[24px]`}>¿Qué os apetece esta semana?</h2>
         <p className="mt-1.5 text-sm leading-normal text-text-muted">
-          Menu Finder no inventa menús ni recetas: solo encuentra y ordena los que ya existen.
+          Escríbelo como te salga y te enseñamos los menús que encajan.
         </p>
       </div>
       <AccessLink variant="primary" />

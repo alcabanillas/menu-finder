@@ -33,6 +33,11 @@
 - [x] 6.2 Review `/` without a session by eye at 390 px and 1440 px, top to bottom, against the "Bienvenida" card, and record what differs. Reviewed on 2026-10-22 with the local dev server: no horizontal scroll, no console errors, only the two "Acceder" reachable. Differences kept: the chip "de cuchara" shows the sparkles of an attribute, as in Buscar, where the design draws a plus; the recipe card has no eyebrow (design D3)
 - [x] 6.3 `pnpm test:coverage` before the PR: 1839 tests passed, thresholds met (2026-10-22)
 
+## 7. Design system v79 (row v78)
+
+- [x] 7.1 Copy `project/tokens.json` of version `1792741404-457d` (identical to the repo copy), write `design-system/VERSION` and run `pnpm ds:tokens`; only the version header of `src/app/theme.css` changes
+- [x] 7.2 Test first in `welcome-screen.test.tsx`: the closing block says "Escríbelo como te salga y te enseñamos los menús que encajan." and no longer "no inventa menús". See it fail, then change the sentence in `welcome-screen.tsx`
+
 ## Workflow follow-up
 
 - `"version"` goes to 1.0.0 in this PR (decided by the author on 2026-10-22).

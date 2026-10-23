@@ -54,9 +54,8 @@ describe('WelcomeScreen', () => {
       'La compra, por categorías',
       '¿Qué os apetece esta semana?',
     ]);
-    expect(
-      screen.getByText('Menu Finder no inventa menús ni recetas: solo encuentra y ordena los que ya existen.'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Escríbelo como te salga y te enseñamos los menús que encajan.')).toBeInTheDocument();
+    expect(screen.queryByText(/no inventa menús/)).not.toBeInTheDocument();
   });
 
   it('shows the six days of the week with their lunch and dinner', () => {
