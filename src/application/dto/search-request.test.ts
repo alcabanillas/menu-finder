@@ -129,6 +129,24 @@ describe('parseSearchRequest', () => {
     });
   });
 
+  // GHSA-mrhx-c7xc-m3w5: zod reports one issue per failing element of an unbounded array, so a huge one exhausts the
+  // memory. A bounded array is rejected by its size before any element is checked.
+  describe('oversized groups', () => {
+    const huge = Array.from({ length: 10_000 }, () => 0);
+
+    it.each(['sameDish', 'anyOf'])('rejects a huge %s list with one issue naming it', (field) => {
+      expect(issuesOf(request([constraint('c1', 'pollo')], { [field]: huge }))).toEqual([
+        expect.objectContaining({ field }),
+      ]);
+    });
+
+    it.each(['sameDish', 'anyOf'])('rejects a huge %s group with one issue naming it', (field) => {
+      expect(issuesOf(request([constraint('c1', 'pollo')], { [field]: [huge] }))).toEqual([
+        expect.objectContaining({ field }),
+      ]);
+    });
+  });
+
   describe('rules across constraints and groups', () => {
     it('rejects a well-formed structure that breaks a rule, naming the field', () => {
       const raw = request([constraint('c1', 'pollo'), constraint('c1', 'cerdo')]);

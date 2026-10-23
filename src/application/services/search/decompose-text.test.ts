@@ -176,6 +176,16 @@ describe('decomposeText: invalid answers', () => {
     expect(issues).toContainEqual(expect.objectContaining({ constraint: 'c1', field: 'term' }));
   });
 
+  // GHSA-mrhx-c7xc-m3w5: the answer is not trusted, so a huge list is rejected by its size before any item is checked.
+  it.each(['constraints', 'sameDish', 'anyOf'])('refuses a huge %s list with one issue naming it', async (field) => {
+    const huge = Array.from({ length: 10_000 }, () => 0);
+    const { decomposer } = answering(structure({ [field]: huge }));
+
+    const issues = issuesOf(await decomposeText('algo con pollo', { decomposer }));
+
+    expect(issues).toEqual([expect.objectContaining({ field })]);
+  });
+
   it('refuses an unknown rejection category', async () => {
     const { decomposer } = answering(rejection('spam'));
 

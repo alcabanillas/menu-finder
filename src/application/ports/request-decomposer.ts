@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { REJECTION_CATEGORIES } from '@/application/dto/decomposition';
-import { constraintSchema } from '@/application/dto/search-request';
+import { constraintSchema, groupsSchema, MAX_CONSTRAINTS } from '@/application/dto/search-request';
 import type { Result } from '@/shared/result';
 
 export type DecomposerFailure = { kind: 'decomposer-failed'; reason: string };
@@ -12,9 +12,9 @@ export type DecomposerFailure = { kind: 'decomposer-failed'; reason: string };
  */
 export const decompositionSchema = z.strictObject({
   rejection: z.enum(REJECTION_CATEGORIES).nullable(),
-  constraints: z.array(constraintSchema),
-  sameDish: z.array(z.array(z.string())),
-  anyOf: z.array(z.array(z.string())),
+  constraints: z.array(constraintSchema).max(MAX_CONSTRAINTS),
+  sameDish: groupsSchema,
+  anyOf: groupsSchema,
 });
 
 /**
