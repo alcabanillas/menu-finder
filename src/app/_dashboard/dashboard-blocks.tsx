@@ -5,14 +5,14 @@ import { TodayMeals } from '@/features/weekly-menu/components/today-meals';
 import { NoMenuNotice, type EmptyWeek } from '@/shared/ui/no-menu-notice';
 import type { WeeksToChooseDto } from '@/application/dto/weeks-to-choose';
 
-type WeekRead = Awaited<ReturnType<ReturnType<typeof webContainer>['menuWeekPage']>>;
+type MenuRead = Awaited<ReturnType<ReturnType<typeof webContainer>['todaysMenu']>>;
 type WeeksRead = Awaited<ReturnType<ReturnType<typeof webContainer>['weeksToChoose']>>;
 type ListRead = Awaited<ReturnType<ReturnType<typeof webContainer>['shoppingChecklist']>>;
 
 /** Today's dishes; with no menu this week, what the user can do instead; or the failure of a read it needs. */
-export function TodayBlock({ week, weeks }: { week: WeekRead; weeks: WeeksRead }) {
-  if (week.ok && week.value.menu) return <TodayMeals menu={week.value.menu} />;
-  if (week.ok && weeks.ok) return <NoMenuNotice week={emptyWeekOf(weeks.value)} tone="olive" className="mt-5" />;
+export function TodayBlock({ menu, weeks }: { menu: MenuRead; weeks: WeeksRead }) {
+  if (menu.ok && menu.value.day) return <TodayMeals today={menu.value.day} tomorrow={menu.value.tomorrow} />;
+  if (menu.ok && weeks.ok) return <NoMenuNotice week={emptyWeekOf(weeks.value)} tone="olive" className="mt-5" />;
   return <p className="mt-4">No se ha podido cargar tu menú.</p>;
 }
 

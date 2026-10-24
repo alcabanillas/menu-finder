@@ -1,4 +1,4 @@
-type MenuIconName = 'clock' | 'chef-hat' | 'chevron-down' | 'x';
+type MenuIconName = 'clock' | 'chef-hat' | 'chevron-down' | 'sun' | 'x';
 
 type MenuIconProps = { name: MenuIconName; size: number };
 
@@ -12,6 +12,16 @@ const PATHS: Record<MenuIconName, string[]> = {
     'M6 17h12',
   ],
   'chevron-down': ['m6 9 6 6 6-6'],
+  sun: [
+    'M12 2v2',
+    'M12 20v2',
+    'm4.93 4.93 1.41 1.41',
+    'm17.66 17.66 1.41 1.41',
+    'M2 12h2',
+    'M20 12h2',
+    'm6.34 17.66-1.41 1.41',
+    'm19.07 4.93-1.41 1.41',
+  ],
   x: ['M18 6 6 18', 'm6 6 12 12'],
 };
 
@@ -36,6 +46,7 @@ export function MenuIcon({ name, size }: MenuIconProps) {
           <polyline points="12 6 12 12 16 14" />
         </>
       )}
+      {name === 'sun' && <circle cx="12" cy="12" r="4" />}
       {PATHS[name].map((d) => (
         <path key={d} d={d} />
       ))}

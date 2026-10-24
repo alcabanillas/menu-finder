@@ -14,6 +14,17 @@ describe('DashboardLayout', () => {
     expect(date.querySelector('[aria-hidden="true"]')).toHaveClass('bg-day-fri');
   });
 
+  it("gives Sunday's white colour bar a thin grey border, and no other day's", () => {
+    const { rerender } = render(<DashboardLayout today="2026-10-11" {...slots} />);
+    const bar = () => screen.getByText(/de octubre$/).querySelector('[aria-hidden="true"]');
+
+    expect(bar()).toHaveClass('bg-day-sun', 'border', 'border-border-strong');
+
+    rerender(<DashboardLayout today="2026-10-16" {...slots} />);
+
+    expect(bar()).not.toHaveClass('border');
+  });
+
   it("lays out the weeks, today's meals and the shopping in the mock's order on a phone", () => {
     const { container } = render(<DashboardLayout today="2026-10-16" {...slots} />);
 
