@@ -137,4 +137,4 @@ In `src/application/services/search/find-menus.ts`:
 1. Run `pnpm ingest migrate` against the database (`DATABASE_URL_UNPOOLED`) to apply `008-ingredient-groups.sql`.
 2. Run `pnpm ingest ingredient-groups` to classify the 267 distinct ingredient names and populate `ingredient_group`.
 3. Run `pnpm ingest evaluate-search` to update `evals/search/results.md`.
-4. Before releasing to production, run `pnpm ingest migrate` and `pnpm ingest ingredient-groups` against the production Neon database (`context/despliegue.md`). Rollback is `DROP TABLE IF EXISTS ingredient_group;`.
+4. Before releasing to production, run `pnpm ingest migrate` and `pnpm ingest ingredient-groups` against the production Neon database (`context/runbooks/despliegue.md`). Rollback is `DROP TABLE IF EXISTS ingredient_group;`.

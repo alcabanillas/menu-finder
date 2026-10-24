@@ -29,7 +29,7 @@
 
 ## 5. Close
 
-- [x] 5.1 Update `context/roadmap.md` MF-22.3 with this scope (web entry point, daily limit, failures to Sentry, ~2 h) and MF-22.4 (the server action checks the session and calls it); add `GEMINI_API_KEY` and `LLM_DAILY_LIMIT` to the variables table in `context/despliegue.md` if it lists them. Verify both read as decided
+- [x] 5.1 Update `context/roadmap.md` MF-22.3 with this scope (web entry point, daily limit, failures to Sentry, ~2 h) and MF-22.4 (the server action checks the session and calls it); add `GEMINI_API_KEY` and `LLM_DAILY_LIMIT` to the variables table in `context/runbooks/despliegue.md` if it lists them. Verify both read as decided
 - [x] 5.2 Run `pnpm lint`, `pnpm typecheck` and `pnpm test:coverage`, and verify all pass with the coverage thresholds of OPS-calidad
 - [x] 5.3 Before archive, go through `context/seguridad/safety-first.md` §4 and record the result in this file
 

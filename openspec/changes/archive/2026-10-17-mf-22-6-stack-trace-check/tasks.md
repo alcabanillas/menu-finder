@@ -27,7 +27,7 @@ Found in task 2.1: `pnpm release` pushed the tag `v0.4.1` and showed nothing whi
 
 - [x] 4.1 RED: in `scripts/release/publish-steps.test.ts`, write that `publishSteps` tags the commit, pushes the tag and moves `production`, in that order, each with a label, and that both pushes carry `--no-verify`. See it fail
 - [x] 4.2 GREEN: write `scripts/release/publish-steps.ts`, and make `publish` in `scripts/release/index.ts` print each label and run each step with its output in the terminal. Verify 4.1 and `release-problems.test.ts` pass, and `pnpm typecheck` and `pnpm knip`
-- [x] 4.3 Explain in `context/despliegue.md` ("Publicar una versión") that the script says what each step does and that the pushes skip the pre-push hook, decided by the author on 2026-10-17
+- [x] 4.3 Explain in `context/runbooks/despliegue.md` ("Publicar una versión") that the script says what each step does and that the pushes skip the pre-push hook, decided by the author on 2026-10-17
 
 ## Safety review (`context/seguridad/safety-first.md` §4)
 
@@ -41,7 +41,7 @@ Found in task 2.1: `pnpm release` pushed the tag `v0.4.1` and showed nothing whi
 - Database queries: none.
 - Unexpected input: none. Nothing reaches the LLM.
 - Sensitive actions logged: not applicable.
-- Deviation from a rule: the release pushes skip the pre-push hook (`--no-verify`), decided by the author on 2026-10-17 and explained in `context/despliegue.md` ("Publicar una versión"). The commit has already passed `checks` and `e2e` in CI.
+- Deviation from a rule: the release pushes skip the pre-push hook (`--no-verify`), decided by the author on 2026-10-17 and explained in `context/runbooks/despliegue.md` ("Publicar una versión"). The commit has already passed `checks` and `e2e` in CI.
 
 ## Workflow follow-up
 

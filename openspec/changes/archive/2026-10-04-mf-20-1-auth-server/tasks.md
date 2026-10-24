@@ -28,7 +28,7 @@
 ## 5. Close
 
 - [x] 5.1 Run `pnpm lint`, `pnpm typecheck`, `pnpm test:coverage` and `pnpm knip`; verify: all pass, including `knip` for the function exported from `infrastructure/auth/` that only the tests use until MF-20.2 (if `knip` flags it, the author decides between an entry file and waiting for MF-20.2)
-- [x] 5.2 Update `context/decisiones.md` (SEG-auth: remove "por verificar al empezar MF-20" and record the chosen mechanism and the password limits), `context/roadmap.md` (MF-20.1 ✅ with the archive link; MF-20 stays ⬜ until its three subtasks are archived), and `context/tareas/T0-extraccion-previa.md` (the new variables); verify: `grep` of the decision and task codes and a read of the changed lines
+- [x] 5.2 Update `context/decisiones.md` (SEG-auth: remove "por verificar al empezar MF-20" and record the chosen mechanism and the password limits), `context/roadmap.md` (MF-20.1 ✅ with the archive link; MF-20 stays ⬜ until its three subtasks are archived), and `context/runbooks/T0-extraccion-previa.md` (the new variables); verify: `grep` of the decision and task codes and a read of the changed lines
 - [x] 5.3 Go through the checklist in `context/seguridad/safety-first.md` §4 before archiving and record the answers at the end of this file, with the deviation of the sign-in log (MF-20.3) stated; verify: every item has an answer and a reason where it is "not applicable"
 
 ## Safety checklist (`context/seguridad/safety-first.md` §4), answered on 2026-10-04

@@ -6,7 +6,7 @@
 
 ---
 
-Medidos sobre los 36 menús en el análisis T1 (repo `tfm-brainstorm`, no viaja). Los tres tipos de PDF son **texto** generado por TCPDF, sin OCR necesario. **El menú y las recetas se extraen directamente del PDF**, sin paso intermedio por TXT: el menú con `pdf-parse` (`getTable()`, §1) y las recetas con `pdfjs-dist` (texto con coordenadas, §3); ver [T2](T2-esquema-json-ingesta.md). Solo la lista de la compra sigue extrayéndose vía TXT con `pdftotext -layout` ([T0](../tareas/T0-extraccion-previa.md)).
+Medidos sobre los 36 menús en el análisis T1 (repo `tfm-brainstorm`, no viaja). Los tres tipos de PDF son **texto** generado por TCPDF, sin OCR necesario. **El menú y las recetas se extraen directamente del PDF**, sin paso intermedio por TXT: el menú con `pdf-parse` (`getTable()`, §1) y las recetas con `pdfjs-dist` (texto con coordenadas, §3); ver [T2](T2-esquema-json-ingesta.md). Solo la lista de la compra sigue extrayéndose vía TXT con `pdftotext -layout` ([T0](../runbooks/T0-extraccion-previa.md)).
 
 ## 1. `menu.pdf` (1 página)
 

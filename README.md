@@ -107,7 +107,7 @@ Crea `.env.local` en la raíz con estas variables:
 
 ### 3. Base de datos e ingesta
 
-Los comandos se ejecutan en este orden. El detalle de cada paso está en `context/tareas/T0-extraccion-previa.md`.
+Los comandos se ejecutan en este orden. El detalle de cada paso está en `context/runbooks/T0-extraccion-previa.md`.
 
 ```bash
 pnpm ingest migrate            # aplica las migraciones de postgres/migrations
@@ -225,7 +225,7 @@ ESLint las comprueba en el pre-push y en la CI:
 - **Base de datos:** Neon en `eu-central-1`, la misma zona que la app.
 - **Errores:** Sentry, sin datos personales.
 
-La app desplegada está en [https://menu-finder-mbs.vercel.app](https://menu-finder-mbs.vercel.app). Como el sistema es cerrado, las credenciales de prueba se entregan aparte, en el formulario de entrega del máster. El proceso de publicación está en `context/despliegue.md`.
+La app desplegada está en [https://menu-finder-mbs.vercel.app](https://menu-finder-mbs.vercel.app). Como el sistema es cerrado, las credenciales de prueba se entregan aparte, en el formulario de entrega del máster. El proceso de publicación está en `context/runbooks/despliegue.md`.
 
 ---
 
