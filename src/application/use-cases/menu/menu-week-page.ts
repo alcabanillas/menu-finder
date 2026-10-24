@@ -3,8 +3,8 @@ import type { Clock } from '@/application/ports/clock';
 import type { MenuRepository } from '@/application/ports/menu-repository';
 import type { RecipeRepository } from '@/application/ports/recipe-repository';
 import type { SelectionRepository } from '@/application/ports/selection-repository';
-import { menuWeek, type MenuWeek } from '@/domain/menu/menu-week';
-import type { WeeklyMenu } from '@/domain/menu/weekly-menu';
+import { selectedWeek } from '@/application/services/menu/selected-week';
+import type { MenuWeek } from '@/domain/menu/menu-week';
 import { mondayOf, type LocalDate } from '@/domain/selection/local-date';
 import type { Selection } from '@/domain/selection/selection';
 import { earliestStartsOn, neighbouringWeeks, resolveStartsOn } from '@/domain/selection/starts-on';
@@ -69,21 +69,6 @@ function lockedByOf(selections: Selection[], shown: LocalDate, today: LocalDate)
   // `isLocked` holds only when next week has a selection, so one of them is always found.
   const { menuNumber } = selections.find((selection) => selection.startsOn === startsOn) as Selection;
   return { menuNumber, startsOn };
-}
-
-/** The week a selection chose, laid on its dates with the recipes of its dishes. */
-async function selectedWeek(deps: Deps, selection: Selection): Promise<Result<MenuWeek, WeekFailure>> {
-  const menu = await deps.menus.find(selection.menuNumber);
-  // The selection's menu is always stored (foreign key); a missing one is a fault, not "no menu".
-  if (!menu.ok || !menu.value) return err(FAILED);
-  const recipes = await deps.recipes.findByFiles(recipeFilesOf(menu.value));
-  if (!recipes.ok) return err(FAILED);
-  return ok(menuWeek(menu.value, recipes.value, selection.startsOn, deps.clock.today()));
-}
-
-function recipeFilesOf({ meals }: WeeklyMenu): string[] {
-  const files = meals.flatMap(({ dishes }) => dishes.map(({ recipeFile }) => recipeFile));
-  return [...new Set(files.filter((file) => file !== null))];
 }
 
 function navigationOf(shown: LocalDate, today: LocalDate): WeekNavigationDto {

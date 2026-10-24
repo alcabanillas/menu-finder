@@ -10,6 +10,17 @@ const FUTURE: EmptyWeek = { kind: 'future', startsOn: '2026-10-19' };
 const notice = () => screen.getByRole('status');
 
 describe('NoMenuNotice', () => {
+  it('opens its text with an intro when it gets one, and keeps the rest', () => {
+    render(<NoMenuNotice week={FUTURE} intro="Mañana empieza otra semana." />);
+
+    expect(
+      screen.getByText(
+        'Mañana empieza otra semana. Elige uno en Buscar: escribe lo que os apetece y verás los menús que encajan.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Elegir menú para el 19 oct' })).toHaveAttribute('href', '/planner?week=next');
+  });
+
   it('offers to choose a menu for this week while it can still take one', () => {
     render(<NoMenuNotice week={OPEN} />);
 

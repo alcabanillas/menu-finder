@@ -17,6 +17,8 @@ type NoMenuNoticeProps = {
   week: EmptyWeek;
   /** Olive or grey; by default grey where the week cannot take a menu. Hoy keeps olive for both of its cases. */
   tone?: 'olive' | 'grey';
+  /** A sentence before the invitation to choose, for a notice that tells when it is shown (Hoy on a Sunday). */
+  intro?: string;
   className?: string;
 };
 
@@ -29,21 +31,21 @@ const GREY = 'border-border-hairline bg-surface-hover';
 const CHOOSE_TEXT = 'Elige uno en Buscar: escribe lo que os apetece y verás los menús que encajan.';
 
 /** What the user can do with a week that has no menu. */
-export function NoMenuNotice({ week, tone, className }: NoMenuNoticeProps) {
+export function NoMenuNotice({ week, tone, intro, className }: NoMenuNoticeProps) {
   const grey = tone ? tone === 'grey' : week.kind === 'past' || week.kind === 'locked';
   return (
     <div role="status" className={[NOTICE, grey ? GREY : OLIVE, className].filter(Boolean).join(' ')}>
-      <Case week={week} />
+      <Case week={week} intro={intro} />
     </div>
   );
 }
 
-function Case({ week }: { week: EmptyWeek }) {
+function Case({ week, intro }: { week: EmptyWeek; intro?: string }) {
   switch (week.kind) {
     case 'past':
       return <NoticeText title="No se eligió menú para esta semana" text="Las semanas pasadas no se pueden cambiar." />;
     case 'open':
-      return <ChooseWeek title="Esta semana aún no tiene menú" label="Elegir menú para esta semana" week="current" />;
+      return <ChooseWeek title="Esta semana aún no tiene menú" label="Elegir menú para esta semana" week="current" intro={intro} />;
     case 'locked':
       return <LockedWeek {...week} />;
     case 'future':
@@ -52,15 +54,18 @@ function Case({ week }: { week: EmptyWeek }) {
           title="La semana que viene aún no tiene menú"
           label={`Elegir menú para el ${formatDayMonth(week.startsOn)}`}
           week="next"
+          intro={intro}
         />
       );
   }
 }
 
-function ChooseWeek({ title, label, week }: { title: string; label: string; week: 'current' | 'next' }) {
+type ChooseWeekProps = { title: string; label: string; week: 'current' | 'next'; intro?: string };
+
+function ChooseWeek({ title, label, week, intro }: ChooseWeekProps) {
   return (
     <>
-      <NoticeText title={title} text={CHOOSE_TEXT} />
+      <NoticeText title={title} text={intro ? `${intro} ${CHOOSE_TEXT}` : CHOOSE_TEXT} />
       <Link href={`/planner?week=${week}`} className={buttonClasses({ className: 'no-underline' })}>
         {label}
         <ArrowRight />

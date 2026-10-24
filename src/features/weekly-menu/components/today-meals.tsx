@@ -1,17 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useId, useRef, useState } from 'react';
-import type { WeekDayDto, WeekDishDto, WeeklyMenuDto } from '@/application/dto/weekly-menu';
+import { useCallback, useId, useRef, useState, type ReactNode } from 'react';
+import type { TomorrowDto } from '@/application/dto/todays-menu';
+import type { WeekDayDto, WeekDishDto } from '@/application/dto/weekly-menu';
 import { DAY_BARS } from '@/shared/ui/day-bars';
 import { MenuIcon } from '@/features/weekly-menu/components/menu-icon';
 import { RecipeCard } from '@/features/weekly-menu/components/recipe-card';
 import { RecipePanel } from '@/features/weekly-menu/components/recipe-panel';
 import { ArrowRight } from '@/shared/ui/arrow-right';
+import { NoMenuNotice } from '@/shared/ui/no-menu-notice';
 import { buttonClasses } from '@/shared/ui/button';
 import { formatWeekday, formatWeekdayAndDay } from '@/shared/format-date';
 
-type TodayMealsProps = { menu: WeeklyMenuDto };
+type TodayMealsProps = { today: WeekDayDto; tomorrow: TomorrowDto };
 
 type MealDto = 'lunch' | 'dinner';
 
@@ -37,17 +39,15 @@ const DISH_BUTTON =
   'cursor-pointer rounded-[3px] text-left decoration-olive-600 decoration-2 underline-offset-4 hover:underline ' +
   'focus-visible:underline aria-expanded:underline focus-visible:outline-2 focus-visible:outline-offset-2 ' +
   'focus-visible:outline-ink';
+// Next week has no menu: the notice of `/menu`, opening with what makes it matter on a Sunday (design D4).
+const EVE_OF_THE_WEEK = 'Mañana empieza otra semana.';
 const TOMORROW_BOX = 'min-w-0 rounded-[12px] border border-dashed border-border-strong bg-surface-sunken px-[18px] py-3';
 
 /**
- * Today's lunch and dinner of the week's menu, a meal with no dishes left out; then the way to the week and the names of
- * tomorrow's dishes.
+ * Today's lunch and dinner, a meal with no dishes left out, or the rest day of a Sunday; then the way to the week and
+ * tomorrow, which on a Sunday is next week's Monday or the way to choose next week.
  */
-export function TodayMeals({ menu }: TodayMealsProps) {
-  const index = menu.days.findIndex(({ date }) => date === menu.today);
-  const today = menu.days[index];
-  // On Sunday tomorrow is in another week, so it is not in this menu.
-  const tomorrow = today ? menu.days[index + 1] : undefined;
+export function TodayMeals({ today, tomorrow }: TodayMealsProps) {
   const [open, setOpen] = useState<OpenDish | null>(null);
   const trigger = useRef<HTMLButtonElement | null>(null);
 
@@ -60,12 +60,15 @@ export function TodayMeals({ menu }: TodayMealsProps) {
     trigger.current?.focus();
   }, []);
 
-  const meals = today ? mealsWithDishes(today) : [];
+  const meals = mealsWithDishes(today);
+  const restDay = meals.length === 0 && today.day === 'sunday';
   return (
     <div className="flex flex-col">
-      {meals.length === 0 ? (
+      {restDay && <RestDay />}
+      {meals.length === 0 && !restDay && (
         <p className="mt-4 text-small text-text-muted">El menú no incluye platos para hoy.</p>
-      ) : (
+      )}
+      {meals.length > 0 && (
         <>
           <div className="@min-[800px]:hidden">
             {meals.map(([meal, label]) => (
@@ -85,16 +88,19 @@ export function TodayMeals({ menu }: TodayMealsProps) {
           </div>
         </>
       )}
-      <Link
-        href="/menu"
-        className={buttonClasses({ variant: 'ghost', size: 'sm', className: 'mt-4 self-start no-underline' })}
-      >
-        Ver menú
-        <ArrowRight size={16} />
-      </Link>
-      {tomorrow && mealsWithDishes(tomorrow).length > 0 && <Tomorrow day={tomorrow} />}
-      {open && today && <OpenRecipe day={today} open={open} onClose={close} />}
+      {!restDay && <MenuLink href="/menu" label="Ver menú" />}
+      <TomorrowBlock tomorrow={tomorrow} />
+      {open && <OpenRecipe day={today} open={open} onClose={close} />}
     </div>
+  );
+}
+
+function MenuLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link href={href} className={buttonClasses({ variant: 'ghost', size: 'sm', className: 'mt-4 self-start no-underline' })}>
+      {label}
+      <ArrowRight size={16} />
+    </Link>
   );
 }
 
@@ -173,16 +179,64 @@ function DishRow({ dish, isOpen, onOpen }: DishRowProps) {
   );
 }
 
+// A Sunday has no dishes by the nutritionist's rule, so the day is a grey card instead of the meals (design D4).
+function RestDay() {
+  return (
+    <section
+      aria-label="Hoy, domingo libre"
+      className="mt-5 flex items-start gap-4 rounded-[14px] border border-border-hairline bg-surface-sunken px-[22px] py-5"
+    >
+      <span
+        aria-hidden="true"
+        className="flex size-11 flex-none items-center justify-center rounded-full border border-border-hairline bg-surface-card text-olive-600"
+      >
+        <MenuIcon name="sun" size={22} />
+      </span>
+      <div>
+        <p className="text-[22px] font-extrabold leading-[1.15] tracking-[-0.02em] text-text-strong">Domingo libre</p>
+        <p className="mt-0.5 text-[15px] leading-[1.45] text-text-muted">
+          ¡Día libre! Hoy la cocina queda a vuestro gusto.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+function TomorrowBlock({ tomorrow }: { tomorrow: TomorrowDto }) {
+  switch (tomorrow.kind) {
+    case 'day':
+      return <Tomorrow day={tomorrow.day} label={formatWeekdayAndDay(tomorrow.day.date)} />;
+    case 'next-week':
+      return (
+        <Tomorrow day={tomorrow.day} label={nextMondayLabel(tomorrow.day.date)} menuNumber={tomorrow.menuNumber}>
+          <MenuLink href={`/menu?startsOn=${tomorrow.startsOn}`} label="Ver el menú de la semana que viene" />
+        </Tomorrow>
+      );
+    case 'no-menu':
+      return <NoMenuNotice week={{ kind: 'future', startsOn: tomorrow.startsOn }} intro={EVE_OF_THE_WEEK} className="mt-6" />;
+    case 'none':
+      return null;
+  }
+}
+
+// "Lunes 26": the mock capitalises the weekday of next week's Monday.
+function nextMondayLabel(date: string): string {
+  const label = formatWeekdayAndDay(date);
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+type TomorrowProps = { day: WeekDayDto; label: string; menuNumber?: number; children?: ReactNode };
+
 // Only the names: tomorrow is a glance ahead, so no times, no recipes and no controls. The same boxes at every width,
 // stacked on a phone and side by side from 800 px (design D9).
-function Tomorrow({ day }: { day: WeekDayDto }) {
-  const label = formatWeekdayAndDay(day.date);
+function Tomorrow({ day, label, menuNumber, children }: TomorrowProps) {
   const meals = mealsWithDishes(day);
   return (
     <section aria-label={`Mañana, ${label}`} className="mt-7 border-t border-border-hairline pt-[18px]">
       <p className={`${EYEBROW} flex items-center gap-2.5 text-text-muted`}>
         <span aria-hidden="true" className={`h-[5px] w-6 flex-none rounded-[3px] ${DAY_BARS[day.day]}`} />
         Mañana · {label}
+        {menuNumber !== undefined && ` · Menú ${menuNumber}`}
       </p>
       <div className="mt-3 grid grid-cols-1 items-start gap-2.5 @min-[800px]:grid-cols-2 @min-[800px]:gap-5">
         {meals.map(([meal, mealLabel]) => (
@@ -196,6 +250,7 @@ function Tomorrow({ day }: { day: WeekDayDto }) {
           </div>
         ))}
       </div>
+      {children}
     </section>
   );
 }

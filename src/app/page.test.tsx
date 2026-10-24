@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ShoppingChecklistDto } from '@/application/dto/shopping-checklist';
 import type { SignedInUser } from '@/application/dto/signed-in-user';
 import type { WeeksToChooseDto } from '@/application/dto/weeks-to-choose';
-import type { DayDto, WeeklyMenuDto } from '@/application/dto/weekly-menu';
+import type { TodaysMenuDto } from '@/application/dto/todays-menu';
+import type { DayDto, WeekDayDto, WeeklyMenuDto } from '@/application/dto/weekly-menu';
 import Home from '@/app/page';
 import { err, ok } from '@/shared/result';
 
@@ -16,6 +17,7 @@ const navigation = vi.hoisted(() => ({
 const container = vi.hoisted(() => ({
   currentUser: vi.fn<() => Promise<SignedInUser | null>>(),
   menuWeekPage: vi.fn(),
+  todaysMenu: vi.fn(),
   weeksToChoose: vi.fn(),
   shoppingChecklist: vi.fn(),
 }));
@@ -36,7 +38,16 @@ const MENU: WeeklyMenuDto = {
 };
 MENU.days[2].meals = { lunch: [{ name: 'Lentejas estofadas', recipe: null }], dinner: [{ name: 'Sepia', recipe: null }] };
 
-const NAVIGATION = { shown: '2026-10-05', current: '2026-10-05', status: 'current', days: DATES };
+const TODAY_MENU = (tomorrow: TodaysMenuDto['tomorrow'] = { kind: 'none' }) =>
+  ok({ today: '2026-10-07', day: MENU.days[2], tomorrow } satisfies TodaysMenuDto);
+const NO_MENU_THIS_WEEK = ok({ today: '2026-10-07', day: null, tomorrow: { kind: 'none' } } satisfies TodaysMenuDto);
+const SUNDAY_MENU = (tomorrow: TodaysMenuDto['tomorrow']) =>
+  ok({ today: '2026-10-11', day: MENU.days[6], tomorrow } satisfies TodaysMenuDto);
+const NEXT_MONDAY_DAY: WeekDayDto = {
+  day: 'monday',
+  date: '2026-10-12',
+  meals: { lunch: [{ name: 'Pisto con huevo', recipe: null }], dinner: [] },
+};
 const WEEKS = (thisWeek: number | null, nextWeek: number | null): WeeksToChooseDto => ({
   current: { startsOn: '2026-10-05', endsOn: '2026-10-11', menuNumber: thisWeek, locked: nextWeek !== null },
   next: { startsOn: '2026-10-12', endsOn: '2026-10-18', menuNumber: nextWeek, locked: false },
@@ -102,7 +113,7 @@ describe('Home with a session', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     container.currentUser.mockResolvedValue(ANA);
-    container.menuWeekPage.mockResolvedValue(ok({ navigation: NAVIGATION, menu: MENU, today: '2026-10-07' }));
+    container.todaysMenu.mockResolvedValue(TODAY_MENU());
     container.weeksToChoose.mockResolvedValue(ok(WEEKS(12, null)));
     container.shoppingChecklist.mockResolvedValue(ok(LIST));
   });
@@ -125,13 +136,14 @@ describe('Home with a session', () => {
   it('reads this week, the two weeks and the current list of the user of the session only', async () => {
     render(await Home());
 
-    expect(container.menuWeekPage).toHaveBeenCalledWith({ userId: 'user-1', startsOn: undefined });
+    expect(container.todaysMenu).toHaveBeenCalledWith({ userId: 'user-1' });
+    expect(container.menuWeekPage).not.toHaveBeenCalled();
     expect(container.weeksToChoose).toHaveBeenCalledWith({ userId: 'user-1' });
     expect(container.shoppingChecklist).toHaveBeenCalledWith({ userId: 'user-1' });
   });
 
   it('offers to choose a menu for this week when it has none and can still take one', async () => {
-    container.menuWeekPage.mockResolvedValue(ok({ navigation: NAVIGATION, menu: null, today: '2026-10-07' }));
+    container.todaysMenu.mockResolvedValue(NO_MENU_THIS_WEEK);
     container.weeksToChoose.mockResolvedValue(ok(WEEKS(null, null)));
     container.shoppingChecklist.mockResolvedValue(ok(null));
 
@@ -145,7 +157,7 @@ describe('Home with a session', () => {
   });
 
   it("says this week is locked by next week's menu and links to next week", async () => {
-    container.menuWeekPage.mockResolvedValue(ok({ navigation: NAVIGATION, menu: null, today: '2026-10-07' }));
+    container.todaysMenu.mockResolvedValue(NO_MENU_THIS_WEEK);
     container.weeksToChoose.mockResolvedValue(ok(WEEKS(null, 31)));
 
     render(await Home());
@@ -160,7 +172,7 @@ describe('Home with a session', () => {
   });
 
   it('keeps the weeks and the shopping when the menu cannot be read', async () => {
-    container.menuWeekPage.mockResolvedValue(err({ kind: 'failed' }));
+    container.todaysMenu.mockResolvedValue(err({ kind: 'failed' }));
 
     render(await Home());
 
@@ -180,7 +192,7 @@ describe('Home with a session', () => {
   });
 
   it('shows no notice when this week has no menu and the weeks cannot be read', async () => {
-    container.menuWeekPage.mockResolvedValue(ok({ navigation: NAVIGATION, menu: null, today: '2026-10-07' }));
+    container.todaysMenu.mockResolvedValue(NO_MENU_THIS_WEEK);
     container.weeksToChoose.mockResolvedValue(err({ kind: 'failed' }));
 
     render(await Home());
@@ -196,5 +208,67 @@ describe('Home with a session', () => {
 
     expect(screen.getByText('No se ha podido cargar la lista. Inténtalo de nuevo.')).toBeInTheDocument();
     expect(within(screen.getByRole('region', { name: 'Semanas' })).getByText('Menú 12')).toBeInTheDocument();
+  });
+});
+
+describe('Home with a session, on a Sunday', () => {
+  const home = Home as unknown as (props: object) => ReturnType<typeof Home>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    container.currentUser.mockResolvedValue(ANA);
+    container.weeksToChoose.mockResolvedValue(ok(WEEKS(12, null)));
+    container.shoppingChecklist.mockResolvedValue(ok(LIST));
+  });
+
+  it('shows the rest day, and next Monday with its menu when next week is chosen', async () => {
+    container.todaysMenu.mockResolvedValue(
+      SUNDAY_MENU({ kind: 'next-week', day: NEXT_MONDAY_DAY, menuNumber: 31, startsOn: '2026-10-12' }),
+    );
+
+    render(await Home());
+
+    expect(screen.getByText('Domingo 11 de octubre')).toBeInTheDocument();
+    expect(screen.getByText('Domingo libre')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Ver menú' })).not.toBeInTheDocument();
+    expect(screen.getByText('Mañana · Lunes 12 · Menú 31')).toBeInTheDocument();
+    expect(screen.getByText('Pisto con huevo')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Ver el menú de la semana que viene' })).toHaveAttribute(
+      'href',
+      '/menu?startsOn=2026-10-12',
+    );
+  });
+
+  it('offers to choose next week when it has no menu', async () => {
+    container.todaysMenu.mockResolvedValue(SUNDAY_MENU({ kind: 'no-menu', startsOn: '2026-10-12' }));
+
+    render(await Home());
+
+    expect(screen.getByText('Domingo libre')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('La semana que viene aún no tiene menú');
+    expect(screen.getByRole('link', { name: 'Elegir menú para el 12 oct' })).toHaveAttribute('href', '/planner?week=next');
+  });
+
+  it('does not change whose next week is shown with a parameter of the request', async () => {
+    container.todaysMenu.mockResolvedValue(SUNDAY_MENU({ kind: 'no-menu', startsOn: '2026-10-12' }));
+
+    render(await home({ searchParams: Promise.resolve({ userId: 'user-2' }) }));
+
+    expect(container.todaysMenu).toHaveBeenCalledTimes(1);
+    expect(container.todaysMenu).toHaveBeenCalledWith({ userId: 'user-1' });
+    expect(screen.getByRole('status')).toHaveTextContent('La semana que viene aún no tiene menú');
+  });
+
+  it("shows no tomorrow, and keeps today, the weeks and the shopping, when next week's menu cannot be read", async () => {
+    container.todaysMenu.mockResolvedValue(SUNDAY_MENU({ kind: 'none' }));
+
+    render(await Home());
+
+    expect(screen.getByText('Domingo libre')).toBeInTheDocument();
+    expect(screen.queryByText(/^Mañana/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(within(screen.getByRole('region', { name: 'Semanas' })).getByText('Menú 12')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: 'Comprado' })).toBeInTheDocument();
+    expect(screen.queryByText(/failed|down/i)).not.toBeInTheDocument();
   });
 });
