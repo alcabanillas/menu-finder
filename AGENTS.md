@@ -44,16 +44,16 @@ This TFM is a part-time personal project. Estimate work in hours, not full-time 
 |---|---|---|
 | Estructura de `src/`, dependencias, refactor | Arquitectura | `context/adr/ADR-001-arquitectura-interna.md` |
 | Frontend: componentes, páginas | Frontend | ADR-001 §2 Estructura, §3 Reglas de dependencia y §5 Decisiones específicas de Next.js; pantallas en `producto.md` |
-| Buscador, retrieval, scoring | Buscador · Arquitectura (modelo de datos) | `context/ConceptosRAG-y-agentes.md`; `context/datos/datos.md` |
+| Buscador, retrieval, scoring | Buscador · Arquitectura (modelo de datos) | `context/presentacion/ConceptosRAG-y-agentes.md`; `context/datos/datos.md` |
 | Ingesta: PDFs, parsers, CLI | Ingesta | `context/datos/datos.md`; `context/datos/T2-esquema-json-ingesta.md`; runbook local en `context/runbooks/T0-extraccion-previa.md` |
-| LLM: prompts, Genkit, agentes | IA transversal | `context/ConceptosRAG-y-agentes.md`; `context/seguridad/safety-first.md` §2.6 |
+| LLM: prompts, Genkit, agentes | IA transversal | `context/presentacion/ConceptosRAG-y-agentes.md`; `context/seguridad/safety-first.md` §2.6 |
 | Evaluación: golden sets | Evaluación | Los resultados en `evals/` |
 | Tests, CI, despliegue, observabilidad | Despliegue y calidad | Para publicar o tocar el despliegue, `context/runbooks/despliegue.md` |
 | Seguridad: auth, roles, validación, límites | Seguridad | `context/seguridad/safety-first.md`; `context/seguridad/OWASP-Top10.md` por categoría |
 | Cambios con OpenSpec | Proceso | `openspec/config.yaml`, la spec afectada en `openspec/specs/` y el cambio activo en `openspec/changes/` |
 | Proponer algo nuevo o decidir | Lo abierto | — |
 | Qué toca ahora | — | `context/roadmap.md`: backlog, solo lo decidido |
-| Por qué algo es como es | — | El proposal del cambio archivado; antes del 2026-09-27, `context/historial-de-decisiones.md` (congelado) |
+| Por qué algo es como es | — | El proposal del cambio archivado; antes del 2026-09-27, `context/archivo/historial-de-decisiones.md` (congelado) |
 
 ## Decisions and documentation style
 - Never record a technology or design decision (Dxx, ADR) until the user has explicitly chosen it. Present the options and ask first.

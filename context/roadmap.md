@@ -148,7 +148,7 @@ Los golden sets se etiquetan **a ciegas y antes de ver resultados** (EVAL-golden
 
 ## Sprint 4 — Entregables
 
-- ⬜ **MF-33** (~3 h · H) Guion de la presentación y criterios de éxito ([decisiones.md §2](decisiones.md), punto 1). Semillas: [enfoque-academico.md](enfoque-academico.md) y [presentacion/](presentacion/)
+- ⬜ **MF-33** (~3 h · H) Guion de la presentación y criterios de éxito ([decisiones.md §2](decisiones.md), punto 1). Semillas: [enfoque-academico.md](presentacion/enfoque-academico.md) y [presentacion/](presentacion/)
 - ⬜ **MF-34** (~2 h · A) El proceso SDD con agentes, contado en las diapositivas y el vídeo (PROC-sdd-memoria)
 - ⬜ **MF-35** (~9 h · H · tras MF-33) Diapositivas y vídeo explicativo
 - ✅ **MF-36** (~2 h · A · tras MF-26) README expresivo: qué hace el producto, cómo instalarlo y ejecutarlo en local (incluidos los tests y la generación de datos) y cómo acceder a la app desplegada con la cuenta de demo (sin publicar sus credenciales, SEG-sistema-cerrado)

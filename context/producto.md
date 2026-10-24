@@ -17,7 +17,7 @@ Sustituye el flujo actual del autor en Notion.
 **Enfoque (PROC-enfoque): proyecto de IA aplicada; la app es la interfaz.** El sistema es **recuperación híbrida multi-restricción** sobre registros estructurados, con un LLM que traduce la petición a restricciones. No es RAG: la explicación de cada candidato la arma una plantilla, sin generación (MF-61, decidido por el autor el 2026-10-18), y no hay chunking, ni problema de ventana de contexto, ni de escala. En la presentación se describe así. El peso académico descansa en tres pilares, por orden:  
 1. **extracción estructurada determinista** de menús y recetas, con la alternativa medida y descartada (ING-determinista, ING-parser-menu). Sin ground truth independiente: es una limitación declarada en la presentación.
 2. **evaluación comparada de recuperación** —léxica vs. semántica vs. híbrida— sobre el golden dataset (EVAL-estrategia). 
-3. **flujo SDD con agentes** documentado como proceso (PROC-sdd-memoria). Sin (1) y (2) el proyecto es un CRUD con un embedding, así que los tres se protegen frente a cualquier recorte de alcance. La medición de (1) contra ground truth se recortó en el sprint 3 por plazo (decidido por el autor el 2026-10-12): el parser de recetas se dio por bueno tras revisarlo a mano. Argumentación completa en [enfoque-academico.md](enfoque-academico.md).
+3. **flujo SDD con agentes** documentado como proceso (PROC-sdd-memoria). Sin (1) y (2) el proyecto es un CRUD con un embedding, así que los tres se protegen frente a cualquier recorte de alcance. La medición de (1) contra ground truth se recortó en el sprint 3 por plazo (decidido por el autor el 2026-10-12): el parser de recetas se dio por bueno tras revisarlo a mano. Argumentación completa en [enfoque-academico.md](presentacion/enfoque-academico.md).
 
 ## 2. Restricciones duras
 
@@ -85,7 +85,7 @@ petición → descomponedor → buscador → top 5
 
 ### Batch cooking
 
-Una herramienta que reorganiza la semana para cocinar por lotes: agrupa preparaciones y monta un plan del domingo. Se descartó del MVP el 2026-09-20; el porqué está en [historial-de-decisiones.md](historial-de-decisiones.md), entrada "Batch cooking".
+Una herramienta que reorganiza la semana para cocinar por lotes: agrupa preparaciones y monta un plan del domingo. Se descartó del MVP el 2026-09-20; el porqué está en [historial-de-decisiones.md](archivo/historial-de-decisiones.md), entrada "Batch cooking".
 
 - **Componentes:**
   1. atributos nuevos por plato: cuántos días aguanta cocinado, qué partes se preparan antes y si recalienta bien;
