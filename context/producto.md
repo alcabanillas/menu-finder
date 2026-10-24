@@ -2,7 +2,7 @@
 
 > **Qué es este documento:** qué se construye y qué no. Visión, restricciones, alcance y pantallas. Cambia poco.
 >
-> Las decisiones técnicas están en [decisiones.md](decisiones.md), los hechos medidos sobre los PDF en [datos.md](datos.md) y el orden de trabajo en [roadmap.md](roadmap.md).
+> Las decisiones técnicas están en [decisiones.md](decisiones.md), los hechos medidos sobre los PDF en [datos.md](datos/datos.md) y el orden de trabajo en [roadmap.md](roadmap.md).
 >
 > **Última actualización:** 2026-09-27.
 
@@ -54,7 +54,7 @@ Qué falta por hacer de cada pantalla está en [roadmap.md](roadmap.md).
 | `/` | Sin sesión, home informativa; con sesión, dashboard (UI-home-sin-login): menú activo, "qué toca hoy", progreso de la compra |
 | `/planner` | **Buscador de menús**: petición en lenguaje natural → candidatos con explicación. Forma fijada por **BUS-superficie-consulta**: caja de texto que permanece, chips de restricciones solo orientativos (no se editan ni acumulan: cada búsqueda empieza de cero), los 5 mejores de los 36 menús puntuados, evidencia por chip y explicación. También "Elegir uno al azar", para la semana elegida (decidido por el autor el 2026-10-16). Modelo de datos: ARQ-modelo-datos |
 | `/menu` | Menú semanal activo, rejilla L–S / tabs en móvil. Card de receta desplegable al pulsar un plato (UI-card-receta) |
-| `/shopping-list` | Checklist agrupada por las 13 categorías del PDF ([datos.md §2](datos.md)) |
+| `/shopping-list` | Checklist agrupada por las 13 categorías del PDF ([datos.md §2](datos/datos.md)) |
 
 ## 5. Mejoras futuras
 

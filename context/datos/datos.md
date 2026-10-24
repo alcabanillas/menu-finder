@@ -1,12 +1,12 @@
 # TFM — Los datos reales
 
-> **Qué es este documento:** hechos medidos sobre los PDF del nutricionista. No contiene decisiones: las que se apoyan en estos datos están en [decisiones.md](decisiones.md).
+> **Qué es este documento:** hechos medidos sobre los PDF del nutricionista. No contiene decisiones: las que se apoyan en estos datos están en [decisiones.md](../decisiones.md).
 >
 > **Última actualización:** 2026-09-28.
 
 ---
 
-Medidos sobre los 36 menús en el análisis T1 (repo `tfm-brainstorm`, no viaja). Los tres tipos de PDF son **texto** generado por TCPDF, sin OCR necesario. **El menú y las recetas se extraen directamente del PDF**, sin paso intermedio por TXT: el menú con `pdf-parse` (`getTable()`, §1) y las recetas con `pdfjs-dist` (texto con coordenadas, §3); ver [T2](tareas/T2-esquema-json-ingesta.md). Solo la lista de la compra sigue extrayéndose vía TXT con `pdftotext -layout` ([T0](tareas/T0-extraccion-previa.md)).
+Medidos sobre los 36 menús en el análisis T1 (repo `tfm-brainstorm`, no viaja). Los tres tipos de PDF son **texto** generado por TCPDF, sin OCR necesario. **El menú y las recetas se extraen directamente del PDF**, sin paso intermedio por TXT: el menú con `pdf-parse` (`getTable()`, §1) y las recetas con `pdfjs-dist` (texto con coordenadas, §3); ver [T2](T2-esquema-json-ingesta.md). Solo la lista de la compra sigue extrayéndose vía TXT con `pdftotext -layout` ([T0](../tareas/T0-extraccion-previa.md)).
 
 ## 1. `menu.pdf` (1 página)
 
@@ -16,7 +16,7 @@ Medidos sobre los 36 menús en el análisis T1 (repo `tfm-brainstorm`, no viaja)
 - Cada celda de Comida/Cena tiene 1–2 platos marcados con `*`, más relleno fijo ("una pieza de fruta", "un yogur sin azúcares añadidos") que hay que filtrar.
 - Los platos marcados con `*` tienen una receta, en un PDF independiente de la misma carpeta (§3).
 - **No hay ninguna indicación de temporada**: ni en el PDF ni en el número de menú.
-- Las celdas no son triviales de leer: nombres de plato partidos en varias líneas, el `*` a veces solo en una línea, y en los menús ≥17 las cenas traen 2 platos apilados sin separador. Cómo se resuelve: [T2 §2.3–2.4](tareas/T2-esquema-json-ingesta.md).
+- Las celdas no son triviales de leer: nombres de plato partidos en varias líneas, el `*` a veces solo en una línea, y en los menús ≥17 las cenas traen 2 platos apilados sin separador. Cómo se resuelve: [T2 §2.3–2.4](T2-esquema-json-ingesta.md).
 
 ## 2. `Lista_de_la_compra.pdf` (1 página)
 
@@ -28,9 +28,9 @@ Medidos sobre los 36 menús en el análisis T1 (repo `tfm-brainstorm`, no viaja)
 
 ## 3. Recetas individuales (un PDF por plato)
 
-- **639 ficheros PDF**, uno por plato, en la misma carpeta que `menu.pdf`. El nombre del fichero es el nombre del plato. **434 distintos**; 146 se repiten en varios menús y 105 de ellos con **versiones** distintas (ediciones del nutricionista: sal 5 g → 2 g, "180º" → "180ºC"). Ver [T2 §4.5](tareas/T2-esquema-json-ingesta.md).
-- Se extraen a JSON con **parser posicional determinista** (`pnpm ingest recipes`, [T2 §4](tareas/T2-esquema-json-ingesta.md)): título, tiempos en minutos, ingredientes con nombre / medida casera / gramos / opcional (**4.929** en los 639 PDF), preparación en párrafos. 100 % de líneas parseadas, 0 anomalías estructurales, sin `pdftotext`. El dataset guarda **una receta por fichero (434)**, la versión del menú de número más alto; las demás versiones se listan en la QA.
-- El pie (marca, email, eslogan) y el bloque de contacto del nutricionista no llegan al JSON (SEG-datos-nutricionista). Cómo se leen las recetas: [T2 §4.1](tareas/T2-esquema-json-ingesta.md).
+- **639 ficheros PDF**, uno por plato, en la misma carpeta que `menu.pdf`. El nombre del fichero es el nombre del plato. **434 distintos**; 146 se repiten en varios menús y 105 de ellos con **versiones** distintas (ediciones del nutricionista: sal 5 g → 2 g, "180º" → "180ºC"). Ver [T2 §4.5](T2-esquema-json-ingesta.md).
+- Se extraen a JSON con **parser posicional determinista** (`pnpm ingest recipes`, [T2 §4](T2-esquema-json-ingesta.md)): título, tiempos en minutos, ingredientes con nombre / medida casera / gramos / opcional (**4.929** en los 639 PDF), preparación en párrafos. 100 % de líneas parseadas, 0 anomalías estructurales, sin `pdftotext`. El dataset guarda **una receta por fichero (434)**, la versión del menú de número más alto; las demás versiones se listan en la QA.
+- El pie (marca, email, eslogan) y el bloque de contacto del nutricionista no llegan al JSON (SEG-datos-nutricionista). Cómo se leen las recetas: [T2 §4.1](T2-esquema-json-ingesta.md).
 - Cobertura medida sobre `data/menu-platos.json` (T2, ING-parser-menu): **608 platos**, **591 con receta marcada por asterisco y fichero resuelto**, 17 sin receta (relleno tipo "tomate y cebolla asada"). Las 176 celdas con 2+ platos vienen ya separadas; no queda ningún plato concatenado.
 - Consecuencia: la búsqueda opera **a nivel de plato**, no de semana agregada. Es lo que hace viable el buscador (BUS-unidad-plato, BUS-discrimina-plato).
 
@@ -39,7 +39,7 @@ Medidos sobre los 36 menús en el análisis T1 (repo `tfm-brainstorm`, no viaja)
 Comprobado contra `data/menu-platos.json` y los ingredientes de las recetas. Es la entrada de los golden sets (EVAL-golden-sets).
 
 - **Consultas que resuelve la búsqueda léxica.** "Alitas de pollo al curry" está en 3 menús y una búsqueda léxica sobre nombres de plato lo encuentra a la primera. "Salmón", "sepia con guisantes" y "pollo y brócoli" los encuentra la léxica igual de bien o mejor que la semántica. La coincidencia por subcadena da falsos positivos: "salmón" casa con "salmonete".
-- **Variantes de nombre.** El nutricionista escribe el ingrediente con su propia forma: "alitas" ↔ "Pollo (ala)", "pechuga" ↔ "Pollo (pechuga)". Tabla de partida: [`m0-tabla-sinonimos.csv`](datos-de-apoyo/m0-tabla-sinonimos.csv), que salió de T1.
+- **Variantes de nombre.** El nutricionista escribe el ingrediente con su propia forma: "alitas" ↔ "Pollo (ala)", "pechuga" ↔ "Pollo (pechuga)". Tabla de partida: [`m0-tabla-sinonimos.csv`](m0-tabla-sinonimos.csv), que salió de T1.
 - **Términos que no existen como token** ni en nombres de plato ni de ingrediente:
   - Hiperónimos: "marisco" (en el dataset: gambas, langostinos, sepia, calamar, mejillones, almejas), "pescado azul" (salmón, caballa, sardina, boquerón), "carne roja" (ternera, cerdo).
   - Intención difusa: "algo de cuchara", "ligero", "de verano", "para invitados".

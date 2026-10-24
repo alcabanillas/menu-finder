@@ -1,6 +1,6 @@
 # Historial de decisiones — qué se creyó, qué lo tumbó
 
-> **Congelado el 2026-09-27.** No se añade nada más. Desde esa fecha, el porqué de cada cambio vive en el proposal de su cambio de OpenSpec (`openspec/changes/archive/`). Las entradas mencionan `Fuente-de-Verdad.md`, el documento que ese día se partió en [producto.md](producto.md), [decisiones.md](decisiones.md) y [datos.md](datos.md); los números de sección que citan son los de entonces.
+> **Congelado el 2026-09-27.** No se añade nada más. Desde esa fecha, el porqué de cada cambio vive en el proposal de su cambio de OpenSpec (`openspec/changes/archive/`). Las entradas mencionan `Fuente-de-Verdad.md`, el documento que ese día se partió en [producto.md](producto.md), [decisiones.md](decisiones.md) y [datos.md](datos/datos.md); los números de sección que citan son los de entonces.
 >
 > **Para qué sirve:** [decisiones.md](decisiones.md) dice lo que es verdad **ahora**. Este fichero dice **por qué cambió**. Es *append-only*: nada se edita ni se borra, solo se añade encima.
 >
