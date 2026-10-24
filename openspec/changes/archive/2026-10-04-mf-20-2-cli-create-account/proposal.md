@@ -31,7 +31,7 @@ Roadmap item **MF-20.2**, second of three subtasks of MF-20 (`mf-20-1-auth-serve
 
 Email addresses, names and password hashes of the app's accounts (two in practice: the author and the demo account). The plain password exists only in the memory of the command while it runs. No nutritionist data. The demo credentials are never written in the repo, the slides or the video.
 
-### Possible abuses and OWASP 2025 (SEG-owasp, `context/OWASP-Top10.md`)
+### Possible abuses and OWASP 2025 (SEG-owasp, `context/seguridad/OWASP-Top10.md`)
 
 | Category | Abuse | Control |
 |---|---|---|

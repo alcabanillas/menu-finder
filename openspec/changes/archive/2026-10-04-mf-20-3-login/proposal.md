@@ -34,7 +34,7 @@ Roadmap item **MF-20.3**, the last of the three subtasks of MF-20 (after `mf-20-
 
 The session cookie and the session rows of MF-20.1, the email and password typed in the form (never stored or logged by this change), and the user id in the log. No nutritionist data: `/planner` shows a placeholder, no menus.
 
-### Possible abuses and OWASP 2025 (SEG-owasp, `context/OWASP-Top10.md`)
+### Possible abuses and OWASP 2025 (SEG-owasp, `context/seguridad/OWASP-Top10.md`)
 
 | Category | Abuse | Control |
 |---|---|---|

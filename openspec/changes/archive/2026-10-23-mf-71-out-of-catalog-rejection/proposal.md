@@ -35,6 +35,6 @@ None.
 
 ### Security (safety-first P1, SEG-owasp)
 
-- **Data touched:** the text of the user's request, which already goes to the decomposer as delimited data (`context/safety-first.md` §2.6). No new stored data.
+- **Data touched:** the text of the user's request, which already goes to the decomposer as delimited data (`context/seguridad/safety-first.md` §2.6). No new stored data.
 - **Possible abuses:** a prompt injection that forces the `out-of-catalog` rejection only produces a fixed message: the category is validated against a closed list and no text of the model reaches the page. A false rejection of a valid search is a quality risk, not a security one; the trap requests measure it.
 - **OWASP:** A03 Injection (LLM01 prompt injection): unchanged mitigations (delimited data, schema validation, no model text shown). A04 Insecure design: the category set stays closed and validated on the server.

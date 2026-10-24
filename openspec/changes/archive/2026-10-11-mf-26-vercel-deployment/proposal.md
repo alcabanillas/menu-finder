@@ -1,6 +1,6 @@
 ## Why
 
-Roadmap item **MF-26**. The application needs an automated, secure production deployment to Vercel that enforces the pipeline principle: **test → build → deploy** (OPS-ci-cd, OPS-vercel). Today, commits and PRs can trigger unverified Vercel deployments directly, and the web server does not yet serve mandatory HTTP security headers specified in `context/safety-first.md §2.4`.
+Roadmap item **MF-26**. The application needs an automated, secure production deployment to Vercel that enforces the pipeline principle: **test → build → deploy** (OPS-ci-cd, OPS-vercel). Today, commits and PRs can trigger unverified Vercel deployments directly, and the web server does not yet serve mandatory HTTP security headers specified in `context/seguridad/safety-first.md §2.4`.
 
 With the human setup completed (Vercel project `menu-finder-mbs` connected to the repository, production environment variables configured), deployments must wait for the CI checks, happen only when the author decides, and serve strict HTTP security headers.
 
@@ -31,10 +31,10 @@ With the human setup completed (Vercel project `menu-finder-mbs` connected to th
 ## Impact
 
 - **Code:** `next.config.ts`, `src/proxy.ts` (new), `AccountMenu` and the layouts that mount the shell, `.github/workflows/ci.yml`, `.github/workflows/release.yml` (new), `scripts/release/` (new, `pnpm release`), `vercel.json`, and automated tests for the headers in `next.config.ts` for the CSP and the proxy matcher, and an E2E test on real responses.
-- **Systems:** Vercel deploys only the `production` branch, and only after the CI checks pass on its commit. The Production Branch and the Deployment Checks are set in the Vercel dashboard. The `VERCEL_TOKEN`, `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` repository secrets are no longer needed. No other branch deploys, so there are no preview deployments, so the rule of `context/safety-first.md §2.4` that previews be access-protected and use their own Neon branch is met by omission.
-- **Decisions relied on:** `OPS-vercel` (deployment on Vercel), `OPS-ci-cd` (test → build → deploy pipeline in GitHub Actions with minimal permissions), `context/safety-first.md §2.4` (platform and deployment requirements).
+- **Systems:** Vercel deploys only the `production` branch, and only after the CI checks pass on its commit. The Production Branch and the Deployment Checks are set in the Vercel dashboard. The `VERCEL_TOKEN`, `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` repository secrets are no longer needed. No other branch deploys, so there are no preview deployments, so the rule of `context/seguridad/safety-first.md §2.4` that previews be access-protected and use their own Neon branch is met by omission.
+- **Decisions relied on:** `OPS-vercel` (deployment on Vercel), `OPS-ci-cd` (test → build → deploy pipeline in GitHub Actions with minimal permissions), `context/seguridad/safety-first.md §2.4` (platform and deployment requirements).
 - **Data:** No domain data or nutritionist data is touched (SEG-datos-nutricionista).
-- **Abuses and OWASP** (Top 10:2025, `context/OWASP-Top10.md`):
+- **Abuses and OWASP** (Top 10:2025, `context/seguridad/OWASP-Top10.md`):
   - *A02:2025 - Security Misconfiguration:* Missing HTTP response headers leave users exposed to MIME sniffing, framing/clickjacking and cross-origin resource loading. Mitigated by a restrictive CSP, `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy` and `Permissions-Policy`.
   - *A05:2025 - Injection:* Cross-site scripting through injected scripts. The nonce-based CSP runs only the scripts that carry the nonce of the current request, so it blocks injected inline scripts and scripts from other origins (`design.md` D2). Injected inline styles still pass (`style-src 'unsafe-inline'`, residual risk); React's output escaping remains the first barrier.
   - *A03:2025 - Software Supply Chain Failures:* A deployment tool in CI would add its dependency tree to the job that holds the deployment token; the Vercel CLI brought about 35 advisories. Avoided: there is no CLI and no token in CI, and Vercel builds with the project's own lockfile (`design.md` D3).
@@ -52,7 +52,7 @@ Found in the review of 2026-10-11. All of them are resolved.
 - **D1 still said "middleware".** D1 is rewritten around `next.config.ts` and `proxy.ts`.
 - **CSP and Sentry.** Added to Risks in `design.md`: MF-32 will need a `connect-src` entry for Sentry or a tunnel route.
 - **No scenario covered every kind of route.** The spec now states that the fixed headers reach API routes and static assets too, and that the CSP covers pages.
-- **Missing closing tasks.** `tasks.md` now has a REFACTOR step (1.9) and the `context/safety-first.md §4` checklist before `archive` (3.5).
+- **Missing closing tasks.** `tasks.md` now has a REFACTOR step (1.9) and the `context/seguridad/safety-first.md §4` checklist before `archive` (3.5).
 - **Headers not checked on real responses.** An E2E test in `e2e/` reads the headers of real responses from `pnpm build && pnpm start` (task 2.3), in addition to the manual check of the deployed URL (task 4.5).
 - **Preview deployments resolved by omission.** Stated under Impact.
 - **Mixed language.** The Impact heading is now "Decisions relied on".

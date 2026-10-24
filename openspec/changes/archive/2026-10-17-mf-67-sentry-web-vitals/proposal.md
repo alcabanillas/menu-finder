@@ -43,16 +43,16 @@ Nutritionist data (SEG-datos-nutricionista) is not in the routes: `/planner`, `/
 - **Data creep.** A later change could add a span or tag with the request text. A test on the options of `Sentry.init` and on the transaction fields guards this.
 - **CSP.** Transactions go to the same ingest host the CSP already allows in `connect-src` (MF-22.2). No new host and no wildcard.
 
-## OWASP categories (`context/OWASP-Top10.md`)
+## OWASP categories (`context/seguridad/OWASP-Top10.md`)
 
 - **A02:2025 - Configuración de seguridad incorrecta:** CSP `connect-src`, trace header propagation targets, Sentry options.
-- **A09:2025 - Fallos de registro y alertas de seguridad:** what telemetry contains (`context/safety-first.md`, monitoring: no passwords, tokens, cookies or keys reach Sentry).
+- **A09:2025 - Fallos de registro y alertas de seguridad:** what telemetry contains (`context/seguridad/safety-first.md`, monitoring: no passwords, tokens, cookies or keys reach Sentry).
 - **A10:2025 - Manejo incorrecto de condiciones excepcionales:** a Sentry failure or an ad blocker must not break the page.
 
 ## Decisions it relies on
 
 - `context/decisiones.md` §1.2 OPS-observabilidad: errors only, `dataCollection` off, the CLI sends nothing. **This change contradicts its "sin trazas de rendimiento" clause for the browser** and its Speed Insights sentence (above).
-- `context/decisiones.md` §1.8 SEG-datos-nutricionista and `context/safety-first.md` §2.6 (what the LLM flows may send).
+- `context/decisiones.md` §1.8 SEG-datos-nutricionista and `context/seguridad/safety-first.md` §2.6 (what the LLM flows may send).
 
 ## Capabilities
 

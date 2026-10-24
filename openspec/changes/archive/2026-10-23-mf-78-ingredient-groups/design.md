@@ -8,7 +8,7 @@ Current architecture and constraints:
 - `recipe_ingredient` (`postgres/migrations/001-search-schema.sql`) stores the normalized ingredient rows of every recipe (`recipe_key`, `position`, `name`, `household_measure`, `quantity`, `unit`, `optional`), currently 267 distinct `name` values across the 36 menus.
 - `PostgresDishTextSearch` (`src/infrastructure/postgres/postgres-dish-text-search.ts`) matches a term against `menu_dish.name`, `recipe.title`, and `recipe_ingredient.name` using `phraseto_tsquery('spanish_unaccent', $1)`.
 - `findMenus` (`src/application/services/search/find-menus.ts`) already splits constraints into `weekWideExclusions` (`isWeekWideExclusion`: ungrouped `exclude` constraints, matched lexically per `MF-72`) and `otherConstraints` (scored with the selected strategy).
-- `AGENTS.md` enforces reusing existing ports whenever one fits, naming by domain concept (`ingredient-classifier`, `classify-ingredients`, `ingredient-groups`), and `context/safety-first.md` §2.4 and §2.6 require Row-Level Security on every table and strict schema validation of any LLM output before SQL execution.
+- `AGENTS.md` enforces reusing existing ports whenever one fits, naming by domain concept (`ingredient-classifier`, `classify-ingredients`, `ingredient-groups`), and `context/seguridad/safety-first.md` §2.4 and §2.6 require Row-Level Security on every table and strict schema validation of any LLM output before SQL execution.
 
 ## Goals / Non-Goals
 

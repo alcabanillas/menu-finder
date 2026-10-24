@@ -27,7 +27,7 @@
 
 - [x] 5.1 Capture `/planner` at 375 px and 1160 px after choosing. Done on the production build against the `test` branch with a fictitious account (signing in on `dev` needs a real password); the message was left-aligned under the centred button on mobile, now centred; nothing else clashes
 - [x] 5.2 `pnpm typecheck`, `pnpm lint`, `pnpm test:run`, `pnpm test:coverage` and `pnpm build` pass
-- [x] 5.3 Before `archive`: the checklist of `context/safety-first.md` §4, with the result recorded here; mark MF-43.2 and MF-43 done in `context/roadmap.md`
+- [x] 5.3 Before `archive`: the checklist of `context/seguridad/safety-first.md` §4, with the result recorded here; mark MF-43.2 and MF-43 done in `context/roadmap.md`
   - Business rules in the backend: yes, the menu is picked and its Monday computed on the server
   - The new endpoint (`chooseRandomMenuAction`) checks the session first and reads no field of the request; `protected-pages.test.ts` fails for an action under `(app)/` without `requireUser()`
   - User from the session: yes; "Fields in the request are ignored" is tested

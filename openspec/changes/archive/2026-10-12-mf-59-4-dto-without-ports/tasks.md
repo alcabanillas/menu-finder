@@ -24,7 +24,7 @@ Types only, about 15 files. One agent, sequentially. Parallel tracks would share
 - [x] 4.2 `pnpm typecheck` and `pnpm test:coverage` pass, with the same test count (1321).
 - [x] 4.3 Commit `refactor(application): a DTO never imports a port (MF-59.4)`. No PR: one PR for the whole of MF-59.
 
-## Safety review (`context/safety-first.md` §4)
+## Safety review (`context/seguridad/safety-first.md` §4)
 
 - Types only: no endpoint, command, query, input or runtime code changes. The auth, permissions, validation, SQL and logging items do not apply.
 - Error reasons keep reaching the CLI through `redactSecrets`, as before; no field is added to what is printed.

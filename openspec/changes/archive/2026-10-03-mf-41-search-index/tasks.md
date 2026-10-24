@@ -1,7 +1,7 @@
 ## 1. Checks before coding
 
 - [x] 1.1 The author reviews the decisions D2, D3 and D5 of `design.md` (driver, migrations, embeddings) and confirms or changes them; verify: the confirmation is in the chat and `design.md` is updated if anything changed
-- [x] 1.2 Check on npm and in the Genkit documentation the package names (PostgreSQL driver, `genkit`, its Google plugin), the embedding call, how the task prefix of `gemini-embedding-2` is passed and the environment variable the plugin reads; verify: the exact names are written in `design.md` D5 and each package exists, is maintained and is the one intended (`context/safety-first.md` §2.5)
+- [x] 1.2 Check on npm and in the Genkit documentation the package names (PostgreSQL driver, `genkit`, its Google plugin), the embedding call, how the task prefix of `gemini-embedding-2` is passed and the environment variable the plugin reads; verify: the exact names are written in `design.md` D5 and each package exists, is maintained and is the one intended (`context/seguridad/safety-first.md` §2.5)
 - [x] 1.3 On a temporary Neon branch (created with an expiry), run `CREATE EXTENSION vector`; verify: it succeeds, and the branch is deleted afterwards
 - [x] 1.4 **Redesign decided by the author (2026-10-01): the database goes behind the existing `MenuRepository` and `RecipeRepository` ports**, as the MF-11 and MF-38 proposals said ("MF-16 replaces it with the database adapter without touching the use case"). The first version of this change (`DatasetSource`, `SearchIndexWriter`, `loadSearchIndex`) is replaced. The author reviews the rewritten proposal, design (D1, D9) and specs, including the names of the new ports, use cases and adapters; verify: the confirmation is in the chat (2026-10-01: names and the partial menu save confirmed)
   - **Both destinations, decided:** JSON first, then Postgres, through an adapter per port that calls the two repositories in order. When Postgres fails, the command exits 1 and says that the JSON was written and why the database save failed; running it again writes both.
@@ -49,10 +49,10 @@
 ## 8. Close
 
 - [x] 8.1 Update `context/decisiones.md` (D2, D3 and D5; SEG-roles without the corrections in the JSON; ARQ-modelo-datos with the subset created and its natural keys), `context/roadmap.md` (MF-41 done, with the archive link) and `context/tareas/T0-extraccion-previa.md` (the order `recipes` → `menu` → `embed`, and the `migrate` command); verify: `grep` of the task and decision codes and a read of the changed lines (2026-10-01: `decisiones.md` ARQ-modelo-datos, ING-menu-json, ING-cli-local, ING-trazabilidad and SEG-roles, T0 and T2 updated; 2026-10-03: `roadmap.md` MF-41 done with the archive link)
-- [x] 8.2 Go through the checklist in `context/safety-first.md` §4 before archiving and record the result; verify: the answers are written at the end of this file
+- [x] 8.2 Go through the checklist in `context/seguridad/safety-first.md` §4 before archiving and record the result; verify: the answers are written at the end of this file
 - [ ] 8.3 After the merge to `main`, dismiss the five Dependabot alerts of Genkit's dependencies (four advisories: GHSA-q7rr-3cgh-j5r3 appears for both `@opentelemetry/sdk-node` and `@opentelemetry/auto-instrumentations-node`; GHSA-45rx-2jwx-cxfr, GHSA-8988-4f7v-96qf, GHSA-w5hq-g745-h8pq) in GitHub with the reason "Vulnerable code is not actually used" and a link to the section "Accepted risk: vulnerable transitive dependencies of Genkit" of `openspec/changes/archive/2026-10-03-mf-41-search-index/proposal.md` (author, by hand); verify: the Dependabot alert list has no open alert
 
-## Checklist `context/safety-first.md` §4 (2026-10-01)
+## Checklist `context/seguridad/safety-first.md` §4 (2026-10-01)
 
 - **Business and security decisions in the backend:** yes. Everything runs in the local CLI and the hexagon; there is no web code in this change.
 - **Endpoints (auth, permissions, input shape, negative authorization tests in CI), user from the session, minimal data returned:** not applicable. No endpoint and no user; the CLI prints counts and, on error, the menu, dish and file to fix.

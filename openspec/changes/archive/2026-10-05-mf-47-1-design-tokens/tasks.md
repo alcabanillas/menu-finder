@@ -39,7 +39,7 @@
 - [x] 6.2 `pnpm test:run`, `pnpm lint`, `pnpm typecheck`, `pnpm build` and `pnpm test:e2e` all pass
 - [x] 6.3 Tick MF-47.1 in `context/roadmap.md` with the link to the archived change after `/opsx:archive`
 
-## Security checklist (`context/safety-first.md` §4), 2026-10-05
+## Security checklist (`context/seguridad/safety-first.md` §4), 2026-10-05
 
 - **Business and security decisions in the backend:** not applicable. No business logic; build-time tooling and styles only.
 - **New endpoints (auth, permissions, negative tests):** not applicable. No endpoint; the only entry point is `pnpm ds:tokens`, run locally by the author.

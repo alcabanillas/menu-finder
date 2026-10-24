@@ -60,7 +60,7 @@ In `src/features/menu-planner/search-view.ts`, pure functions:
 - `summarize(lines)` returns the fixed sentence of the spec from three counts. The numbers of ≈ lines are written in words up to ten ("una", "dos", … "diez"), as the mock does, and in digits above.
 - `PlannerSearchState` gains `onlyExclusions: boolean` (every chip is an ungrouped exclusion), and `CandidateCard` gains `summary: string | null` (null when `onlyExclusions`).
 
-The view never puts a term, a dish or any search text into the summary: it is built only from counts, so a prompt injection in the request cannot reach it (`context/safety-first.md` §2.6).
+The view never puts a term, a dish or any search text into the summary: it is built only from counts, so a prompt injection in the request cannot reach it (`context/seguridad/safety-first.md` §2.6).
 
 ### D5. Components
 

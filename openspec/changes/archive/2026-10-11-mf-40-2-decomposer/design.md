@@ -106,7 +106,7 @@ Constants in `decompose-request.ts` (length) and in the adapter (timeout, thinki
 
 - **Where it lives:** `src/infrastructure/genkit/decomposer-prompt.ts`.
 - **What it says:** it describes the four types, `term`, `polarity`, `hard`, `slot`, `sameDish`, `anyOf` and the four rejection categories, following `evals/decomposer/labelling-guide.md`.
-- **The request as data:** it goes between delimiters, and the prompt tells the model that the text between them is data. The delimiters are removed from the request first, in any case, so that a request cannot close them early. The delimiters help, but the barrier is D2 (`context/safety-first.md` §2.6).
+- **The request as data:** it goes between delimiters, and the prompt tells the model that the text between them is data. The delimiters are removed from the request first, in any case, so that a request cannot close them early. The delimiters help, but the barrier is D2 (`context/seguridad/safety-first.md` §2.6).
 - **The examples:** written for this prompt.
 - **Keeping it blind:** a test checks that no text of `evals/decomposer/golden-set.json` appears in the prompt. A prompt tuned on the exam would make MF-40.3 meaningless (EVAL-golden-sets).
 

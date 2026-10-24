@@ -79,7 +79,7 @@ Every test task writes the test first and runs it (`pnpm test`) to see it fail f
 
 ## 11. Security review
 
-- [x] 11.1 Go through the `context/safety-first.md` §4 checklist before archiving and record the result
+- [x] 11.1 Go through the `context/seguridad/safety-first.md` §4 checklist before archiving and record the result
   - Critical decisions in the backend: yes, every rule is in `domain`/`application`; the CLI only presents the summary and ESLint keeps it off `domain`.
   - Endpoint auth/permissions, user from the session, authorization tests, parameterized DB queries, logging of sensitive actions: not applicable (local CLI, ING-cli-local: no endpoint, user, session or database).
   - Negative validation tests in CI: yes (unknown or extra argument → exit `2` with nothing built; QA directory outside `data/` rejected before ingesting; missing raw directory → exit `1`, nothing written).

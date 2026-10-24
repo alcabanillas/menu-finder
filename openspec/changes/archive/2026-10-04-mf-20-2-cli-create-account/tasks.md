@@ -26,13 +26,13 @@
 - [x] 5.2 On the development branch, run `pnpm ingest account <test-email>` by hand in the Windows terminal (prompt with no echo), then `echo <password> | pnpm ingest account <other-email>`, then a repeated email, then with a variable unset; verify: the password is never visible on screen or in the shell history, the repeated email and the unset variable give their messages and exit codes, and a sign-in with the first account works (the **Result** of the roadmap item)
 - [x] 5.3 Run `pnpm lint`, `pnpm typecheck`, `pnpm test:coverage` and `pnpm knip`; verify: all pass
 - [x] 5.4 Update `context/decisiones.md` §1.8 (SEG-auth or SEG-sistema-cerrado: the CLI creates accounts with `pnpm ingest account`, the password comes from a prompt or stdin, an existing email is an error), only after the author confirms the wording; verify: a read of the changed lines
-- [x] 5.5 Go through the checklist of `context/safety-first.md` §4 before archiving and record the answers at the end of this file, with the CI deviation (MF-44) and the sign-in log (MF-20.3) stated; verify: every item has an answer and a reason where it is "not applicable"
+- [x] 5.5 Go through the checklist of `context/seguridad/safety-first.md` §4 before archiving and record the answers at the end of this file, with the CI deviation (MF-44) and the sign-in log (MF-20.3) stated; verify: every item has an answer and a reason where it is "not applicable"
 
 ## 6. Display-name limit (added after `verify`, test first)
 
 - [x] 6.1 Write the tests: the adapter refuses a name of 31 and of 10 000 characters, with a null byte or a line break, naming the field `name` and adding no row, and accepts one of exactly 30; the use case cuts the default name at 30; the command prints `Invalid name`; the CLI container refuses hostile names and names an account after a long email; verify: 10 of them fail before the code exists
 - [x] 6.2 Add `MAX_NAME_LENGTH` and the `name` field to the port, validate the name in the adapter after the email, and cut the default name in the use case; verify: `pnpm vitest run` (414 tests), `pnpm lint` and `pnpm typecheck` pass
-## Safety checklist (`context/safety-first.md` §4), answered on 2026-10-04
+## Safety checklist (`context/seguridad/safety-first.md` §4), answered on 2026-10-04
 
 1. **Business and security decisions in the backend?** Yes. Email and password limits, the repeated-email rule and the secret check are in the server code (`infrastructure/auth/`, the use case); the command only reads arguments and the password and prints the result. No client code.
 2. **Each new endpoint validates auth, permissions and input shape?** Not applicable: no endpoint. The command checks the number of arguments (usage error, exit 2, before the container is built), the email and the password limits, and it runs only with the owner connection and the secret of the author's own environment.

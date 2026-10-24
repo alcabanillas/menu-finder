@@ -26,7 +26,7 @@ Sustituye el flujo actual del autor en Notion.
 | Plazo | **3 semanas** de desarrollo + **1 semana** para los entregables |
 | Entregables | **Diapositivas**, un **vídeo** que explica lo hecho y un **README** que cuenta qué hace el producto y cómo instalarlo. No hay memoria escrita ni defensa ante tribunal |
 | Contexto | TFM de Máster en Desarrollo con IA. Debe demostrar: desarrollo asistido por IA, arquitectura, web moderna, LLM/RAG, testing, despliegue, seguridad, observabilidad |
-| Modo de trabajo | Desarrollo asistido por agentes bajo **SDD (Spec-Driven Development)**: las especificaciones viven en el repo y son la entrada de los agentes. Reglas de seguridad en [safety-first.md](safety-first.md) |
+| Modo de trabajo | Desarrollo asistido por agentes bajo **SDD (Spec-Driven Development)**: las especificaciones viven en el repo y son la entrada de los agentes. Reglas de seguridad en [safety-first.md](seguridad/safety-first.md) |
 | Coste | Proveedor LLM y hosting con capa gratuita o coste muy reducido |
 | Datos | Mono-cuenta. Estructura `Dieta/Menu N/` con `menu.pdf`, `Lista_de_la_compra.pdf` y **un PDF por plato con su receta**. Copia local en `data/raw/Dieta/` (710 PDF + 710 TXT vía `pdftotext -layout`, gitignoreado). La app **no accede a Drive** (ING-cli-local). No multi-tenant |
 

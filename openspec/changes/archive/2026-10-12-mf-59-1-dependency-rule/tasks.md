@@ -113,7 +113,7 @@ Rules for every Phase 2 subagent:
 - [x] 5.5 Remove any branch that track B reported as unreachable (task 3.5), and rerun `pnpm test:coverage`. Verify: still 100 %.
 - [x] 5.6 Commit with a conventional message, for example `refactor(application): dependency rule between use cases (MF-59.1)`. Verify: the pre-commit hook passes.
 
-## Safety review (`context/safety-first.md` §4)
+## Safety review (`context/seguridad/safety-first.md` §4)
 
 - No new endpoint, command, query or input: auth, permissions, data minimisation, SQL and logging items do not apply.
 - Validation stays on the server: `parseSearchRequest` and `positiveIntegerInput` moved to `application/dto/` with their negative tests.

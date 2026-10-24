@@ -41,4 +41,4 @@ Every group: the test of each scenario is written first and seen failing (PROC-t
 ## 8. Close
 
 - [x] 8.1 In the design system's `project/implementacion.md`, set the two "Menú" rows to `implementado` (or `parcial`, with what is missing) with the ticket MF-74 and the PR, and publish the artifact.
-- [x] 8.2 Add MF-74 to `context/roadmap.md` (ID and ~2 h estimate confirmed by the author on 2026-10-21, done); after the merge, archive this change (checklist `context/safety-first.md` §4).
+- [x] 8.2 Add MF-74 to `context/roadmap.md` (ID and ~2 h estimate confirmed by the author on 2026-10-21, done); after the merge, archive this change (checklist `context/seguridad/safety-first.md` §4).

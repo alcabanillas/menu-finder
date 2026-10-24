@@ -30,7 +30,7 @@
 
 - [x] 6.1 Capture `/menu` at 1280 px with a recipe open, on the production build against the `test` branch with the fictitious menu, and compare it with `MenuScreen.jsx` (desktop) in the design system; note any difference beyond design D4. Day headers (colour bar, weekday, short date, "· hoy"), today's column, the dashes, the underlined open dish and the panel's frame match the mock. The chef-hat icon fell alone on the next line under a two-word name; as in the mock, the last word and the icon now stay together
 - [x] 6.2 `pnpm typecheck`, `pnpm lint`, `pnpm test:run`, `pnpm test:coverage` and `pnpm build` pass
-- [x] 6.3 Before `archive`: the checklist of `context/safety-first.md` §4, with the result recorded here; mark MF-23.2 and MF-23 done in `context/roadmap.md`
+- [x] 6.3 Before `archive`: the checklist of `context/seguridad/safety-first.md` §4, with the result recorded here; mark MF-23.2 and MF-23 done in `context/roadmap.md`
   - Business rules in the backend: unchanged; which menu, its dates and "today" still come from `activeMenu`. The table only lays out the DTO; leaving Sunday out is presentation
   - Session and input: the page is unchanged, `await requireUser()` first and no `searchParams`; its tests and `protected-pages.test.ts` pass
   - User from the session: unchanged; "Another user's menu is not shown" and "Opening the menu without a session" still pass in `e2e/menu.spec.ts`

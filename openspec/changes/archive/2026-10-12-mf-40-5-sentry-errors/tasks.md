@@ -16,4 +16,4 @@
 
 - [x] 4.1 A forced server error reaches Sentry from Vercel without user data (done in the prototype on 2026-10-12: `MENU-FINDER-2`)
 - [x] 4.2 Run the pre-commit checks: vitest, eslint, knip, tsc; `osv-scanner` runs in CI on the pull request
-- [x] 4.3 Review `context/safety-first.md` §4 before archive
+- [x] 4.3 Review `context/seguridad/safety-first.md` §4 before archive

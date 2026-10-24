@@ -28,9 +28,9 @@
 - [x] 4.3 Remove `scripts/datos/parse-lista-compra.js` and the `datos:lista` script from `package.json`; check that no file still refers to them (`grep` in the repo) and that `pnpm test` and `pnpm lint` stay green
 - [x] 4.4 Write T2 §3 in `context/tareas/T2-esquema-json-ingesta.md` (origin, shape, free-text categories, the two-page case, guarantees, limits) and update `context/tareas/T0-extraccion-previa.md` (new command, no TXT step for the list); check every cross-reference is fully qualified
 - [x] 4.5 Update ING-lista-compra, ING-trazabilidad and ARQ-modelo-datos in `context/decisiones.md` (with `optional`, `position` and `menu_number`, and the decision that the free-text categories carry no quantity), and mark MF-10 done in `context/roadmap.md`; check that the codes cited exist
-- [x] 4.6 Review the checklist of `context/safety-first.md` §4 and record the result in the change before archiving; run `pnpm test`, `pnpm lint`, `pnpm build` and `openspec validate mf-10-shopping-list-ingestion --strict`; commit the phase
+- [x] 4.6 Review the checklist of `context/seguridad/safety-first.md` §4 and record the result in the change before archiving; run `pnpm test`, `pnpm lint`, `pnpm build` and `openspec validate mf-10-shopping-list-ingestion --strict`; commit the phase
 
-## Security checklist (`context/safety-first.md` §4), 2026-10-05
+## Security checklist (`context/seguridad/safety-first.md` §4), 2026-10-05
 
 - **Business and security decisions in the backend:** yes. Positional parsing in pure domain/infrastructure functions; persistence in Postgres adapter via parameterized queries; only entry point is the CLI run locally by the author.
 - **New endpoints (auth, permissions, negative tests):** not applicable. There is no web endpoint, only the `ingest shopping-list` CLI command; the UI arrives with MF-24.

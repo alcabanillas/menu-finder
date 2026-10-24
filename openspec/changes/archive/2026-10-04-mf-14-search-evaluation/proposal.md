@@ -28,7 +28,7 @@ Roadmap item **MF-14**, third of three changes (`mf-41-search-index` → `mf-42-
 
 The evaluation reads the dataset from Neon and the golden sets from `evals/`. The report keeps ids and metrics, never dish or ingredient text, because the repo is public. The per-query detail (which dish ranked) is printed to the local console, not saved.
 
-### Possible abuses and OWASP 2025 (SEG-owasp, `context/OWASP-Top10.md`)
+### Possible abuses and OWASP 2025 (SEG-owasp, `context/seguridad/OWASP-Top10.md`)
 
 There is no endpoint and no user in this change: it is a local CLI over files of the repo.
 

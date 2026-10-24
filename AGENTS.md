@@ -7,7 +7,7 @@
 | Sin spec, no hay código | Todo cambio pasa por OpenSpec: `propose` → `apply` → `verify` → `archive` (PROC-sdd) |
 | TDD first | Red → Green → Refactor: el test de cada escenario se escribe primero y se ve fallar (PROC-tdd) |
 | Arquitectura verificable | Hexagonal en el backend y Scope Rule en la UI; las reglas de dependencia las comprueba ESLint (ARQ-hexagonal, ADR-001) |
-| Security by Design | Least privilege, validación en servidor y escenarios negativos en cada spec (SEG-owasp, `context/safety-first.md`) |
+| Security by Design | Least privilege, validación en servidor y escenarios negativos en cada spec (SEG-owasp, `context/seguridad/safety-first.md`) |
 | Datos del nutricionista fuera | Los PDF solo viven en `data/`, que nunca se sube. Su marca, email y eslogan no llegan al repo, a la BD ni a Sentry (SEG-datos-nutricionista) |
 | La IA no inventa | Extrae, estructura y recupera; no genera menús ni recetas (`context/producto.md` §1) |
 
@@ -46,10 +46,10 @@ This TFM is a part-time personal project. Estimate work in hours, not full-time 
 | Frontend: componentes, páginas | Frontend | ADR-001 §2 Estructura, §3 Reglas de dependencia y §5 Decisiones específicas de Next.js; pantallas en `producto.md` |
 | Buscador, retrieval, scoring | Buscador · Arquitectura (modelo de datos) | `context/ConceptosRAG-y-agentes.md`; `context/datos.md` |
 | Ingesta: PDFs, parsers, CLI | Ingesta | `context/datos.md`; `context/tareas/T2-esquema-json-ingesta.md`; runbook local en `context/tareas/T0-extraccion-previa.md` |
-| LLM: prompts, Genkit, agentes | IA transversal | `context/ConceptosRAG-y-agentes.md`; `context/safety-first.md` §2.6 |
+| LLM: prompts, Genkit, agentes | IA transversal | `context/ConceptosRAG-y-agentes.md`; `context/seguridad/safety-first.md` §2.6 |
 | Evaluación: golden sets | Evaluación | Los resultados en `evals/` |
 | Tests, CI, despliegue, observabilidad | Despliegue y calidad | Para publicar o tocar el despliegue, `context/despliegue.md` |
-| Seguridad: auth, roles, validación, límites | Seguridad | `context/safety-first.md`; `context/OWASP-Top10.md` por categoría |
+| Seguridad: auth, roles, validación, límites | Seguridad | `context/seguridad/safety-first.md`; `context/seguridad/OWASP-Top10.md` por categoría |
 | Cambios con OpenSpec | Proceso | `openspec/config.yaml`, la spec afectada en `openspec/specs/` y el cambio activo en `openspec/changes/` |
 | Proponer algo nuevo o decidir | Lo abierto | — |
 | Qué toca ahora | — | `context/roadmap.md`: backlog, solo lo decidido |

@@ -39,4 +39,4 @@
 ## 8. Close
 
 - [x] 8.1 Run `pnpm lint`, `pnpm typecheck` and `pnpm test:run`, all green; open `reports/roadmap.html` and check it visually
-- [x] 8.2 Go through the checklist in `context/safety-first.md` §4 before archiving and record the result Result: no endpoint, auth, DB query or LLM input; the script only reads `context/roadmap.md` and writes the gitignored `reports/`; no new dependency; no secret in the diff. Items about endpoints, sessions and logging do not apply.
+- [x] 8.2 Go through the checklist in `context/seguridad/safety-first.md` §4 before archiving and record the result Result: no endpoint, auth, DB query or LLM input; the script only reads `context/roadmap.md` and writes the gitignored `reports/`; no new dependency; no secret in the diff. Items about endpoints, sessions and logging do not apply.

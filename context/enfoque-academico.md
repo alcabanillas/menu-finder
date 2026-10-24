@@ -93,6 +93,6 @@ Y un hallazgo que sale gratis: con «y» entendido como «cualquier plato de la 
 
 ## 6. Seguridad, como argumento y no como anexo
 
-El PDF es **input no confiable que entra en un LLM**. La mitigación es de diseño, no de parcheo: schema estricto (el modelo solo puede emitir campos tipados) y nada de lo que venga del documento se ejecuta. Debe constar en la presentación y en [safety-first.md](safety-first.md).
+El PDF es **input no confiable que entra en un LLM**. La mitigación es de diseño, no de parcheo: schema estricto (el modelo solo puede emitir campos tipados) y nada de lo que venga del documento se ejecuta. Debe constar en la presentación y en [safety-first.md](seguridad/safety-first.md).
 
 A eso se le añade el **control de acceso por diseño** de SEG-sistema-cerrado: el sistema es cerrado porque los datos son de un profesional y no se redistribuyen. Es una restricción real del dominio resuelta con una decisión de arquitectura, que es justo lo que se pide demostrar.

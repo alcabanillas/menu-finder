@@ -40,7 +40,7 @@
 - [x] 6.2 `pnpm test:run`, `pnpm lint`, `pnpm typecheck`, `pnpm build` and `pnpm test:e2e` all pass; coverage of `src/features/**` stays at 80 % or more
 - [x] 6.3 Tick MF-47.2 and MF-47 in `context/roadmap.md` with the link to the archived change
 
-## Security checklist (`context/safety-first.md` §4), 2026-10-05
+## Security checklist (`context/seguridad/safety-first.md` §4), 2026-10-05
 
 - **Business and security decisions in the backend:** yes. The field checks of the form only help the user; `signInAction` keeps the server validation of MF-20.3 unchanged, and the hostile-values end-to-end test sends the form with JavaScript off so it reaches the server without them.
 - **New endpoints (auth, permissions, negative tests):** not applicable. No new endpoint or action; `signInAction` only adds an attempt counter to the state it returns.
