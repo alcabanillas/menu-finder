@@ -1,4 +1,4 @@
-// pnpm release: publishes the last commit of main to production (MF-26 design D7, context/despliegue.md).
+// pnpm release: publishes the last commit of main to production (MF-26 design D7, context/runbooks/despliegue.md).
 // Thin shell: reads the state from git and GitHub, asks before acting and pushes; the checks live in release-problems.ts.
 
 import { spawnSync } from 'node:child_process';

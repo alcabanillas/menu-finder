@@ -41,9 +41,9 @@ Every test task comes before its implementation task and is run and seen failing
 - [x] 6.1 Update `context/decisiones.md` §1.8: SEG-auth (the web uses server actions with `nextCookies`, no auth endpoint mounted; sign-ins logged with user id; in the web a session lasts 7 days from sign-in, because the cookie is only renewed in a server action, design risk 1, option A) and SEG-rate-limit (the login limit is our own counter behind `RateLimiter`, because the library limiter only runs in its HTTP handler), with the D1 reason; and §1.3 UI-home-sin-login (for now `/` shows the sign-in form and sends a signed-in user to `/planner`; the informative home and the dashboard are deferred)
 - [x] 6.2 Update `context/roadmap.md`: mark MF-20.3 done with the link to the archived change, and update MF-21 (own counter of failed sign-ins per IP behind `RateLimiter`, estimate +0.5 h)
 - [x] 6.3 Update the Purpose of `openspec/specs/authentication/spec.md` at archive: it covers the login page and protected routes now
-- [x] 6.4 Go through `context/safety-first.md` §4 and record each answer here; `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm test:e2e` pass
+- [x] 6.4 Go through `context/seguridad/safety-first.md` §4 and record each answer here; `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm test:e2e` pass
 
-  Checklist of `context/safety-first.md` §4 (2026-10-04):
+  Checklist of `context/seguridad/safety-first.md` §4 (2026-10-04):
 
   - **Critical decisions in the backend:** yes. The session is checked in each page on the server (`requireUser`); the form only renders, and its `required` attributes are UX, repeated by the Zod schema of `signIn`.
   - **Every new entry point validates auth, permissions and input shape:** yes. The two server actions take unknown values and `signIn` validates type, length and null bytes before the library; `/planner` checks the session first. No HTTP endpoint of the library exists (`/api/auth/*` answers 404, tested).

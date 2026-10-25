@@ -27,9 +27,9 @@
 
 - [x] 5.1 Run `pnpm lint`, `pnpm typecheck`, `pnpm test:run` and `pnpm test:e2e` locally; verify the **Result**: the `production` branch has no new `e2e-…` accounts and the `test` branch has no `test_…` schemas
 - [x] 5.2 Manual, by the author: delete the `e2e-%@example.test` accounts already in `production`
-- [x] 5.3 Go through `context/safety-first.md` §4 and record the result before archiving
+- [x] 5.3 Go through `context/seguridad/safety-first.md` §4 and record the result before archiving
 
-## Security checklist (`context/safety-first.md` §4), 2026-10-05
+## Security checklist (`context/seguridad/safety-first.md` §4), 2026-10-05
 
 - **Business and security decisions in the backend:** yes. Database isolation and cleanup live entirely in test environment configuration and runner scripts; no client logic touched.
 - **New endpoints (auth, permissions, negative tests):** not applicable. No new HTTP endpoints created.

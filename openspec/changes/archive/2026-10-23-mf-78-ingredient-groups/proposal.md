@@ -35,7 +35,7 @@ None.
 ## Impact
 
 - **Data touched & privacy (`SEG-datos-nutricionista`)**: reads distinct `recipe_ingredient.name` strings (generic culinary ingredient names such as `"gamba pelada"`, `"espárragos verdes"`, `"aceite de oliva"`) from Postgres and sends only uncached ingredient names to the Gemini API; nutritionist brand, email, slogan, and PDF filenames never enter `recipe_ingredient` or the prompt.
-- **Abuse & failure surfaces (`context/safety-first.md`, `context/OWASP-Top10.md`)**:
+- **Abuse & failure surfaces (`context/seguridad/safety-first.md`, `context/seguridad/OWASP-Top10.md`)**:
   - **OWASP A03 (Injection) & `safety-first.md` §2.6**: `GenkitIngredientClassifier` requests structured JSON (`responseJsonSchema`) and `classifyIngredients` validates the model output with a strict Zod schema (`food_groups` restricted to the closed enum of 16 canonical groups, keys restricted to the requested ingredient names) before parameterized SQL insertion (`jsonb_to_recordset($1::jsonb)`). Invalid or partial model answers fail closed without writing to the database.
   - **OWASP A01 / A05 (`safety-first.md` §2.3, §2.4)**: `ingredient_group` enables Row-Level Security with no policy (`ALTER TABLE ingredient_group ENABLE ROW LEVEL SECURITY;`); only the CLI uses the owner connection (`DATABASE_URL_UNPOOLED`) and `GEMINI_API_KEY` to write to `ingredient_group`, while the web search stays read-only and makes zero new LLM calls per user query.
   - **Secret handling (`safety-first.md` §2.2, §3)**: any error from `GenkitIngredientClassifier` or `PostgresRecipeRepository` passes through `redactSecrets` / `describeDatabaseError` before being returned or printed by the CLI.

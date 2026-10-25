@@ -76,7 +76,7 @@ type MenuDish = {
 ```
 
 Solo se procesan las filas **Comida** y **Cena** de la tabla del PDF (Desayuno, Almuerzo
-y Merienda quedan fuera de alcance: no son platos, [datos.md §1](../datos.md) — la app no muestra esas filas). Domingo llega
+y Merienda quedan fuera de alcance: no son platos, [datos.md §1](datos.md) — la app no muestra esas filas). Domingo llega
 siempre con `dishes: []` en sus dos comidas: el nutricionista no rellena esa columna en ninguno
 de los 36 PDFs (verificado, es esperado, no un fallo de extracción).
 
@@ -144,7 +144,7 @@ plato contra un ground truth etiquetado a mano, que se descartó por plazo (ING-
 
 - No incluye el **texto ni los ingredientes** de la receta — solo el nombre de fichero
   que la identifica. Eso es la pata 3 (§4).
-- No incluye Desayuno, Almuerzo ni Merienda (no son platos, [datos.md §1](../datos.md)).
+- No incluye Desayuno, Almuerzo ni Merienda (no son platos, [datos.md §1](datos.md)).
 - El campo `recipeFile` es un nombre de fichero, no un id estable de BD — el mapeo
   fichero → id de receta se resolverá al cargar la pata 3.
 - `data/menu-platos.json` se reescribe entero en cada ejecución: un menú que falle

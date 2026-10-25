@@ -76,7 +76,7 @@ Rules for every Phase 2 subagent:
 - [x] 6.5 `pnpm typecheck`, `pnpm test:coverage` (100 % in `application/**` and `domain/**`) and `knip` pass.
 - [x] 6.6 Commit `refactor(application): services for the steps shared between use cases (MF-59.2)`. No PR: one PR for the whole of MF-59 (decided by the author on 2026-10-12).
 
-## Safety review (`context/safety-first.md` §4)
+## Safety review (`context/seguridad/safety-first.md` §4)
 
 - No new endpoint, command, query or input: the auth, permissions, data minimisation, SQL and logging items do not apply.
 - Validation stays on the server: `positiveIntegerInput` in `selectMenu`, `parseSearchRequest` in `findMenus` and the length limits in `decomposeText` moved together with their negative tests.

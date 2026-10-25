@@ -35,7 +35,7 @@ Decisions of the author, 2026-10-16 (`proposal.md`): browser only, `tracesSample
 ## 7. Docs and release checks
 
 - [x] 7.1 Update `context/decisiones.md` §1.2 OPS-observabilidad: errors plus browser Web Vitals from Sentry; replace "sin trazas de rendimiento" and the Speed Insights sentence. Verify: `grep -n "trazas de rendimiento" context/decisiones.md` shows no stale claim, and the section cites this change.
-- [x] 7.2 Run `pnpm test:coverage` and go through the checklist of `context/safety-first.md` §4, recording the result in the PR. Ask the author whether the PR bumps `"version"` in `package.json` (`AGENTS.md`). Verify: coverage thresholds pass.
+- [x] 7.2 Run `pnpm test:coverage` and go through the checklist of `context/seguridad/safety-first.md` §4, recording the result in the PR. Ask the author whether the PR bumps `"version"` in `package.json` (`AGENTS.md`). Verify: coverage thresholds pass.
 - [ ] 7.3 After the release, load `/planner` and `/menu` in production and check that Sentry's Web Vitals page lists document Web Vitals (LCP, INP, CLS, FCP) on pageload and transition duration on navigations, and that no span/transaction shows a query string. Verify: a screenshot or the list in the PR.
 
 ## Workflow follow-up

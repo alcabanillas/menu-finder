@@ -1,8 +1,8 @@
 # Historial de decisiones — qué se creyó, qué lo tumbó
 
-> **Congelado el 2026-09-27.** No se añade nada más. Desde esa fecha, el porqué de cada cambio vive en el proposal de su cambio de OpenSpec (`openspec/changes/archive/`). Las entradas mencionan `Fuente-de-Verdad.md`, el documento que ese día se partió en [producto.md](producto.md), [decisiones.md](decisiones.md) y [datos.md](datos.md); los números de sección que citan son los de entonces.
+> **Congelado el 2026-09-27.** No se añade nada más. Desde esa fecha, el porqué de cada cambio vive en el proposal de su cambio de OpenSpec (`openspec/changes/archive/`). Las entradas mencionan `Fuente-de-Verdad.md`, el documento que ese día se partió en [producto.md](../producto.md), [decisiones.md](../decisiones.md) y [datos.md](../datos/datos.md); los números de sección que citan son los de entonces.
 >
-> **Para qué sirve:** [decisiones.md](decisiones.md) dice lo que es verdad **ahora**. Este fichero dice **por qué cambió**. Es *append-only*: nada se edita ni se borra, solo se añade encima.
+> **Para qué sirve:** [decisiones.md](../decisiones.md) dice lo que es verdad **ahora**. Este fichero dice **por qué cambió**. Es *append-only*: nada se edita ni se borra, solo se añade encima.
 >
 > **No es un archivo muerto.** Es la materia prima del capítulo "evolución del diseño" de la memoria, que es donde se demuestra lo que el máster evalúa: que las decisiones se tomaron **contra evidencia** y se revocaron cuando la evidencia las contradijo. Tres de estas entradas son el mejor material del TFM — D18, D22 y M5 cayeron por medición, no por opinión.
 >
@@ -315,7 +315,7 @@ si fueran idénticas; la spec de ingesta tiene que elegir versión (recomendaci�
 **Qué la tumbó.** Tres cosas, en orden de peso:
 
 1. **No es evaluable.** Una semana reordenada no tiene ground truth: nada dice si sigue siendo nutricionalmente equivalente a la original. Y los atributos que el planificador necesitaría —cuántos días aguanta cada plato cocinado, qué partes se preparan antes, si recalienta bien— no existen en los datos; habría que inventarlos (LLM sobre `PREPARACIÓN`) o etiquetarlos a mano, sin nadie que valide.
-2. **Los días no son intercambiables.** Medido sobre el nombre del plato de comida ([c9-superficie-consulta.md §6](analisis-output/c9-superficie-consulta.md)): lunes legumbre 75 %, martes pasta 72 %, miércoles pescado 67 %, jueves arroz 58 %, viernes carne 61 %, sábado cuscús/quinoa 78 %. Mover platos de día deshace un reparto que es diseño del nutricionista.
+2. **Los días no son intercambiables.** Medido sobre el nombre del plato de comida ([c9-superficie-consulta.md §6](../analisis-output/c9-superficie-consulta.md)): lunes legumbre 75 %, martes pasta 72 %, miércoles pescado 67 %, jueves arroz 58 %, viernes carne 61 %, sábado cuscús/quinoa 78 %. Mover platos de día deshace un reparto que es diseño del nutricionista.
 3. **Tamaño y momento.** Atributos nuevos + planificador con restricciones + plan generado y anclado + UI es un TFM entero, no "una parte", y llega sin spec cuando el núcleo (D37, D38) ya tiene números. "Buscador más simple" es la frase peligrosa: sin comparativa de recuperación por tipo el TFM deja de ser lo que D37 dice que es.
 
 Se reconoció lo que tenía de bueno: sus comprobaciones estructurales (cobertura de platos, ingredientes existentes, caducidad respetada, tiempos) serían deterministas y más duras que un juez LLM, y el valor para el autor como usuario es alto. No es peor académicamente; es otro TFM.
@@ -582,7 +582,7 @@ planificador conversacional son el contraejemplo documentado.
 | C2 | Qué se indexa | ✅ → D28 |
 | C3 | Roles de usuario | ✅ → D16 |
 | C4 | Forma de la ingesta | ✅ → D17, luego D32 |
-| C5 | Enfoque del TFM y diseño del RAG | ✅ → D37 (+ [enfoque-academico.md](enfoque-academico.md)) |
+| C5 | Enfoque del TFM y diseño del RAG | ✅ → D37 (+ [enfoque-academico.md](../presentacion/enfoque-academico.md)) |
 | C6 | Arquitectura interna | ✅ → D25 / ADR-001 |
 | C7 | Evaluación / debug: ¿Genkit o consola propia? | ✅ → D33 (forma) + D40: Genkit tras un puerto, informe estático para lo determinista |
 | C8 | Catálogo de agentes | ✅ → D24 + D30 |

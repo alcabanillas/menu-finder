@@ -27,4 +27,4 @@
 - [x] 5.1 By hand, once: with `GENKIT_ENV` unset, run one decomposition from a script and check that no `NodeSDK` started (design D3). Checked on 2026-10-12 with a temporary route in the Next.js server instead of a script: no `NodeSDK` started and Sentry kept the global provider
 - [x] 5.2 Run `genkit start` with the decomposer and check that the Developer UI still shows its trace (scenario "Development", by hand)
 - [x] 5.3 Run the pre-commit checks: vitest, eslint, knip, tsc
-- [x] 5.4 Review `context/safety-first.md` §4 before archive
+- [x] 5.4 Review `context/seguridad/safety-first.md` §4 before archive

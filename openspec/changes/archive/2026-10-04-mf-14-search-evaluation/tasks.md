@@ -33,10 +33,10 @@
 ## 6. Close
 
 - [x] 6.1 Update `context/decisiones.md` (BUS-superficie-consulta (c) and (d) pointing to the measured result), `context/roadmap.md` (MF-14 done with the archive link; MF-16 with the enrichment the table asks for or skips; MF-19 with the table as input) and `AGENTS.md` (current phase); verify: `grep` of the task and decision codes and a read of the changed lines
-- [x] 6.2 Go through the checklist in `context/safety-first.md` §4 before archiving and record the result; verify: the answers are written at the end of this file
+- [x] 6.2 Go through the checklist in `context/seguridad/safety-first.md` §4 before archiving and record the result; verify: the answers are written at the end of this file
   - **Progress (2026-10-04):** `context/decisiones.md` BUS-superficie-consulta (c) and (d) and `context/roadmap.md` MF-19 point to the measured table. MF-16 carries the measured A03 and A04 scores; whether the season enrichment is skipped is decided in MF-16, not here. The current phase in `AGENTS.md` is left to the author (it is a priority call, not a result of this change). MF-14 ✅ with the archive link is set at archive time.
 
-## Security checklist (`context/safety-first.md` §4), 2026-10-04
+## Security checklist (`context/seguridad/safety-first.md` §4), 2026-10-04
 
 - **Business and security decisions in the backend:** yes. The evaluation runs in the use case; the only entry point is the CLI, run by the owner.
 - **New endpoints (auth, permissions, negative tests):** not applicable. There is no endpoint, only the `evaluate-search` CLI command.

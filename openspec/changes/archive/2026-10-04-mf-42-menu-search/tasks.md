@@ -45,12 +45,12 @@
 
 ## 7. Close
 
-- [x] 7.1 Update `context/decisiones.md` (D4 and D6 once confirmed in 1.1; IA-criterio-agente if it changes), `context/roadmap.md` (MF-42 done, with the archive link) and `context/tareas/T0-extraccion-previa.md` (the `search` command); verify: `grep` of the task and decision codes and a read of the changed lines
-- [x] 7.2 Go through the checklist in `context/safety-first.md` §4 before archiving and record the result; verify: the answers are written at the end of this file
+- [x] 7.1 Update `context/decisiones.md` (D4 and D6 once confirmed in 1.1; IA-criterio-agente if it changes), `context/roadmap.md` (MF-42 done, with the archive link) and `context/runbooks/T0-extraccion-previa.md` (the `search` command); verify: `grep` of the task and decision codes and a read of the changed lines
+- [x] 7.2 Go through the checklist in `context/seguridad/safety-first.md` §4 before archiving and record the result; verify: the answers are written at the end of this file
 - [x] 7.3 Once everything else is done and before the archive: point `.env.local` of this worktree to the `production` branch and run `pnpm ingest migrate`; verify: it applies `003` only to `production`. Until then every run of this change goes to the `mf-42-menu-search` branch
   - **Result (2026-10-04, `DATABASE_URL_UNPOOLED` on the `production` compute):** the output was `Applied 003-dish-text-search.sql` and nothing else.
 
-## Security checklist (`context/safety-first.md` §4), 2026-10-04
+## Security checklist (`context/seguridad/safety-first.md` §4), 2026-10-04
 
 - **Business and security decisions in the backend:** yes. The search runs in the use case; the only entry point is the CLI, run by the owner.
 - **New endpoints (auth, permissions, negative tests):** not applicable. There is no endpoint, only the `search` CLI command; the web arrives with MF-22.

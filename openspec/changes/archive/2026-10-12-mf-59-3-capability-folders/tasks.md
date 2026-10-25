@@ -23,7 +23,7 @@ A file move. There is no RED in ESLint or in the tests: no behaviour changes, an
 - [x] 3.3 `pnpm test:e2e` passes (login, `/planner`, `/menu`, `/shopping-list`). Result: 88 passed.
 - [x] 3.4 Commit `refactor(application): use cases in folders by capability (MF-59.3)`. No PR yet: the single MF-59 PR goes after the archive.
 
-## Safety review (`context/safety-first.md` §4)
+## Safety review (`context/seguridad/safety-first.md` §4)
 
 - Files moved only: no endpoint, command, query, input or runtime code changes. The auth, permissions, validation, SQL and logging items do not apply.
 - The server actions call the same use cases, with the same session checks; the e2e suite (88 passed) covers login, `/planner`, `/menu` and `/shopping-list`.

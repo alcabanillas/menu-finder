@@ -43,9 +43,9 @@
 ## Workflow follow-up
 
 - Ask the author whether the PR bumps `"version"` in `package.json` before `gh pr create`.
-- `/opsx:verify`, then go through the checklist in `context/safety-first.md` §4 and `/opsx:archive`.
+- `/opsx:verify`, then go through the checklist in `context/seguridad/safety-first.md` §4 and `/opsx:archive`.
 
-## Security checklist (`context/safety-first.md` §4), 2026-10-23
+## Security checklist (`context/seguridad/safety-first.md` §4), 2026-10-23
 
 - **Business and security decisions in the backend:** yes. The decomposer runs on the server, and its answer is validated against the closed category list before the planner view picks the message.
 - **New endpoints (auth, permissions, negative tests):** not applicable. No endpoint, server action or route is added; the search action keeps its session check.

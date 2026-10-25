@@ -69,7 +69,7 @@ cli/commands/   migrate, embed (menu and recipes unchanged)
 
 **Confirmed by the author (2026-10-01).** The CLI needs transactions (saves, migrations), and the direct connection (`DATABASE_URL_UNPOOLED`) is what `pg` expects. It is the most widely used driver, with no native build step. The same driver works later from Vercel functions with the pooled URL.
 
-*Alternatives:* `@neondatabase/serverless` (made for edge runtimes and HTTP queries; transactions need its WebSocket pool, more moving parts than this change needs); `postgres` (fewer users); Drizzle or Prisma (an ORM and a code generator for six tables and a handful of queries, and one more supply-chain surface, `context/safety-first.md` §2.5).
+*Alternatives:* `@neondatabase/serverless` (made for edge runtimes and HTTP queries; transactions need its WebSocket pool, more moving parts than this change needs); `postgres` (fewer users); Drizzle or Prisma (an ORM and a code generator for six tables and a handful of queries, and one more supply-chain surface, `context/seguridad/safety-first.md` §2.5).
 
 ### D3. Migrations: numbered SQL files in `postgres/migrations/` and a runner of about 40 lines
 

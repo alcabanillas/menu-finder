@@ -2,7 +2,7 @@
 
 > **Tipo:** Runbook.
 > **Objetivo:** cargar en la BD de Neon, desde los PDF del nutricionista, los menús y las recetas, y generar en local los JSON que consumen los scripts de evaluación. Los ficheros viven en `data/`, que está gitignoreado (SEG-datos-nutricionista): ni los PDF ni los JSON se suben al repo.
-> **Contrato de los JSON:** [T2](T2-esquema-json-ingesta.md).
+> **Contrato de los JSON:** [T2](../datos/T2-esquema-json-ingesta.md).
 
 ---
 
@@ -11,9 +11,9 @@
 | Paso | Entrada | Herramienta | Salida |
 |---|---|---|---|
 | 1 | `postgres/migrations/` | `pnpm ingest migrate` (CLI de `src/`) | Esquema migrado en Neon |
-| 2 | un PDF por receta | `pnpm ingest recipes` (CLI de `src/`) | `data/recetas.json` ([T2](T2-esquema-json-ingesta.md) §4) y la BD |
-| 3 | `menu.pdf` | `pnpm ingest menu` (CLI de `src/`) | `data/menu-platos.json` ([T2](T2-esquema-json-ingesta.md) §2) y la BD |
-| 4 | `Lista_de_la_compra.pdf` | `pnpm ingest shopping-list` (CLI de `src/`) | Tabla `shopping_item` en la BD ([T2](T2-esquema-json-ingesta.md) §3) |
+| 2 | un PDF por receta | `pnpm ingest recipes` (CLI de `src/`) | `data/recetas.json` ([T2](../datos/T2-esquema-json-ingesta.md) §4) y la BD |
+| 3 | `menu.pdf` | `pnpm ingest menu` (CLI de `src/`) | `data/menu-platos.json` ([T2](../datos/T2-esquema-json-ingesta.md) §2) y la BD |
+| 4 | `Lista_de_la_compra.pdf` | `pnpm ingest shopping-list` (CLI de `src/`) | Tabla `shopping_item` en la BD ([T2](../datos/T2-esquema-json-ingesta.md) §3) |
 | 5 | Ingredientes de las recetas | `pnpm ingest ingredient-groups` (CLI de `src/`) | Tabla `ingredient_group` en la BD (MF-78) |
 | 6 | Recetas de la BD | `pnpm ingest embed` (CLI de `src/`) | Embeddings de recetas en la BD |
 
@@ -41,7 +41,7 @@ pnpm ingest embed          # → embeddings de las recetas en la BD; solo calcul
 pnpm ingest search <estructura.json> [--strategy lexical|semantic|hybrid] # → top 5 de menús; lee la BD, no escribe (semantic por defecto)
 ```
 
-Todos son idempotentes: se pueden relanzar. Los JSON se sobrescriben enteros; en la BD, cada receta o menú recibido sustituye a su versión anterior y no se borra lo que no llega (ING-cli-local). Las garantías esperadas de cada uno (recuentos, anomalías) están en `context/tareas/T2-esquema-json-ingesta.md` §2.5, §3.5 y §4.4.
+Todos son idempotentes: se pueden relanzar. Los JSON se sobrescriben enteros; en la BD, cada receta o menú recibido sustituye a su versión anterior y no se borra lo que no llega (ING-cli-local). Las garantías esperadas de cada uno (recuentos, anomalías) están en `context/datos/T2-esquema-json-ingesta.md` §2.5, §3.5 y §4.4.
 
 ### Cuentas de la app
 

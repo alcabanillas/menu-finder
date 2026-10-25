@@ -42,7 +42,7 @@
 
 - [x] 7.1 Capture `/menu` at 375 px with a recipe unfolded and compare it with `MenuScreen.jsx` (mobile) in the design system; note any difference beyond design D6. Done on the production build against the `test` branch with fictitious accounts and menu 9002, as in MF-43.2 (signing in on `dev` needs a real password). Heading, day tabs (colour bars, the ink tile, today's dot), meal headers and the folded and unfolded card match the mock. As in the mock, a meal with no dishes on a day that has others shows its header with nothing under it
 - [x] 7.2 `pnpm typecheck`, `pnpm lint`, `pnpm test:run`, `pnpm test:coverage` and `pnpm build` pass
-- [x] 7.3 Before `archive`: the checklist of `context/safety-first.md` §4, with the result recorded here; mark MF-23.1 done in `context/roadmap.md`
+- [x] 7.3 Before `archive`: the checklist of `context/seguridad/safety-first.md` §4, with the result recorded here; mark MF-23.1 done in `context/roadmap.md`
   - Business rules in the backend: yes, which menu is active, its dates and "today" are computed on the server (`activeMenu`, `Clock`)
   - The new page checks the session first (`await requireUser()`, checked by `protected-pages.test.ts`) and takes no input: it declares no `searchParams`
   - User from the session: yes; "Parameters in the request are ignored" is tested in `page.test.tsx`, and "Another user's menu is not shown" in `active-menu.test.ts` and `e2e/menu.spec.ts`

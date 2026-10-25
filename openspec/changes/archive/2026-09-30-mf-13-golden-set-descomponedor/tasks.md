@@ -33,7 +33,7 @@
 ## 5. Close
 
 - [x] 5.1 Update `context/decisiones.md`: EVAL-golden-sets with the deviations of the proposal, and §2 point 1 with the fields already fixed. Update `context/roadmap.md`: MF-13 to ✅ with the link to the archived change. Verify: both documents cite this change.
-- [x] 5.2 Go through the checklist in `context/safety-first.md` §4 and record the result. Verify: the result is recorded in the archive notes.
+- [x] 5.2 Go through the checklist in `context/seguridad/safety-first.md` §4 and record the result. Verify: the result is recorded in the archive notes.
   - Backend decisions, endpoints, session, authorization tests, returned data, DB queries, logs: not applicable. The change adds evaluation data and a test, with no product code, endpoint, query or runtime input.
   - Secrets: none in the diff (scanned for keys, tokens, passwords and emails).
   - New dependency `zod` 4.6.5: the official package, maintained, and justified by BUS-superficie-consulta (f). `pnpm audit --prod` reports no known vulnerabilities; OSV-Scanner and Dependabot cover it (MF-07).

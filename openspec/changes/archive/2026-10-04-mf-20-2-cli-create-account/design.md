@@ -75,4 +75,4 @@ A password in a third position is a usage error, not a convenience: it would end
 
 ## Open Questions
 
-- Whether the demo account needs its own line in `README` or in `context/tareas/T0-extraccion-previa.md` (the runbook). Decided in task 5.1; it changes no spec or code.
+- Whether the demo account needs its own line in `README` or in `context/runbooks/T0-extraccion-previa.md` (the runbook). Decided in task 5.1; it changes no spec or code.

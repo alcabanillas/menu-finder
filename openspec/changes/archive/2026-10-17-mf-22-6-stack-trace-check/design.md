@@ -2,7 +2,7 @@
 
 ## Context
 
-The browser starts Sentry in `src/instrumentation-client.ts` and reports uncaught exceptions and unhandled rejections through the SDK's global handlers (MF-22.2). A production build with `SENTRY_AUTH_TOKEN` uploads the source maps and deletes them from the output. `/planner` is a server component that renders the client component `PlannerSearch` (`src/app/(signed-in)/planner/page.tsx`). Merging into `main` does not deploy: `pnpm release` publishes a tagged commit of `main` (`context/despliegue.md`).
+The browser starts Sentry in `src/instrumentation-client.ts` and reports uncaught exceptions and unhandled rejections through the SDK's global handlers (MF-22.2). A production build with `SENTRY_AUTH_TOKEN` uploads the source maps and deletes them from the output. `/planner` is a server component that renders the client component `PlannerSearch` (`src/app/(signed-in)/planner/page.tsx`). Merging into `main` does not deploy: `pnpm release` publishes a tagged commit of `main` (`context/runbooks/despliegue.md`).
 
 ## Goals / Non-Goals
 

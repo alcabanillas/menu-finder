@@ -32,7 +32,7 @@ Roadmap item **MF-23.1**, the first of the two subtasks of MF-23 (`context/roadm
 - **Data:** the user's own selection, and the dishes and recipes of that one menu. Recipe text is nutritionist data that SEG-datos-nutricionista allows in the database for this card; it reaches only a signed-in user and never a log. The e2e test uses a fictitious menu and recipe it creates and removes.
 - **Abuses and OWASP:**
   - Reading `/menu` without a session (A01, A07): the page checks the session first and redirects to `/login`.
-  - Reading another user's menu (A01): the page takes no input; the user comes from the session and the selection is read only for that user (`context/safety-first.md` §2.2).
+  - Reading another user's menu (A01): the page takes no input; the user comes from the session and the selection is read only for that user (`context/seguridad/safety-first.md` §2.2).
   - Injection (A03): no user input reaches a query; the menu number and recipe files come from the database and go as parameters.
   - Excessive data exposure (A01): the page receives only the active menu and its recipes, never the 434 recipes.
   - Leaking recipe text (SEG-datos-nutricionista): database errors are reduced to their message by `describeDatabaseError`, without row content.

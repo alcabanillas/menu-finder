@@ -42,9 +42,9 @@
 
 - `"version"` goes to 1.0.0 in this PR (decided by the author on 2026-10-22).
 - Mark row v73 of `project/implementacion.md` in the design system as `implementado` with the PR, and fix its version line.
-- Archive the change after review, with the checklist of `context/safety-first.md` §4.
+- Archive the change after review, with the checklist of `context/seguridad/safety-first.md` §4.
 
-## Security checklist (`context/safety-first.md` §4), 2026-10-23
+## Security checklist (`context/seguridad/safety-first.md` §4), 2026-10-23
 
 - **Business and security decisions in the backend:** yes. The home for a visitor is static; the session check that chooses it stays in `src/app/page.tsx` on the server, as in MF-25.
 - **New endpoints (auth, permissions, negative tests):** not applicable. No endpoint, server action or route is added.

@@ -2,7 +2,7 @@
 
 > **Qué es este documento:** qué se construye y qué no. Visión, restricciones, alcance y pantallas. Cambia poco.
 >
-> Las decisiones técnicas están en [decisiones.md](decisiones.md), los hechos medidos sobre los PDF en [datos.md](datos.md) y el orden de trabajo en [roadmap.md](roadmap.md).
+> Las decisiones técnicas están en [decisiones.md](decisiones.md), los hechos medidos sobre los PDF en [datos.md](datos/datos.md) y el orden de trabajo en [roadmap.md](roadmap.md).
 >
 > **Última actualización:** 2026-09-27.
 
@@ -17,7 +17,7 @@ Sustituye el flujo actual del autor en Notion.
 **Enfoque (PROC-enfoque): proyecto de IA aplicada; la app es la interfaz.** El sistema es **recuperación híbrida multi-restricción** sobre registros estructurados, con un LLM que traduce la petición a restricciones. No es RAG: la explicación de cada candidato la arma una plantilla, sin generación (MF-61, decidido por el autor el 2026-10-18), y no hay chunking, ni problema de ventana de contexto, ni de escala. En la presentación se describe así. El peso académico descansa en tres pilares, por orden:  
 1. **extracción estructurada determinista** de menús y recetas, con la alternativa medida y descartada (ING-determinista, ING-parser-menu). Sin ground truth independiente: es una limitación declarada en la presentación.
 2. **evaluación comparada de recuperación** —léxica vs. semántica vs. híbrida— sobre el golden dataset (EVAL-estrategia). 
-3. **flujo SDD con agentes** documentado como proceso (PROC-sdd-memoria). Sin (1) y (2) el proyecto es un CRUD con un embedding, así que los tres se protegen frente a cualquier recorte de alcance. La medición de (1) contra ground truth se recortó en el sprint 3 por plazo (decidido por el autor el 2026-10-12): el parser de recetas se dio por bueno tras revisarlo a mano. Argumentación completa en [enfoque-academico.md](enfoque-academico.md).
+3. **flujo SDD con agentes** documentado como proceso (PROC-sdd-memoria). Sin (1) y (2) el proyecto es un CRUD con un embedding, así que los tres se protegen frente a cualquier recorte de alcance. La medición de (1) contra ground truth se recortó en el sprint 3 por plazo (decidido por el autor el 2026-10-12): el parser de recetas se dio por bueno tras revisarlo a mano. Argumentación completa en [enfoque-academico.md](presentacion/enfoque-academico.md).
 
 ## 2. Restricciones duras
 
@@ -26,7 +26,7 @@ Sustituye el flujo actual del autor en Notion.
 | Plazo | **3 semanas** de desarrollo + **1 semana** para los entregables |
 | Entregables | **Diapositivas**, un **vídeo** que explica lo hecho y un **README** que cuenta qué hace el producto y cómo instalarlo. No hay memoria escrita ni defensa ante tribunal |
 | Contexto | TFM de Máster en Desarrollo con IA. Debe demostrar: desarrollo asistido por IA, arquitectura, web moderna, LLM/RAG, testing, despliegue, seguridad, observabilidad |
-| Modo de trabajo | Desarrollo asistido por agentes bajo **SDD (Spec-Driven Development)**: las especificaciones viven en el repo y son la entrada de los agentes. Reglas de seguridad en [safety-first.md](safety-first.md) |
+| Modo de trabajo | Desarrollo asistido por agentes bajo **SDD (Spec-Driven Development)**: las especificaciones viven en el repo y son la entrada de los agentes. Reglas de seguridad en [safety-first.md](seguridad/safety-first.md) |
 | Coste | Proveedor LLM y hosting con capa gratuita o coste muy reducido |
 | Datos | Mono-cuenta. Estructura `Dieta/Menu N/` con `menu.pdf`, `Lista_de_la_compra.pdf` y **un PDF por plato con su receta**. Copia local en `data/raw/Dieta/` (710 PDF + 710 TXT vía `pdftotext -layout`, gitignoreado). La app **no accede a Drive** (ING-cli-local). No multi-tenant |
 
@@ -54,7 +54,7 @@ Qué falta por hacer de cada pantalla está en [roadmap.md](roadmap.md).
 | `/` | Sin sesión, home informativa; con sesión, dashboard (UI-home-sin-login): menú activo, "qué toca hoy", progreso de la compra |
 | `/planner` | **Buscador de menús**: petición en lenguaje natural → candidatos con explicación. Forma fijada por **BUS-superficie-consulta**: caja de texto que permanece, chips de restricciones solo orientativos (no se editan ni acumulan: cada búsqueda empieza de cero), los 5 mejores de los 36 menús puntuados, evidencia por chip y explicación. También "Elegir uno al azar", para la semana elegida (decidido por el autor el 2026-10-16). Modelo de datos: ARQ-modelo-datos |
 | `/menu` | Menú semanal activo, rejilla L–S / tabs en móvil. Card de receta desplegable al pulsar un plato (UI-card-receta) |
-| `/shopping-list` | Checklist agrupada por las 13 categorías del PDF ([datos.md §2](datos.md)) |
+| `/shopping-list` | Checklist agrupada por las 13 categorías del PDF ([datos.md §2](datos/datos.md)) |
 
 ## 5. Mejoras futuras
 
@@ -85,7 +85,7 @@ petición → descomponedor → buscador → top 5
 
 ### Batch cooking
 
-Una herramienta que reorganiza la semana para cocinar por lotes: agrupa preparaciones y monta un plan del domingo. Se descartó del MVP el 2026-09-20; el porqué está en [historial-de-decisiones.md](historial-de-decisiones.md), entrada "Batch cooking".
+Una herramienta que reorganiza la semana para cocinar por lotes: agrupa preparaciones y monta un plan del domingo. Se descartó del MVP el 2026-09-20; el porqué está en [historial-de-decisiones.md](archivo/historial-de-decisiones.md), entrada "Batch cooking".
 
 - **Componentes:**
   1. atributos nuevos por plato: cuántos días aguanta cocinado, qué partes se preparan antes y si recalienta bien;

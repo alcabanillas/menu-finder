@@ -42,7 +42,7 @@ Both factories live in `src/infrastructure/genkit/` and are called from `src/com
 
 ## Risks / Trade-offs
 
-- **`ENABLE_FIREBASE_MONITORING=true` has side effects the flag does not stop.** The flag still keeps the `NodeSDK` off, because `enableFirebaseTelemetry` ends in the guarded `enableTelemetry`. But before that, the Google Cloud plugin loads, looks for GCP credentials and, if its configuration resolves, sends Genkit's logs to Google Cloud Logging. → Not set anywhere today: a task checks the Vercel variables (`context/despliegue.md` lists five, none of them this one), and `osv-scanner.toml` says it must stay unset.
+- **`ENABLE_FIREBASE_MONITORING=true` has side effects the flag does not stop.** The flag still keeps the `NodeSDK` off, because `enableFirebaseTelemetry` ends in the guarded `enableTelemetry`. But before that, the Google Cloud plugin loads, looks for GCP credentials and, if its configuration resolves, sends Genkit's logs to Google Cloud Logging. → Not set anywhere today: a task checks the Vercel variables (`context/runbooks/despliegue.md` lists five, none of them this one), and `osv-scanner.toml` says it must stay unset.
 - **A hidden, "unstable" function.** It could change in any release. → D6: the version is pinned and an upgrade fails the tests; the 1.42.0 code is fixed while the pin holds.
 - **No automated test that the SDK stays off.** → D3; checked by hand once, and again whenever the pin moves.
 - **No production traces of the LLM flows.** Latency per call is then measured by the evaluations (`evals/decomposer/results.md`), not in production. → Accepted by the author with "no se puede activar OpenTelemetry en Genkit" (2026-10-12). Whether the request latency should reach Sentry is for MF-40.5, which today covers errors only.

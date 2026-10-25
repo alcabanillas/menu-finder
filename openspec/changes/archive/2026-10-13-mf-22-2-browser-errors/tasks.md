@@ -36,7 +36,7 @@
 - [x] 7.3 Version 0.3.1 in `package.json`, decided by the author on 2026-10-13
 - [x] 7.4 Author, after the release of 0.3.1: read the Sentry lines of the Vercel build log, fix the cause of the failed upload if there is one, and repeat 6.3. The log showed `404 Not Found`; with `SENTRY_ORG` set it showed `Successfully uploaded source maps to Sentry`, and the frame of the SDK chunk was unminified with its source
 
-## Safety review (`context/safety-first.md` §4)
+## Safety review (`context/seguridad/safety-first.md` §4)
 
 - Business and security decisions in the backend: yes. The browser only reports errors, and the CSP is built on the server.
 - New endpoint: none. Sentry's `tunnelRoute` was rejected for this reason (design D4).

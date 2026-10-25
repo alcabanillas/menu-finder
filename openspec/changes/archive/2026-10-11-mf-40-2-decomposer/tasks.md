@@ -69,7 +69,7 @@
 - [x] 8.1 Run `pnpm lint`, `pnpm typecheck` and `pnpm test:run`, and verify everything passes
 - [x] 8.2 Run `openspec validate mf-40-2-decomposer --strict` and verify it passes
 
-## Security checklist (`context/safety-first.md` §4), 2026-10-11
+## Security checklist (`context/seguridad/safety-first.md` §4), 2026-10-11
 
 - **Business and security decisions in the backend:** yes. Every check of the model's answer lives in the use case `decomposeRequest`: shape, rejection, `parseSearchRequest` and the literal term. The adapter only calls the model and parses its text.
 - **New endpoints (auth, permissions, negative tests):** not applicable. There is no endpoint: `decompose` is a local CLI command, run by the owner like the other `ingest` commands (proposal, A01). Its negative tests cover validation: no argument, two arguments, no key, a request too long, an invalid answer.

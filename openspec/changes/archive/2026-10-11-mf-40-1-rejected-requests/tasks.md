@@ -36,7 +36,7 @@
 - [x] 7.1 Run `pnpm lint`, `pnpm typecheck` and `pnpm test:run`, and verify everything passes
 - [x] 7.2 Run `openspec validate mf-40-1-rejected-requests --strict` and verify it passes
 
-## Security checklist (`context/safety-first.md` §4), 2026-10-11
+## Security checklist (`context/seguridad/safety-first.md` §4), 2026-10-11
 
 - **Business and security decisions in the backend:** not applicable. The change only adds data to the golden set and rules to its validator, which runs in the unit tests.
 - **New endpoints (auth, permissions, negative tests):** not applicable. There is no endpoint or command.

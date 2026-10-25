@@ -77,7 +77,7 @@ Each test task is written first and seen failing before its implementation task 
 - [x] 9.2 Update `today-meals.tsx`. Test 9.1 green
 - [x] 9.3 Check at 390 px and 1280 px
 
-## Safety review (`context/safety-first.md` §4)
+## Safety review (`context/seguridad/safety-first.md` §4)
 
 - Business and security decisions in the backend: `/` decides its state on the server from the session (`sessionUser`); the welcome page is static and takes no data.
 - New endpoint: none. The sign-in server action only changes its fixed destination to `SIGNED_IN_HOME = '/'`.
@@ -95,5 +95,5 @@ Each test task is written first and seen failing before its implementation task 
 
 - On `archive`, point the link of MF-25 in `context/roadmap.md` to the archived folder.
 
-- Before `archive`, go through `context/safety-first.md` §4 and record the result.
+- Before `archive`, go through `context/seguridad/safety-first.md` §4 and record the result.
 - Before `gh pr create`, ask the author whether the PR bumps `"version"` in `package.json`.
