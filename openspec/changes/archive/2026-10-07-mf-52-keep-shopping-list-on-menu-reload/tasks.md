@@ -10,4 +10,4 @@
 ## 3. Close
 
 - [x] 3.1 Run `pnpm lint`, `pnpm typecheck` and `pnpm test:run`, all green
-- [x] 3.2 Mark MF-52 as done in `context/roadmap.md` with the link to the archived change, and go through `context/safety-first.md` §4 before archiving. Result: no new endpoint, input, sensitive action or dependency, so the items on endpoints, authorization, input tests, logs and packages do not apply. The queries stay parameterized (`ANY($1::int[])` and `jsonb_to_recordset`, no string concatenation); no data is returned; the test fixtures are fictitious; no secret in the diff; no deviation from a rule of the document
+- [x] 3.2 Mark MF-52 as done in `context/roadmap.md` with the link to the archived change, and go through `context/seguridad/safety-first.md` §4 before archiving. Result: no new endpoint, input, sensitive action or dependency, so the items on endpoints, authorization, input tests, logs and packages do not apply. The queries stay parameterized (`ANY($1::int[])` and `jsonb_to_recordset`, no string concatenation); no data is returned; the test fixtures are fictitious; no secret in the diff; no deviation from a rule of the document

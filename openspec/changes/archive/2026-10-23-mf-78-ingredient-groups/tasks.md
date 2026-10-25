@@ -34,10 +34,10 @@
 
 - [x] 6.1 Run `pnpm ingest migrate` and `pnpm ingest ingredient-groups` against the database, then run `pnpm ingest ingredient-groups` a second time and verify it makes 0 LLM calls (`0 classified, 267 kept`)
 - [x] 6.2 Run `pnpm ingest evaluate-search` to regenerate `evals/search/results.md`, and run `pnpm ingest search-text "arroz con marisco"` to verify menus 21, 29, 32, and 35 rank at `1.000` (`literal`)
-- [x] 6.3 Update `context/tareas/T0-extraccion-previa.md` with the `pnpm ingest ingredient-groups` step in the ingestion sequence
-- [x] 6.4 Run `pnpm typecheck`, `pnpm exec eslint <touched files> --rule "import/no-cycle: off"`, and `pnpm test:coverage`; review `context/safety-first.md` §4 and record the checklist results in this file. Result (2026-10-23): typecheck and ESLint on the touched files pass; `pnpm test:coverage` with `DATABASE_URL_TEST` passes 1868 tests in 182 files, none skipped (statements 98.4 %, branches 94.74 %). Checklist: all items pass or do not apply, no deviations
+- [x] 6.3 Update `context/runbooks/T0-extraccion-previa.md` with the `pnpm ingest ingredient-groups` step in the ingestion sequence
+- [x] 6.4 Run `pnpm typecheck`, `pnpm exec eslint <touched files> --rule "import/no-cycle: off"`, and `pnpm test:coverage`; review `context/seguridad/safety-first.md` §4 and record the checklist results in this file. Result (2026-10-23): typecheck and ESLint on the touched files pass; `pnpm test:coverage` with `DATABASE_URL_TEST` passes 1868 tests in 182 files, none skipped (statements 98.4 %, branches 94.74 %). Checklist: all items pass or do not apply, no deviations
 
-### Safety checklist (`context/safety-first.md` §4)
+### Safety checklist (`context/seguridad/safety-first.md` §4)
 
 - [x] ¿Toda decisión de negocio/seguridad crítica vive en el backend? Sí: clasificación, validación con Zod y matching léxico en Postgres.
 - [x] ¿Cada endpoint nuevo valida auth, permisos y forma de los datos de entrada? Sí: la CLI valida variables requeridas (`DATABASE_URL_UNPOOLED`, `GEMINI_API_KEY`) y la respuesta del LLM se valida exhaustivamente con Zod.

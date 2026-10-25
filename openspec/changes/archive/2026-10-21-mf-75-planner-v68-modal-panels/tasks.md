@@ -42,7 +42,7 @@ Each test was written first and seen failing before its code (PROC-tdd).
 
 ## 7. Before archiving
 
-- [x] 7.1 Checklist `context/safety-first.md` §4 (2026-10-21): no endpoint, server action, query or dependency added; the server still applies the `menu-selection` rules to every choice; no secret in the diff; nothing new is logged. The confirmation fix (one open question) removes a stale-question path (A04). Every item holds or does not apply.
+- [x] 7.1 Checklist `context/seguridad/safety-first.md` §4 (2026-10-21): no endpoint, server action, query or dependency added; the server still applies the `menu-selection` rules to every choice; no secret in the diff; nothing new is logged. The confirmation fix (one open question) removes a stale-question path (A04). Every item holds or does not apply.
 
 ## Workflow follow-up
 

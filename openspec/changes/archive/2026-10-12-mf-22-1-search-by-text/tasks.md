@@ -22,7 +22,7 @@
 - [x] 3.5 RED: in `src/cli/run-cli.test.ts`, write "No request", "Two requests" and "Unknown strategy at the search-text command" (usage, exit 2), plus a valid `search-text "<request>" --strategy lexical` dispatch, and see them fail
 - [x] 3.6 GREEN: parse `search-text <request> [--strategy …]` in `src/cli/run-cli.ts` with the rule of `search` (design D3), add its usage line, and verify 3.5 passes
 
-- [x] 3.7 RED → GREEN: in `src/cli/run-cli.test.ts`, change the default-strategy tests of `search` and `search-text` to expect `semantic` and see them fail; set `DEFAULT_STRATEGY` to `semantic` in `src/cli/run-cli.ts` (design D6), update the runbook line in `context/tareas/T0-extraccion-previa.md`, and verify the CLI tests pass
+- [x] 3.7 RED → GREEN: in `src/cli/run-cli.test.ts`, change the default-strategy tests of `search` and `search-text` to expect `semantic` and see them fail; set `DEFAULT_STRATEGY` to `semantic` in `src/cli/run-cli.ts` (design D6), update the runbook line in `context/runbooks/T0-extraccion-previa.md`, and verify the CLI tests pass
 
 ## 4. Wiring
 
@@ -34,7 +34,7 @@
 - [x] 5.1 Run `pnpm lint`, `pnpm typecheck` and `pnpm test:coverage`, and verify they pass with the CI thresholds
 - [x] 5.2 Run by hand `pnpm ingest search-text "cenas rápidas sin alitas"`, a literal request such as "algo con pollo y arroz", and "asdfgh". Verify the first two print the structure and a top 5 and "asdfgh" exits with code 3. Record what the author sees about the quality of the ranking, without dish names, in the PR description
 
-## Safety review (`context/safety-first.md` §4)
+## Safety review (`context/seguridad/safety-first.md` §4)
 
 - No new endpoint or web entry point: a local CLI command, run by the owner with the credentials of `.env`. Auth, session and authorization items do not apply.
 - Validation stays in the core: the length limits and the answer validation of `decomposeText`, and `parseSearchRequest` in `findMenus`, with negative tests for a long request, a rejection, an invalid answer, a model failure and an empty structure. None of them reaches the database or the embedding service.

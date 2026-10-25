@@ -55,5 +55,5 @@ Every group: the test of each scenario is written first and seen failing (PROC-t
 ## Workflow follow-up
 
 - Archive `mf-61-ranking-explanation` before archiving this change.
-- Run the checklist of `context/safety-first.md` §4 before archiving, and record the result.
+- Run the checklist of `context/seguridad/safety-first.md` §4 before archiving, and record the result.
 - The author confirms the roadmap ID (MF-73 is provisional) and adds the item to `context/roadmap.md`.

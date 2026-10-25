@@ -11,7 +11,7 @@ context: |
   (PostgreSQL + pgvector), Gemini via Genkit, Vercel, Sentry.
   Hexagonal architecture with two primary adapters (app/ and cli/); dependency
   rules in context/adr/ADR-001-arquitectura-interna.md, enforced by ESLint.
-  Mandatory security: context/safety-first.md.
+  Mandatory security: context/seguridad/safety-first.md.
   Nutritionist data only in data/ (gitignored): never in the repo, in real
   fixtures, in logs or in Sentry (SEG-datos-nutricionista).
   Language: English. All artifacts, code and identifiers in English.
@@ -35,4 +35,4 @@ rules:
 operations:
   archive:
     guidance:
-      - Before archiving, go through the checklist in context/safety-first.md §4 and record the result.
+      - Before archiving, go through the checklist in context/seguridad/safety-first.md §4 and record the result.

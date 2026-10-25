@@ -23,7 +23,7 @@ Roadmap item **MF-43.2**, the second subtask of MF-43, after `mf-43-1-menu-selec
 
 - **Code:** `src/application/use-cases/select-random-menu.ts`; `src/application/dto/selection-summary.ts`; `src/app/(app)/planner/page.tsx` and new `actions.ts`; new feature `src/features/menu-planner/` (the form, the summary, the Spanish date); `web-container.ts` wires `selectRandomMenu` with `PostgresMenuRepository` and `Math.random`; `protected-pages.test.ts` also checks the actions under `(app)/`; `e2e/planner.spec.ts`. `Button` moves from `src/features/auth/components/` to `src/shared/ui/`, because a second feature uses it (Scope Rule, ADR-001 §2).
 - **Dependencies:** none new.
-- **Decisions relied on:** UI-flujo-semanal, ARQ-hexagonal and ADR-001 §2, §3 and §5, SEG-roles, SEG-sistema-cerrado; `context/safety-first.md` §2.2. It **deviates** from UI-design-system on purpose: no mock, the app's tokens and `Button` only; the author chose it on 2026-10-07 for a provisional screen.
+- **Decisions relied on:** UI-flujo-semanal, ARQ-hexagonal and ADR-001 §2, §3 and §5, SEG-roles, SEG-sistema-cerrado; `context/seguridad/safety-first.md` §2.2. It **deviates** from UI-design-system on purpose: no mock, the app's tokens and `Button` only; the author chose it on 2026-10-07 for a provisional screen.
 - **Data:** the user's own selections and menu numbers. No dish names reach the page. The e2e test uses a fictitious menu it creates and removes.
 - **Abuses and OWASP:**
   - Calling the server action without a session (A01, A07): a server action is a public POST endpoint, so it checks the session first; without one it stores nothing and goes to `/login`.

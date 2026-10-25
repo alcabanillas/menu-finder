@@ -9,7 +9,7 @@ See `proposal.md` for motivation.
 ## Goals / Non-Goals
 
 **Goals:**
-- Enforce strict HTTP security headers per `context/safety-first.md §2.4`: fixed headers on every route via `next.config.ts`, and a nonce-based CSP on every page via `src/proxy.ts`.
+- Enforce strict HTTP security headers per `context/seguridad/safety-first.md §2.4`: fixed headers on every route via `next.config.ts`, and a nonce-based CSP on every page via `src/proxy.ts`.
 - Deploy to production only when the author moves the `production` branch, and only after `checks`, `e2e` and `release` pass on that commit (*test → build → deploy*). Merging a PR into `main` does not deploy.
 - No deployment from any other branch: no previews, no deploy on `main`.
 - Test and verify security headers with automated unit tests.
@@ -43,7 +43,7 @@ See `proposal.md` for motivation.
   The proxy generates the nonce from `crypto.randomUUID()` on every request and sets the CSP on the request headers, where Next.js reads it to attach the nonce to its own scripts while rendering, and on the response headers.
 - **Why:** Only scripts that carry the nonce of the current request run, so an injected inline script is blocked (OWASP A05:2025 Injection). The policy also blocks scripts, objects and frames from other origins, injected `<base>` tags, form submissions to other origins and clickjacking (OWASP A02:2025 Security Misconfiguration). The cost the guide warns about, losing static rendering, does not apply: every page reads the session, so none could be static anyway.
 - **Dynamic rendering is forced, not assumed:** the root layout calls `await connection()` (the guide's "Forcing dynamic rendering"). Reading the session was not enough: without the environment variables the web container throws before the request is read, and Next.js tried to prerender `/`, which would have shipped scripts without a nonce. With `connection()` every route is dynamic and the build needs no secrets; a build in a clean worktree without any variable prerendered only `/_global-error`.
-- **Residual risk:** `style-src` keeps `'unsafe-inline'`, so an injected inline style is not blocked. Accepted: a style cannot run code, and React's output escaping remains the first barrier (`context/safety-first.md §2.1`).
+- **Residual risk:** `style-src` keeps `'unsafe-inline'`, so an injected inline style is not blocked. Accepted: a style cannot run code, and React's output escaping remains the first barrier (`context/seguridad/safety-first.md §2.1`).
 - **Alternatives considered:**
   - `'unsafe-inline'` in `script-src`, without nonces. Rejected: injected inline scripts would run.
   - Hashes (`'sha256-…'`) or the experimental Subresource Integrity support of Next.js 16. Rejected: the inline scripts Next.js writes carry the data of each request, so their hashes cannot be computed at build time, and SRI exists to keep pages static, which this app does not have.
@@ -74,7 +74,7 @@ See `proposal.md` for motivation.
 ### D5: Vercel Configuration via `vercel.json` (Git Governance and Function Region)
 - **Choice:** `vercel.json` with `"git": { "deploymentEnabled": { "**": false, "production": true } }` and `"regions": ["fra1"]`.
 - **Why:**
-  1. Only `production` deploys. A branch that matches several rules deploys if any of them is `true` (Vercel's Git configuration docs), so `production` deploys and every other branch (`**`, not `*`: in minimatch `*` does not cross `/`, so `feature/…` and `dependabot/…` branches would still deploy), `main` and PR branches included, does not. With no previews, the rule of `context/safety-first.md §2.4` that previews be access-protected and use their own Neon branch is met by omission.
+  1. Only `production` deploys. A branch that matches several rules deploys if any of them is `true` (Vercel's Git configuration docs), so `production` deploys and every other branch (`**`, not `*`: in minimatch `*` does not cross `/`, so `feature/…` and `dependabot/…` branches would still deploy), `main` and PR branches included, does not. With no previews, the rule of `context/seguridad/safety-first.md §2.4` that previews be access-protected and use their own Neon branch is met by omission.
   2. Colocates Vercel Serverless Functions in Frankfurt (`fra1`) with the Neon PostgreSQL database (`eu-central-1`), eliminating ~80–100ms of transatlantic network roundtrip latency per database query.
 - **Alternative considered:** Configuring "Ignored Build Step" and function regions in Vercel project dashboard manually. Rejected because repository-as-code (`vercel.json`) ensures the configuration is version-controlled, reproducible, and transparent. The Production Branch and the Deployment Checks have no `vercel.json` option, so they are set in the dashboard (tasks).
 
@@ -92,7 +92,7 @@ See `proposal.md` for motivation.
 - **Alternatives considered:**
   - A `workflow_dispatch` workflow that tags and moves `production`. Rejected: a push made with the `GITHUB_TOKEN` does not start other workflows, so `release.yml` would never run and Vercel would hold the deployment forever; avoiding it needs a token with write access stored in GitHub.
   - Release Please or Changesets. Rejected: they add a release PR to every version, a team process for a single author.
-  - Applying the migrations from the script or from CI. Rejected: it needs the owner role of the production database, which `context/safety-first.md §2.4` keeps for the CLI in the author's hands.
+  - Applying the migrations from the script or from CI. Rejected: it needs the owner role of the production database, which `context/seguridad/safety-first.md §2.4` keeps for the CLI in the author's hands.
 
 ## Risks / Trade-offs
 

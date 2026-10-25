@@ -21,10 +21,10 @@
 
 ## Workflow follow-up
 
-- `/opsx:verify`, the checklist of `context/safety-first.md` §4 and `/opsx:archive`.
+- `/opsx:verify`, the checklist of `context/seguridad/safety-first.md` §4 and `/opsx:archive`.
 - Mark MF-79 done in `context/roadmap.md`, and the row v83 of `project/implementacion.md` of the design system as implemented with the PR.
 
-## Security checklist (`context/safety-first.md` §4), 2026-10-23
+## Security checklist (`context/seguridad/safety-first.md` §4), 2026-10-23
 
 - **Business and security decisions in the backend:** yes. The group of an error is decided on the server in `toSearchState`; the client only paints it.
 - **New endpoints (auth, permissions, negative tests):** not applicable. No endpoint, server action or route is added; the search action keeps its session check.

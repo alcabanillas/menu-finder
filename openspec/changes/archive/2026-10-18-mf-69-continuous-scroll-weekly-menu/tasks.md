@@ -36,6 +36,6 @@
 - Update `context/roadmap.md` with MF-69.
 - Archive the change after verification and approval.
 
-## Security checklist (context/safety-first.md §4)
+## Security checklist (context/seguridad/safety-first.md §4)
 
 - Reviewed before archiving: the change is UI only. No new endpoint, input or dependency; the session check stays in `requireUser()` and no query parameter is read.

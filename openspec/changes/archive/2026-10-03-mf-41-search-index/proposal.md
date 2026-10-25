@@ -33,7 +33,7 @@ The database goes **behind the repository ports that already exist**. MF-11 and 
 
 Dish names, ingredients, times and preparation text of the nutritionist now go to Neon (decided in `context/decisiones.md` §1.8, SEG-datos-nutricionista: names and ingredients are facts, and the preparation is stored for the recipe card). Brand, email, slogan and footer are not in the parsed recipes (T2 §4). Dish names and ingredients leave to the Gemini API to be embedded; the preparation text does not.
 
-### Possible abuses and OWASP 2025 (SEG-owasp, `context/OWASP-Top10.md`)
+### Possible abuses and OWASP 2025 (SEG-owasp, `context/seguridad/OWASP-Top10.md`)
 
 There is no endpoint and no user in this change: it is a local CLI. The abuses that remain are about the input files, the secrets and the supply chain.
 
@@ -42,7 +42,7 @@ There is no endpoint and no user in this change: it is a local CLI. The abuses t
 | A05 Injection | A dish or ingredient name with SQL metacharacters | Every query is parameterised; no value is concatenated. |
 | A02 Misconfiguration | A table reachable without the owner role; Data API on | RLS on every table with no policy (only the owner role, used by the CLI, reads and writes); the Data API stays off (checked in Neon). |
 | A04 Cryptographic failures | Secrets in logs, in the repo or in error messages | Connection string and key only from the environment; errors never echo them. A test checks the error text. |
-| A03 Supply chain | A look-alike or abandoned package for the driver or Genkit | Each dependency is checked on npm before it is added (`context/safety-first.md` §2.5) and justified in `design.md`. |
+| A03 Supply chain | A look-alike or abandoned package for the driver or Genkit | Each dependency is checked on npm before it is added (`context/seguridad/safety-first.md` §2.5) and justified in `design.md`. |
 | A03 Supply chain | Known vulnerabilities in Genkit's transitive dependencies | Accepted, see below. |
 | A10 Exceptional conditions | A failure half-way through a save leaves partial rows | Each save is one transaction; `embed` computes every vector before its single write. |
 

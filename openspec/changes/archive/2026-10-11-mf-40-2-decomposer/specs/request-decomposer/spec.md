@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: One call, no loop
-The decomposer SHALL turn the text of a request into a decomposition with exactly one call to the model, with no retry and no loop (BUS-descomponedor, IA-criterio-agente). The model SHALL be the Gemini model set in IA-proveedor, through Genkit. The request text SHALL go into the prompt as delimited data, never as instructions (`context/safety-first.md` §2.6).
+The decomposer SHALL turn the text of a request into a decomposition with exactly one call to the model, with no retry and no loop (BUS-descomponedor, IA-criterio-agente). The model SHALL be the Gemini model set in IA-proveedor, through Genkit. The request text SHALL go into the prompt as delimited data, never as instructions (`context/seguridad/safety-first.md` §2.6).
 
 #### Scenario: One call per request
 - **WHEN** a valid request is decomposed

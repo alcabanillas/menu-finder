@@ -7,7 +7,7 @@
 | Sin spec, no hay código | Todo cambio pasa por OpenSpec: `propose` → `apply` → `verify` → `archive` (PROC-sdd) |
 | TDD first | Red → Green → Refactor: el test de cada escenario se escribe primero y se ve fallar (PROC-tdd) |
 | Arquitectura verificable | Hexagonal en el backend y Scope Rule en la UI; las reglas de dependencia las comprueba ESLint (ARQ-hexagonal, ADR-001) |
-| Security by Design | Least privilege, validación en servidor y escenarios negativos en cada spec (SEG-owasp, `context/safety-first.md`) |
+| Security by Design | Least privilege, validación en servidor y escenarios negativos en cada spec (SEG-owasp, `context/seguridad/safety-first.md`) |
 | Datos del nutricionista fuera | Los PDF solo viven en `data/`, que nunca se sube. Su marca, email y eslogan no llegan al repo, a la BD ni a Sentry (SEG-datos-nutricionista) |
 | La IA no inventa | Extrae, estructura y recupera; no genera menús ni recetas (`context/producto.md` §1) |
 
@@ -44,16 +44,16 @@ This TFM is a part-time personal project. Estimate work in hours, not full-time 
 |---|---|---|
 | Estructura de `src/`, dependencias, refactor | Arquitectura | `context/adr/ADR-001-arquitectura-interna.md` |
 | Frontend: componentes, páginas | Frontend | ADR-001 §2 Estructura, §3 Reglas de dependencia y §5 Decisiones específicas de Next.js; pantallas en `producto.md` |
-| Buscador, retrieval, scoring | Buscador · Arquitectura (modelo de datos) | `context/ConceptosRAG-y-agentes.md`; `context/datos.md` |
-| Ingesta: PDFs, parsers, CLI | Ingesta | `context/datos.md`; `context/tareas/T2-esquema-json-ingesta.md`; runbook local en `context/tareas/T0-extraccion-previa.md` |
-| LLM: prompts, Genkit, agentes | IA transversal | `context/ConceptosRAG-y-agentes.md`; `context/safety-first.md` §2.6 |
+| Buscador, retrieval, scoring | Buscador · Arquitectura (modelo de datos) | `context/presentacion/ConceptosRAG-y-agentes.md`; `context/datos/datos.md` |
+| Ingesta: PDFs, parsers, CLI | Ingesta | `context/datos/datos.md`; `context/datos/T2-esquema-json-ingesta.md`; runbook local en `context/runbooks/T0-extraccion-previa.md` |
+| LLM: prompts, Genkit, agentes | IA transversal | `context/presentacion/ConceptosRAG-y-agentes.md`; `context/seguridad/safety-first.md` §2.6 |
 | Evaluación: golden sets | Evaluación | Los resultados en `evals/` |
-| Tests, CI, despliegue, observabilidad | Despliegue y calidad | Para publicar o tocar el despliegue, `context/despliegue.md` |
-| Seguridad: auth, roles, validación, límites | Seguridad | `context/safety-first.md`; `context/OWASP-Top10.md` por categoría |
+| Tests, CI, despliegue, observabilidad | Despliegue y calidad | Para publicar o tocar el despliegue, `context/runbooks/despliegue.md` |
+| Seguridad: auth, roles, validación, límites | Seguridad | `context/seguridad/safety-first.md`; `context/seguridad/OWASP-Top10.md` por categoría |
 | Cambios con OpenSpec | Proceso | `openspec/config.yaml`, la spec afectada en `openspec/specs/` y el cambio activo en `openspec/changes/` |
 | Proponer algo nuevo o decidir | Lo abierto | — |
 | Qué toca ahora | — | `context/roadmap.md`: backlog, solo lo decidido |
-| Por qué algo es como es | — | El proposal del cambio archivado; antes del 2026-09-27, `context/historial-de-decisiones.md` (congelado) |
+| Por qué algo es como es | — | El proposal del cambio archivado; antes del 2026-09-27, `context/archivo/historial-de-decisiones.md` (congelado) |
 
 ## Decisions and documentation style
 - Never record a technology or design decision (Dxx, ADR) until the user has explicitly chosen it. Present the options and ask first.
@@ -116,11 +116,12 @@ Keep functions short: each does one thing that its name says. When a function gr
 Cada cambio sigue `explore` (opcional) → `propose` → `apply` → `verify` → `archive` (PROC-sdd). Lo obligatorio lo impone CI, no `verify`.
 
 - **Refactor pequeño, sin cambio propio:** un refactor que no cambia el comportamiento (ningún requisito, escenario ni test de comportamiento nuevo) entra en el cambio abierto, con una tarea en su `tasks.md`. No se abre un cambio de OpenSpec para él (PROC-sdd).
+- **Cambio solo de documentación, sin OpenSpec:** un cambio que solo toca documentación (el README o `context/`), sin código, tests ni configuración, no necesita cambio de OpenSpec (PROC-sdd).
 
 - **El lint completo corre en el pre-push (obligatorio):** `pnpm lint` (ESLint con `boundaries` e `import/no-cycle`, más `knip`) tarda minutos, y `import/no-cycle` consume el 98 % del tiempo de ESLint (medido el 2026-10-14: lintar los 5 ficheros de `src/composition` tardó unos 190 s). La regla se queda, porque la exige `context/adr/ADR-001-arquitectura-interna.md` (sección 3, "Reglas de dependencia"). Por eso: (1) durante `apply` y los refactores no se corre `pnpm lint`; si hace falta lintar algo, solo los ficheros tocados y sin esa regla: `pnpm exec eslint <ficheros> --rule "import/no-cycle: off"`; (2) `pnpm typecheck` y `pnpm test:run` se corren por separado y solo sobre lo afectado, sin encadenarlos con el lint; (3) el pre-commit (`.husky/pre-commit`) ya no ejecuta ESLint ni la suite entera: corre `pnpm knip` y `vitest related` sobre los `.ts` y `.tsx` preparados, y la suite entera (`pnpm test:run`) corre en `.husky/pre-push`; (4) `pnpm test:run` y `pnpm lint` completos corren en `.husky/pre-push`, antes de cada push, y en la CI (`.github/workflows/ci.yml`); ni `verify` ni el paso previo a `gh pr create` lo repiten (decidido por el autor el 2026-10-14).
 - **Tamaño antes de `propose` (obligatorio):** cuando el autor elige un ítem de `context/roadmap.md`, antes de `/opsx:propose` se reevalúa su estimación. Si pasa de 2 h, se propone al autor dividirlo (el umbral es una recomendación: decide el autor) y, si acepta, se divide en subtasks `MF-nn.k` de 2 h o menos, con sangría bajo el ítem en `context/roadmap.md`. Cada subtask lleva un **Resultado** (algo que se ve o se ejecuta al terminar), se hace, se prueba y se archiva por separado, y es un cambio de OpenSpec propio (`mf-20-1-…`). El ítem conserva su ID y la estimación total. Se divide solo el ítem elegido, no los lejanos. Un ítem con cambio activo en `openspec/changes/` no se divide en el roadmap: su descomposición es su `tasks.md`.
 - **La seguridad entra por la spec:** el proposal identifica los datos tocados, los posibles abusos y las categorías OWASP que aplican. Cada endpoint o comando trae sus escenarios negativos de autorización y validación. Antes del `archive` se repasa la checklist de `safety-first.md` §4.
-- **Cobertura antes de abrir la PR (obligatorio):** antes de `gh pr create`, el agente corre `pnpm test:coverage`, que aplica los mismos umbrales que la CI. El pre-commit no mide cobertura, para que los commits parciales sigan siendo rápidos, y la falta de cobertura solo salía en la CI (MF-40, decidido por el autor el 2026-10-12). Si el autor ha pedido preguntar antes de correr tests, se le pregunta igual.
+- **Cobertura antes de abrir la PR (obligatorio):** antes de `gh pr create`, el agente corre `pnpm test:coverage`, que aplica los mismos umbrales que la CI. El pre-commit no mide cobertura, para que los commits parciales sigan siendo rápidos, y la falta de cobertura solo salía en la CI (MF-40, decidido por el autor el 2026-10-12). Si el autor ha pedido preguntar antes de correr tests, se le pregunta igual. Una PR que solo toca documentación no corre la cobertura (decidido por el autor el 2026-10-24, en MF-36).
 - **Versión antes de abrir la PR (obligatorio):** antes de `gh pr create`, el agente pregunta al autor si la PR sube `"version"` en `package.json`, y a cuál. Si la sube, el cambio va en esa misma PR. Así, después del merge solo queda `pnpm release`, sin una PR aparte solo para la versión (decidido por el autor el 2026-10-12, tras la PR de MF-40).
 - La presentación y el vídeo cuentan este flujo **como proceso**: qué se delega a los agentes y qué se revisa (PROC-sdd-memoria).
 

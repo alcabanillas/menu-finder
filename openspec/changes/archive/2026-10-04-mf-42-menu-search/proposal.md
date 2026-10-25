@@ -31,7 +31,7 @@ None.
 
 The search reads dish names and ingredients from Neon and prints the evidence dish of each returned menu to the local console. Constraint terms leave to the Gemini API to be embedded. Nothing is written to the database or to the repo.
 
-### Possible abuses and OWASP 2025 (SEG-owasp, `context/OWASP-Top10.md`)
+### Possible abuses and OWASP 2025 (SEG-owasp, `context/seguridad/OWASP-Top10.md`)
 
 There is no endpoint and no user in this change: it is a local CLI. The abuses that remain are about the input structure, the secrets and the quota.
 

@@ -210,7 +210,8 @@ test.describe('today with a menu', () => {
 
     if (isSundayInMadrid()) {
       await expectChooseNextWeek(page);
-      await chooseWeek(account, MENU, NEXT_MONDAY);
+      // Next week's menu beside this week's, which the spec's scenario also has: without it there is no tomorrow.
+      await addWeek(account, MENU, NEXT_MONDAY);
       await page.reload();
       await expect(tomorrow).toContainText(`Menú ${MENU}`);
       await expect(tomorrow.getByText('Comida ficticia e2e')).toBeVisible();
@@ -249,15 +250,19 @@ async function clearSelectionsOf({ email }: TestAccount): Promise<void> {
   );
 }
 
-async function chooseWeek({ email }: TestAccount, menuNumber: number, monday: string): Promise<void> {
-  await withDatabase(async (client) => {
-    await client.query('DELETE FROM selection WHERE user_id = (SELECT id FROM "user" WHERE email = $1)', [email]);
-    await client.query(
+async function chooseWeek(account: TestAccount, menuNumber: number, monday: string): Promise<void> {
+  await clearSelectionsOf(account);
+  await addWeek(account, menuNumber, monday);
+}
+
+async function addWeek({ email }: TestAccount, menuNumber: number, monday: string): Promise<void> {
+  await withDatabase((client) =>
+    client.query(
       `INSERT INTO selection (user_id, menu_number, starts_on)
        SELECT id, $2, ${monday} FROM "user" WHERE email = $1`,
       [email, menuNumber],
-    );
-  });
+    ),
+  );
 }
 
 async function withDatabase<T>(work: (client: pg.Client) => Promise<T>): Promise<T> {

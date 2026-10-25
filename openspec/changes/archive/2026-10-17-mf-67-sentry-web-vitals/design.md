@@ -50,7 +50,7 @@ These are technical, and they follow from the specs. The four choices that are t
 
 ## Migration Plan
 
-1. Merge. Vercel builds from `production` only on release (`pnpm release`, `context/despliegue.md`), so production changes at the next release.
+1. Merge. Vercel builds from `production` only on release (`pnpm release`, `context/runbooks/despliegue.md`), so production changes at the next release.
 2. After the release, open the app and load `/planner` and `/menu`; the Sentry "Web Vitals" page lists them within minutes.
 3. Rollback: remove `tracesSampleRate` (one line) and release; the browser goes back to errors only.
 

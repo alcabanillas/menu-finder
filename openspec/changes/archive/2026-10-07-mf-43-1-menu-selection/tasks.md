@@ -28,7 +28,7 @@
 
 ## 5. Close
 
-- [x] 5.1 Before `archive`: go through the checklist of `context/safety-first.md` §4 and record the result here
+- [x] 5.1 Before `archive`: go through the checklist of `context/seguridad/safety-first.md` §4 and record the result here
   - Business rules in the backend: yes, the start date is computed by `startsOnFor` in the domain, never sent by the client
   - New endpoints: none in this change; `selectMenu` takes `userId` as an argument and MF-43.2's server action must take it from the session (its spec has the negative scenarios)
   - Minimum data: `Selection` exposes only `id`, `menuNumber` and `startsOn`; `user_id` and `selected_at` are not read

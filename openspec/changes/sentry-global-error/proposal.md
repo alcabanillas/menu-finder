@@ -35,7 +35,7 @@ Not copied from the example: Session Replay (open decision, `context/decisiones.
 - **Event flood.** A render error in a loop would send one event per render. `captureException` runs once per error instance (`useEffect` keyed on `error`) and "Try again" is manual. Spike Protection (MF-22.2) and the monthly quota are the cap.
 - **Wrong environment tag.** If `VERCEL_ENV` is unset in a build, the fallback is `NODE_ENV`, never an empty string, so events are never untagged.
 
-## OWASP categories (`context/OWASP-Top10.md`)
+## OWASP categories (`context/seguridad/OWASP-Top10.md`)
 
 - **A09:2025 - Fallos de registro y alertas de seguridad:** render errors were invisible; what an event carries is unchanged.
 - **A10:2025 - Manejo incorrecto de condiciones excepcionales:** a render error shows a controlled screen and no internals.

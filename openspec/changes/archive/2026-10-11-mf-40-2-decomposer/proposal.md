@@ -9,7 +9,7 @@ MF-40.2 (`context/roadmap.md`, item MF-40). The search runs on a typed structure
   - a rejection with its category (`gibberish`, `off-topic`, `instruction`, `not-a-search`) comes back as a typed error;
   - a structure is validated with `parseSearchRequest` of `searchMenus`, and every `term` must appear in the request text, so the model cannot add a term the user did not write;
   - an empty structure (a search the four types cannot hold, such as A12 "platos para el finde") is a valid answer, not a rejection;
-  - an answer that does not validate is rejected, never repaired (`context/safety-first.md` §2.6).
+  - an answer that does not validate is rejected, never repaired (`context/seguridad/safety-first.md` §2.6).
 - A Genkit adapter with `gemini-3.5-flash-lite`, structured output, minimal thinking and a timeout. It replaces "Flash" in IA-proveedor, decided by the author on 2026-10-11, and MF-40.3 compares it with `gemini-3.8-flash` (design.md D9). The request goes into the prompt as delimited data. The prompt follows `evals/decomposer/labelling-guide.md` and holds no golden-set request, so the evaluation in MF-40.3 stays blind (EVAL-golden-sets).
 - The CLI command `pnpm ingest decompose "<request>"`, which prints the structure as JSON or the rejection with its category. It needs `GEMINI_API_KEY` only, with no database.
 - The spec `decomposer-golden-set` says that each *search* request has constraints and groups. Since MF-40.1, a rejected request has none, and three requirements still say "each request".

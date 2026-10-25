@@ -74,12 +74,12 @@ Every test task writes the test first and runs it (`pnpm test`) to see it fail f
 ## 10. Cleanup and documentation
 
 - [x] 10.1 Remove `scripts/datos/parse-menu-pdftable.js` and the `datos:menu` script from `package.json`; verify `pnpm lint`, `pnpm typecheck` and `pnpm test` pass and the other `scripts/datos/` scripts still exist
-- [x] 10.2 Rewrite `context/tareas/T2-esquema-json-ingesta.md` §2 for the `WeeklyMenu[]` format: the new §2.1 origin (`pnpm ingest menu`, `src/`), §2.2 shape, §2.3 semantics (score only in the QA report; threshold `1`), and §2.5 numbers from 9.1–9.3; verify no reference to `parse-menu-pdftable.js`, `recetaFichero` or `scoreMatch` remains in §2
-- [x] 10.3 Update `context/tareas/T0-extraccion-previa.md` (step 2: command and output), `context/decisiones.md` (ING-menu-json, ING-parser-menu, ING-trazabilidad: script name → CLI command; the match threshold is `1`), `context/datos.md` (coverage numbers, if 9.2 changed them) and `context/roadmap.md` (MF-11 status, MF-14 reads the `WeeklyMenu[]` format); verify `grep -rn "parse-menu-pdftable\|datos:menu" context/` returns only `historial-de-decisiones.md` (frozen)
+- [x] 10.2 Rewrite `context/datos/T2-esquema-json-ingesta.md` §2 for the `WeeklyMenu[]` format: the new §2.1 origin (`pnpm ingest menu`, `src/`), §2.2 shape, §2.3 semantics (score only in the QA report; threshold `1`), and §2.5 numbers from 9.1–9.3; verify no reference to `parse-menu-pdftable.js`, `recetaFichero` or `scoreMatch` remains in §2
+- [x] 10.3 Update `context/runbooks/T0-extraccion-previa.md` (step 2: command and output), `context/decisiones.md` (ING-menu-json, ING-parser-menu, ING-trazabilidad: script name → CLI command; the match threshold is `1`), `context/datos/datos.md` (coverage numbers, if 9.2 changed them) and `context/roadmap.md` (MF-11 status, MF-14 reads the `WeeklyMenu[]` format); verify `grep -rn "parse-menu-pdftable\|datos:menu" context/` returns only `historial-de-decisiones.md` (frozen)
 
 ## 11. Security review
 
-- [x] 11.1 Go through the `context/safety-first.md` §4 checklist before archiving and record the result
+- [x] 11.1 Go through the `context/seguridad/safety-first.md` §4 checklist before archiving and record the result
   - Critical decisions in the backend: yes, every rule is in `domain`/`application`; the CLI only presents the summary and ESLint keeps it off `domain`.
   - Endpoint auth/permissions, user from the session, authorization tests, parameterized DB queries, logging of sensitive actions: not applicable (local CLI, ING-cli-local: no endpoint, user, session or database).
   - Negative validation tests in CI: yes (unknown or extra argument → exit `2` with nothing built; QA directory outside `data/` rejected before ingesting; missing raw directory → exit `1`, nothing written).
