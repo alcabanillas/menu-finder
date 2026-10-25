@@ -205,17 +205,34 @@ test.describe('today with a menu', () => {
     await expect(page.getByRole('dialog')).toHaveCount(0);
   });
 
-  test("names tomorrow's dishes, except on Sunday, when tomorrow is in another week", async ({ page }) => {
+  test("names tomorrow's dishes; on Sunday, next week's Monday or the way to choose it", async ({ page }) => {
     const tomorrow = page.getByRole('region', { name: /^Mañana/ });
 
     if (isSundayInMadrid()) {
-      await expect(tomorrow).toHaveCount(0);
+      await expectChooseNextWeek(page);
+      await chooseWeek(account, MENU, NEXT_MONDAY);
+      await page.reload();
+      await expect(tomorrow).toContainText(`Menú ${MENU}`);
+      await expect(tomorrow.getByText('Comida ficticia e2e')).toBeVisible();
+      await expect(page.getByRole('link', { name: 'Ver el menú de la semana que viene' })).toHaveAttribute(
+        'href',
+        /\/menu\?startsOn=\d{4}-\d{2}-\d{2}$/,
+      );
       return;
     }
     await expect(tomorrow.getByText('Comida ficticia e2e')).toBeVisible();
     await expect(tomorrow.getByRole('button')).toHaveCount(0);
   });
 });
+
+async function expectChooseNextWeek(page: Page) {
+  await expect(page.getByRole('region', { name: /^Mañana/ })).toHaveCount(0);
+  await expect(page.getByRole('status')).toContainText('La semana que viene aún no tiene menú');
+  await expect(page.getByRole('link', { name: /^Elegir menú para el \d+ \w+/ })).toHaveAttribute(
+    'href',
+    '/planner?week=next',
+  );
+}
 
 // The clock of the server is Madrid's (menu-selection spec).
 function isSundayInMadrid(): boolean {

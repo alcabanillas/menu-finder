@@ -2,7 +2,8 @@ import { chooseMenu, type ChooseMenuInput } from '@/application/use-cases/menu/c
 import { menuPreview, type MenuPreviewInput } from '@/application/use-cases/menu/menu-preview';
 import { menuWeekPage, type MenuWeekPageInput } from '@/application/use-cases/menu/menu-week-page';
 import { selectRandomMenu, type SelectRandomMenuInput } from '@/application/use-cases/menu/select-random-menu';
-import { weeksToChoose, type WeeksToChooseInput } from '@/application/use-cases/menu/weeks-to-choose';
+import { todaysMenu, type TodaysMenuInput } from '@/application/use-cases/menu/todays-menu';
+import { weeksToChoose,type WeeksToChooseInput } from '@/application/use-cases/menu/weeks-to-choose';
 import type { Deps } from './infrastructure-deps';
 
 /** The use cases of the weekly menu and the selections. */
@@ -13,5 +14,6 @@ export function menuUseCases(lazyDeps: () => Deps) {
     selectRandomMenu: async (input: SelectRandomMenuInput) => selectRandomMenu(lazyDeps(), input),
     menuPreview: async (input: MenuPreviewInput) => menuPreview(lazyDeps(), input),
     menuWeekPage: async (input: MenuWeekPageInput) => menuWeekPage(lazyDeps(), input),
+    todaysMenu: async (input: TodaysMenuInput) => todaysMenu(lazyDeps(), input),
   };
 }

@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
+import type { DayDto } from '@/application/dto/weekly-menu';
 import { formatDayDate } from '@/shared/format-date';
+import { DAY_BARS } from '@/shared/ui/day-bars';
 
 /** `today` is unknown only when the menu read failed; then the heading has no date. */
 type DashboardLayoutProps = { today?: string; weeks: ReactNode; meals: ReactNode; shopping: ReactNode };
@@ -16,8 +18,8 @@ const GRID =
 const SIDE = 'min-w-0 @min-[800px]:col-start-2';
 const EYEBROW =
   'flex items-center gap-2.5 text-eyebrow font-semibold uppercase tracking-[var(--text-eyebrow--letter-spacing)] text-olive-600';
-// Sunday is 0 in `getUTCDay`; the classes are literal so Tailwind keeps them.
-const DAY_COLOURS = ['bg-day-sun', 'bg-day-mon', 'bg-day-tue', 'bg-day-wed', 'bg-day-thu', 'bg-day-fri', 'bg-day-sat'];
+// Sunday is 0 in `getUTCDay`. The bars are the shared ones, so Sunday's white one has its border.
+const DAYS: DayDto[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 
 /** The page of a signed-in user's `/`: what is on today first, and the weeks and the shopping beside it. */
 export function DashboardLayout({ today, weeks, meals, shopping }: DashboardLayoutProps) {
@@ -51,5 +53,5 @@ function TodayDate({ date }: { date: string }) {
 }
 
 function dayColourOf(date: string): string {
-  return DAY_COLOURS[new Date(`${date}T00:00:00Z`).getUTCDay()];
+  return DAY_BARS[DAYS[new Date(`${date}T00:00:00Z`).getUTCDay()]];
 }
